@@ -8,7 +8,7 @@
 	<artifactId>student-assessment-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>student-assessment-api</name>
-	<description>Ministry of Education Course Achievement API</description>
+	<description>Ministry of Education Student Assessment API</description>
    
 
     <properties>
