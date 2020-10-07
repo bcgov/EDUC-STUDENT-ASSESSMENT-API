@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  template: 'educ-course-achievement-api-template'
+metadata:
+  name: 'educ-course-achievement-api-template'
+objects:
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        build: educ-course-achievement-api-pipeline
+      name: educ-course-achievement-api-pipeline
+      namespace: wbmfsf-tools
+    spec:
+      source:
+        git:
+          ref: master
+          uri: 'https://github.com/bcgov/EDUC-COURSE-ACHIEVEMENT-API'
+        type: Git
+      strategy:
+        jenkinsPipelineStrategy:
+          jenkinsfilePath: tools/jenkins/Jenkinsfile-api
