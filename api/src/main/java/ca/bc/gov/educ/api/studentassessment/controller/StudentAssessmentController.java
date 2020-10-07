@@ -17,7 +17,7 @@ import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiConstants;
 
 @CrossOrigin
 @RestController
-@RequestMapping(StudentAssessmentApiConstants.COURSE_ACHIEVEMENT_API_ROOT_MAPPING)
+@RequestMapping(StudentAssessmentApiConstants.STUDENT_ASSESSMENT_API_ROOT_MAPPING)
 public class StudentAssessmentController {
 
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentController.class);
@@ -25,7 +25,7 @@ public class StudentAssessmentController {
     @Autowired
     StudentAssessmentService studentAssessmentService;
 
-    @GetMapping(StudentAssessmentApiConstants.GET_COURSE_ACHIEVEMENT_BY_PEN_MAPPING)
+    @GetMapping(StudentAssessmentApiConstants.GET_STUDENT_ASSESSMENT_BY_PEN_MAPPING)
     public List<StudentAssessment> getStudentAssessmentByPEN(@PathVariable String pen) {
         logger.debug("#Get All Course Achievements by PEN: " + pen);
         return studentAssessmentService.getStudentAssessmentList(pen);
