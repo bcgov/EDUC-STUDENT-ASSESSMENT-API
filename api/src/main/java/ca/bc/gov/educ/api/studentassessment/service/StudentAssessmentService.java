@@ -25,9 +25,9 @@ public class StudentAssessmentService {
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentService.class);
 
      /**
-     * Get all student courses by PEN populated in Student Course DTO
+     * Get all student assessments by PEN populated in Student Assessment DTO
      *
-     * @return Student Course 
+     * @return Student Assessment 
      * @throws java.lang.Exception
      */
     public List<StudentAssessment> getStudentAssessmentList(String pen) {

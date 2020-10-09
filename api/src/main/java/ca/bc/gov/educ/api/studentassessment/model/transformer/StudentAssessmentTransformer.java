@@ -19,41 +19,41 @@ public class StudentAssessmentTransformer {
     @Autowired
     ModelMapper modelMapper;
 
-    public StudentAssessment transformToDTO (StudentAssessmentEntity studentCourseEntity) {
-        StudentAssessment studentCourse = modelMapper.map(studentCourseEntity, StudentAssessment.class);
-        return studentCourse;
+    public StudentAssessment transformToDTO (StudentAssessmentEntity studentAssessmentEntity) {
+        StudentAssessment studentAssessment = modelMapper.map(studentAssessmentEntity, StudentAssessment.class);
+        return studentAssessment;
     }
 
-    public StudentAssessment transformToDTO ( Optional<StudentAssessmentEntity> courseAchievementEntity ) {
+    public StudentAssessment transformToDTO ( Optional<StudentAssessmentEntity> studentAssessmentEntity ) {
         StudentAssessmentEntity cae = new StudentAssessmentEntity();
 
-        if (courseAchievementEntity.isPresent())
-            cae = courseAchievementEntity.get();
+        if (studentAssessmentEntity.isPresent())
+            cae = studentAssessmentEntity.get();
 
-        StudentAssessment courseAchievement = modelMapper.map(cae, StudentAssessment.class);
-        return courseAchievement;
+        StudentAssessment studentAssessment = modelMapper.map(cae, StudentAssessment.class);
+        return studentAssessment;
     }
 
-    public List<StudentAssessment> transformToDTO (Iterable<StudentAssessmentEntity> courseAchievementEntities ) {
+    public List<StudentAssessment> transformToDTO (Iterable<StudentAssessmentEntity> studentAssessmentEntities ) {
 
-        List<StudentAssessment> courseAchievementList = new ArrayList<StudentAssessment>();
+        List<StudentAssessment> studentAssessmentList = new ArrayList<StudentAssessment>();
 
-        for (StudentAssessmentEntity courseAchievementEntity : courseAchievementEntities) {
-            StudentAssessment courseAchievement = new StudentAssessment();
-            courseAchievement = modelMapper.map(courseAchievementEntity, StudentAssessment.class);
+        for (StudentAssessmentEntity studentAssessmentEntity : studentAssessmentEntities) {
+            StudentAssessment studentAssessment = new StudentAssessment();
+            studentAssessment = modelMapper.map(studentAssessmentEntity, StudentAssessment.class);
             StudentAssessmentId assessmentKeyObj = new StudentAssessmentId();
-            assessmentKeyObj.setPen(courseAchievementEntity.getAssessmentKey().getPen());
-            assessmentKeyObj.setAssessmentCode(courseAchievementEntity.getAssessmentKey().getAssessmentCode());
-            assessmentKeyObj.setSessionDate(StudentAssessmentApiUtils.parseTraxDate(courseAchievementEntity.getAssessmentKey().getSessionDate()).toLocaleString());
-            courseAchievement.setAssessmentKey(assessmentKeyObj);
-            courseAchievementList.add(courseAchievement);
+            assessmentKeyObj.setPen(studentAssessmentEntity.getAssessmentKey().getPen());
+            assessmentKeyObj.setAssessmentCode(studentAssessmentEntity.getAssessmentKey().getAssessmentCode());
+            assessmentKeyObj.setSessionDate(StudentAssessmentApiUtils.parseTraxDate(studentAssessmentEntity.getAssessmentKey().getSessionDate()).toLocaleString());
+            studentAssessment.setAssessmentKey(assessmentKeyObj);
+            studentAssessmentList.add(studentAssessment);
         }
 
-        return courseAchievementList;
+        return studentAssessmentList;
     }
 
-    public StudentAssessmentEntity transformToEntity(StudentAssessment studentCourse) {
-        StudentAssessmentEntity courseAchievementEntity = modelMapper.map(studentCourse, StudentAssessmentEntity.class);
-        return courseAchievementEntity;
+    public StudentAssessmentEntity transformToEntity(StudentAssessment studentAssessment) {
+        StudentAssessmentEntity studentAssessmentEntity = modelMapper.map(studentAssessment, StudentAssessmentEntity.class);
+        return studentAssessmentEntity;
     }
 }

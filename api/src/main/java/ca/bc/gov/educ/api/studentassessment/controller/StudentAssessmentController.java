@@ -27,7 +27,7 @@ public class StudentAssessmentController {
 
     @GetMapping(StudentAssessmentApiConstants.GET_STUDENT_ASSESSMENT_BY_PEN_MAPPING)
     public List<StudentAssessment> getStudentAssessmentByPEN(@PathVariable String pen) {
-        logger.debug("#Get All Course Achievements by PEN: " + pen);
+        logger.debug("#Get All Student Assessments by PEN: " + pen);
         return studentAssessmentService.getStudentAssessmentList(pen);
     }
 }
