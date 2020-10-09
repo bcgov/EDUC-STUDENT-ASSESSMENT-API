@@ -22,7 +22,7 @@ public class StudentAssessmentController {
 
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentController.class);
 
-    @Autowired
+   @Autowired
     StudentAssessmentService studentAssessmentService;
 
     @GetMapping(StudentAssessmentApiConstants.GET_STUDENT_ASSESSMENT_BY_PEN_MAPPING)

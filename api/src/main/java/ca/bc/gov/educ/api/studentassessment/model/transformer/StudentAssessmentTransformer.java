@@ -1,16 +1,17 @@
 package ca.bc.gov.educ.api.studentassessment.model.transformer;
 
-import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessment;
-import ca.bc.gov.educ.api.studentassessment.model.entity.StudentAssessmentEntity;
-import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessment;
+import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessmentId;
+import ca.bc.gov.educ.api.studentassessment.model.entity.StudentAssessmentEntity;
+import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiUtils;
 
 @Component
 public class StudentAssessmentTransformer {
@@ -20,8 +21,6 @@ public class StudentAssessmentTransformer {
 
     public StudentAssessment transformToDTO (StudentAssessmentEntity studentCourseEntity) {
         StudentAssessment studentCourse = modelMapper.map(studentCourseEntity, StudentAssessment.class);
-        studentCourse.setSessionDate(StudentAssessmentApiUtils.formatDate(studentCourseEntity.getSessionDate()));
-
         return studentCourse;
     }
 
@@ -32,8 +31,6 @@ public class StudentAssessmentTransformer {
             cae = courseAchievementEntity.get();
 
         StudentAssessment courseAchievement = modelMapper.map(cae, StudentAssessment.class);
-        courseAchievement.setSessionDate(StudentAssessmentApiUtils.formatDate(cae.getSessionDate()));
-
         return courseAchievement;
     }
 
@@ -44,7 +41,11 @@ public class StudentAssessmentTransformer {
         for (StudentAssessmentEntity courseAchievementEntity : courseAchievementEntities) {
             StudentAssessment courseAchievement = new StudentAssessment();
             courseAchievement = modelMapper.map(courseAchievementEntity, StudentAssessment.class);
-            courseAchievement.setSessionDate(StudentAssessmentApiUtils.formatDate(courseAchievementEntity.getSessionDate()));
+            StudentAssessmentId assessmentKeyObj = new StudentAssessmentId();
+            assessmentKeyObj.setPen(courseAchievementEntity.getAssessmentKey().getPen());
+            assessmentKeyObj.setAssessmentCode(courseAchievementEntity.getAssessmentKey().getAssessmentCode());
+            assessmentKeyObj.setSessionDate(StudentAssessmentApiUtils.parseTraxDate(courseAchievementEntity.getAssessmentKey().getSessionDate()).toLocaleString());
+            courseAchievement.setAssessmentKey(assessmentKeyObj);
             courseAchievementList.add(courseAchievement);
         }
 
@@ -53,7 +54,6 @@ public class StudentAssessmentTransformer {
 
     public StudentAssessmentEntity transformToEntity(StudentAssessment studentCourse) {
         StudentAssessmentEntity courseAchievementEntity = modelMapper.map(studentCourse, StudentAssessmentEntity.class);
-        courseAchievementEntity.setSessionDate(StudentAssessmentApiUtils.parseDate(studentCourse.getSessionDate()));
         return courseAchievementEntity;
     }
 }

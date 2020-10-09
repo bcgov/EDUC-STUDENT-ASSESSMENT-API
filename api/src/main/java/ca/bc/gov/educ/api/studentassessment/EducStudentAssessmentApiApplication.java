@@ -26,14 +26,8 @@ public class EducStudentAssessmentApiApplication {
 
 		ModelMapper modelMapper = new ModelMapper();
 
-		modelMapper.typeMap(StudentAssessmentEntity.class, StudentAssessment.class).addMappings(mapper -> {
-			mapper.skip(StudentAssessment::setSessionDate);
-		});
-
-		modelMapper.typeMap(StudentAssessment.class, StudentAssessmentEntity.class).addMappings(mapper -> {
-			mapper.skip(StudentAssessmentEntity::setSessionDate);
-		});
-
+		modelMapper.typeMap(StudentAssessmentEntity.class, StudentAssessment.class);
+		modelMapper.typeMap(StudentAssessment.class, StudentAssessmentEntity.class);
 		return modelMapper;
 	}
 }

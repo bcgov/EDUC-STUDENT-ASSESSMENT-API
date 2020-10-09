@@ -22,4 +22,5 @@ public class StudentAssessmentApiConstants {
 
     //Default Date format constants
     public static final String DEFAULT_DATE_FORMAT = "dd-MMM-yyyy";
+	public static final String TRAX_DATE_FORMAT = "yyyyMM";
 }
