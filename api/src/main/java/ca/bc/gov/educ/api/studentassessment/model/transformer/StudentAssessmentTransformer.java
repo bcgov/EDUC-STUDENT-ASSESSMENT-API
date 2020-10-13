@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessment;
-import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessmentId;
 import ca.bc.gov.educ.api.studentassessment.model.entity.StudentAssessmentEntity;
 import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiUtils;
 
@@ -41,11 +40,9 @@ public class StudentAssessmentTransformer {
         for (StudentAssessmentEntity studentAssessmentEntity : studentAssessmentEntities) {
             StudentAssessment studentAssessment = new StudentAssessment();
             studentAssessment = modelMapper.map(studentAssessmentEntity, StudentAssessment.class);
-            StudentAssessmentId assessmentKeyObj = new StudentAssessmentId();
-            assessmentKeyObj.setPen(studentAssessmentEntity.getAssessmentKey().getPen());
-            assessmentKeyObj.setAssessmentCode(studentAssessmentEntity.getAssessmentKey().getAssessmentCode());
-            assessmentKeyObj.setSessionDate(StudentAssessmentApiUtils.parseTraxDate(studentAssessmentEntity.getAssessmentKey().getSessionDate()).toLocaleString());
-            studentAssessment.setAssessmentKey(assessmentKeyObj);
+            studentAssessment.setPen(studentAssessmentEntity.getAssessmentKey().getPen());
+            studentAssessment.setAssessmentCode(studentAssessmentEntity.getAssessmentKey().getAssessmentCode());
+            studentAssessment.setSessionDate(StudentAssessmentApiUtils.parseTraxDate(studentAssessmentEntity.getAssessmentKey().getSessionDate()).toLocaleString());
             studentAssessmentList.add(studentAssessment);
         }
 
