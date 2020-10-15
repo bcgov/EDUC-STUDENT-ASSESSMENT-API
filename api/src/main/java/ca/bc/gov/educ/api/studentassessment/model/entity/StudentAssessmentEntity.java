@@ -24,6 +24,18 @@ public class StudentAssessmentEntity {
     private String exceededWriteFlag;
     
     @Column(name = "ASSMT_PROFICIENCY_SCORE", nullable = true)
-    private Double proficiencyScore;
+    private Double proficiencyScore;    
+    
+    @Column(name = "WROTE_FLAG", nullable = true)
+    private String wroteFlag;
+    
+    @Column(name = "RAW_SCORE", nullable = true)
+    private Double rawScore;
+    
+    @Column(name = "PERCENT_COMPLETE", nullable = true)
+    private Double percentComplete;
+    
+    @Column(name = "IRT_SCORE", nullable = true)
+    private Double irtScore;
   
 }
