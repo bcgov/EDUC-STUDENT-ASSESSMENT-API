@@ -40,7 +40,7 @@ pipeline{
 
       REPO_NAME = 'educ-student-assessment-api'
       OWNER = 'bcgov'
-      JOB_NAME = 'master'
+      JOB_NAME = 'main'
       TAG = 'dev'
 
       APP_NAME = 'student-assessment-api'
