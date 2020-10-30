@@ -10,6 +10,7 @@ public class StudentAssessment {
 
 	private String pen;    
     private String assessmentCode;    
+    private String assessmentName;  
     private String sessionDate;
     private String gradReqMet;
     private String specialCase;
