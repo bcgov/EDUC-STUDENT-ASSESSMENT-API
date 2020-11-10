@@ -7,14 +7,15 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import ca.bc.gov.educ.api.studentassessment.model.dto.Assessment;
 import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessment;
-import ca.bc.gov.educ.api.studentassessment.model.transformer.AssessmentTransformer;
 import ca.bc.gov.educ.api.studentassessment.model.transformer.StudentAssessmentTransformer;
-import ca.bc.gov.educ.api.studentassessment.repository.AssessmentRepository;
 import ca.bc.gov.educ.api.studentassessment.repository.StudentAssessmentRepository;
+import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiConstants;
 
 @Service
 public class StudentAssessmentService {
@@ -26,10 +27,10 @@ public class StudentAssessmentService {
     private StudentAssessmentTransformer studentAssessmentTransformer;
     
     @Autowired
-    private AssessmentRepository assessmentRepo;  
-
-    @Autowired
-    private AssessmentTransformer assessmentTransformer;
+    RestTemplate restTemplate;
+    
+    @Value(StudentAssessmentApiConstants.ENDPOINT_ASSESSMENT_BY_ASSMT_CODE_URL)
+    private String getAssessmentByAssmtCodeURL;
 
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentService.class);
 
@@ -45,7 +46,7 @@ public class StudentAssessmentService {
         try {
         	studentAssessment = studentAssessmentTransformer.transformToDTO(studentAssessmentRepo.findByPen(pen));
         	studentAssessment.forEach(sA -> {
-        		Assessment assessment = assessmentTransformer.transformToDTO(assessmentRepo.findByAssessmentCode(sA.getAssessmentCode()));
+        		Assessment assessment = restTemplate.getForObject(String.format(getAssessmentByAssmtCodeURL, sA.getAssessmentCode()), Assessment.class);
         		if(assessment != null) {
         			sA.setAssessmentName(assessment.getAssessmentName());
         		}

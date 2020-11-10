@@ -23,4 +23,6 @@ public class StudentAssessmentApiConstants {
     //Default Date format constants
     public static final String DEFAULT_DATE_FORMAT = "dd-MMM-yyyy";
 	public static final String TRAX_DATE_FORMAT = "yyyyMM";
+	
+	public static final String ENDPOINT_ASSESSMENT_BY_ASSMT_CODE_URL="${endpoint.assessment-api.assessment_by_assmt_code}";
 }
