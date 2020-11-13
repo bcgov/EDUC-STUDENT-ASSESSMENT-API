@@ -42,7 +42,7 @@ public class StudentAssessmentTransformer {
             studentAssessment = modelMapper.map(studentAssessmentEntity, StudentAssessment.class);
             studentAssessment.setPen(studentAssessmentEntity.getAssessmentKey().getPen());
             studentAssessment.setAssessmentCode(studentAssessmentEntity.getAssessmentKey().getAssessmentCode());
-            studentAssessment.setSessionDate(StudentAssessmentApiUtils.parseTraxDate(studentAssessmentEntity.getAssessmentKey().getSessionDate()).toLocaleString());
+            studentAssessment.setSessionDate(StudentAssessmentApiUtils.parseTraxDate(studentAssessmentEntity.getAssessmentKey().getSessionDate()));
             studentAssessmentList.add(studentAssessment);
         }
 
