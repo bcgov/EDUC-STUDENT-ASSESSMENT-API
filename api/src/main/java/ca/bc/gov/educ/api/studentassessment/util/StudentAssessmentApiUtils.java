@@ -2,6 +2,8 @@ package ca.bc.gov.educ.api.studentassessment.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 
 public class StudentAssessmentApiUtils {
@@ -48,7 +50,7 @@ public class StudentAssessmentApiUtils {
         return date;
     }
 
-	 public static Date parseTraxDate (String sessionDate) {
+	 public static String parseTraxDate (String sessionDate) {
         if (sessionDate == null)
             return null;
 
@@ -57,10 +59,11 @@ public class StudentAssessmentApiUtils {
 
         try {
             date = simpleDateFormat.parse(sessionDate);
+            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            return localDate.getYear() +"/"+ String.format("%02d", localDate.getMonthValue());
         } catch (ParseException e) {
             e.printStackTrace();
+            return null;
         }
-
-        return date;
     }
 }
