@@ -33,10 +33,10 @@ pipeline{
   }
 
     environment{
-      TOOLS = 'wbmfsf-tools'
-      DEV = 'wbmfsf-dev'
-      TEST = 'wbmfsf-test'
-      PROD = 'wbmfsf-prod'
+      TOOLS = '77c02f-tools'
+      DEV = '77c02f-dev'
+      TEST = '77c02f-test'
+      PROD = '77c02f-prod'
 
       REPO_NAME = 'educ-student-assessment-api'
       OWNER = 'bcgov'
@@ -44,10 +44,10 @@ pipeline{
       TAG = 'dev'
 
       APP_NAME = 'student-assessment-api'
-      APP_DOMAIN = 'pathfinder.gov.bc.ca'
+      APP_DOMAIN = 'apps.silver.devops.gov.bc.ca'
 
-      SOURCE_REPO_RAW = 'https://github.com/${OWNER}/${REPO_NAME}/master'
-      SOURCE_REPO_REF = 'master'
+      SOURCE_REPO_RAW = 'https://github.com/${OWNER}/${REPO_NAME}/main'
+      SOURCE_REPO_REF = 'main'
       SOURCE_REPO_URL = 'https://github.com/${OWNER}/${REPO_NAME}.git'
 
       TOOLS_HOST_ROUTE = "${APP_NAME}-${TOOLS}.${APP_DOMAIN}"
@@ -123,7 +123,7 @@ pipeline{
     }
 	stage('Promote to DEV') {
       steps{
-        deployStage('Dev', DEV, DEV_HOST_ROUTE, 'dev')
+        deployStage('Tools', TOOLS, DEV_HOST_ROUTE, 'dev')
       }
       post{
         success{
@@ -139,7 +139,7 @@ pipeline{
 
 def deployStage(String stageEnv, String projectEnv, String hostRouteEnv, String tag) {
 
-  if (!stageEnv.equalsIgnoreCase('Dev')) {
+  if (!stageEnv.equalsIgnoreCase('Tools')) {
     input("Deploy to ${projectEnv}?")
   }
 
