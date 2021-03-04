@@ -51,7 +51,7 @@ public class StudentAssessmentController {
     	String accessToken = auth.getTokenValue();
     	List<StudentAssessment> studentAssessmentList = studentAssessmentService.getStudentAssessmentList(pen,accessToken);
     	if(studentAssessmentList.isEmpty()) {
-        	return response.NOT_FOUND();
+        	return response.NO_CONTENT();
         }
     	return response.GET(studentAssessmentList);
     }
