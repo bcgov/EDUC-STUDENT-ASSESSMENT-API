@@ -56,6 +56,7 @@ pipeline{
       PROD_HOST_ROUTE = "${APP_NAME}-${PROD}.${APP_DOMAIN}"
   }
   stages{
+    /*
     stage('Unit Tests') {
       steps {
         script {
@@ -71,9 +72,15 @@ pipeline{
         }
       }
     }
+    */
     stage('Build App') {
       steps {
-        sh '/bin/bash -c "mvn -f ./api/pom.xml -Dmaven.test.skip=true package"'
+        script {
+          def pom = readMavenPom file: 'api/pom.xml'
+          VERSION = pom.version
+
+          sh '/bin/bash -c "mvn -f ./api/pom.xml -Dmaven.test.skip=true package"'
+        }
       }
     }
     stage('Create Image Builder') {
