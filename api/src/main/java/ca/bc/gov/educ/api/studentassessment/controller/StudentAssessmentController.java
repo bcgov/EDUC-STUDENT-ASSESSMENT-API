@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessment;
 import ca.bc.gov.educ.api.studentassessment.service.StudentAssessmentService;
+import ca.bc.gov.educ.api.studentassessment.util.GradValidation;
+import ca.bc.gov.educ.api.studentassessment.util.ResponseHelper;
 import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -31,15 +34,25 @@ public class StudentAssessmentController {
 
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentController.class);
 
-   @Autowired
+    @Autowired
     StudentAssessmentService studentAssessmentService;
+   
+    @Autowired
+	GradValidation validation;
+   
+    @Autowired
+	ResponseHelper response;
 
     @GetMapping(StudentAssessmentApiConstants.GET_STUDENT_ASSESSMENT_BY_PEN_MAPPING)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_ASSESSMENT_DATA')")
-    public List<StudentAssessment> getStudentAssessmentByPEN(@PathVariable String pen) {
+    public ResponseEntity<List<StudentAssessment>> getStudentAssessmentByPEN(@PathVariable String pen) {
         logger.debug("#Get All Student Assessments by PEN: " + pen);
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
-        return studentAssessmentService.getStudentAssessmentList(pen,accessToken);
+    	List<StudentAssessment> studentAssessmentList = studentAssessmentService.getStudentAssessmentList(pen,accessToken);
+    	if(studentAssessmentList.isEmpty()) {
+        	return response.NO_CONTENT();
+        }
+    	return response.GET(studentAssessmentList);
     }
 }

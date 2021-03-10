@@ -12,7 +12,7 @@ objects:
       labels:
         build: educ-student-achievement-api-pipeline
       name: educ-student-achievement-api-pipeline
-      namespace: wbmfsf-tools
+      namespace: 77c02f-tools
     spec:
       source:
         git:
