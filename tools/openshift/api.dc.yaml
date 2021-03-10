@@ -54,8 +54,6 @@ objects:
                 - secretRef:
                     name: educ-grad-db-secret
                 - secretRef:
-                    name: grad-cdogs-secret
-                - secretRef:
                     name: grad-keycloak-pk-secret
               resources: {}
       test: false
