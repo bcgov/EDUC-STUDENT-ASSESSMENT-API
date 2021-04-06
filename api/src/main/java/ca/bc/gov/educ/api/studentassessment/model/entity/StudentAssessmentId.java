@@ -25,13 +25,13 @@ public class StudentAssessmentId implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Size(max = 10)
-    @Column(name = "STUD_NO", insertable = false, updatable = false)
+    @Column(name = "PEN", insertable = false, updatable = false)
     private String pen;
     
-    @Column(name = "ASSMT_CODE", nullable = true)
+    @Column(name = "ASSM_CODE", nullable = true)
     private String assessmentCode;
     
-    @Column(name = "ASSMT_SESSION", nullable = true)
+    @Column(name = "ASSM_SESSION", nullable = true)
     private String sessionDate;
 
     public StudentAssessmentId() {
