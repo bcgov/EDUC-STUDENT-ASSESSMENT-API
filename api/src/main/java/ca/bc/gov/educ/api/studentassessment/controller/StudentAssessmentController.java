@@ -22,14 +22,17 @@ import ca.bc.gov.educ.api.studentassessment.util.GradValidation;
 import ca.bc.gov.educ.api.studentassessment.util.ResponseHelper;
 import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @CrossOrigin
 @RestController
 @RequestMapping(StudentAssessmentApiConstants.STUDENT_ASSESSMENT_API_ROOT_MAPPING)
 @EnableResourceServer
-@OpenAPIDefinition(info = @Info(title = "API for Code Data.", description = "This Read API is for Reading Code data.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_ASSESSMENT_DATA"})})
+@OpenAPIDefinition(info = @Info(title = "API for Student Assessments.", description = "This API is for Reading Student Assessments data.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_ASSESSMENT_DATA"})})
 public class StudentAssessmentController {
 
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentController.class);
@@ -45,6 +48,8 @@ public class StudentAssessmentController {
 
     @GetMapping(StudentAssessmentApiConstants.GET_STUDENT_ASSESSMENT_BY_PEN_MAPPING)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_ASSESSMENT_DATA')")
+    @Operation(summary = "Find All Student Assessments by PEN", description = "Get All Student Assessments by PEN", tags = { "Student Assessments" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<List<StudentAssessment>> getStudentAssessmentByPEN(@PathVariable String pen) {
         logger.debug("#Get All Student Assessments by PEN: " + pen);
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
