@@ -17,6 +17,10 @@ public class StudentAssessment {
     private String exceededWriteFlag;    
     private Double proficiencyScore;
     
+    private String getPen() {
+    	return pen != null ? pen.trim():null;
+    }
+    
 	@Override
 	public String toString() {
 		return "StudentAssessment [pen=" + pen + ", assessmentCode=" + assessmentCode + ", sessionDate=" + sessionDate
