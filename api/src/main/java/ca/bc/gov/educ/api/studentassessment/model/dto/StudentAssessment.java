@@ -17,7 +17,7 @@ public class StudentAssessment {
     private String exceededWriteFlag;    
     private Double proficiencyScore;
     
-    private String getPen() {
+    public String getPen() {
     	return pen != null ? pen.trim():null;
     }
     

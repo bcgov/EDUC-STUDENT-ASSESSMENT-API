@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,12 +53,18 @@ public class StudentAssessmentController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<List<StudentAssessment>> getStudentAssessmentByPEN(@PathVariable String pen) {
         logger.debug("#Get All Student Assessments by PEN: " + pen);
-        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-    	List<StudentAssessment> studentAssessmentList = studentAssessmentService.getStudentAssessmentList(pen,accessToken);
-    	if(studentAssessmentList.isEmpty()) {
-        	return response.NO_CONTENT();
+        validation.requiredField(pen, "Pen");
+        if(validation.hasErrors()) {
+        	validation.stopOnErrors();
+    		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }else {
+	        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+	    	String accessToken = auth.getTokenValue();
+	    	List<StudentAssessment> studentAssessmentList = studentAssessmentService.getStudentAssessmentList(pen,accessToken);
+	    	if(studentAssessmentList.isEmpty()) {
+	        	return response.NO_CONTENT();
+	        }
+	    	return response.GET(studentAssessmentList);
         }
-    	return response.GET(studentAssessmentList);
     }
 }
