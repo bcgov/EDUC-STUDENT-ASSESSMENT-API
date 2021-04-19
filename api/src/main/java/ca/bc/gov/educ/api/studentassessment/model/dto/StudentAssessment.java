@@ -16,6 +16,7 @@ public class StudentAssessment {
     private String specialCase;
     private String exceededWriteFlag;    
     private Double proficiencyScore;
+    private Assessment assessmentDetails;
     
     public String getPen() {
     	return pen != null ? pen.trim():null;
