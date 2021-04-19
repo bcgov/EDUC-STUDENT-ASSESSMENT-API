@@ -55,6 +55,7 @@ public class StudentAssessmentService {
         				new HttpEntity<>(httpHeaders), Assessment.class).getBody();
         		if(assessment != null) {
         			sA.setAssessmentName(assessment.getAssessmentName());
+        			sA.setAssessmentDetails(assessment);
         		}
         	});
             logger.debug(studentAssessment.toString());
