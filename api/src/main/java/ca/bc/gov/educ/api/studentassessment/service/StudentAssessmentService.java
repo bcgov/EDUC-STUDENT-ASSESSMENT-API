@@ -8,18 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import ca.bc.gov.educ.api.studentassessment.model.dto.Assessment;
 import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessment;
 import ca.bc.gov.educ.api.studentassessment.model.transformer.StudentAssessmentTransformer;
 import ca.bc.gov.educ.api.studentassessment.repository.StudentAssessmentRepository;
 import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiConstants;
-import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiUtils;
 
 @Service
 public class StudentAssessmentService {
@@ -32,6 +29,9 @@ public class StudentAssessmentService {
     
     @Autowired
     RestTemplate restTemplate;
+    
+    @Autowired
+    WebClient webClient;
     
     @Value(StudentAssessmentApiConstants.ENDPOINT_ASSESSMENT_BY_ASSMT_CODE_URL)
     private String getAssessmentByAssmtCodeURL;
@@ -47,12 +47,10 @@ public class StudentAssessmentService {
      */
     public List<StudentAssessment> getStudentAssessmentList(String pen, String accessToken) {
         List<StudentAssessment> studentAssessment  = new ArrayList<StudentAssessment>();
-        HttpHeaders httpHeaders = StudentAssessmentApiUtils.getHeaders(accessToken);
         try {
         	studentAssessment = studentAssessmentTransformer.transformToDTO(studentAssessmentRepo.findByPen(pen));
         	studentAssessment.forEach(sA -> {
-        		Assessment assessment = restTemplate.exchange(String.format(getAssessmentByAssmtCodeURL, sA.getAssessmentCode()), HttpMethod.GET,
-        				new HttpEntity<>(httpHeaders), Assessment.class).getBody();
+        		Assessment assessment = webClient.get().uri(String.format(getAssessmentByAssmtCodeURL, sA.getAssessmentCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Assessment.class).block();
         		if(assessment != null) {
         			sA.setAssessmentName(assessment.getAssessmentName());
         			sA.setAssessmentDetails(assessment);
