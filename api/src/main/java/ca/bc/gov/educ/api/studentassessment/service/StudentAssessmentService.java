@@ -2,6 +2,8 @@ package ca.bc.gov.educ.api.studentassessment.service;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -45,7 +47,7 @@ public class StudentAssessmentService {
      * @return Student Assessment 
      * @throws java.lang.Exception
      */
-    public List<StudentAssessment> getStudentAssessmentList(String pen, String accessToken) {
+    public List<StudentAssessment> getStudentAssessmentList(String pen, String accessToken,boolean sortForUI) {
         List<StudentAssessment> studentAssessment  = new ArrayList<StudentAssessment>();
         try {
         	studentAssessment = studentAssessmentTransformer.transformToDTO(studentAssessmentRepo.findByPen(pen));
@@ -60,7 +62,11 @@ public class StudentAssessmentService {
         } catch (Exception e) {
             logger.debug("Exception:" + e);
         }
-
+        if(sortForUI) {
+        Collections.sort(studentAssessment, Comparator.comparing(StudentAssessment::getPen)
+                .thenComparing(StudentAssessment::getAssessmentCode)
+                .thenComparing(StudentAssessment::getSessionDate));
+        }
         return studentAssessment;
     }
 }
