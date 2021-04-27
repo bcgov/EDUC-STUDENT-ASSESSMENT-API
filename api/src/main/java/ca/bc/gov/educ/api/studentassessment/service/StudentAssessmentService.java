@@ -28,44 +28,49 @@ public class StudentAssessmentService {
 
     @Autowired
     private StudentAssessmentTransformer studentAssessmentTransformer;
-    
+
     @Autowired
     RestTemplate restTemplate;
-    
+
     @Autowired
     WebClient webClient;
-    
+
     @Value(StudentAssessmentApiConstants.ENDPOINT_ASSESSMENT_BY_ASSMT_CODE_URL)
     private String getAssessmentByAssmtCodeURL;
 
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentService.class);
 
-     /**
+    /**
      * Get all student assessments by PEN populated in Student Assessment DTO
-     * @param accessToken 
      *
-     * @return Student Assessment 
+     * @param accessToken
+     * @return Student Assessment
      * @throws java.lang.Exception
      */
-    public List<StudentAssessment> getStudentAssessmentList(String pen, String accessToken,boolean sortForUI) {
-        List<StudentAssessment> studentAssessment  = new ArrayList<StudentAssessment>();
+    public List<StudentAssessment> getStudentAssessmentList(String pen, String accessToken, boolean sortForUI) {
+        List<StudentAssessment> studentAssessment = new ArrayList<StudentAssessment>();
         try {
-        	studentAssessment = studentAssessmentTransformer.transformToDTO(studentAssessmentRepo.findByPen(pen));
-        	studentAssessment.forEach(sA -> {
-        		Assessment assessment = webClient.get().uri(String.format(getAssessmentByAssmtCodeURL, sA.getAssessmentCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Assessment.class).block();
-        		if(assessment != null) {
-        			sA.setAssessmentName(assessment.getAssessmentName());
-        			sA.setAssessmentDetails(assessment);
-        		}
-        	});
+            studentAssessment = studentAssessmentTransformer.transformToDTO(studentAssessmentRepo.findByPen(pen));
+            studentAssessment.forEach(sA -> {
+                Assessment assessment = webClient.get()
+                        .uri(String.format(getAssessmentByAssmtCodeURL, sA.getAssessmentCode()))
+                        .headers(h -> h.setBearerAuth(accessToken))
+                        .retrieve()
+                        .bodyToMono(Assessment.class)
+                        .block();
+                if (assessment != null) {
+                    sA.setAssessmentName(assessment.getAssessmentName());
+                    sA.setAssessmentDetails(assessment);
+                }
+            });
             logger.debug(studentAssessment.toString());
         } catch (Exception e) {
             logger.debug("Exception:" + e);
         }
-        if(sortForUI) {
-        Collections.sort(studentAssessment, Comparator.comparing(StudentAssessment::getPen)
-                .thenComparing(StudentAssessment::getAssessmentCode)
-                .thenComparing(StudentAssessment::getSessionDate));
+        if (sortForUI) {
+            Collections.sort(studentAssessment, Comparator.comparing(StudentAssessment::getPen)
+                    .thenComparing(StudentAssessment::getAssessmentCode)
+                    .thenComparing(StudentAssessment::getSessionDate));
         }
         return studentAssessment;
     }

@@ -29,10 +29,6 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: false
-  security:
-    user:
-      name: ${API_USERNAME}
-      password: ${API_PASSWORD}
 
 #Logging properties
 logging:
@@ -50,7 +46,7 @@ logging:
         gov:
           educ:
             api:
-              studentassessmentapi: ${APP_LOG_LEVEL}
+              studentassessment: ${APP_LOG_LEVEL}
     org:
       springframework:
         web: ${SPRING_WEB_LOG_LEVEL}
@@ -68,6 +64,6 @@ server:
   #port: ${HTTP_PORT}
 
 #Endpoints
-endpoint: 
- assessment-api: 
-  assessment_by_assmt_code: https://grad-assessment-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/assessment/%s
+endpoint:
+  assessment-api:
+    assessment_by_assmt_code: https://grad-assessment-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/assessment/%s
