@@ -52,7 +52,7 @@ public class StudentAssessmentService {
         try {
         	studentAssessment = studentAssessmentTransformer.transformToDTO(studentAssessmentRepo.findByPen(pen));
         	studentAssessment.forEach(sA -> {
-        		Assessment assessment = webClient.get().uri(String.format(getAssessmentByAssmtCodeURL, sA.getAssessmentCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Assessment.class).block();
+        		Assessment assessment = webClient.get().uri(String.format(getAssessmentByAssmtCodeURL, sA.getAssessmentCode().trim())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Assessment.class).block();
         		if(assessment != null) {
         			sA.setAssessmentName(assessment.getAssessmentName());
         			sA.setAssessmentDetails(assessment);
