@@ -53,7 +53,7 @@ public class StudentAssessmentController {
     @Operation(summary = "Find All Student Assessments by PEN", description = "Get All Student Assessments by PEN", tags = { "Student Assessments" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<List<StudentAssessment>> getStudentAssessmentByPEN(@PathVariable String pen,@RequestParam(value = "sortForUI",required = false,defaultValue = "false") boolean sortForUI) {
-        logger.debug("#Get All Student Assessments by PEN: " + pen);
+        logger.debug("#Get All Student Assessments by PEN: *****" + pen.substring(5));
         validation.requiredField(pen, "Pen");
         if(validation.hasErrors()) {
         	validation.stopOnErrors();
