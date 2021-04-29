@@ -17,15 +17,17 @@ public class StudentAssessment {
     private String exceededWriteFlag;    
     private Double proficiencyScore;
     private Assessment assessmentDetails;
+    private String mincodeAssessment;
     
     public String getPen() {
     	return pen != null ? pen.trim():null;
     }
-    
+
 	@Override
 	public String toString() {
-		return "StudentAssessment [pen=" + pen + ", assessmentCode=" + assessmentCode + ", sessionDate=" + sessionDate
-				+ ", gradReqMet=" + gradReqMet + ", specialCase=" + specialCase + ", exceededWriteFlag="
-				+ exceededWriteFlag + ", proficiencyScore=" + proficiencyScore + "]";
-	}	 
+		return "StudentAssessment [pen=" + pen + ", assessmentCode=" + assessmentCode + ", assessmentName="
+				+ assessmentName + ", sessionDate=" + sessionDate + ", gradReqMet=" + gradReqMet + ", specialCase="
+				+ specialCase + ", exceededWriteFlag=" + exceededWriteFlag + ", proficiencyScore=" + proficiencyScore
+				+ ", assessmentDetails=" + assessmentDetails + ", mincodeAssessment=" + mincodeAssessment + "]";
+	}		 
 }

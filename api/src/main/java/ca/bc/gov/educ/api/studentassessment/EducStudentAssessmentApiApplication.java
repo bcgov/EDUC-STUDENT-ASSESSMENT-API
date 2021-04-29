@@ -18,6 +18,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessment;
 import ca.bc.gov.educ.api.studentassessment.model.entity.StudentAssessmentEntity;
+import reactor.netty.http.client.HttpClient;
 
 @SpringBootApplication
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -44,7 +45,9 @@ public class EducStudentAssessmentApiApplication {
 	
 	@Bean
 	public WebClient webClient() {
-		return WebClient.create();
+		HttpClient client = HttpClient.create();
+		client.warmup().block();
+		return WebClient.builder().build();
 	}
 	
 	@Bean
