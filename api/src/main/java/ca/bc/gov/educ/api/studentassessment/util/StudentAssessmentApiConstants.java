@@ -25,4 +25,5 @@ public class StudentAssessmentApiConstants {
 	public static final String TRAX_DATE_FORMAT = "yyyyMM";
 	
 	public static final String ENDPOINT_ASSESSMENT_BY_ASSMT_CODE_URL="${endpoint.assessment-api.assessment_by_assmt_code}";
+	public static final String ENDPOINT_GRAD_SCHOOL_NAME_URL="${endpoint.school-api.school-name-by-mincode.url}";
 }

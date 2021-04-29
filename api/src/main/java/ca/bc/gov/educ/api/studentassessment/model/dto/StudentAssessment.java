@@ -18,6 +18,7 @@ public class StudentAssessment {
     private Double proficiencyScore;
     private Assessment assessmentDetails;
     private String mincodeAssessment;
+    private String mincodeAssessmentName;
     
     public String getPen() {
     	return pen != null ? pen.trim():null;
