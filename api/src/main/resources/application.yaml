@@ -71,3 +71,6 @@ server:
 endpoint: 
   assessment-api: 
     assessment_by_assmt_code: https://grad-assessment-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/assessment/%s
+  school-api:
+    school-name-by-mincode: 
+      url: https://educ-grad-school-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
