@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import ca.bc.gov.educ.api.studentassessment.model.dto.Assessment;
+import ca.bc.gov.educ.api.studentassessment.model.dto.School;
 import ca.bc.gov.educ.api.studentassessment.model.dto.StudentAssessment;
 import ca.bc.gov.educ.api.studentassessment.model.transformer.StudentAssessmentTransformer;
 import ca.bc.gov.educ.api.studentassessment.repository.StudentAssessmentRepository;
@@ -37,6 +38,9 @@ public class StudentAssessmentService {
     
     @Value(StudentAssessmentApiConstants.ENDPOINT_ASSESSMENT_BY_ASSMT_CODE_URL)
     private String getAssessmentByAssmtCodeURL;
+    
+    @Value(StudentAssessmentApiConstants.ENDPOINT_GRAD_SCHOOL_NAME_URL)
+    private String getGradSchoolName;
 
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentService.class);
 
@@ -57,6 +61,12 @@ public class StudentAssessmentService {
         			sA.setAssessmentName(assessment.getAssessmentName());
         			sA.setAssessmentDetails(assessment);
         		}
+        		
+        		if(sA.getMincodeAssessment() != null) {
+    				School schObj = webClient.get().uri(String.format(getGradSchoolName,sA.getMincodeAssessment())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+    				if(schObj != null)
+    					sA.setMincodeAssessmentName(schObj.getSchoolName());
+    			}
         	});
             logger.debug(studentAssessment.toString());
         } catch (Exception e) {
