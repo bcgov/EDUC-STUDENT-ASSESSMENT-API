@@ -34,7 +34,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RestController
 @RequestMapping(StudentAssessmentApiConstants.STUDENT_ASSESSMENT_API_ROOT_MAPPING)
 @EnableResourceServer
-@OpenAPIDefinition(info = @Info(title = "API for Student Assessments.", description = "This API is for Reading Student Assessments data.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_ASSESSMENT_DATA"})})
+@OpenAPIDefinition(info = @Info(
+        title = "API for Student Assessments.", description = "This API is for Reading Student Assessments data.", version = "1"),
+        security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_ASSESSMENT_DATA"})})
 public class StudentAssessmentController {
 
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentController.class);
@@ -52,7 +54,8 @@ public class StudentAssessmentController {
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_ASSESSMENT_DATA')")
     @Operation(summary = "Find All Student Assessments by PEN", description = "Get All Student Assessments by PEN", tags = { "Student Assessments" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
-    public ResponseEntity<List<StudentAssessment>> getStudentAssessmentByPEN(@PathVariable String pen,@RequestParam(value = "sortForUI",required = false,defaultValue = "false") boolean sortForUI) {
+    public ResponseEntity<List<StudentAssessment>> getStudentAssessmentByPEN(
+            @PathVariable String pen, @RequestParam(value = "sortForUI",required = false,defaultValue = "false") boolean sortForUI) {
         logger.debug("#Get All Student Assessments by PEN: *****" + pen.substring(5));
         validation.requiredField(pen, "Pen");
         if(validation.hasErrors()) {
