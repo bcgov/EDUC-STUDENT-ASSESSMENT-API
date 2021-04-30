@@ -23,6 +23,10 @@ public class StudentAssessment {
     public String getPen() {
     	return pen != null ? pen.trim():null;
     }
+    
+    public String getMincodeAssessment() {
+    	return mincodeAssessment != null ? mincodeAssessment.trim():null;
+    }
 
 	@Override
 	public String toString() {
