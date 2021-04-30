@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +63,7 @@ public class StudentAssessmentService {
         			sA.setAssessmentDetails(assessment);
         		}
         		
-        		if(sA.getMincodeAssessment() != null) {
+        		if(StringUtils.isNotBlank(sA.getMincodeAssessment())) {
     				School schObj = webClient.get().uri(String.format(getGradSchoolName,sA.getMincodeAssessment())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
     				if(schObj != null)
     					sA.setMincodeAssessmentName(schObj.getSchoolName());
