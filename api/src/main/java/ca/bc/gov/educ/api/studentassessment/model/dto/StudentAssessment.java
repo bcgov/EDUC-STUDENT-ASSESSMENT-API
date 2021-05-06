@@ -24,6 +24,14 @@ public class StudentAssessment {
     	return pen != null ? pen.trim():null;
     }
     
+    public String getAssessmentName() {
+    	return assessmentName != null ? assessmentName.trim():null;
+    }
+    
+    public String getAssessmentCode() {
+    	return assessmentCode != null ? assessmentCode.trim():null;
+    }
+    
     public String getMincodeAssessment() {
     	return mincodeAssessment != null ? mincodeAssessment.trim():null;
     }
