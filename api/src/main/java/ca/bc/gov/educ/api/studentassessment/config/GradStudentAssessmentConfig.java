@@ -11,7 +11,7 @@ import ca.bc.gov.educ.api.studentassessment.util.MessageHelper;
 
 
 @Configuration
-@PropertySource("classpath:messages.properties")
+@PropertySource(value = "classpath:messages.yaml", factory = YamlPropertySourceFactory.class)
 public class GradStudentAssessmentConfig implements WebMvcConfigurer {
 
 	@Autowired
