@@ -29,10 +29,6 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: false
-  security:
-    user:
-      name: ${API_USERNAME}
-      password: ${API_PASSWORD}
 
 #Logging properties
 logging:
@@ -66,6 +62,14 @@ server:
       worker: 128
       io: 16
   #port: ${HTTP_PORT}
+
+#API Documentation
+springdoc:
+  api-docs:
+    path: /api/v1/api-docs
+  swagger-ui:
+    path: /api/v1/api-docs-ui.html
+    operationsSorter: alpha
 
 #Endpoints
 endpoint: 

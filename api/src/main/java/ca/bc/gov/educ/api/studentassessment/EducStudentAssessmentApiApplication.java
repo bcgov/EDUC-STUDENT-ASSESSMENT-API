@@ -68,9 +68,9 @@ public class EducStudentAssessmentApiApplication {
 	  }
 	  @Override
 	  public void configure(WebSecurity web) {
-	    web.ignoring().antMatchers("/v3/api-docs/**",
-	            "/actuator/health","/actuator/prometheus",
-	            "/swagger-ui/**", "/health");
+		  web.ignoring().antMatchers("/api/v1/api-docs-ui.html",
+				  "/api/v1/swagger-ui/**", "/api/v1/api-docs/**",
+				  "/actuator/health","/actuator/prometheus", "/health");
 	  }
 	}
 }

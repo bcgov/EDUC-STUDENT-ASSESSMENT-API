@@ -1,0 +1,6 @@
+# This property file stores messages returned by the API.
+
+validation:
+  value:
+    missing: Missing the required field [%s]
+    unfound: Unable to find [%s] with value [%s]
