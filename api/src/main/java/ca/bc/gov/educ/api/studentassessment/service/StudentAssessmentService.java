@@ -8,10 +8,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import ca.bc.gov.educ.api.studentassessment.model.dto.Assessment;
@@ -23,22 +20,19 @@ import ca.bc.gov.educ.api.studentassessment.util.StudentAssessmentApiConstants;
 @Service
 public class StudentAssessmentService {
 
-    @Autowired
-    private StudentAssessmentRepository studentAssessmentRepo;
-
-    @Autowired
-    private StudentAssessmentTransformer studentAssessmentTransformer;
-    
-    @Autowired
-    RestTemplate restTemplate;
-    
-    @Autowired
-    WebClient webClient;
-    
-    @Value(StudentAssessmentApiConstants.ENDPOINT_ASSESSMENT_BY_ASSMT_CODE_URL)
-    private String getAssessmentByAssmtCodeURL;
-
     private static Logger logger = LoggerFactory.getLogger(StudentAssessmentService.class);
+
+    private StudentAssessmentRepository studentAssessmentRepo;
+    private StudentAssessmentTransformer studentAssessmentTransformer;
+    private WebClient webClient;
+    private StudentAssessmentApiConstants constants;
+
+    public StudentAssessmentService(StudentAssessmentRepository studentAssessmentRepo, StudentAssessmentTransformer studentAssessmentTransformer,  WebClient webClient, StudentAssessmentApiConstants constants) {
+        this.studentAssessmentRepo = studentAssessmentRepo;
+        this.studentAssessmentTransformer = studentAssessmentTransformer;
+        this.webClient = webClient;
+        this.constants = constants;
+    }
 
      /**
      * Get all student assessments by PEN populated in Student Assessment DTO
@@ -52,7 +46,7 @@ public class StudentAssessmentService {
         try {
         	studentAssessment = studentAssessmentTransformer.transformToDTO(studentAssessmentRepo.findByPen(pen));
         	studentAssessment.forEach(sA -> {
-        		Assessment assessment = webClient.get().uri(String.format(getAssessmentByAssmtCodeURL, sA.getAssessmentCode().trim())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Assessment.class).block();
+        		Assessment assessment = webClient.get().uri(String.format(constants.getAssessmentByAssessmentCodeUrl(), sA.getAssessmentCode().trim())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Assessment.class).block();
         		if(assessment != null) {
         			sA.setAssessmentName(assessment.getAssessmentName());
         			sA.setAssessmentDetails(assessment);
