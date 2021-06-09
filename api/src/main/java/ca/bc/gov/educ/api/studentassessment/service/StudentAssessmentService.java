@@ -21,12 +21,12 @@ import java.util.List;
 @Service
 public class StudentAssessmentService {
 
-    private static Logger logger = LoggerFactory.getLogger(StudentAssessmentService.class);
+    private static final Logger logger = LoggerFactory.getLogger(StudentAssessmentService.class);
 
-    private StudentAssessmentRepository studentAssessmentRepo;
-    private StudentAssessmentTransformer studentAssessmentTransformer;
-    private WebClient webClient;
-    private StudentAssessmentApiConstants constants;
+    private final StudentAssessmentRepository studentAssessmentRepo;
+    private final StudentAssessmentTransformer studentAssessmentTransformer;
+    private final WebClient webClient;
+    private final StudentAssessmentApiConstants constants;
 
     public StudentAssessmentService(StudentAssessmentRepository studentAssessmentRepo, StudentAssessmentTransformer studentAssessmentTransformer,  WebClient webClient, StudentAssessmentApiConstants constants) {
         this.studentAssessmentRepo = studentAssessmentRepo;
@@ -38,12 +38,12 @@ public class StudentAssessmentService {
     /**
      * Get all student assessments by PEN populated in Student Assessment DTO
      *
-     * @param accessToken
+     * @param pen           PEN #
+     * @param accessToken   Access Token
      * @return Student Assessment
-     * @throws java.lang.Exception
      */
     public List<StudentAssessment> getStudentAssessmentList(String pen, String accessToken, boolean sortForUI) {
-        List<StudentAssessment> studentAssessment = new ArrayList<StudentAssessment>();
+        List<StudentAssessment> studentAssessment = new ArrayList<>();
         try {
             studentAssessment = studentAssessmentTransformer.transformToDTO(studentAssessmentRepo.findByPen(pen));
             studentAssessment.forEach(sA -> {
