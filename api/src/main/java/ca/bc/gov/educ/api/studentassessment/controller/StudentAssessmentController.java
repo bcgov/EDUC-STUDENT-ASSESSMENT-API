@@ -56,12 +56,12 @@ public class StudentAssessmentController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<List<StudentAssessment>> getStudentAssessmentByPEN(
             @PathVariable String pen, @RequestParam(value = "sortForUI",required = false,defaultValue = "false") boolean sortForUI) {
-        logger.debug("#Get All Student Assessments by PEN: *****" + pen.substring(5));
         validation.requiredField(pen, "Pen");
         if(validation.hasErrors()) {
         	validation.stopOnErrors();
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }else {
+            logger.debug("#Get All Student Assessments by PEN: " + pen);
 	        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
 	    	String accessToken = auth.getTokenValue();
 	    	List<StudentAssessment> studentAssessmentList = studentAssessmentService.getStudentAssessmentList(pen,accessToken,sortForUI);
