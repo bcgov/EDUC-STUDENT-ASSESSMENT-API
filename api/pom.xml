@@ -13,7 +13,12 @@
 
     <properties>
         <sonar.language>java</sonar.language>
-        <sonar.exclusions>src/main/resources/**,src/main/java/ca/bc/gov/educ/api/studentassessment/exception/**,src/main/java/ca/bc/gov/educ/api/studentassessment/model/**
+        <sonar.exclusions>
+            src/main/resources/**,
+            src/main/java/ca/bc/gov/educ/api/studentassessment/exception/**,
+            src/main/java/ca/bc/gov/educ/api/studentassessment/config/**,
+            src/main/java/ca/bc/gov/educ/api/studentassessment/util/**,
+            src/main/java/ca/bc/gov/educ/api/studentassessment/model/**
         </sonar.exclusions>
         <java.version>11</java.version>
         <maven.compiler.version>3.8.0</maven.compiler.version>
@@ -68,6 +73,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -131,6 +142,17 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
   <build>

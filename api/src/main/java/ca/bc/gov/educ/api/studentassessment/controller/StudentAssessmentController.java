@@ -62,6 +62,7 @@ public class StudentAssessmentController {
         	validation.stopOnErrors();
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }else {
+            logger.debug("#Get All Student Assessments by PEN: " + pen);
 	        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
 	    	String accessToken = auth.getTokenValue();
 	    	List<StudentAssessment> studentAssessmentList = studentAssessmentService.getStudentAssessmentList(pen,accessToken,sortForUI);

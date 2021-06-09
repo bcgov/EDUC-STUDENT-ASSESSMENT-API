@@ -1,0 +1,50 @@
+#DB Properties
+spring:
+  jmx:
+    enabled: false
+  datasource:
+    hikari:
+      pool-name: student-assessment-api-cp
+      maximum-pool-size: 1
+      connection-timeout: 6000
+      max-lifetime: 600000
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    generate-ddl: true
+  mvc:
+    log-request-details: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+
+#Logging properties
+logging:
+  file:
+    max-history: 1
+    clean-history-on-start: true
+    max-size: 20MB
+    name: /logs/app.log
+  #pattern:
+  #  file: %d | [${HOSTNAME}] | %clr(%5p) | [%t]   | %logger{36}:%L | %msg%n
+  #  console: %d | [${HOSTNAME}] | %clr(%5p) | [%t]   | %logger{36}:%L | %msg%n
+  level:
+    ca:
+      bc:
+        gov:
+          educ:
+            api:
+              studentassessmentapi: INFO
+    org:
+      springframework:
+        web: INFO
+        security: INFO
+        boot:
+          autoconfigure:
+            logging: INFO
+
+#Endpoints
+endpoint: 
+ assessment-api: 
+  assessment_by_assmt_code: https://grad-assessment-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/assessment/%s
