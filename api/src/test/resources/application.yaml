@@ -8,10 +8,12 @@ spring:
       maximum-pool-size: 1
       connection-timeout: 6000
       max-lifetime: 600000
+    driver-class: org.h2.Driver
   jpa:
     show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
     generate-ddl: true
   mvc:
     log-request-details: true
