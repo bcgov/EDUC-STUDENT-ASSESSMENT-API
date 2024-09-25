@@ -95,7 +95,7 @@ spec:
           volumes:
             - name: tls-certs
               secret:
-                secretName: school-api-cert
+                secretName: eas-api-cert
             - name: log-storage
               emptyDir: {}
             - name: flb-sc-config-volume
