@@ -52,12 +52,6 @@ public class ApplicationProperties {
   private Integer minSubscriberThreads;
   @Value("${threads.max.subscriber}")
   private Integer maxSubscriberThreads;
-  @Value("${sagas.max.pending}")
-  private Integer maxPendingSagas;
-  @Value("${sagas.max.parallel}")
-  private Integer maxParallelSagas;
   @Value("${url.api.institute}")
   private String instituteApiURL;
-  @Value("${url.api.edx}")
-  private String edxApiURL;
 }
