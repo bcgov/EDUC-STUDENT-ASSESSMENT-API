@@ -61,14 +61,14 @@ public class AssessmentStudentEntity {
   @Column(name = "COURSE_STATUS_CODE", length = 1)
   String courseStatusCode;
 
-  @Column(name = "CREATE_USER", updatable = false , length = 32)
+  @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;
 
   @PastOrPresent
   @Column(name = "CREATE_DATE", updatable = false)
   private LocalDateTime createDate;
 
-  @Column(name = "UPDATE_USER", length = 32)
+  @Column(name = "UPDATE_USER", length = 100)
   private String updateUser;
 
   @PastOrPresent
