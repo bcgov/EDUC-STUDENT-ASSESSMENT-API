@@ -17,22 +17,22 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT")
+@Table(name = "ASSESSMENT_STUDENT")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AssessmentEntity {
+public class AssessmentStudentEntity {
 
   @Id
   @GeneratedValue(generator = "UUID")
   @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator", parameters = {
           @Parameter(name = "uuid_gen_strategy_class", value = "org.hibernate.id.uuid.CustomVersionOneStrategy")})
-  @Column(name = "ASSESSMENT_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
-  private UUID assessmentID;
+  @Column(name = "ASSESSMENT_STUDENT_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
+  private UUID assessmentStudentID;
 
   @ToString.Exclude
   @EqualsAndHashCode.Exclude
-  @ManyToOne(optional = false, targetEntity = AssessmentSessionEntity.class)
-  @JoinColumn(name = "ASSESSMENT_SESSION_ID", referencedColumnName = "ASSESSMENT_SESSION_ID", updatable = false)
-  AssessmentSessionEntity assessmentSessionEntity;
+  @ManyToOne(optional = false, targetEntity = SessionEntity.class)
+  @JoinColumn(name = "SESSION_ID", referencedColumnName = "SESSION_ID", updatable = false)
+  SessionEntity sessionEntity;
 
   @Column(name = "ASSESSMENT_TYPE_CODE", nullable = false, length = 10)
   private String assessmentTypeCode;

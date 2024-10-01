@@ -7,16 +7,16 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Getter
-public enum StatusCode {
+public enum StatusCodes {
   OPEN("OPEN"),
   LOCKED("LOCKED");
 
   private final String code;
-  StatusCode(String code) {
+  StatusCodes(String code) {
     this.code = code;
   }
 
-  public static Optional<StatusCode> findByValue(String value) {
+  public static Optional<StatusCodes> findByValue(String value) {
     return Arrays.stream(values()).filter(e -> Objects.equals(e.code, value)).findFirst();
   }
 }

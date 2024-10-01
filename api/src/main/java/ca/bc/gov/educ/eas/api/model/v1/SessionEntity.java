@@ -19,14 +19,14 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT_SESSION")
-public class AssessmentSessionEntity {
+@Table(name = "SESSION")
+public class SessionEntity {
 
   @Id
   @GeneratedValue(generator = "UUID")
   @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator", parameters = {
           @Parameter(name = "uuid_gen_strategy_class", value = "org.hibernate.id.uuid.CustomVersionOneStrategy")})
-  @Column(name = "ASSESSMENT_SESSION_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
+  @Column(name = "SESSION_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
   private UUID assessmentSessionID;
 
   @Column(name = "COURSE_SESSION", nullable = false, length = 6)
@@ -47,14 +47,14 @@ public class AssessmentSessionEntity {
   @Column(name = "ACTIVE_UNTIL_DATE", nullable = false)
   private LocalDateTime activeUntilDate;
 
-  @Column(name = "CREATE_USER", updatable = false, length = 32)
+  @Column(name = "CREATE_USER", updatable = false, length = 100)
   private String createUser;
 
   @PastOrPresent
   @Column(name = "CREATE_DATE", updatable = false)
   private LocalDateTime createDate;
 
-  @Column(name = "UPDATE_USER", nullable = false, length = 32)
+  @Column(name = "UPDATE_USER", nullable = false, length = 100)
   private String updateUser;
 
   @PastOrPresent

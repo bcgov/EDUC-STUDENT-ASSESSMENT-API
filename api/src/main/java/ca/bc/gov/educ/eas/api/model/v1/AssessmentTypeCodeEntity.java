@@ -42,6 +42,9 @@ public class AssessmentTypeCodeEntity {
   @Column(name = "EXPIRY_DATE")
   private LocalDateTime expiryDate;
 
+  @Column(name = "LANGUAGE")
+  private String language;
+
   @Column(name = "CREATE_USER", updatable = false , length = 32)
   private String createUser;
 
