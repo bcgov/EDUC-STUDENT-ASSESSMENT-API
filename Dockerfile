@@ -3,7 +3,7 @@ WORKDIR /workspace/app
 
 COPY api/pom.xml .
 COPY api/src src
-RUN mvn package -DskipTests -Dnet.bytebuddy.experimental=true
+RUN mvn package -DskipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 FROM artifacts.developer.gov.bc.ca/docker-remote/openjdk:21-jdk-oracle
