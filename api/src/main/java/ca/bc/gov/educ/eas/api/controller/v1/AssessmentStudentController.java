@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -54,12 +53,6 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
     RequestUtil.setAuditColumnsForCreate(assessmentStudent);
     return mapper.toStructure(studentService.createStudent(mapper.toModel(assessmentStudent)));
-  }
-
-  @Override
-  public ResponseEntity<Void> deleteStudent(UUID assessmentStudentID) {
-    this.studentService.deleteStudent(assessmentStudentID);
-    return ResponseEntity.noContent().build();
   }
 
   @Override

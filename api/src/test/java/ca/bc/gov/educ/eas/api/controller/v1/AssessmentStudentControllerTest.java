@@ -32,7 +32,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.assertj.core.api.Assertions.assertThat;
 
 class AssessmentStudentControllerTest extends BaseEasAPITest {
 
@@ -206,22 +205,6 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(MockMvcResultMatchers.jsonPath("$.updateUser", equalTo("EAS_API")));
-  }
-
-  @Test
-  void testDeleteStudent_GivenIDExists_ShouldDeleteStudent() throws Exception {
-    final GrantedAuthority grantedAuthority = () -> "SCOPE_DELETE_EAS_STUDENT";
-    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
-    AssessmentStudent student = AssessmentStudentMapper.mapper.toStructure(studentRepository.save(createMockStudentEntity(session)));
-
-    this.mockMvc.perform(
-                    delete(URL.BASE_URL_STUDENT + "/" + student.getAssessmentStudentID()).with(mockAuthority))
-            .andDo(print())
-            .andExpect(status().isNoContent());
-
-    assertThat(studentRepository.findById(UUID.fromString(student.getAssessmentStudentID()))).isEmpty();
   }
 
   @Test

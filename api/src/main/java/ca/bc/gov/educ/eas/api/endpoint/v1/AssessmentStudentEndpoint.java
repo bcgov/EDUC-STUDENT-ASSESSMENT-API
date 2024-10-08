@@ -5,7 +5,6 @@ import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -31,11 +30,6 @@ public interface AssessmentStudentEndpoint {
   @PreAuthorize("hasAuthority('SCOPE_WRITE_EAS_STUDENT')")
   @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND"), @ApiResponse(responseCode = "400", description = "BAD REQUEST"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
   AssessmentStudent createStudent(@Validated @RequestBody AssessmentStudent assessmentStudent);
-
-  @DeleteMapping("/{assessmentStudentID}")
-  @PreAuthorize("hasAuthority('SCOPE_DELETE_EAS_STUDENT')")
-  @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "NO CONTENT"), @ApiResponse(responseCode = "404", description = "NOT FOUND"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
-  ResponseEntity<Void> deleteStudent(@PathVariable UUID assessmentStudentID);
 
   @GetMapping(URL.PAGINATED)
   @PreAuthorize("hasAuthority('SCOPE_READ_EAS_STUDENT')")

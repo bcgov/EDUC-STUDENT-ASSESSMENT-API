@@ -159,28 +159,4 @@ class AssessmentStudentServiceTest {
     //then throw exception
     assertThrows(EntityNotFoundException.class, () -> service.updateStudent(student));
   }
-
-  @Test
-  void testDeleteStudent_WhenIDDoesNotExistInDB_ShouldThrowError()  {
-    //when attempting to delete to session id that does not exist
-    UUID id = UUID.randomUUID();
-
-    //then throw exception
-    assertThrows(EntityNotFoundException.class, () -> service.deleteStudent(id));
-  }
-
-  @Test
-  void testDeleteStudent_WhenIDExistInDB_ShouldDeleteStudent()  {
-    //given student existing in db
-    SessionEntity sessionEntity = sessionRepository.save(SessionEntity.builder().sessionID(UUID.randomUUID()).activeFromDate(LocalDateTime.now()).activeUntilDate(LocalDateTime.now()).statusCode(StatusCodes.OPEN.getCode()).updateDate(LocalDateTime.now()).updateUser("USER").build());
-
-    AssessmentStudentEntity student = repository.save(AssessmentStudentEntity.builder().assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).sessionEntity(SessionEntity.builder().sessionID(sessionEntity.getSessionID()).build()).build());
-
-    //when attempting to delete assessment student
-    service.deleteStudent(student.getAssessmentStudentID());
-
-    //then student is deleted
-    var results = repository.findById(student.getAssessmentStudentID());
-    assertThat(results).isEmpty();
-  }
 }

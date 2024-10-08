@@ -74,12 +74,4 @@ public class AssessmentStudentService {
       throw new EntityExistsException("Assessment student with StudentID::"+assessmentStudentEntity.getStudentID()+" and Session ID::"+sessionEntity.getSessionID()+" already exists");
     }
   }
-
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void deleteStudent(UUID assessmentStudentID) {
-    AssessmentStudentEntity currentAssessmentStudentEntity = this.assessmentStudentRepository.findById(assessmentStudentID).orElseThrow(() ->
-            new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentID.toString())
-    );
-    this.assessmentStudentRepository.delete(currentAssessmentStudentEntity);
-  }
 }

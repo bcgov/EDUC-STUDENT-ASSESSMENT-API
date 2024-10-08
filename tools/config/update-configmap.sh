@@ -42,7 +42,7 @@ echo Removing EAS API client if exists
 curl -sX DELETE "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients/$EAS_APIServiceClientID" \
   -H "Authorization: Bearer $TKN"
 
-echo Writing scope WRITE_EAS_STUDENTT
+echo Writing scope WRITE_EAS_STUDENT
 curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" \
@@ -53,12 +53,6 @@ curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scope
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" \
   -d "{\"description\": \"Read Assessment Students\",\"id\": \"READ_EAS_STUDENT\",\"name\": \"READ_EAS_STUDENT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
-
-echo Writing scope DELETE_EAS_STUDENT
-curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TKN" \
-  -d "{\"description\": \"Delete Assessment Students\",\"id\": \"DELETE_EAS_STUDENT\",\"name\": \"DELETE_EAS_STUDENT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
 
 if [[ -n "$EAS_APIServiceClientID" && -n "$EAS_APIServiceClientSecret" && ("$envValue" = "dev" || "$envValue" = "test") ]]; then
   echo
