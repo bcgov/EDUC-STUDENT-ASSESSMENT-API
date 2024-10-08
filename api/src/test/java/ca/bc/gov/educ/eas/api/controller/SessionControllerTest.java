@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-public class SessionControllerTest extends BaseEasAPITest {
+class SessionControllerTest extends BaseEasAPITest {
 
     protected static final ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
     @Autowired
@@ -84,7 +84,7 @@ public class SessionControllerTest extends BaseEasAPITest {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
         final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
         SessionEntity SessionEntity = sessionRepository.save(createMockSessionEntity());
-        var resultSessions = this.mockMvc.perform(
+        this.mockMvc.perform(
                         get(URL.SESSIONS_URL).with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseSession").value(LocalDateTime.now().getYear() + "" + LocalDateTime.now().getMonthValue()))
@@ -99,7 +99,7 @@ public class SessionControllerTest extends BaseEasAPITest {
         updatedSession.setActiveFromDate(LocalDateTime.now().plusDays(20));
         updatedSession.setActiveUntilDate(LocalDateTime.now().plusDays(120));
         updatedSession.setUpdateUser("test");
-        ResultActions resultActions = this.mockMvc.perform(put(URL.SESSIONS_URL + "/" + sessionEntity.getAssessmentSessionID())
+        this.mockMvc.perform(put(URL.SESSIONS_URL + "/" + sessionEntity.getAssessmentSessionID())
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_EAS_SESSIONS")))
                 .content(objectMapper.writeValueAsString(updatedSession))
                 .contentType(APPLICATION_JSON)).andExpect(status().isOk());
