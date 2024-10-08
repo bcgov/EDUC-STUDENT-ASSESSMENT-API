@@ -6,7 +6,6 @@ import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.service.v1.SessionService;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;
 import ca.bc.gov.educ.eas.api.util.RequestUtil;
-import ca.bc.gov.educ.eas.api.util.UUIDUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -49,9 +49,9 @@ public class SessionController implements SessionEndpoint {
      * @return Updated session
      */
     @Override
-    public Session updateSession(String assessmentSessionID, Session session) {
+    public Session updateSession(UUID assessmentSessionID, Session session) {
         RequestUtil.setAuditColumnsForUpdate(session);
-        SessionEntity sessionEntity = getSessionService().updateSession(UUIDUtil.fromString(assessmentSessionID), mapper.toEntity(session));
+        SessionEntity sessionEntity = getSessionService().updateSession(assessmentSessionID, mapper.toEntity(session));
         return mapper.toStructure(sessionEntity);
     }
 }

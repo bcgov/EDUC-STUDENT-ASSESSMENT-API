@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Definition for assessment session management
@@ -34,6 +35,6 @@ public interface SessionEndpoint {
     @PreAuthorize("hasAuthority('SCOPE_WRITE_EAS_SESSIONS')")
     @PutMapping("/{assessmentSessionID}")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND."), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
-    Session updateSession(@PathVariable String assessmentSessionID, @Validated @RequestBody Session session);
+    Session updateSession(@PathVariable UUID assessmentSessionID, @Validated @RequestBody Session session);
 
 }
