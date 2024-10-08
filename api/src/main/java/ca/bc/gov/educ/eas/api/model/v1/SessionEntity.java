@@ -30,13 +30,13 @@ public class SessionEntity {
   private UUID assessmentSessionID;
 
   @Column(name = "COURSE_SESSION", nullable = false, length = 6)
-  private int courseSession;
+  private Integer courseSession;
 
   @Column(name = "COURSE_YEAR", nullable = false, length = 4)
-  private int courseYear;
+  private Integer courseYear;
 
   @Column(name = "COURSE_MONTH", nullable = false, length = 2)
-  private int courseMonth;
+  private Integer courseMonth;
 
   @Column(name = "STATUS_CODE", nullable = false, length = 10)
   private String statusCode;
