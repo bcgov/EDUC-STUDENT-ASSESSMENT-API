@@ -1,8 +1,11 @@
 package ca.bc.gov.educ.eas.api.struct.v1;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.ReadOnlyProperty;
 
 import java.io.Serializable;
@@ -13,29 +16,31 @@ import java.time.LocalDateTime;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@SuperBuilder
+@NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Session extends BaseRequest implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    @ReadOnlyProperty
-    private String assessmentSessionID;
+  @ReadOnlyProperty
+  private String sessionID;
 
-    @ReadOnlyProperty
-    private Integer courseSession;
+  @ReadOnlyProperty
+  private Integer courseSession;
 
-    @ReadOnlyProperty
-    private Integer courseMonth;
+  @ReadOnlyProperty
+  private Integer courseMonth;
 
-    @ReadOnlyProperty
-    private Integer courseYear;
+  @ReadOnlyProperty
+  private Integer courseYear;
 
-    @ReadOnlyProperty
-    private String status;
+  @ReadOnlyProperty
+  private String status;
 
-    @NotNull(message = "Open Date cannot be null")
-    private LocalDateTime activeFromDate;
+  @NotNull(message = "activeFromDate cannot be null")
+  private LocalDateTime activeFromDate;
 
-    @NotNull(message = "Close Date cannot be null")
-    private LocalDateTime activeUntilDate;
-
+  @NotNull(message = "activeUntilDate cannot be null")
+  private LocalDateTime activeUntilDate;
 }

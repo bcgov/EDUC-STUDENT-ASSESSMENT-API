@@ -28,13 +28,13 @@ public interface SessionEndpoint {
 
     /**
      * Updates the assessment session
-     * @param assessmentSessionID Identifier for assessment session
+     * @param sessionID Identifier for assessment session
      * @param session Modified session
      * @return Updated session
      */
     @PreAuthorize("hasAuthority('SCOPE_WRITE_EAS_SESSIONS')")
-    @PutMapping("/{assessmentSessionID}")
+    @PutMapping("/{sessionID}")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND."), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
-    Session updateSession(@PathVariable UUID assessmentSessionID, @Validated @RequestBody Session session);
+    Session updateSession(@PathVariable UUID sessionID, @Validated @RequestBody Session session);
 
 }

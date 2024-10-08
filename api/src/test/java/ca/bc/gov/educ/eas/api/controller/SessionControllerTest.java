@@ -98,12 +98,12 @@ class SessionControllerTest extends BaseEasAPITest {
         updatedSession.setActiveFromDate(LocalDateTime.now().plusDays(20));
         updatedSession.setActiveUntilDate(LocalDateTime.now().plusDays(120));
         updatedSession.setUpdateUser("test");
-        this.mockMvc.perform(put(URL.SESSIONS_URL + "/" + sessionEntity.getAssessmentSessionID())
+        this.mockMvc.perform(put(URL.SESSIONS_URL + "/" + sessionEntity.getSessionID())
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_EAS_SESSIONS")))
                 .content(objectMapper.writeValueAsString(updatedSession))
                 .contentType(APPLICATION_JSON)).andExpect(status().isOk());
 
-        var updatedSessionEntity = sessionRepository.findById(sessionEntity.getAssessmentSessionID());
+        var updatedSessionEntity = sessionRepository.findById(sessionEntity.getSessionID());
         assertThat(updatedSessionEntity).isPresent();
         assertThat(updatedSessionEntity.get().getActiveFromDate().toLocalDate()).isEqualTo(updatedSession.getActiveFromDate().toLocalDate());
         assertThat(updatedSessionEntity.get().getActiveUntilDate().toLocalDate()).isEqualTo(updatedSession.getActiveUntilDate().toLocalDate());
@@ -120,23 +120,6 @@ class SessionControllerTest extends BaseEasAPITest {
                 .content(objectMapper.writeValueAsString(updatedSession))
                 .contentType(APPLICATION_JSON)).andExpect(status().isNotFound());
 
-    }
-
-    private SessionEntity createMockSessionEntity() {
-        String courseSessionVal = LocalDateTime.now().getYear() + "" + LocalDateTime.now().getMonthValue();
-        SessionEntity sessionEntity = new SessionEntity();
-        sessionEntity.setAssessmentSessionID(UUID.randomUUID());
-        sessionEntity.setCourseSession(Integer.valueOf(courseSessionVal));
-        sessionEntity.setCourseMonth(LocalDateTime.now().getMonthValue());
-        sessionEntity.setCourseYear(LocalDateTime.now().getYear());
-        sessionEntity.setStatusCode(StatusCodes.OPEN.getCode());
-        sessionEntity.setActiveFromDate(LocalDateTime.now());
-        sessionEntity.setActiveUntilDate(LocalDateTime.now().plusDays(90));
-        sessionEntity.setCreateUser("test");
-        sessionEntity.setCreateDate(LocalDateTime.now());
-        sessionEntity.setUpdateUser("test");
-        sessionEntity.setUpdateDate(LocalDateTime.now());
-        return sessionEntity;
     }
 
 }

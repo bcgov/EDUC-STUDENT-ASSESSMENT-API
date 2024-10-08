@@ -27,7 +27,7 @@ public class SessionEntity {
   @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator", parameters = {
           @Parameter(name = "uuid_gen_strategy_class", value = "org.hibernate.id.uuid.CustomVersionOneStrategy")})
   @Column(name = "SESSION_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
-  private UUID assessmentSessionID;
+  private UUID sessionID;
 
   @Column(name = "COURSE_SESSION", nullable = false, length = 6)
   private Integer courseSession;

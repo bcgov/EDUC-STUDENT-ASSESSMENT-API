@@ -42,13 +42,13 @@ public class SessionService {
 
     /**
      * Updates the assessment session.
-     * @param assessmentSessionId  Assessment SessionId
+     * @param sessionID  Assessment SessionId
      * @param updatedSessionEntity Updated session object
      * @return Persisted SessionEntity
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public SessionEntity updateSession(UUID assessmentSessionId, SessionEntity updatedSessionEntity) {
-        val optionalSession = getSessionRepository().findById(assessmentSessionId);
+    public SessionEntity updateSession(UUID sessionID, SessionEntity updatedSessionEntity) {
+        val optionalSession = getSessionRepository().findById(sessionID);
         if (optionalSession.isPresent()) {
             SessionEntity sessionEntity = optionalSession.get();
             log.debug("Assessment session update, current :: {}, new :: {}", sessionEntity, updatedSessionEntity);
@@ -56,7 +56,7 @@ public class SessionService {
             sessionEntity.setActiveUntilDate(updatedSessionEntity.getActiveUntilDate());
             return getSessionRepository().save(sessionEntity);
         } else {
-            throw new EntityNotFoundException(SessionEntity.class, "SessionEntity", assessmentSessionId.toString());
+            throw new EntityNotFoundException(SessionEntity.class, "SessionEntity", sessionID.toString());
         }
     }
 }
