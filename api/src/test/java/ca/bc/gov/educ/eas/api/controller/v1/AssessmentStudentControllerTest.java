@@ -186,6 +186,44 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
   }
 
   @Test
+  void testCreateStudent_GivenInvalidAssessmentTypeCode_ShouldReturn400() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentStudent student = createMockStudent();
+    student.setAssessmentStudentID(null);
+    student.setAssessmentTypeCode("INVALID");
+
+    this.mockMvc.perform(
+                    post(URL.BASE_URL_STUDENT)
+                            .contentType(APPLICATION_JSON)
+                            .content(asJsonString(student))
+                            .with(mockAuthority))
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("assessmentTypeCode"));
+  }
+
+  @Test
+  void testCreateStudent_GivenInvalidCourseStatusCode_ShouldReturn400() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentStudent student = createMockStudent();
+    student.setAssessmentStudentID(null);
+    student.setCourseStatusCode("INVALID");
+
+    this.mockMvc.perform(
+                    post(URL.BASE_URL_STUDENT)
+                            .contentType(APPLICATION_JSON)
+                            .content(asJsonString(student))
+                            .with(mockAuthority))
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("courseStatusCode"));
+  }
+
+  @Test
   void testCreateStudent_GivenValidPayload_ShouldReturnStudent() throws Exception {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
