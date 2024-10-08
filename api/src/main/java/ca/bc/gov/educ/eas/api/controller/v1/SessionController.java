@@ -38,7 +38,6 @@ public class SessionController implements SessionEndpoint {
      */
     @Override
     public List<Session> getAllSessions() {
-        List<SessionEntity> test = getSessionService().getAllSessions();
         return getSessionService().getAllSessions().stream().map(mapper::toStructure).collect(Collectors.toList());
     }
 
