@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -95,7 +96,9 @@ public class EasApiApplication {
               .anyRequest().authenticated()
           )
           .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-          .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+          .oauth2ResourceServer(oauth2 -> oauth2
+                  .jwt(Customizer.withDefaults())
+          );
       return http.build();
     }
   }

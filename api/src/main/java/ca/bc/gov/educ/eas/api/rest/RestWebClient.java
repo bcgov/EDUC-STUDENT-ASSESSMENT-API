@@ -84,6 +84,6 @@ public class RestWebClient {
     return (clientRequest, next) ->
       next
         .exchange(clientRequest)
-        .doOnNext((clientResponse -> LogHelper.logClientHttpReqResponseDetails(clientRequest.method(), clientRequest.url().toString(), clientResponse.rawStatusCode(), clientRequest.headers().get(ApplicationProperties.CORRELATION_ID))));
+        .doOnNext((clientResponse -> LogHelper.logClientHttpReqResponseDetails(clientRequest.method(), clientRequest.url().toString(), clientResponse.statusCode().value(), clientRequest.headers().get(ApplicationProperties.CORRELATION_ID))));
   }
 }

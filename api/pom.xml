@@ -23,7 +23,7 @@
     </sonar.exclusions>
     <java.version>21</java.version>
 
-    <maven.compiler.version>3.10.1</maven.compiler.version>
+    <maven.compiler.version>3.13.0</maven.compiler.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <org.mapstruct.version>1.5.3.Final</org.mapstruct.version>
@@ -33,7 +33,6 @@
     <postgresql.version>42.7.3</postgresql.version>
     <guava.version>33.2.1-jre</guava.version>
     <flatpack.version>4.0.4</flatpack.version>
-    <faker.varion>0.15</faker.varion>
     <awaitility.version>4.0.3</awaitility.version>
     <awaitility-proxy.version>3.1.6</awaitility-proxy.version>
     <log4j.version>2.17.1</log4j.version>
@@ -42,7 +41,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.0.13</version>
+    <version>3.1.3</version>
   </parent>
 
   <dependencies>
@@ -129,7 +128,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>${lombok.version}</version>
+      <version>1.18.34</version>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -149,7 +148,7 @@
     <dependency>
       <groupId>net.sf.jasperreports</groupId>
       <artifactId>jasperreports</artifactId>
-      <version>6.21.0</version>
+      <version>7.0.1</version>
     </dependency>
     <dependency>
       <groupId>net.sf.jasperreports</groupId>
@@ -209,7 +208,7 @@
     <dependency>
       <groupId>com.github.javafaker</groupId>
       <artifactId>javafaker</artifactId>
-      <version>${faker.varion}</version>
+      <version>1.0.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -274,7 +273,7 @@
         <plugin>
           <groupId>org.hibernate.orm.tooling</groupId>
           <artifactId>hibernate-enhance-maven-plugin</artifactId>
-          <version>${hibernate.version}</version>
+          <version>6.6.1.Final</version>
         </plugin>
         <plugin>
           <groupId>org.springframework.boot</groupId>
@@ -332,7 +331,7 @@
                 <path>
                   <groupId>org.projectlombok</groupId>
                   <artifactId>lombok</artifactId>
-                  <version>${lombok.version}</version>
+                  <version>1.18.34</version>
                 </path>
                 <path>
                   <groupId>org.projectlombok</groupId>
@@ -363,7 +362,7 @@
           <plugin>
             <groupId>org.hibernate.orm.tooling</groupId>
             <artifactId>hibernate-enhance-maven-plugin</artifactId>
-            <version>${hibernate.version}</version>
+            <version>6.6.1.Final</version>
             <executions>
               <execution>
                 <configuration>
