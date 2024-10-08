@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.eas.api.exception;
 
 import ca.bc.gov.educ.eas.api.exception.errors.ApiError;
+import jakarta.persistence.EntityExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -68,6 +69,16 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<Object> handleEntityNotFound(
       EntityNotFoundException ex) {
     ApiError apiError = new ApiError(NOT_FOUND);
+    apiError.setMessage(ex.getMessage());
+    log.info("{} ", apiError.getMessage(), ex);
+    return buildResponseEntity(apiError);
+  }
+
+  @ExceptionHandler(EntityExistsException.class)
+  protected ResponseEntity<Object> handleEntityExists(
+          EntityExistsException ex) {
+    log.info("handleEntityExists", ex);
+    ApiError apiError = new ApiError(BAD_REQUEST);
     apiError.setMessage(ex.getMessage());
     log.info("{} ", apiError.getMessage(), ex);
     return buildResponseEntity(apiError);

@@ -1,12 +1,16 @@
 package ca.bc.gov.educ.eas.api;
 
+import ca.bc.gov.educ.eas.api.constants.v1.StatusCodes;
+import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
+import ca.bc.gov.educ.eas.api.struct.v1.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -24,6 +28,33 @@ public abstract class BaseEasAPITest {
   public void resetState() {
 
   }
+
+  public Session createMockSession() {
+    LocalDateTime currentDate = LocalDateTime.now();
+    return Session.builder()
+            .sessionID(UUID.randomUUID().toString())
+            .courseSession(currentDate.getYear() + currentDate.getMonthValue())
+            .courseYear(currentDate.getYear())
+            .courseMonth(currentDate.getMonthValue())
+            .statusCode(StatusCodes.OPEN.getCode())
+            .activeFromDate(currentDate.minusMonths(2))
+            .activeUntilDate(currentDate.plusMonths(2))
+            .build();
+  }
+
+  public SessionEntity createMockSessionEntity() {
+    LocalDateTime currentDate = LocalDateTime.now();
+    return SessionEntity.builder()
+            .sessionID(UUID.randomUUID())
+            .courseSession(currentDate.getYear() + currentDate.getMonthValue())
+            .courseYear(currentDate.getYear())
+            .courseMonth(currentDate.getMonthValue())
+            .statusCode(StatusCodes.OPEN.getCode())
+            .activeFromDate(currentDate.minusMonths(2))
+            .activeUntilDate(currentDate.plusMonths(2))
+            .build();
+  }
+
   public SchoolTombstone createMockSchoolTombstone() {
     return SchoolTombstone.builder()
             .schoolId(UUID.randomUUID().toString())
