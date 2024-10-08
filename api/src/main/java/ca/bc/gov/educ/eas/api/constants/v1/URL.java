@@ -6,5 +6,6 @@ public final class URL {
   }
 
   public static final String BASE_URL_STUDENT="/api/v1/eas/student";
+  public static final String PAGINATED="/paginated";
 
 }

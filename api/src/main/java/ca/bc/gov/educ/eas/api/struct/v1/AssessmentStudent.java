@@ -40,7 +40,6 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
   @Size(max = 12)
   private String localID;
 
-  @Size(max = 1)
   private Boolean isElectronicExam;
 
   @Size(max = 3)

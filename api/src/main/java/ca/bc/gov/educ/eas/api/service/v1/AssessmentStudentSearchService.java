@@ -9,6 +9,8 @@ import ca.bc.gov.educ.eas.api.util.RequestUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
@@ -29,19 +31,12 @@ import java.util.concurrent.CompletionException;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AssessmentStudentSearchService extends BaseSearchService {
+
+  @Getter
   private final AssessmentStudentFilterSpecs studentFilterSpecs;
   private final AssessmentStudentRepository repository;
-
-  /**
-   * Instantiates a new Student search service.
-   *
-   * @param studentFilterSpecs the student filter specs
-   */
-  public AssessmentStudentSearchService(AssessmentStudentFilterSpecs studentFilterSpecs, AssessmentStudentRepository repository) {
-    this.studentFilterSpecs = studentFilterSpecs;
-    this.repository = repository;
-  }
 
   @Transactional(propagation = Propagation.SUPPORTS)
   public CompletableFuture<Page<AssessmentStudentEntity>> findAll(Specification<AssessmentStudentEntity> specs, final Integer pageNumber, final Integer pageSize, final List<Sort.Order> sorts) {
@@ -69,7 +64,7 @@ public class AssessmentStudentSearchService extends BaseSearchService {
         });
         int i = 0;
         for (var search : searches) {
-          studentSpecs = getSpecifications(studentSpecs, i, search, this.studentFilterSpecs, AssessmentStudentEntity.class);
+          studentSpecs = getSpecifications(studentSpecs, i, search, this.getStudentFilterSpecs(), AssessmentStudentEntity.class);
           i++;
         }
       }

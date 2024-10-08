@@ -1,9 +1,15 @@
 package ca.bc.gov.educ.eas.api;
 
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.StatusCodes;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -52,6 +58,38 @@ public abstract class BaseEasAPITest {
             .statusCode(StatusCodes.OPEN.getCode())
             .activeFromDate(currentDate.minusMonths(2))
             .activeUntilDate(currentDate.plusMonths(2))
+            .createUser("ABC")
+            .createDate(LocalDateTime.now())
+            .updateUser("ABC")
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
+  public AssessmentStudent createMockStudent() {
+    return AssessmentStudent.builder()
+            .assessmentStudentID(UUID.randomUUID().toString())
+            .sessionID(UUID.randomUUID().toString())
+            .assessmentTypeCode(AssessmentTypeCodes.LTP10.getCode())
+            .schoolID(UUID.randomUUID().toString())
+            .studentID(UUID.randomUUID().toString())
+            .pen("120164447")
+            .localID("123")
+            .build();
+  }
+
+  public AssessmentStudentEntity createMockStudentEntity(SessionEntity sessionEntity) {
+    return AssessmentStudentEntity.builder()
+            .assessmentStudentID(UUID.randomUUID())
+            .sessionEntity(sessionEntity)
+            .assessmentTypeCode(AssessmentTypeCodes.LTP10.getCode())
+            .schoolID(UUID.randomUUID())
+            .studentID(UUID.randomUUID())
+            .pen("120164447")
+            .localID("123")
+            .createUser("ABC")
+            .createDate(LocalDateTime.now())
+            .updateUser("ABC")
+            .updateDate(LocalDateTime.now())
             .build();
   }
 
@@ -129,5 +167,15 @@ public abstract class BaseEasAPITest {
     independentAuthority.setAuthorityTypeCode("INDEPENDNT");
     independentAuthority.setPhoneNumber("123456789");
     return independentAuthority;
+  }
+
+  public static String asJsonString(final Object obj) {
+    try {
+      ObjectMapper om = new ObjectMapper();
+      om.registerModule(new JavaTimeModule()).configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+      return om.writeValueAsString(obj);
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }
