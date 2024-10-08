@@ -94,17 +94,17 @@ public class SessionControllerTest extends BaseEasAPITest {
 
     @Test
     void testSessionManagement_UpdateSession_ShouldReturnOK() throws Exception {
-        SessionEntity SessionEntity = sessionRepository.save(createMockSessionEntity());
+        SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
         Session updatedSession = new Session();
         updatedSession.setActiveFromDate(LocalDateTime.now().plusDays(20));
         updatedSession.setActiveUntilDate(LocalDateTime.now().plusDays(120));
         updatedSession.setUpdateUser("test");
-        ResultActions resultActions = this.mockMvc.perform(put(URL.SESSIONS_URL + "/" + SessionEntity.getAssessmentSessionID())
+        ResultActions resultActions = this.mockMvc.perform(put(URL.SESSIONS_URL + "/" + sessionEntity.getAssessmentSessionID())
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_EAS_SESSIONS")))
                 .content(objectMapper.writeValueAsString(updatedSession))
                 .contentType(APPLICATION_JSON)).andExpect(status().isOk());
 
-        var updatedSessionEntity = sessionRepository.findById(SessionEntity.getAssessmentSessionID());
+        var updatedSessionEntity = sessionRepository.findById(sessionEntity.getAssessmentSessionID());
         assertThat(updatedSessionEntity).isPresent();
         assertThat(updatedSessionEntity.get().getActiveFromDate().toLocalDate()).isEqualTo(updatedSession.getActiveFromDate().toLocalDate());
         assertThat(updatedSessionEntity.get().getActiveUntilDate().toLocalDate()).isEqualTo(updatedSession.getActiveUntilDate().toLocalDate());
