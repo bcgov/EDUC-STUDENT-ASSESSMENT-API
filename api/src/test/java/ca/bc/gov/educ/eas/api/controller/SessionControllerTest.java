@@ -20,7 +20,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
@@ -83,7 +82,7 @@ class SessionControllerTest extends BaseEasAPITest {
     void testSessionManagement_GetAllSessions_ShouldReturnOK() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
         final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-        SessionEntity SessionEntity = sessionRepository.save(createMockSessionEntity());
+        sessionRepository.save(createMockSessionEntity());
         this.mockMvc.perform(
                         get(URL.SESSIONS_URL).with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk())
