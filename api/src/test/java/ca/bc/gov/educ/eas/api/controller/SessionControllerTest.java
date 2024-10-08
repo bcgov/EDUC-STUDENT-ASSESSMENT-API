@@ -110,6 +110,19 @@ public class SessionControllerTest extends BaseEasAPITest {
         assertThat(updatedSessionEntity.get().getActiveUntilDate().toLocalDate()).isEqualTo(updatedSession.getActiveUntilDate().toLocalDate());
     }
 
+    @Test
+    void testSessionManagement_UpdateSession_ShouldReturNotFound() throws Exception {
+        Session updatedSession = new Session();
+        updatedSession.setActiveFromDate(LocalDateTime.now().plusDays(20));
+        updatedSession.setActiveUntilDate(LocalDateTime.now().plusDays(120));
+        updatedSession.setUpdateUser("test");
+        this.mockMvc.perform(put(URL.SESSIONS_URL + "/" + UUID.randomUUID())
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_EAS_SESSIONS")))
+                .content(objectMapper.writeValueAsString(updatedSession))
+                .contentType(APPLICATION_JSON)).andExpect(status().isNotFound());
+
+    }
+
     private SessionEntity createMockSessionEntity() {
         String courseSessionVal = LocalDateTime.now().getYear() + "" + LocalDateTime.now().getMonthValue();
         SessionEntity sessionEntity = new SessionEntity();
