@@ -26,9 +26,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-/**
- * The type Student search service.
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor
