@@ -260,7 +260,7 @@ jobs:
           || true && echo "Rollout in progress"
           oc logs -f deployment/${{ env.SPRING_BOOT_IMAGE_NAME }}
           # Get status, returns 0 if rollout is successful
-          oc rollout status deployment/${{ env.SPRING_BOOT_IMAGE_NAME }}
+          oc rollout status deployments/${{ env.SPRING_BOOT_IMAGE_NAME }}
 
       - name: ZAP Scan
         uses: zaproxy/action-api-scan@v0.7.0
