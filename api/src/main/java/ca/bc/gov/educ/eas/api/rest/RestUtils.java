@@ -42,7 +42,6 @@ public class RestUtils {
   private final Map<String, SchoolTombstone> schoolMap = new ConcurrentHashMap<>();
   private final Map<String, SchoolTombstone> schoolMincodeMap = new ConcurrentHashMap<>();
   private final Map<String, District> districtMap = new ConcurrentHashMap<>();
-  private final Map<String, School> allSchoolMap = new ConcurrentHashMap<>();
   private final Map<String, FacilityTypeCode> facilityTypeCodesMap = new ConcurrentHashMap<>();
   private final Map<String, SchoolCategoryCode> schoolCategoryCodesMap = new ConcurrentHashMap<>();
   public static final String PAGE_SIZE = "pageSize";
@@ -54,7 +53,6 @@ public class RestUtils {
   private final ReadWriteLock authorityLock = new ReentrantReadWriteLock();
   private final ReadWriteLock schoolLock = new ReentrantReadWriteLock();
   private final ReadWriteLock districtLock = new ReentrantReadWriteLock();
-  private final ReadWriteLock allSchoolLock = new ReentrantReadWriteLock();
   @Getter
   private final ApplicationProperties props;
 
@@ -78,7 +76,6 @@ public class RestUtils {
   }
 
   private void initialize() {
-    this.populateAllSchoolMap();
     this.populateSchoolCategoryCodesMap();
     this.populateFacilityTypeCodesMap();
     this.populateSchoolMap();
@@ -293,17 +290,6 @@ public class RestUtils {
     return Optional.ofNullable(this.schoolMincodeMap.get(mincode));
   }
 
-  public List<IndependentSchoolFundingGroup> getSchoolFundingGroupsBySchoolID(final String schoolID) {
-    if (this.allSchoolMap.isEmpty()) {
-      log.info("All schools map is empty reloading schools");
-      this.populateAllSchoolMap();
-    }
-    if(!this.allSchoolMap.containsKey(schoolID)){
-      return new ArrayList<>();
-    }
-    return this.allSchoolMap.get(schoolID).getSchoolFundingGroups();
-  }
-
   public Optional<District> getDistrictByDistrictID(final String districtID) {
     if (this.districtMap.isEmpty()) {
       log.info("District map is empty reloading schools");
@@ -318,30 +304,6 @@ public class RestUtils {
       this.populateSchoolMap();
     }
     return Optional.ofNullable(this.independentAuthorityToSchoolIDMap.get(independentAuthorityID));
-  }
-
-  public void populateAllSchoolMap() {
-    val writeLock = this.allSchoolLock.writeLock();
-    try {
-      writeLock.lock();
-      List<School> allSchools = this.getAllSchoolList(UUID.randomUUID());
-      for (val school : allSchools) {
-        this.allSchoolMap.put(school.getSchoolId(), school);
-      }
-    } catch (Exception ex) {
-      log.error("Unable to load map cache for allSchool ", ex);
-    } finally {
-      writeLock.unlock();
-    }
-    log.info("Loaded  {} allSchools to memory", this.allSchoolMap.values().size());
-  }
-
-  public Optional<School> getAllSchoolBySchoolID(final String schoolID) {
-    if (this.allSchoolMap.isEmpty()) {
-      log.info("All School map is empty reloading schools");
-      this.populateAllSchoolMap();
-    }
-    return Optional.ofNullable(this.allSchoolMap.get(schoolID));
   }
 
   @Retryable(retryFor = {Exception.class}, noRetryFor = {EasAPIRuntimeException.class}, backoff = @Backoff(multiplier = 2, delay = 2000))
