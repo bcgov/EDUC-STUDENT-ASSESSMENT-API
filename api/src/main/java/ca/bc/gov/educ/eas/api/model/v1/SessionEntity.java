@@ -27,16 +27,16 @@ public class SessionEntity {
   @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator", parameters = {
           @Parameter(name = "uuid_gen_strategy_class", value = "org.hibernate.id.uuid.CustomVersionOneStrategy")})
   @Column(name = "SESSION_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
-  private UUID assessmentSessionID;
+  private UUID sessionID;
 
   @Column(name = "COURSE_SESSION", nullable = false, length = 6)
-  private int courseSession;
+  private Integer courseSession;
 
   @Column(name = "COURSE_YEAR", nullable = false, length = 4)
-  private int courseYear;
+  private Integer courseYear;
 
   @Column(name = "COURSE_MONTH", nullable = false, length = 2)
-  private int courseMonth;
+  private Integer courseMonth;
 
   @Column(name = "STATUS_CODE", nullable = false, length = 10)
   private String statusCode;

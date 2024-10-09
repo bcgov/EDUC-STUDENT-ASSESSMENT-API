@@ -44,22 +44,22 @@ public class AssessmentStudentEntity {
   private UUID studentID;
 
   @Column(name = "PEN", nullable = false, length = 9)
-  String pen;
+  private String pen;
 
   @Column(name = "LOCAL_ID", length = 12)
-  String localID;
+  private String localID;
 
   @Column(name = "IS_ELECTRONIC_EXAM", length = 1)
-  Boolean isElectronicExam;
+  private Boolean isElectronicExam;
 
   @Column(name = "FINAL_PERCENTAGE", length = 3)
-  String finalPercentage;
+  private String finalPercentage;
 
   @Column(name = "PROVINCIAL_SPECIAL_CASE_CODE", length = 1)
-  String provincialSpecialCaseCode;
+  private String provincialSpecialCaseCode;
 
   @Column(name = "COURSE_STATUS_CODE", length = 1)
-  String courseStatusCode;
+  private String courseStatusCode;
 
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;

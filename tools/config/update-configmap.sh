@@ -42,6 +42,18 @@ echo Removing EAS API client if exists
 curl -sX DELETE "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients/$EAS_APIServiceClientID" \
   -H "Authorization: Bearer $TKN"
 
+echo Writing scope WRITE_EAS_STUDENT
+curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TKN" \
+  -d "{\"description\": \"Write Assessment Students\",\"id\": \"WRITE_EAS_STUDENT\",\"name\": \"WRITE_EAS_STUDENT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+
+echo Writing scope READ_EAS_STUDENT
+curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TKN" \
+  -d "{\"description\": \"Read Assessment Students\",\"id\": \"READ_EAS_STUDENT\",\"name\": \"READ_EAS_STUDENT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+
 if [[ -n "$EAS_APIServiceClientID" && -n "$EAS_APIServiceClientSecret" && ("$envValue" = "dev" || "$envValue" = "test") ]]; then
   echo
   echo Creating client eas-api-service with secret
@@ -71,6 +83,22 @@ EAS_APIServiceClientSecret=$(curl -sX GET "https://$SOAM_KC/auth/admin/realms/$S
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" |
   jq -r '.value')
+
+echo
+echo Writing scope READ_EAS_SESSIONS
+curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TKN" \
+  -d "{\"description\": \"Read Assessment Sessions Data\",\"id\": \"READ_EAS_SESSIONS\",\"name\": \"READ_EAS_SESSIONS\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+
+echo
+echo Writing scope WRITE_EAS_SESSIONS
+curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TKN" \
+  -d "{\"description\": \"Write Assessment Sessions Data\",\"id\": \"WRITE_EAS_SESSIONS\",\"name\": \"WRITE_EAS_SESSIONS\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+
+
 ###########################################################
 #Setup for config-map
 ###########################################################
