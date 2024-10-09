@@ -2,37 +2,41 @@ package ca.bc.gov.educ.eas.api.struct.v1;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.springframework.data.annotation.ReadOnlyProperty;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * DTO for Session entity.
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Session extends BaseRequest implements Serializable {
+
   private static final long serialVersionUID = 1L;
 
+  @ReadOnlyProperty
   private String sessionID;
 
-  @Size(max = 6)
-  private int courseSession;
+  @ReadOnlyProperty
+  private Integer courseSession;
 
-  @Size(max = 4)
-  private int courseYear;
+  @ReadOnlyProperty
+  private Integer courseMonth;
 
-  @Size(max =  2)
-  private int courseMonth;
+  @ReadOnlyProperty
+  private Integer courseYear;
 
-  @Size(max =  10)
-  @NotNull(message = "statusCode cannot be null")
-  private String statusCode;
+  @ReadOnlyProperty
+  private String status;
 
   @NotNull(message = "activeFromDate cannot be null")
   private LocalDateTime activeFromDate;
