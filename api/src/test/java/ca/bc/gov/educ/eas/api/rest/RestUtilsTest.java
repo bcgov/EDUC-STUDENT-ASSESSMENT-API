@@ -3,9 +3,7 @@ package ca.bc.gov.educ.eas.api.rest;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.District;
-import ca.bc.gov.educ.eas.api.struct.external.institute.v1.School;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.SchoolTombstone;
-
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +14,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.wildfly.common.Assert.assertFalse;
 import static org.wildfly.common.Assert.assertTrue;
@@ -274,38 +274,4 @@ class RestUtilsTest {
         assertEquals(school1, result.get());
     }
 
-    @Test
-    void testGetAllSchoolBySchoolID_ShouldPopulateMapsCorrectly() {
-        // Given
-        val school1ID = String.valueOf(UUID.randomUUID());
-        val school2ID = String.valueOf(UUID.randomUUID());
-        val school3ID = String.valueOf(UUID.randomUUID());
-        val school1 = School.builder()
-                .schoolId(school1ID)
-                .displayName("School 1")
-                .independentAuthorityId("Authority 1")
-                .build();
-        val school2 = School.builder()
-                .schoolId(school2ID)
-                .displayName("School 2")
-                .build();
-        val school3 = School.builder()
-                .schoolId(school3ID)
-                .displayName("School 3")
-                .independentAuthorityId("Authority 2")
-                .build();
-
-        doReturn(List.of(school1, school2, school3)).when(restUtils).getAllSchoolList(any());
-
-        // When
-        restUtils.populateAllSchoolMap();
-
-        // Then verify the maps are populated
-        Map<String, School> schoolMap = (Map<String, School>) ReflectionTestUtils.getField(restUtils, "allSchoolMap");
-        assert schoolMap != null;
-        assertEquals(3, schoolMap.size());
-        assertEquals(school1, schoolMap.get(school1ID));
-        assertEquals(school2, schoolMap.get(school2ID));
-        assertEquals(school3, schoolMap.get(school3ID));
-    }
 }

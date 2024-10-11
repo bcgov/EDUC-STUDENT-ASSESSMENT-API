@@ -2,13 +2,13 @@ package ca.bc.gov.educ.eas.api.controller.v1;
 
 import ca.bc.gov.educ.eas.api.BaseEasAPITest;
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
+import ca.bc.gov.educ.eas.api.constants.v1.URL;
 import ca.bc.gov.educ.eas.api.filter.FilterOperation;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
-import ca.bc.gov.educ.eas.api.constants.v1.URL;
 import ca.bc.gov.educ.eas.api.struct.v1.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -251,7 +251,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     SessionEntity session = createMockSessionEntity();
-    session.setCourseMonth(8);
+    session.setCourseMonth("08");
     SessionEntity sessionEntity = sessionRepository.save(session);
     AssessmentStudentEntity student = createMockStudentEntity(sessionEntity);
     student.setAssessmentTypeCode(AssessmentTypeCodes.LTP10.getCode());
@@ -272,8 +272,8 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
             .condition(Condition.AND)
             .key("sessionEntity.courseMonth")
             .operation(FilterOperation.EQUAL)
-            .value("8")
-            .valueType(ValueType.INTEGER)
+            .value("08")
+            .valueType(ValueType.STRING)
             .build();
 
     List<SearchCriteria> criteriaList = new LinkedList<>();
