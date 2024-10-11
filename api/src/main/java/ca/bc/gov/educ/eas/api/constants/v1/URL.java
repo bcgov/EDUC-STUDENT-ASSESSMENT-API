@@ -1,11 +1,8 @@
 package ca.bc.gov.educ.eas.api.constants.v1;
 
-import lombok.NoArgsConstructor;
-
 /**
  * This class consolidates all the URL exposed by EAS service.
  */
-@NoArgsConstructor
 public final class URL {
 
   private URL(){

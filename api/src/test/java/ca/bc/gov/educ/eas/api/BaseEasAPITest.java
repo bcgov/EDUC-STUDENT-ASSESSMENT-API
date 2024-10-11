@@ -42,7 +42,6 @@ public abstract class BaseEasAPITest {
             .courseSession(currentDate.getYear() + currentDate.getMonthValue())
             .courseYear(currentDate.getYear())
             .courseMonth(currentDate.getMonthValue())
-            .statusCode(StatusCodes.OPEN.getCode())
             .activeFromDate(currentDate.minusMonths(2))
             .activeUntilDate(currentDate.plusMonths(2))
             .build();
@@ -52,9 +51,9 @@ public abstract class BaseEasAPITest {
     LocalDateTime currentDate = LocalDateTime.now();
     return SessionEntity.builder()
             .sessionID(UUID.randomUUID())
-            .courseSession(currentDate.getYear() + currentDate.getMonthValue())
-            .courseYear(currentDate.getYear())
-            .courseMonth(currentDate.getMonthValue())
+            .courseSession(Integer.toString(currentDate.getYear()) + Integer.toString(currentDate.getMonthValue()))
+            .courseYear(Integer.toString(currentDate.getYear()))
+            .courseMonth(Integer.toString(currentDate.getMonthValue()))
             .statusCode(StatusCodes.OPEN.getCode())
             .activeFromDate(currentDate.minusMonths(2))
             .activeUntilDate(currentDate.plusMonths(2))

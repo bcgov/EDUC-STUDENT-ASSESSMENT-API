@@ -7,8 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,19 +23,18 @@ public class SessionEntity {
 
   @Id
   @GeneratedValue(generator = "UUID")
-  @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator", parameters = {
-          @Parameter(name = "uuid_gen_strategy_class", value = "org.hibernate.id.uuid.CustomVersionOneStrategy")})
+  @UuidGenerator
   @Column(name = "SESSION_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
   private UUID sessionID;
 
   @Column(name = "COURSE_SESSION", nullable = false, length = 6)
-  private Integer courseSession;
+  private String courseSession;
 
   @Column(name = "COURSE_YEAR", nullable = false, length = 4)
-  private Integer courseYear;
+  private String courseYear;
 
   @Column(name = "COURSE_MONTH", nullable = false, length = 2)
-  private Integer courseMonth;
+  private String courseMonth;
 
   @Column(name = "STATUS_CODE", nullable = false, length = 10)
   private String statusCode;
