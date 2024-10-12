@@ -35,9 +35,6 @@ public class Session extends BaseRequest implements Serializable {
   @ReadOnlyProperty
   private Integer courseYear;
 
-  @ReadOnlyProperty
-  private String status;
-
   @NotNull(message = "activeFromDate cannot be null")
   private LocalDateTime activeFromDate;
 

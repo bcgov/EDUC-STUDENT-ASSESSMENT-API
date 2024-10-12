@@ -5,8 +5,10 @@ import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.URL;
 import ca.bc.gov.educ.eas.api.filter.FilterOperation;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.struct.v1.*;
@@ -44,11 +46,16 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
   @Autowired
   SessionRepository sessionRepository;
 
+  @Autowired
+  AssessmentRepository assessmentRepository;
 
+  @Autowired
+  AssessmentStudentMapper mapper;
 
   @AfterEach
   public void after() {
     this.studentRepository.deleteAll();
+    this.assessmentRepository.deleteAll();
     this.sessionRepository.deleteAll();
   }
 
@@ -58,7 +65,9 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     SessionEntity session = sessionRepository.save(createMockSessionEntity());
-    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(session)).getAssessmentStudentID();
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+
+    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
 
     this.mockMvc.perform(
                     get(URL.BASE_URL_STUDENT + "/" + assessmentStudentID).with(mockAuthority))
@@ -84,7 +93,8 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     SessionEntity session = sessionRepository.save(createMockSessionEntity());
-    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(session)).getAssessmentStudentID();
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
 
     this.mockMvc.perform(
                     get(URL.BASE_URL_STUDENT + "/" + assessmentStudentID).with(mockAuthority))
@@ -107,7 +117,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
                             .with(mockAuthority))
             .andDo(print())
             .andExpect(status().isBadRequest())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("provincialSpecialCaseCode"));
+            .andExpect(jsonPath("$.subErrors[?(@.field == 'provincialSpecialCaseCode')]").exists());
   }
 
   @Test
@@ -125,7 +135,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
                             .with(mockAuthority))
             .andDo(print())
             .andExpect(status().isBadRequest())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("assessmentStudentID"));
+            .andExpect(jsonPath("$.subErrors[?(@.field == 'assessmentStudentID')]").exists());
   }
 
   @Test
@@ -152,10 +162,15 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     SessionEntity session = sessionRepository.save(createMockSessionEntity());
-    AssessmentStudent student = AssessmentStudentMapper.mapper.toStructure(studentRepository.save(createMockStudentEntity(session)));
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudent student = mapper.toStructure(studentRepository.save(createMockStudentEntity(assessment)));
+
+    student.setSessionID(assessment.getSessionEntity().getSessionID().toString());
+    student.setAssessmentTypeCode(assessment.getAssessmentTypeCode());
     student.setCreateDate(null);
     student.setUpdateDate(null);
     student.setUpdateUser(null);
+    student.setAssessmentID(null);
 
     this.mockMvc.perform(
                     put(URL.BASE_URL_STUDENT + "/" + student.getAssessmentStudentID())
@@ -182,7 +197,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
                             .with(mockAuthority))
             .andDo(print())
             .andExpect(status().isBadRequest())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("assessmentStudentID"));
+            .andExpect(jsonPath("$.subErrors[?(@.field == 'assessmentStudentID')]").exists());
   }
 
   @Test
@@ -229,8 +244,11 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     SessionEntity session = sessionRepository.save(createMockSessionEntity());
-    AssessmentStudent student = AssessmentStudentMapper.mapper.toStructure(createMockStudentEntity(session));
+    assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudent student = createMockStudent();
     student.setAssessmentStudentID(null);
+    student.setSessionID(session.getSessionID().toString());
+    student.setAssessmentTypeCode(AssessmentTypeCodes.LTF12.getCode());
     student.setCreateDate(null);
     student.setUpdateDate(null);
     student.setUpdateUser(null);
@@ -253,16 +271,17 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
     SessionEntity session = createMockSessionEntity();
     session.setCourseMonth("08");
     SessionEntity sessionEntity = sessionRepository.save(session);
-    AssessmentStudentEntity student = createMockStudentEntity(sessionEntity);
-    student.setAssessmentTypeCode(AssessmentTypeCodes.LTP10.getCode());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    AssessmentStudentEntity student = createMockStudentEntity(assessment);
     studentRepository.save(student);
 
-    AssessmentStudentEntity student2 = createMockStudentEntity(sessionEntity);
-    student2.setAssessmentTypeCode(AssessmentTypeCodes.LTF12.getCode());
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
     studentRepository.save(student2);
 
     SearchCriteria criteriaAssessmentTypeCode = SearchCriteria.builder()
-            .key("assessmentTypeCode")
+            .key("assessmentEntity.assessmentTypeCode")
             .operation(FilterOperation.EQUAL)
             .value(AssessmentTypeCodes.LTP10.getCode())
             .valueType(ValueType.STRING)
@@ -270,7 +289,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
 
     SearchCriteria criteriaSessionMonth = SearchCriteria.builder()
             .condition(Condition.AND)
-            .key("sessionEntity.courseMonth")
+            .key("assessmentEntity.sessionEntity.courseMonth")
             .operation(FilterOperation.EQUAL)
             .value("08")
             .valueType(ValueType.STRING)

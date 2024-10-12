@@ -20,12 +20,13 @@ import java.time.LocalDateTime;
 @Builder
 @DynamicUpdate
 @Entity
-@Table(name = "COURSE_STATUS_CODE")
+@Table(name = "STUDENT_STATUS_CODE")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CourseStatusCodeEntity {
+public class StudentStatusCodeEntity {
+
   @Id
-  @Column(name = "COURSE_STATUS_CODE", unique = true, length = 10)
-  private String courseStatusCode;
+  @Column(name = "STUDENT_STATUS_CODE", unique = true, length = 10)
+  private String studentStatusCode;
 
   @Column(name = "LABEL", length = 30)
   private String label;

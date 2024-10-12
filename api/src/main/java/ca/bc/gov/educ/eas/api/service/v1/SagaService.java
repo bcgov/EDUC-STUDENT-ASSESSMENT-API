@@ -156,12 +156,12 @@ public class SagaService {
       .updateUser(userName)
       .updateDate(LocalDateTime.now())
       .build();
-    return this.createSagaRecord(saga);
+    return createSagaRecord(saga);
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public List<EasSagaEntity> createSagaRecordsInDB(final List<EasSagaEntity> easSagaEntities) {
-    return this.createSagaRecords(easSagaEntities);
+    return createSagaRecords(easSagaEntities);
   }
 
   /**

@@ -3,16 +3,19 @@ package ca.bc.gov.educ.eas.api.service.v1;
 import ca.bc.gov.educ.eas.api.BaseEasAPITest;
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
-import jakarta.persistence.EntityExistsException;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -40,12 +43,23 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
   @Autowired
   SessionRepository sessionRepository;
 
+  @Autowired
+  AssessmentRepository assessmentRepository;
+
+  @AfterEach
+  public void after() {
+    this.assessmentStudentRepository.deleteAll();
+    this.assessmentRepository.deleteAll();
+    this.sessionRepository.deleteAll();
+  }
+
   @Test
   void testGetStudentByID_WhenStudentExistInDB_ShouldReturnStudent()  {
     //given student exists in db
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
-    AssessmentStudentEntity assessmentStudentEntity = repository.save(AssessmentStudentEntity.builder().assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).sessionEntity(SessionEntity.builder().sessionID(sessionEntity.getSessionID()).build()).build());
+    AssessmentStudentEntity assessmentStudentEntity = repository.save(createMockStudentEntity(assessmentEntity));
 
     //when retrieving the student
     AssessmentStudentEntity student = service.getStudentByID(assessmentStudentEntity.getAssessmentStudentID());
@@ -67,9 +81,10 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
   void testCreateStudent_WhenStudentDoesNotExistInDB_ShouldReturnStudent()  {
     //given session exists
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
 
     //when creating an assessment student
-    AssessmentStudentEntity student = service.createStudent(AssessmentStudentEntity.builder().assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).sessionEntity(SessionEntity.builder().sessionID(sessionEntity.getSessionID()).build()).build());
+    AssessmentStudentEntity student = service.createStudent(AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build());
 
     //then assessment student is created
     assertNotNull(student);
@@ -77,83 +92,52 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
   }
 
   @Test
-  void testCreateStudent_WhenStudentAlreadyInThisSession_ShouldThrowError()  {
-    //given studentID exists in db for a session
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-
-    AssessmentStudentEntity assessmentStudentEntity = repository.save(AssessmentStudentEntity.builder().assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).sessionEntity(SessionEntity.builder().sessionID(sessionEntity.getSessionID()).build()).build());
-
-    //when attempting to create a new assessment student with same studentID and session
-    assessmentStudentEntity.setAssessmentStudentID(UUID.randomUUID());
-
-    //then throw exception
-    assertThrows(EntityExistsException.class, () -> service.createStudent(assessmentStudentEntity));
-  }
-
-  @Test
   void testCreateStudent_WhenSessionIDDoesNotExistInDB_ShouldThrowError()  {
     //when attempting to create student with invalid session id
-    AssessmentStudentEntity student = AssessmentStudentEntity.builder().assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).sessionEntity(SessionEntity.builder().sessionID(UUID.randomUUID()).build()).build();
-
+    AssessmentStudentEntity student = AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).build();
     //then throw exception
-    assertThrows(EntityNotFoundException.class, () -> service.createStudent(student));
+     assertThrows(DataIntegrityViolationException.class, () -> service.createStudent(student));
   }
 
   @Test
   void testUpdateStudent_WhenStudentExistInDB_ShouldReturnUpdatedStudent()  {
     //given student exists in db
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
-    AssessmentStudentEntity assessmentStudentEntity = repository.save(AssessmentStudentEntity.builder().assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).sessionEntity(SessionEntity.builder().sessionID(sessionEntity.getSessionID()).build()).build());
-
+    AssessmentStudentEntity assessmentStudentEntity = repository.save(AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build());
     //when updating the student
-    assessmentStudentEntity.setAssessmentTypeCode(AssessmentTypeCodes.LTP10.getCode());
     AssessmentStudentEntity student = service.updateStudent(assessmentStudentEntity);
     assertNotNull(student);
 
     //then student is updated and saved
     var updatedStudent = repository.findById(student.getAssessmentStudentID());
     assertThat(updatedStudent).isPresent();
-    assertThat(updatedStudent.get().getAssessmentTypeCode()).isEqualTo(AssessmentTypeCodes.LTP10.getCode());
+    assertThat(updatedStudent.get().getAssessmentEntity().getAssessmentTypeCode()).isEqualTo(AssessmentTypeCodes.LTP10.getCode());
   }
 
   @Test
   void testUpdateStudent_WhenStudentDoesNotExistInDB_ReturnError()  {
+    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
     //given student does not exist in database
     //when attempting to update student
-    AssessmentStudentEntity student = AssessmentStudentEntity.builder().assessmentStudentID(UUID.randomUUID()).assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).sessionEntity(SessionEntity.builder().sessionID(UUID.randomUUID()).build()).build();
+    AssessmentStudentEntity student = AssessmentStudentEntity.builder().assessmentStudentID(UUID.randomUUID()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build();
 
     //then throw exception
     assertThrows(EntityNotFoundException.class, () -> service.updateStudent(student));
   }
 
   @Test
-  void testUpdateStudent_WhenStudentAlreadyInThisSession_ShouldThrowError()  {
-    //given two existing students in the session
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-
-    UUID studentUUID = UUID.randomUUID();
-    AssessmentStudentEntity studentEntity = repository.save(AssessmentStudentEntity.builder().assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode()).pen("120164447").schoolID(UUID.randomUUID()).studentID(studentUUID).sessionEntity(SessionEntity.builder().sessionID(sessionEntity.getSessionID()).build()).build());
-
-    //when updating one student to have the same studentID and sessionID as another student
-    studentEntity.setAssessmentStudentID(null);
-    studentEntity.setStudentID(UUID.randomUUID());
-    AssessmentStudentEntity studentEntity2 = repository.save(studentEntity);
-    studentEntity2.setStudentID(studentUUID);
-
-    //then exception thrown
-    assertThrows(EntityExistsException.class, () -> service.updateStudent(studentEntity2));
-  }
-
-  @Test
   void testUpdateStudent_WhenSessionIDDoesNotExistInDB_ShouldThrowError()  {
     //given student existing in db
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
+    SessionEntity sessionEntity = createMockSessionEntity();
+    //assessment does not exist in db
+    AssessmentEntity assessmentEntity =createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode());
 
     //when attempting to update to session id that does not exist
-    AssessmentStudentEntity student = repository.save(AssessmentStudentEntity.builder().assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).sessionEntity(SessionEntity.builder().sessionID(sessionEntity.getSessionID()).build()).build());
-
-    student.setSessionEntity(SessionEntity.builder().sessionID(UUID.randomUUID()).build());
+    AssessmentStudentEntity student = createMockStudentEntity(assessmentEntity);
 
     //then throw exception
     assertThrows(EntityNotFoundException.class, () -> service.updateStudent(student));

@@ -1,7 +1,12 @@
 package ca.bc.gov.educ.eas.api.struct.v1;
 
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
+import ca.bc.gov.educ.eas.api.constants.v1.CourseStatusCodes;
+import ca.bc.gov.educ.eas.api.constants.v1.ProvincialSpecialCaseCodes;
+import ca.bc.gov.educ.eas.api.struct.OnUpdate;
+import ca.bc.gov.educ.eas.api.validator.constraint.IsValidEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,38 +21,43 @@ import java.io.Serializable;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AssessmentStudent extends BaseRequest implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private String assessmentStudentID;
+    @NotBlank(groups = OnUpdate.class, message = "assessmentStudentID cannot be null ")
+    private String assessmentStudentID;
 
-  @NotNull(message = "sessionID cannot be null")
-  private String sessionID;
+    @NotBlank(message = "sessionID cannot be null")
+    private String sessionID;
 
-  @NotNull(message = "assessmentTypeCode cannot be null")
-  @Size(max = 10)
-  private String assessmentTypeCode;
+    @Size(max = 10)
+    @IsValidEnum(enumClass = AssessmentTypeCodes.class, message = "Invalid assessment type code.")
+    private String assessmentTypeCode;
 
-  @NotNull(message = "schoolID cannot be null")
-  private String schoolID;
+    private String assessmentID;
 
-  @NotNull(message = "studentID cannot be null")
-  private String studentID;
+    @NotBlank(message = "schoolID cannot be null")
+    private String schoolID;
 
-  @NotNull(message = "pen cannot be null")
-  @Size(max = 9)
-  private String pen;
+    @NotBlank(message = "studentID cannot be null")
+    private String studentID;
 
-  @Size(max = 12)
-  private String localID;
+    @NotBlank(message = "pen cannot be null")
+    @Size(max = 9)
+    private String pen;
 
-  private Boolean isElectronicExam;
+    @Size(max = 12)
+    private String localID;
 
-  @Size(max = 3)
-  private String finalPercentage;
+    private Boolean isElectronicExam;
 
-  @Size(max = 1)
-  private String provincialSpecialCaseCode;
+    @Size(max = 3)
+    private String finalPercentage;
 
-  @Size(max = 1)
-  private String courseStatusCode;
+    @Size(max = 1)
+    @IsValidEnum(enumClass = ProvincialSpecialCaseCodes.class, message = "Invalid provincial special case code.")
+    private String provincialSpecialCaseCode;
+
+    @Size(max = 1)
+    @IsValidEnum(enumClass = CourseStatusCodes.class, message = "Invalid course status code.")
+    private String courseStatusCode;
 }

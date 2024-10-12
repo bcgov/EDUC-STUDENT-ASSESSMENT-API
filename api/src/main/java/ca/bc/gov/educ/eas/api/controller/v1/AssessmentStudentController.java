@@ -27,13 +27,14 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   private final AssessmentStudentService studentService;
   private final AssessmentStudentValidator validator;
   private final AssessmentStudentSearchService searchService;
+  private final AssessmentStudentMapper mapper;
 
-  private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
   @Autowired
-  public AssessmentStudentController(AssessmentStudentService assessmentStudentService, AssessmentStudentValidator validator, AssessmentStudentSearchService searchService) {
+  public AssessmentStudentController(AssessmentStudentService assessmentStudentService, AssessmentStudentValidator validator, AssessmentStudentSearchService searchService, AssessmentStudentMapper mapper) {
     this.studentService = assessmentStudentService;
     this.validator = validator;
     this.searchService = searchService;
+    this.mapper = mapper;
   }
 
   @Override
@@ -43,14 +44,14 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
 
   @Override
   public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID) {
-    ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, false));
+    ValidationUtil.validatePayload(() -> validator.validatePayload(mapper.mapAssessment(assessmentStudent), false));
     RequestUtil.setAuditColumnsForUpdate(assessmentStudent);
     return mapper.toStructure(studentService.updateStudent(mapper.toModel(assessmentStudent)));
   }
 
   @Override
   public AssessmentStudent createStudent(AssessmentStudent assessmentStudent) {
-    ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
+    ValidationUtil.validatePayload(() -> validator.validatePayload(mapper.mapAssessment(assessmentStudent), true));
     RequestUtil.setAuditColumnsForCreate(assessmentStudent);
     return mapper.toStructure(studentService.createStudent(mapper.toModel(assessmentStudent)));
   }
