@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.EnumUtils;
 
+@SuppressWarnings("rawtypes")
 public class EnumValidator implements ConstraintValidator<IsAllowedValue, String> {
 
     private Class enumClass;
