@@ -12,10 +12,10 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = EnumValidator.class)
-public @interface IsValidEnum {
+public @interface IsAllowedValue {
     String message() default "Invalid value";
 
-    Class<? extends Enum> enumClass();
+    Class<? extends Enum<?>> enumClass();
 
     Class<?>[] groups() default {};
 

@@ -4,7 +4,7 @@ import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.CourseStatusCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.eas.api.struct.OnUpdate;
-import ca.bc.gov.educ.eas.api.validator.constraint.IsValidEnum;
+import ca.bc.gov.educ.eas.api.validator.constraint.IsAllowedValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -30,7 +30,7 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     private String sessionID;
 
     @Size(max = 10)
-    @IsValidEnum(enumClass = AssessmentTypeCodes.class, message = "Invalid assessment type code.")
+    @IsAllowedValue(enumClass = AssessmentTypeCodes.class, message = "Invalid assessment type code.")
     private String assessmentTypeCode;
 
     private String assessmentID;
@@ -54,10 +54,10 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     private String finalPercentage;
 
     @Size(max = 1)
-    @IsValidEnum(enumClass = ProvincialSpecialCaseCodes.class, message = "Invalid provincial special case code.")
+    @IsAllowedValue(enumClass = ProvincialSpecialCaseCodes.class, message = "Invalid provincial special case code.")
     private String provincialSpecialCaseCode;
 
     @Size(max = 1)
-    @IsValidEnum(enumClass = CourseStatusCodes.class, message = "Invalid course status code.")
+    @IsAllowedValue(enumClass = CourseStatusCodes.class, message = "Invalid course status code.")
     private String courseStatusCode;
 }
