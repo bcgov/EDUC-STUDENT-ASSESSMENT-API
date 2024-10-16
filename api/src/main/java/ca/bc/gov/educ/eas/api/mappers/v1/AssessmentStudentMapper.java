@@ -17,15 +17,9 @@ public interface AssessmentStudentMapper {
     AssessmentStudentMapper mapper = Mappers.getMapper(AssessmentStudentMapper.class);
 
     @Mapping(target = "assessmentID", source = "assessmentEntity.assessmentID")
-    @Mapping(target = "sessionID", source = "assessmentEntity.sessionEntity.sessionID")
-    @Mapping(target = "assessmentTypeCode", source = "assessmentEntity.assessmentTypeCode")
     AssessmentStudent toStructure(AssessmentStudentEntity entity);
 
-    AssessmentStudent mapAssessment(AssessmentStudent assessmentStudent);
-
     @Mapping(target = "assessmentEntity.assessmentID", source = "assessmentID")
-    @Mapping(target = "assessmentEntity.sessionEntity.sessionID", source = "sessionID")
-    @Mapping(target = "assessmentEntity.assessmentTypeCode", source = "assessmentTypeCode")
     AssessmentStudentEntity toModel(AssessmentStudent assessmentStudent);
 
     @AfterMapping

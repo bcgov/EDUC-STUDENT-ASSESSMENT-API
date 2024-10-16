@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.eas.api.struct.v1;
 
-import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.CourseStatusCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.eas.api.struct.OnUpdate;
@@ -26,13 +25,7 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @NotBlank(groups = OnUpdate.class, message = "assessmentStudentID cannot be null ")
     private String assessmentStudentID;
 
-    @NotBlank(message = "sessionID cannot be null")
-    private String sessionID;
-
-    @Size(max = 10)
-    @IsAllowedValue(enumClass = AssessmentTypeCodes.class, message = "Invalid assessment type code.")
-    private String assessmentTypeCode;
-
+    @NotBlank(message = "assessmentID cannot be null")
     private String assessmentID;
 
     @NotBlank(message = "schoolID cannot be null")

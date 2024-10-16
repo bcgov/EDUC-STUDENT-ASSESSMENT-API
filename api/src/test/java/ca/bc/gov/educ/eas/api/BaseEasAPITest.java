@@ -77,8 +77,7 @@ public abstract class BaseEasAPITest {
   public AssessmentStudent createMockStudent() {
     return AssessmentStudent.builder()
             .assessmentStudentID(UUID.randomUUID().toString())
-            .sessionID(UUID.randomUUID().toString())
-            .assessmentTypeCode(AssessmentTypeCodes.LTP10.getCode())
+            .assessmentID(UUID.randomUUID().toString())
             .schoolID(UUID.randomUUID().toString())
             .studentID(UUID.randomUUID().toString())
             .pen("120164447")

@@ -49,8 +49,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
   @Autowired
   AssessmentRepository assessmentRepository;
 
-  @Autowired
-  AssessmentStudentMapper mapper;
+  private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
 
   @AfterEach
   public void after() {
@@ -163,14 +162,11 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
 
     SessionEntity session = sessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
-    AssessmentStudent student = mapper.toStructure(studentRepository.save(createMockStudentEntity(assessment)));
-
-    student.setSessionID(assessment.getSessionEntity().getSessionID().toString());
-    student.setAssessmentTypeCode(assessment.getAssessmentTypeCode());
+    AssessmentStudentEntity assessmentStudentEntity = studentRepository.save(createMockStudentEntity(assessment));
+    AssessmentStudent student = mapper.toStructure(assessmentStudentEntity);
     student.setCreateDate(null);
     student.setUpdateDate(null);
     student.setUpdateUser(null);
-    student.setAssessmentID(null);
 
     this.mockMvc.perform(
                     put(URL.BASE_URL_STUDENT + "/" + student.getAssessmentStudentID())
@@ -207,7 +203,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
 
     AssessmentStudent student = createMockStudent();
     student.setAssessmentStudentID(null);
-    student.setAssessmentTypeCode("INVALID");
+    student.setAssessmentID(UUID.randomUUID().toString());
 
     this.mockMvc.perform(
                     post(URL.BASE_URL_STUDENT)
@@ -216,7 +212,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
                             .with(mockAuthority))
             .andDo(print())
             .andExpect(status().isBadRequest())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("assessmentTypeCode"));
+            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("assessmentID"));
   }
 
   @Test
@@ -244,11 +240,10 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     SessionEntity session = sessionRepository.save(createMockSessionEntity());
-    assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudent student = createMockStudent();
     student.setAssessmentStudentID(null);
-    student.setSessionID(session.getSessionID().toString());
-    student.setAssessmentTypeCode(AssessmentTypeCodes.LTF12.getCode());
+    student.setAssessmentID(assessment.getAssessmentID().toString());
     student.setCreateDate(null);
     student.setUpdateDate(null);
     student.setUpdateUser(null);

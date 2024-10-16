@@ -11,7 +11,4 @@ import java.util.UUID;
 @Repository
 public interface AssessmentRepository extends JpaRepository<AssessmentEntity, UUID> {
 
-    @Query(value = "SELECT ASST FROM AssessmentEntity ASST WHERE ASST.sessionEntity.sessionID=:sessionID AND ASST.assessmentTypeCode =:assessmentTypeCode")
-    Optional<AssessmentEntity> findBySessionIdAndAssessmentType(UUID sessionID, String assessmentTypeCode);
-
 }
