@@ -2,7 +2,6 @@ package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.util.TransformUtil;
@@ -21,14 +20,10 @@ public class AssessmentStudentService {
 
     private final AssessmentStudentRepository assessmentStudentRepository;
 
-    private final AssessmentRepository assessmentRepository;
-
 
     @Autowired
-    public AssessmentStudentService(final AssessmentStudentRepository assessmentStudentRepository,
-                                    final AssessmentRepository assessmentRepository) {
+    public AssessmentStudentService(final AssessmentStudentRepository assessmentStudentRepository) {
         this.assessmentStudentRepository = assessmentStudentRepository;
-        this.assessmentRepository = assessmentRepository;
     }
 
     public AssessmentStudentEntity getStudentByID(UUID assessmentStudentID) {
