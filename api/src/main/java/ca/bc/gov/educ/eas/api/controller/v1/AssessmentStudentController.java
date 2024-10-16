@@ -29,6 +29,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   private final AssessmentStudentSearchService searchService;
 
   private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
+
   @Autowired
   public AssessmentStudentController(AssessmentStudentService assessmentStudentService, AssessmentStudentValidator validator, AssessmentStudentSearchService searchService) {
     this.studentService = assessmentStudentService;

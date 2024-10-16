@@ -18,7 +18,7 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "SESSION")
+@Table(name = "ASSESSMENT_SESSION")
 public class SessionEntity {
 
   @Id
@@ -35,9 +35,6 @@ public class SessionEntity {
 
   @Column(name = "COURSE_MONTH", nullable = false, length = 2)
   private String courseMonth;
-
-  @Column(name = "STATUS_CODE", nullable = false, length = 10)
-  private String statusCode;
 
   @Column(name = "ACTIVE_FROM_DATE", nullable = false)
   private LocalDateTime activeFromDate;

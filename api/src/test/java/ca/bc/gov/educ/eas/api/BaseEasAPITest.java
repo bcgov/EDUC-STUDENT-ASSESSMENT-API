@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.eas.api;
 
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
-import ca.bc.gov.educ.eas.api.constants.v1.StatusCodes;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
@@ -54,9 +54,19 @@ public abstract class BaseEasAPITest {
             .courseSession(Integer.toString(currentDate.getYear()) + Integer.toString(currentDate.getMonthValue()))
             .courseYear(Integer.toString(currentDate.getYear()))
             .courseMonth(Integer.toString(currentDate.getMonthValue()))
-            .statusCode(StatusCodes.OPEN.getCode())
             .activeFromDate(currentDate.minusMonths(2))
             .activeUntilDate(currentDate.plusMonths(2))
+            .createUser("ABC")
+            .createDate(LocalDateTime.now())
+            .updateUser("ABC")
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
+  public AssessmentEntity createMockAssessmentEntity(SessionEntity sessionEntity, String assessmentTypeCode) {
+    return AssessmentEntity.builder()
+            .sessionEntity(sessionEntity)
+            .assessmentTypeCode(assessmentTypeCode)
             .createUser("ABC")
             .createDate(LocalDateTime.now())
             .updateUser("ABC")
@@ -67,8 +77,7 @@ public abstract class BaseEasAPITest {
   public AssessmentStudent createMockStudent() {
     return AssessmentStudent.builder()
             .assessmentStudentID(UUID.randomUUID().toString())
-            .sessionID(UUID.randomUUID().toString())
-            .assessmentTypeCode(AssessmentTypeCodes.LTP10.getCode())
+            .assessmentID(UUID.randomUUID().toString())
             .schoolID(UUID.randomUUID().toString())
             .studentID(UUID.randomUUID().toString())
             .pen("120164447")
@@ -76,11 +85,10 @@ public abstract class BaseEasAPITest {
             .build();
   }
 
-  public AssessmentStudentEntity createMockStudentEntity(SessionEntity sessionEntity) {
+  public AssessmentStudentEntity createMockStudentEntity(AssessmentEntity assessmentEntity) {
     return AssessmentStudentEntity.builder()
             .assessmentStudentID(UUID.randomUUID())
-            .sessionEntity(sessionEntity)
-            .assessmentTypeCode(AssessmentTypeCodes.LTP10.getCode())
+            .assessmentEntity(assessmentEntity)
             .schoolID(UUID.randomUUID())
             .studentID(UUID.randomUUID())
             .pen("120164447")

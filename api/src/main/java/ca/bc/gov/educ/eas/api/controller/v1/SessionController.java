@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.eas.api.controller.v1;
 
 import ca.bc.gov.educ.eas.api.endpoint.v1.SessionEndpoint;
-import ca.bc.gov.educ.eas.api.mappers.SessionMapper;
+import ca.bc.gov.educ.eas.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.service.v1.SessionService;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;

@@ -1,9 +1,7 @@
-package ca.bc.gov.educ.eas.api.controller;
+package ca.bc.gov.educ.eas.api.controller.v1;
 
 import ca.bc.gov.educ.eas.api.BaseEasAPITest;
-import ca.bc.gov.educ.eas.api.constants.v1.StatusCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.URL;
-import ca.bc.gov.educ.eas.api.controller.v1.SessionController;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;
