@@ -2,7 +2,6 @@ package ca.bc.gov.educ.eas.api.repository.v1;
 
 
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.eas.api.model.v1.EasEventEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -12,5 +11,5 @@ import java.util.UUID;
 
 @Repository
 public interface AssessmentStudentRepository extends JpaRepository<AssessmentStudentEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentEntity> {
-    Optional<AssessmentStudentEntity> findByAssessmentIDAndStudentID(UUID assessmentID, String studentID);
+    Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentID(UUID assessmentID, UUID studentID);
 }

@@ -89,6 +89,6 @@ public class EventHandlerDelegatorService {
   }
 
   private void publishToJetStream(final EasEventEntity event) {
-    publisher.dispatchChoreographyEvent(event);
+    //publisher.dispatchChoreographyEvent(event);
   }
 }

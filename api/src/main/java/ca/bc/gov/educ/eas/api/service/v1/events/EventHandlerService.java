@@ -70,7 +70,7 @@ public class EventHandlerService {
       log.info(NO_RECORD_SAGA_ID_EVENT_TYPE);
       log.trace(EVENT_PAYLOAD, event);
       AssessmentStudent student = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
-      val optionalStudent = assessmentStudentRepository.findByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), student.getStudentID());
+      val optionalStudent = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
       easEvent = createAssessmentStudentEventRecord(event);
     } else {
       log.info(RECORD_FOUND_FOR_SAGA_ID_EVENT_TYPE);
@@ -88,7 +88,7 @@ public class EventHandlerService {
   public byte[] handleGetStudentRegistrationEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
     AssessmentStudentGet student = JsonUtil.getJsonObjectFromString(AssessmentStudentGet.class, event.getEventPayload());
     if (isSynchronous) {
-      val optionalStudentEntity = assessmentStudentRepository.findByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), student.getStudentID());
+      val optionalStudentEntity = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
       if (optionalStudentEntity.isPresent()) {
         return JsonUtil.getJsonBytesFromObject(assessmentStudentMapper.toStructure(optionalStudentEntity.get()));
       } else {
@@ -97,7 +97,7 @@ public class EventHandlerService {
     }
 
     log.trace(EVENT_PAYLOAD, event);
-    val optionalStudentEntity = assessmentStudentRepository.findByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), student.getStudentID());
+    val optionalStudentEntity = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
     if (optionalStudentEntity.isPresent()) {
       AssessmentStudent structStud = assessmentStudentMapper.toStructure(optionalStudentEntity.get()); // need to convert to structure MANDATORY otherwise jackson will break.
       event.setEventPayload(JsonUtil.getJsonStringFromObject(structStud));
