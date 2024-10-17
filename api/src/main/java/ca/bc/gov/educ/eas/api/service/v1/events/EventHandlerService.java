@@ -3,7 +3,6 @@ package ca.bc.gov.educ.eas.api.service.v1.events;
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
-import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.EasEventEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.EasEventRepository;
@@ -12,10 +11,10 @@ import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
-import ca.bc.gov.educ.eas.api.util.RequestUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import lombok.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -72,17 +71,6 @@ public class EventHandlerService {
       log.trace(EVENT_PAYLOAD, event);
       AssessmentStudent student = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
       val optionalStudent = assessmentStudentRepository.findByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), student.getStudentID());
-      if (optionalStudent.isPresent()) {
-        event.setEventOutcome(EventOutcome.STUDENT_ALREADY_EXIST);
-        event.setEventPayload(optionalStudent.get().getStudentID().toString()); // return the student ID in response.
-      } else {
-        RequestUtil.setAuditColumnsForCreate(student);
-        var studentPair = assessmentStudentService.createStudent(assessmentStudentMapper.toModel(student));
-        AssessmentStudentEntity entity = studentPair.getLeft();
-        choreographyEvent = studentPair.getRight();
-        event.setEventOutcome(EventOutcome.STUDENT_CREATED);
-        event.setEventPayload(JsonUtil.getJsonStringFromObject(studentMapper.toStructure(entity)));// need to convert to structure MANDATORY otherwise jackson will break.
-      }
       easEvent = createAssessmentStudentEventRecord(event);
     } else {
       log.info(RECORD_FOUND_FOR_SAGA_ID_EVENT_TYPE);
