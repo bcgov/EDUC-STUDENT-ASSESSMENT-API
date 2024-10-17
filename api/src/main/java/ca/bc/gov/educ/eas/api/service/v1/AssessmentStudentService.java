@@ -2,6 +2,7 @@ package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.util.TransformUtil;
@@ -19,11 +20,15 @@ import java.util.UUID;
 public class AssessmentStudentService {
 
     private final AssessmentStudentRepository assessmentStudentRepository;
+    private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
+    private final AssessmentStudentHistoryService assessmentStudentHistoryService;
 
     @Autowired
-    public AssessmentStudentService(final AssessmentStudentRepository assessmentStudentRepository) {
+    public AssessmentStudentService(final AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository, AssessmentStudentHistoryService assessmentStudentHistoryService) {
         this.assessmentStudentRepository = assessmentStudentRepository;
+        this.assessmentStudentHistoryRepository = assessmentStudentHistoryRepository;
+        this.assessmentStudentHistoryService = assessmentStudentHistoryService;
     }
 
     public AssessmentStudentEntity getStudentByID(UUID assessmentStudentID) {
@@ -40,12 +45,18 @@ public class AssessmentStudentService {
 
         BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "assessmentEntity", "createUser", "createDate");
         TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
-        return assessmentStudentRepository.save(currentAssessmentStudentEntity);
+        return createAssessmentStudentWithHistory(currentAssessmentStudentEntity);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentStudentEntity createStudent(AssessmentStudentEntity assessmentStudentEntity) {
-        return assessmentStudentRepository.save(assessmentStudentEntity);
+        return createAssessmentStudentWithHistory(assessmentStudentEntity);
+    }
+
+    public AssessmentStudentEntity createAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
+        AssessmentStudentEntity savedEntity = assessmentStudentRepository.save(assessmentStudentEntity);
+        assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
+        return savedEntity;
     }
 
 }
