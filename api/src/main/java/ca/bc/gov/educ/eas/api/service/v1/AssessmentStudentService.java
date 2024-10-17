@@ -45,15 +45,14 @@ public class AssessmentStudentService {
 
         BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "assessmentEntity", "createUser", "createDate");
         TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
-        return this.createAssessmentStudentWithHistory(currentAssessmentStudentEntity);
+        return createAssessmentStudentWithHistory(currentAssessmentStudentEntity);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentStudentEntity createStudent(AssessmentStudentEntity assessmentStudentEntity) {
-        return this.createAssessmentStudentWithHistory(assessmentStudentEntity);
+        return createAssessmentStudentWithHistory(assessmentStudentEntity);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public AssessmentStudentEntity createAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
         AssessmentStudentEntity savedEntity = assessmentStudentRepository.save(assessmentStudentEntity);
         assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
