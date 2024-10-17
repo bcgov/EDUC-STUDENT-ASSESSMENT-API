@@ -5,5 +5,8 @@ package ca.bc.gov.educ.eas.api.constants;
  */
 public enum EventOutcome {
   INITIATE_SUCCESS,
+  STUDENT_REGISTRATION_FOUND,
+  STUDENT_REGISTRATION_NOT_FOUND,
   SAGA_COMPLETED,
+  STUDENT_ALREADY_EXIST
 }

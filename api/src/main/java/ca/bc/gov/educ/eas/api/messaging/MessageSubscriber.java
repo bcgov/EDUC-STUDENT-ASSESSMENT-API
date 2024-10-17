@@ -2,20 +2,27 @@ package ca.bc.gov.educ.eas.api.messaging;
 
 import ca.bc.gov.educ.eas.api.helpers.LogHelper;
 import ca.bc.gov.educ.eas.api.orchestrator.base.EventHandler;
+import ca.bc.gov.educ.eas.api.service.v1.events.EventHandlerDelegatorService;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.nats.client.Connection;
 import io.nats.client.Message;
 import io.nats.client.MessageHandler;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.jboss.threads.EnhancedQueueExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
+import static ca.bc.gov.educ.eas.api.constants.TopicsEnum.EAS_API_TOPIC;
 import static lombok.AccessLevel.PRIVATE;
 
 @Component
@@ -28,37 +35,31 @@ public class MessageSubscriber {
   @Getter(PRIVATE)
   private final Map<String, EventHandler> handlerMap = new HashMap<>();
   private final Connection connection;
+  private final Executor messageProcessingThreads;
+  private final EventHandlerDelegatorService eventHandlerDelegatorServiceV1;
 
   @Autowired
-  public MessageSubscriber(final Connection con, final List<EventHandler> eventHandlers) {
+  public MessageSubscriber(final Connection con, EventHandlerDelegatorService eventHandlerDelegatorServiceV1) {
     this.connection = con;
-    eventHandlers.forEach(handler -> {
-      this.handlerMap.put(handler.getTopicToSubscribe(), handler);
-      this.subscribe(handler.getTopicToSubscribe(), handler);
-    });
+    this.eventHandlerDelegatorServiceV1 = eventHandlerDelegatorServiceV1;
+    messageProcessingThreads = new EnhancedQueueExecutor.Builder().setThreadFactory(new ThreadFactoryBuilder().setNameFormat("nats-message-subscriber-%d").build()).setCorePoolSize(10).setMaximumPoolSize(10).setKeepAliveTime(Duration.ofSeconds(60)).build();
   }
 
-  public void subscribe(final String topic, final EventHandler eventHandler) {
-    this.handlerMap.computeIfAbsent(topic, k -> eventHandler);
-    final String queue = topic.replace("_", "-");
-    final var dispatcher = this.connection.createDispatcher(this.onMessage(eventHandler));
-    dispatcher.subscribe(topic, queue);
+  @PostConstruct
+  public void subscribe() {
+    String queue = EAS_API_TOPIC.toString().replace("_", "-");
+    var dispatcher = connection.createDispatcher(onMessage());
+    dispatcher.subscribe(EAS_API_TOPIC.toString(), queue);
   }
 
-  /**
-   * On message message handler.
-   *
-   * @return the message handler
-   */
-  public MessageHandler onMessage(final EventHandler eventHandler) {
+  private MessageHandler onMessage() {
     return (Message message) -> {
       if (message != null) {
-        log.debug("Message received subject :: {},  replyTo :: {}, subscriptionID :: {}", message.getSubject(), message.getReplyTo(), message.getSID());
         try {
-          final var eventString = new String(message.getData());
+          var eventString = new String(message.getData());
           LogHelper.logMessagingEventDetails(eventString);
-          final var event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
-          eventHandler.handleEvent(event);
+          var event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+          messageProcessingThreads.execute(() -> eventHandlerDelegatorServiceV1.handleEvent(event, message));
         } catch (final Exception e) {
           log.error("Exception ", e);
         }

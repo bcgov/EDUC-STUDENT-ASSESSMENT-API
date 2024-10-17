@@ -19,24 +19,9 @@ import java.util.UUID;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Event {
-  /**
-   * The Event type.
-   */
   private EventType eventType;
-  /**
-   * The Event outcome.
-   */
   private EventOutcome eventOutcome;
-  /**
-   * The Saga id.
-   */
   private UUID sagaId;
-  /**
-   * The Reply to.
-   */
   private String replyTo;
-  /**
-   * The Event payload.
-   */
   private String eventPayload; // json string
 }
