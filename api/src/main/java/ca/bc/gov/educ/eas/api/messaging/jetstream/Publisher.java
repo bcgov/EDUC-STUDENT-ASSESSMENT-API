@@ -2,6 +2,7 @@ package ca.bc.gov.educ.eas.api.messaging.jetstream;
 
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
+import ca.bc.gov.educ.eas.api.model.v1.EasEventEntity;
 import ca.bc.gov.educ.eas.api.model.v1.EasSagaEntity;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.v1.ChoreographedEvent;
@@ -67,15 +68,15 @@ public class Publisher {
      *
      * @param event the event
      */
-    public void dispatchChoreographyEvent(final Event event, EasSagaEntity saga) {
+    public void dispatchChoreographyEvent(final EasEventEntity event) {
         if (event != null && event.getSagaId() != null) {
             val choreographedEvent = new ChoreographedEvent();
             choreographedEvent.setEventType(EventType.valueOf(event.getEventType().toString()));
             choreographedEvent.setEventOutcome(EventOutcome.valueOf(event.getEventOutcome().toString()));
             choreographedEvent.setEventPayload(event.getEventPayload());
             choreographedEvent.setEventID(event.getSagaId().toString());
-            choreographedEvent.setCreateUser(saga.getCreateUser());
-            choreographedEvent.setUpdateUser(saga.getUpdateUser());
+            choreographedEvent.setCreateUser(event.getCreateUser());
+            choreographedEvent.setUpdateUser(event.getUpdateUser());
             try {
                 log.info("Broadcasting event :: {}", choreographedEvent);
                 val pub = this.jetStream.publishAsync(EAS_EVENTS_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(choreographedEvent));
