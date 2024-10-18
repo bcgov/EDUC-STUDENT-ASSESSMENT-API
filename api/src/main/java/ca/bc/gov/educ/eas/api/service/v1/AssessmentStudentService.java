@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -50,7 +51,8 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentStudentEntity createStudent(AssessmentStudentEntity assessmentStudentEntity) {
-        return createAssessmentStudentWithHistory(assessmentStudentEntity);
+        Optional<AssessmentStudentEntity> studentEntity = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentStudentEntity.getAssessmentEntity().getAssessmentID(), assessmentStudentEntity.getStudentID());
+        return studentEntity.orElseGet(() -> createAssessmentStudentWithHistory(assessmentStudentEntity));
     }
 
     public AssessmentStudentEntity createAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
