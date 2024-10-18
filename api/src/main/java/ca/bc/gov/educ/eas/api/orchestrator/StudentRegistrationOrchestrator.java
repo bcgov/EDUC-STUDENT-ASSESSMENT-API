@@ -4,7 +4,6 @@ import ca.bc.gov.educ.eas.api.constants.SagaEnum;
 import ca.bc.gov.educ.eas.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.eas.api.constants.TopicsEnum;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
-import ca.bc.gov.educ.eas.api.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.eas.api.model.v1.EasSagaEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SagaEventStatesEntity;
 import ca.bc.gov.educ.eas.api.orchestrator.base.BaseOrchestrator;
@@ -29,12 +28,10 @@ import static ca.bc.gov.educ.eas.api.constants.EventOutcome.STUDENT_REGISTRATION
 public class StudentRegistrationOrchestrator extends BaseOrchestrator<AssessmentStudent> {
 
     private final StudentRegistrationOrchestrationService studentRegistrationOrchestrationService;
-    private final Publisher publisher;
 
-    protected StudentRegistrationOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, StudentRegistrationOrchestrationService studentRegistrationOrchestrationService, Publisher publisher) {
+    protected StudentRegistrationOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, StudentRegistrationOrchestrationService studentRegistrationOrchestrationService) {
        super(sagaService, messagePublisher, AssessmentStudent.class, SagaEnum.CREATE_STUDENT_REGISTRATION.toString(), TopicsEnum.CREATE_STUDENT_REGISTRATION_SAGA_TOPIC.toString());
         this.studentRegistrationOrchestrationService = studentRegistrationOrchestrationService;
-        this.publisher = publisher;
     }
 
     @Override

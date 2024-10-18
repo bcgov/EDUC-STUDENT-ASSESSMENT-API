@@ -35,13 +35,14 @@ import java.util.concurrent.TimeoutException;
 import static ca.bc.gov.educ.eas.api.constants.EventOutcome.*;
 import static ca.bc.gov.educ.eas.api.constants.EventType.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
+class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
 
     @Autowired
     SessionRepository sessionRepository;
@@ -79,7 +80,7 @@ public class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
         Mockito.reset(this.messagePublisher);
         SessionEntity session = sessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
-        AssessmentStudent sagaData = createMockStudent();
+        sagaData = createMockStudent();
         sagaData.setAssessmentID(assessment.getAssessmentID().toString());
         MockitoAnnotations.openMocks(this);
         sagaPayload = JsonUtil.getJsonString(sagaData).get();
@@ -88,7 +89,7 @@ public class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
 
     @SneakyThrows
     @Test
-    public void testHandleEvent_createAssessmentStudent_CreateStudentAndPostMessageToNats() {
+    void testHandleEvent_createAssessmentStudent_CreateStudentAndPostMessageToNats() {
         final var invocations = mockingDetails(this.messagePublisher).getInvocations().size();
         final var event = Event.builder()
                 .eventType(INITIATED)
@@ -112,7 +113,7 @@ public class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
         Optional<AssessmentStudentEntity> assessmentStudent = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(payload.getAssessmentID()), UUID.fromString(payload.getStudentID()));
         assertThat(assessmentStudent).isPresent();
         assertThat(assessmentStudent.get().getAssessmentStudentID()).isNotNull();
-        assertThat(assessmentStudent.get().getStudentID().equals(payload.getStudentID()));
+        assertEquals(assessmentStudent.get().getStudentID().toString(), payload.getStudentID());
         final var sagaStates = this.sagaService.findAllSagaStates(this.saga);
         assertThat(sagaStates).hasSize(1);
         assertThat(sagaStates.get(0).getSagaEventState()).isEqualTo(EventType.INITIATED.toString());
@@ -121,7 +122,7 @@ public class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
 
     @SneakyThrows
     @Test
-    public void testHandleEvent_createAssessmentStudent_ShouldPublishStudent() {
+    void testHandleEvent_createAssessmentStudent_ShouldPublishStudent() {
         final var invocations = mockingDetails(this.messagePublisher).getInvocations().size();
         final var event = Event.builder()
                 .eventType(INITIATED)
@@ -155,7 +156,7 @@ public class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
 
     @SneakyThrows
     @Test
-    public void testMarkSagaCompleteEvent_GivenEventAndSagaData_ShouldMarkSagaCompleted() throws IOException, InterruptedException, TimeoutException {
+    void testMarkSagaCompleteEvent_GivenEventAndSagaData_ShouldMarkSagaCompleted() throws IOException, InterruptedException, TimeoutException {
         final var invocations = mockingDetails(this.messagePublisher).getInvocations().size();
         final var event = Event.builder()
                 .eventType(PUBLISH_STUDENT_REGISTRATION)
