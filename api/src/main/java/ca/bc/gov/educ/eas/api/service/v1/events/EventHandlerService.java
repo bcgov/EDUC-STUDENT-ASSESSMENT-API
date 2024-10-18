@@ -15,7 +15,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -70,11 +69,10 @@ public class EventHandlerService {
       final AssessmentStudent student = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
       val saga = studentRegistrationOrchestrator.createSaga(event.getEventPayload(), student.getUpdateUser());
       studentRegistrationOrchestrator.startSaga(saga);
-      return JsonUtil.getJsonBytesFromObject(ResponseEntity.ok(saga.getSagaId().toString()));
     } else {
       log.trace("Execution is not required for this message returning EVENT is :: {}", event);
-      return JsonUtil.getJsonBytesFromObject(ResponseEntity.ok(studentEventOptional.get().getSagaId().toString()));
     }
+    return JsonUtil.getJsonBytesFromObject(ResponseEntity.ok());
   }
 
 

@@ -3,7 +3,6 @@ package ca.bc.gov.educ.eas.api.service.v1;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.model.v1.EasSagaEntity;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +24,11 @@ public class StudentRegistrationOrchestrationService {
         this.sagaService = sagaService;
     }
 
-    public void createNewStudentRegistration(AssessmentStudent assessmentStudent) throws JsonProcessingException {
+    public void createNewStudentRegistration(AssessmentStudent assessmentStudent) {
         assessmentStudentService.createStudent(mapper.toModel(assessmentStudent));
     }
 
-    public void publishStudentRegistration(AssessmentStudent assessmentStudent, EasSagaEntity sagaEntity) throws JsonProcessingException {
+    public void publishStudentRegistration(AssessmentStudent assessmentStudent, EasSagaEntity sagaEntity) {
         //Placeholder
     }
 

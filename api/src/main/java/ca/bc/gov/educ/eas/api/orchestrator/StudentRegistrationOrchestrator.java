@@ -32,7 +32,7 @@ public class StudentRegistrationOrchestrator extends BaseOrchestrator<Assessment
     private final Publisher publisher;
 
     protected StudentRegistrationOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, StudentRegistrationOrchestrationService studentRegistrationOrchestrationService, Publisher publisher) {
-       super(sagaService, messagePublisher, AssessmentStudent.class, SagaEnum.CREATE_STUDENT_REGISTRATION.toString(), TopicsEnum.STUDENT_REGISTRATION_SAGA_TOPIC.toString());
+       super(sagaService, messagePublisher, AssessmentStudent.class, SagaEnum.CREATE_STUDENT_REGISTRATION.toString(), TopicsEnum.CREATE_STUDENT_REGISTRATION_SAGA_TOPIC.toString());
         this.studentRegistrationOrchestrationService = studentRegistrationOrchestrationService;
         this.publisher = publisher;
     }
