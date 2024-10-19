@@ -56,6 +56,6 @@ public class SessionEntity {
 
   @EqualsAndHashCode.Exclude
   @ToString.Exclude
-  @OneToMany(mappedBy = "AssessmentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = AssessmentEntity.class)
+  @OneToMany(mappedBy = "sessionEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = AssessmentEntity.class)
   Set<AssessmentEntity> assessments;
 }
