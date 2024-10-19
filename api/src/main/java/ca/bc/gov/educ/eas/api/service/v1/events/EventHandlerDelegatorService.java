@@ -56,15 +56,22 @@ public class EventHandlerDelegatorService {
     boolean isSynchronous = message.getReplyTo() != null;
     try {
       switch (event.getEventType()) {
+        case GET_OPEN_ASSESSMENT_SESSIONS:
+          log.info("Received GET_OPEN_ASSESSMENT_SESSIONS event :: {}", event.getSagaId());
+          log.trace(PAYLOAD_LOG, event.getEventPayload());
+          response = eventHandlerService.handleGetOpenAssessmentSessionsEvent(event, isSynchronous);
+          log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          publishToNATS(event, message, isSynchronous, response);
+          break;
         case GET_STUDENT_REGISTRATION:
-          log.info("received GET_STUDENT event :: {}", event.getSagaId());
+          log.info("Received GET_STUDENT_REGISTRATION event :: {}", event.getSagaId());
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           response = eventHandlerService.handleGetStudentRegistrationEvent(event, isSynchronous);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
         case CREATE_STUDENT_REGISTRATION:
-          log.info("received create student event :: {}", event.getSagaId());
+          log.info("Received CREATE_STUDENT_REGISTRATION event :: {}", event.getSagaId());
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           pair = eventHandlerService.handleCreateStudentRegistrationEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
