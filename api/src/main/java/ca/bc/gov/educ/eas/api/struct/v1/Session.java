@@ -27,7 +27,7 @@ public class Session extends BaseRequest implements Serializable {
   private String sessionID;
 
   @ReadOnlyProperty
-  private Integer courseSession;
+  private String schoolYear;
 
   @ReadOnlyProperty
   private Integer courseMonth;

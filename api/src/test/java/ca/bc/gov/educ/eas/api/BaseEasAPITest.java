@@ -38,7 +38,7 @@ public abstract class BaseEasAPITest {
     LocalDateTime currentDate = LocalDateTime.now();
     return Session.builder()
             .sessionID(UUID.randomUUID().toString())
-            .courseSession(currentDate.getYear() + currentDate.getMonthValue())
+            .schoolYear(String.valueOf(currentDate.getYear()))
             .courseYear(currentDate.getYear())
             .courseMonth(currentDate.getMonthValue())
             .activeFromDate(currentDate.minusMonths(2))
@@ -50,7 +50,7 @@ public abstract class BaseEasAPITest {
     LocalDateTime currentDate = LocalDateTime.now();
     return SessionEntity.builder()
             .sessionID(UUID.randomUUID())
-            .courseSession(Integer.toString(currentDate.getYear()) + Integer.toString(currentDate.getMonthValue()))
+            .schoolYear(String.valueOf(currentDate.getYear()))
             .courseYear(Integer.toString(currentDate.getYear()))
             .courseMonth(Integer.toString(currentDate.getMonthValue()))
             .activeFromDate(currentDate.minusMonths(2))

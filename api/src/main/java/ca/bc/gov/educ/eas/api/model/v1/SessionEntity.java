@@ -25,8 +25,8 @@ public class SessionEntity {
   @Column(name = "SESSION_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
   private UUID sessionID;
 
-  @Column(name = "COURSE_SESSION", nullable = false, length = 6)
-  private String courseSession;
+  @Column(name = "SCHOOL_YEAR", nullable = false, length = 10)
+  private String schoolYear;
 
   @Column(name = "COURSE_YEAR", nullable = false, length = 4)
   private String courseYear;
