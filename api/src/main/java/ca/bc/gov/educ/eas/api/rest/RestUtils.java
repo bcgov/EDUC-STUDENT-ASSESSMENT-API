@@ -7,6 +7,7 @@ import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
+import ca.bc.gov.educ.eas.api.struct.v1.StudentMerge;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +46,8 @@ public class RestUtils {
   private final Map<String, FacilityTypeCode> facilityTypeCodesMap = new ConcurrentHashMap<>();
   private final Map<String, SchoolCategoryCode> schoolCategoryCodesMap = new ConcurrentHashMap<>();
   public static final String PAGE_SIZE = "pageSize";
+  public static final String CREATE_DATE_START = "createDateStart";
+  public static final String CREATE_DATE_END = "createDateEnd";
   private final WebClient webClient;
   private final MessagePublisher messagePublisher;
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -322,6 +325,28 @@ public class RestUtils {
     } catch (final Exception ex) {
       Thread.currentThread().interrupt();
       throw new EasAPIRuntimeException(NATS_TIMEOUT + correlationID + ex.getMessage());
+    }
+  }
+
+  @Retryable(retryFor = {Exception.class}, noRetryFor = {EasAPIRuntimeException.class}, backoff = @Backoff(multiplier = 2, delay = 2000))
+  public List<StudentMerge> getMergedStudentsForDateRange(UUID correlationID, String createDateStart, String createDateEnd) {
+    try {
+      final TypeReference<Event> refEventResponse = new TypeReference<>() {};
+      final TypeReference<List<StudentMerge>> refMergedStudentResponse = new TypeReference<>() {};
+      Object event = Event.builder().sagaId(correlationID).eventType(EventType.GET_MERGED_STUDENT_IDS).eventPayload(CREATE_DATE_START.concat("=").concat(createDateStart).concat("&").concat(CREATE_DATE_END).concat("=").concat(createDateEnd)).build();
+      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.PEN_SERVICES_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
+      if (responseMessage == null) {
+        log.error("Received null response from PEN SERVICES API for correlationID: {}", correlationID);
+        throw new EasAPIRuntimeException(NATS_TIMEOUT + correlationID);
+      } else {
+        val eventResponse = objectMapper.readValue(responseMessage.getData(), refEventResponse);
+        return objectMapper.readValue(eventResponse.getEventPayload(), refMergedStudentResponse);
+      }
+
+    } catch (final Exception ex) {
+      log.error("Error occurred calling PEN SERVICES API service :: " + ex.getMessage());
+      Thread.currentThread().interrupt();
+      throw new EasAPIRuntimeException(ex.getMessage());
     }
   }
 }
