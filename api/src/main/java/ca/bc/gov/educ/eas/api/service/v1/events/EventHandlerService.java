@@ -4,9 +4,9 @@ import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.model.v1.EasEventEntity;
+import ca.bc.gov.educ.eas.api.orchestrator.StudentRegistrationOrchestrator;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.EasEventRepository;
-import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
@@ -15,7 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,32 +55,24 @@ public class EventHandlerService {
 
   private final AssessmentStudentRepository assessmentStudentRepository;
 
-  private final AssessmentStudentService assessmentStudentService;
+  private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
 
   private static final AssessmentStudentMapper assessmentStudentMapper = AssessmentStudentMapper.mapper;
 
   private final EasEventRepository easEventRepository;
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public Pair<byte[], EasEventEntity> handleCreateStudentRegistrationEvent(Event event) throws JsonProcessingException {
-    val studentEventOptional = easEventRepository.findBySagaIdAndEventType(event.getSagaId(), event.getEventType().toString());
-    EasEventEntity easEvent;
-    EasEventEntity choreographyEvent = null;
+  public byte[] handleCreateStudentRegistrationEvent(final Event event) throws JsonProcessingException {
+    final val studentEventOptional = easEventRepository.findBySagaIdAndEventType(event.getSagaId(), event.getEventType().toString());
     if (studentEventOptional.isEmpty()) {
       log.info(NO_RECORD_SAGA_ID_EVENT_TYPE);
-      log.trace(EVENT_PAYLOAD, event);
-      AssessmentStudent student = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
-      val optionalStudent = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
-      easEvent = createAssessmentStudentEventRecord(event);
+      final AssessmentStudent student = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
+      val saga = studentRegistrationOrchestrator.createSaga(event.getEventPayload(), student.getUpdateUser());
+      studentRegistrationOrchestrator.startSaga(saga);
     } else {
-      log.info(RECORD_FOUND_FOR_SAGA_ID_EVENT_TYPE);
-      log.trace(EVENT_PAYLOAD, event);
-      easEvent = studentEventOptional.get();
-      easEvent.setUpdateDate(LocalDateTime.now());
+      log.trace("Execution is not required for this message returning EVENT is :: {}", event);
     }
-
-    easEventRepository.save(easEvent);
-    return Pair.of(createResponseEvent(easEvent), choreographyEvent);
+    return JsonUtil.getJsonBytesFromObject(ResponseEntity.ok());
   }
 
 

@@ -52,7 +52,6 @@ public class EventHandlerDelegatorService {
    */
   public void handleEvent(final Event event, final Message message) {
     byte[] response;
-    Pair<byte[], EasEventEntity> pair;
     boolean isSynchronous = message.getReplyTo() != null;
     try {
       switch (event.getEventType()) {
@@ -66,10 +65,9 @@ public class EventHandlerDelegatorService {
         case CREATE_STUDENT_REGISTRATION:
           log.info("received create student event :: {}", event.getSagaId());
           log.trace(PAYLOAD_LOG, event.getEventPayload());
-          pair = eventHandlerService.handleCreateStudentRegistrationEvent(event);
+          response = eventHandlerService.handleCreateStudentRegistrationEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-          publishToNATS(event, message, isSynchronous, pair.getLeft());
-          publishToJetStream(pair.getRight());
+          publishToNATS(event, message, isSynchronous, response);
           break;
         default:
           log.info("silently ignoring other events :: {}", event);

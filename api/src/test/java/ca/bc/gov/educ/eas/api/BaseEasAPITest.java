@@ -81,6 +81,8 @@ public abstract class BaseEasAPITest {
             .studentID(UUID.randomUUID().toString())
             .pen("120164447")
             .localID("123")
+            .createUser("ABC")
+            .updateUser("ABC")
             .build();
   }
 
