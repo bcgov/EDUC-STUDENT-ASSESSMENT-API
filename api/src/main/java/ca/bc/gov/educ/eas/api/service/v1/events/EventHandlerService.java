@@ -3,10 +3,12 @@ package ca.bc.gov.educ.eas.api.service.v1.events;
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
+import ca.bc.gov.educ.eas.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.eas.api.model.v1.EasEventEntity;
 import ca.bc.gov.educ.eas.api.orchestrator.StudentRegistrationOrchestrator;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.EasEventRepository;
+import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.eas.api.constants.EventStatus.MESSAGE_PUBLISHED;
@@ -53,11 +56,15 @@ public class EventHandlerService {
    */
   public static final String EVENT_PAYLOAD = "event is :: {}";
 
+  private final SessionRepository sessionRepository;
+
   private final AssessmentStudentRepository assessmentStudentRepository;
 
   private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
 
   private static final AssessmentStudentMapper assessmentStudentMapper = AssessmentStudentMapper.mapper;
+
+  private static final SessionMapper sessionMapper = SessionMapper.mapper;
 
   private final EasEventRepository easEventRepository;
 
@@ -75,6 +82,26 @@ public class EventHandlerService {
     return JsonUtil.getJsonBytesFromObject(ResponseEntity.ok());
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public byte[] handleGetOpenAssessmentSessionsEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
+    var currentDate = LocalDateTime.now();
+    val sessions = sessionRepository.findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(currentDate, currentDate);
+    var sessionStructs = new ArrayList<>();
+    sessions.forEach(sessionStruct -> sessionStructs.add(sessionMapper.toStructure(sessionStruct)));
+    if (isSynchronous) {
+      if (!sessions.isEmpty()) {
+        return JsonUtil.getJsonBytesFromObject(sessionStructs);
+      } else {
+        return new byte[0];
+      }
+    }
+
+    log.trace(EVENT_PAYLOAD, event);
+    event.setEventPayload(JsonUtil.getJsonStringFromObject(sessionStructs));
+    event.setEventOutcome(EventOutcome.SESSIONS_FOUND);
+    val studentEvent = createEventRecord(event);
+    return createResponseEvent(studentEvent);
+  }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public byte[] handleGetStudentRegistrationEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
@@ -97,11 +124,11 @@ public class EventHandlerService {
     } else {
       event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_NOT_FOUND);
     }
-    val studentEvent = createAssessmentStudentEventRecord(event);
+    val studentEvent = createEventRecord(event);
     return createResponseEvent(studentEvent);
   }
 
-  private EasEventEntity createAssessmentStudentEventRecord(Event event) {
+  private EasEventEntity createEventRecord(Event event) {
     return EasEventEntity.builder()
         .createDate(LocalDateTime.now())
         .updateDate(LocalDateTime.now())

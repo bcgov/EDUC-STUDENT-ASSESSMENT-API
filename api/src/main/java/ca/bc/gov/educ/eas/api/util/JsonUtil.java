@@ -2,6 +2,7 @@ package ca.bc.gov.educ.eas.api.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -14,7 +15,7 @@ import java.util.Optional;
  */
 @Slf4j
 public class JsonUtil {
-  public static final ObjectMapper mapper = new ObjectMapper();
+  public static final ObjectMapper mapper = JsonMapper.builder().findAndAddModules().build();
   /**
    * Instantiates a new Json util.
    */

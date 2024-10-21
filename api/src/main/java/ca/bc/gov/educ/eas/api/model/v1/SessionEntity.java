@@ -2,14 +2,12 @@ package ca.bc.gov.educ.eas.api.model.v1;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -55,4 +53,9 @@ public class SessionEntity {
   @PastOrPresent
   @Column(name = "UPDATE_DATE", nullable = false)
   private LocalDateTime updateDate;
+
+  @EqualsAndHashCode.Exclude
+  @ToString.Exclude
+  @OneToMany(mappedBy = "sessionEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = AssessmentEntity.class)
+  Set<AssessmentEntity> assessments;
 }
