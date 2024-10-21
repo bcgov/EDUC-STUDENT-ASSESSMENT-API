@@ -38,6 +38,10 @@ public class AssessmentStudentService {
         );
     }
 
+    public Optional<AssessmentStudentEntity> getStudentByAssessmentIDAndStudentID(UUID assessmentID, UUID studentID) {
+         return assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentID, studentID);
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentStudentEntity updateStudent(AssessmentStudentEntity assessmentStudentEntity) {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
