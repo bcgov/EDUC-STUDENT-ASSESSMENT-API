@@ -37,7 +37,7 @@ public class SessionService {
      * @return List of SessionEntity
      */
     public List<SessionEntity> getAllSessions() {
-        return this.getSessionRepository().findAll(Sort.by(Sort.Direction.DESC, "courseSession"));
+        return this.getSessionRepository().findAll(Sort.by(Sort.Direction.DESC, "activeFromDate"));
     }
 
     /**

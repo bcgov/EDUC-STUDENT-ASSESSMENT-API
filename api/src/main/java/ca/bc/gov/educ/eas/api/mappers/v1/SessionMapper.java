@@ -15,7 +15,6 @@ public interface SessionMapper {
 
     SessionMapper mapper = Mappers.getMapper(SessionMapper.class);
 
-    @Mapping(source = "courseSession", target = "courseSession")
     Session toStructure(SessionEntity entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

@@ -84,7 +84,7 @@ class SessionControllerTest extends BaseEasAPITest {
         this.mockMvc.perform(
                         get(URL.SESSIONS_URL).with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseSession").value(LocalDateTime.now().getYear() + "" + LocalDateTime.now().getMonthValue()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
     }
