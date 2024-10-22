@@ -22,7 +22,7 @@ public class StudentMergeService {
 
     public List<StudentMerge> getMergedStudentsForDateRange(String createDateStart, String createDateEnd){
         UUID correlationID = UUID.randomUUID();
-        log.info("Fetching student merge records for correlation ID: {}", correlationID);
+        log.info("Fetching student merge records created between {} and {} with correlation ID: {}", createDateStart, createDateEnd, correlationID);
         return restUtils.getMergedStudentsForDateRange(correlationID, createDateStart, createDateEnd);
     }
 }
