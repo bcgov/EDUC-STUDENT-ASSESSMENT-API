@@ -21,7 +21,7 @@
       src/main/java/ca/bc/gov/educ/eas/api/model/**,
       src/main/java/ca/bc/gov/educ/eas/api/struct/**
     </sonar.exclusions>
-    <java.version>21</java.version>
+    <java.version>17</java.version>
 
     <maven.compiler.version>3.13.0</maven.compiler.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>

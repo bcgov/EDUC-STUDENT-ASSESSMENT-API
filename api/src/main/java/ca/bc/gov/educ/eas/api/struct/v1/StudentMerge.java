@@ -28,25 +28,26 @@ public class StudentMerge extends BaseRequest implements Serializable {
     /**
      * The Student merge id.
      */
+    @NotNull(message = "Student Merge ID cannot be null")
     String studentMergeID;
     /**
      * The Student id.
      */
-    @NotNull(message = "Student ID can not be null.")
+    @NotNull(message = "Student ID cannot be null.")
     String studentID;
     /**
      * The Merge student id.
      */
-    @NotNull(message = "Merge Student ID can not be null.")
+    @NotNull(message = "Merge Student ID cannot be null.")
     String mergeStudentID;
     /**
      * The Student merge direction code.
      */
-    @NotNull(message = "Student Merge Direction Code can not be null.")
+    @NotNull(message = "Student Merge Direction Code cannot be null.")
     String studentMergeDirectionCode;
     /**
      * The Student merge source code.
      */
-    @NotNull(message = "Student Merge Source Code can not be null.")
+    @NotNull(message = "Student Merge Source Code cannot be null.")
     String studentMergeSourceCode;
 }

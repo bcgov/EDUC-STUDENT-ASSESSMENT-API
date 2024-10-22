@@ -327,8 +327,7 @@ public class RestUtils {
       throw new EasAPIRuntimeException(NATS_TIMEOUT + correlationID + ex.getMessage());
     }
   }
-
-  @Retryable(retryFor = {Exception.class}, noRetryFor = {EasAPIRuntimeException.class}, backoff = @Backoff(multiplier = 2, delay = 2000))
+  
   public List<StudentMerge> getMergedStudentsForDateRange(UUID correlationID, String createDateStart, String createDateEnd) {
     try {
       final TypeReference<Event> refEventResponse = new TypeReference<>() {};

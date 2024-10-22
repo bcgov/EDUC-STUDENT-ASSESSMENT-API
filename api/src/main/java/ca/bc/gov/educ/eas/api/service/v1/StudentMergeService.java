@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class PENRecordService {
+public class StudentMergeService {
 
     private final RestUtils restUtils;
 
     @Autowired
-    public PENRecordService(RestUtils restUtils){
+    public StudentMergeService(RestUtils restUtils){
         this.restUtils = restUtils;
     }
 

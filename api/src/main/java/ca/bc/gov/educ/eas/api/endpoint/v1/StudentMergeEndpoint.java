@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@RequestMapping(URL.BASE_URL + "/pen-records/createDateInRange")
-public interface PENRecordEndpoint {
+@RequestMapping(URL.BASE_URL + "/student-merges")
+public interface StudentMergeEndpoint {
 
     @GetMapping()
     @PreAuthorize("hasAuthority('SCOPE_READ_EAS_STUDENT')")
