@@ -169,8 +169,7 @@ jobs:
         curl -s https://raw.githubusercontent.com/bcgov/${{ env.REPO_NAME }}/master/tools/config/update-configmap.sh | bash /dev/stdin dev ${{ env.APP_NAME }} ${{ env.NAMESPACE }} ${{ env.COMMON_NAMESPACE }} ${{ env.DB_JDBC_CONNECT_STRING }} ${{ env.DB_PWD }} ${{ env.DB_USER }} ${{ env.SPLUNK_TOKEN }} 
         
         # Start rollout (if necessary) and follow it
-        oc rollout latest deployment/${{ env.SPRING_BOOT_IMAGE_NAME }} 2> /dev/null \
-        || true && echo "Rollout in progress"
+        oc rollout restart deployment/${{ env.SPRING_BOOT_IMAGE_NAME }}        
         # Get status, returns 0 if rollout is successful
         oc rollout status deployment/${{ env.SPRING_BOOT_IMAGE_NAME }}
 
