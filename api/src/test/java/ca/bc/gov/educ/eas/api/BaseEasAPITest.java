@@ -41,8 +41,8 @@ public abstract class BaseEasAPITest {
             .schoolYear(String.valueOf(currentDate.getYear()))
             .courseYear(currentDate.getYear())
             .courseMonth(currentDate.getMonthValue())
-            .activeFromDate(currentDate.minusMonths(2))
-            .activeUntilDate(currentDate.plusMonths(2))
+            .activeFromDate(currentDate.minusMonths(2).toString())
+            .activeUntilDate(currentDate.plusMonths(2).toString())
             .build();
   }
 

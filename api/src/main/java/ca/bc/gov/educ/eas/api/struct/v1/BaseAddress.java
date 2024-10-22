@@ -3,10 +3,12 @@ package ca.bc.gov.educ.eas.api.struct.v1;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * The type Base address.
  */
+@EqualsAndHashCode(callSuper=false)
 @Data
 public abstract class BaseAddress extends BaseRequest {
 

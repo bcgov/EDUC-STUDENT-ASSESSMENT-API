@@ -56,7 +56,7 @@ class EventHandlerServiceTest extends BaseEasAPITest {
   }
 
   @Test
-  void testHandleEvent_givenEventTypeGET_STUDENT__whenNoStudentExist_shouldHaveEventOutcomeSTUDENT_NOT_FOUND() throws IOException {
+  void testHandleEvent_givenEventTypeGET_OPEN_ASSESSMENT_SESSIONS__whenNoStudentExist_shouldHaveEventOutcomeSESSIONS_FOUND() throws IOException {
     var sagaId = UUID.randomUUID();
     final Event event = Event.builder().eventType(EventType.GET_OPEN_ASSESSMENT_SESSIONS).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(UUID.randomUUID().toString()).build();
     byte[] response = eventHandlerServiceUnderTest.handleGetOpenAssessmentSessionsEvent(event, isSynchronous);

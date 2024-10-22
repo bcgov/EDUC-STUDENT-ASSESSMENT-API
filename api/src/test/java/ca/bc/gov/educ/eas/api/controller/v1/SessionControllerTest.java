@@ -93,8 +93,8 @@ class SessionControllerTest extends BaseEasAPITest {
     void testSessionManagement_UpdateSession_ShouldReturnOK() throws Exception {
         SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
         Session updatedSession = new Session();
-        updatedSession.setActiveFromDate(LocalDateTime.now().plusDays(20));
-        updatedSession.setActiveUntilDate(LocalDateTime.now().plusDays(120));
+        updatedSession.setActiveFromDate(LocalDateTime.now().plusDays(20).toString());
+        updatedSession.setActiveUntilDate(LocalDateTime.now().plusDays(120).toString());
         updatedSession.setUpdateUser("test");
         this.mockMvc.perform(put(URL.SESSIONS_URL + "/" + sessionEntity.getSessionID())
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_EAS_SESSIONS")))
@@ -103,15 +103,15 @@ class SessionControllerTest extends BaseEasAPITest {
 
         var updatedSessionEntity = sessionRepository.findById(sessionEntity.getSessionID());
         assertThat(updatedSessionEntity).isPresent();
-        assertThat(updatedSessionEntity.get().getActiveFromDate().toLocalDate()).isEqualTo(updatedSession.getActiveFromDate().toLocalDate());
-        assertThat(updatedSessionEntity.get().getActiveUntilDate().toLocalDate()).isEqualTo(updatedSession.getActiveUntilDate().toLocalDate());
+        assertThat(updatedSessionEntity.get().getActiveFromDate().toString().substring(0,25)).isEqualTo(updatedSession.getActiveFromDate().substring(0,25));
+        assertThat(updatedSessionEntity.get().getActiveUntilDate().toString().substring(0,25)).isEqualTo(updatedSession.getActiveUntilDate().substring(0,25));
     }
 
     @Test
     void testSessionManagement_UpdateSession_ShouldReturNotFound() throws Exception {
         Session updatedSession = new Session();
-        updatedSession.setActiveFromDate(LocalDateTime.now().plusDays(20));
-        updatedSession.setActiveUntilDate(LocalDateTime.now().plusDays(120));
+        updatedSession.setActiveFromDate(LocalDateTime.now().plusDays(20).toString());
+        updatedSession.setActiveUntilDate(LocalDateTime.now().plusDays(120).toString());
         updatedSession.setUpdateUser("test");
         this.mockMvc.perform(put(URL.SESSIONS_URL + "/" + UUID.randomUUID())
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_EAS_SESSIONS")))
