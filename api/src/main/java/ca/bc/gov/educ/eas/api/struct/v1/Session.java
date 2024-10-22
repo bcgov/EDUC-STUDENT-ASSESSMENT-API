@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.ReadOnlyProperty;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO for Session entity.
@@ -36,8 +36,10 @@ public class Session extends BaseRequest implements Serializable {
   private Integer courseYear;
 
   @NotNull(message = "activeFromDate cannot be null")
-  private LocalDateTime activeFromDate;
+  private String activeFromDate;
 
   @NotNull(message = "activeUntilDate cannot be null")
-  private LocalDateTime activeUntilDate;
+  private String activeUntilDate;
+
+  private List<Assessment> assessments;
 }
