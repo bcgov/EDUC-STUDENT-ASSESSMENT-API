@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.eas.api.rest;
 
+import ca.bc.gov.educ.eas.api.exception.EasAPIRuntimeException;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.District;
@@ -14,6 +15,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -274,4 +278,36 @@ class RestUtilsTest {
         assertEquals(school1, result.get());
     }
 
+    @Test
+    void testGetAllMergedStudentsInRange_WhenRequestTimesOut_ShouldThrowEASAPIRuntimeException() {
+        UUID correlationID = UUID.randomUUID();
+        String createStartDate = "2024-02-01T00:00:00";
+        String createEndDate = "2024-09-01T00:00:00";
+
+        when(messagePublisher.requestMessage(anyString(), any(byte[].class)))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        EasAPIRuntimeException exception = assertThrows(
+                EasAPIRuntimeException.class,
+                () -> restUtils.getMergedStudentsForDateRange(correlationID, createStartDate, createEndDate)
+        );
+
+        assertEquals(RestUtils.NATS_TIMEOUT + correlationID, exception.getMessage());
+    }
+
+    @Test
+    void testGetMergedStudentsInRange_WhenExceptionOccurs_ShouldThrowEASAPIRuntimeException() {
+        UUID correlationID = UUID.randomUUID();
+        String createStartDate = "2024-02-01T00:00:00";
+        String createEndDate = "2024-09-01T00:00:00";
+        Exception mockException = new Exception("exception");
+
+        when(messagePublisher.requestMessage(anyString(), any(byte[].class)))
+                .thenReturn(CompletableFuture.failedFuture(mockException));
+
+        assertThrows(
+                EasAPIRuntimeException.class,
+                () -> restUtils.getMergedStudentsForDateRange(correlationID, createStartDate, createEndDate)
+        );
+    }
 }
