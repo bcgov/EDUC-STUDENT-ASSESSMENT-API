@@ -2,13 +2,18 @@ package ca.bc.gov.educ.eas.api.service.v1.events;
 
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
+import ca.bc.gov.educ.eas.api.constants.SagaEnum;
+import ca.bc.gov.educ.eas.api.constants.SagaStatusEnum;
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.mappers.v1.SessionMapper;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.EasEventEntity;
 import ca.bc.gov.educ.eas.api.orchestrator.StudentRegistrationOrchestrator;
-import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
-import ca.bc.gov.educ.eas.api.repository.v1.EasEventRepository;
+import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
+import ca.bc.gov.educ.eas.api.service.v1.SagaService;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
@@ -17,7 +22,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.eas.api.constants.EventStatus.MESSAGE_PUBLISHED;
@@ -38,118 +43,127 @@ import static ca.bc.gov.educ.eas.api.constants.EventStatus.MESSAGE_PUBLISHED;
 @SuppressWarnings("java:S3864")
 public class EventHandlerService {
 
-  /**
-   * The constant NO_RECORD_SAGA_ID_EVENT_TYPE.
-   */
-  public static final String NO_RECORD_SAGA_ID_EVENT_TYPE = "no record found for the saga id and event type combination, processing.";
-  /**
-   * The constant RECORD_FOUND_FOR_SAGA_ID_EVENT_TYPE.
-   */
-  public static final String RECORD_FOUND_FOR_SAGA_ID_EVENT_TYPE = "record found for the saga id and event type combination, might be a duplicate or replay," +
-      " just updating the db status so that it will be polled and sent back again.";
-  /**
-   * The constant PAYLOAD_LOG.
-   */
-  public static final String PAYLOAD_LOG = "payload is :: {}";
-  /**
-   * The constant EVENT_PAYLOAD.
-   */
-  public static final String EVENT_PAYLOAD = "event is :: {}";
+    /**
+     * The constant NO_RECORD_SAGA_ID_EVENT_TYPE.
+     */
+    public static final String NO_RECORD_SAGA_ID_EVENT_TYPE = "no record found for the saga id and event type combination, processing.";
+    /**
+     * The constant RECORD_FOUND_FOR_SAGA_ID_EVENT_TYPE.
+     */
+    public static final String RECORD_FOUND_FOR_SAGA_ID_EVENT_TYPE = "record found for the saga id and event type combination, might be a duplicate or replay," +
+            " just updating the db status so that it will be polled and sent back again.";
+    /**
+     * The constant PAYLOAD_LOG.
+     */
+    public static final String PAYLOAD_LOG = "payload is :: {}";
+    /**
+     * The constant EVENT_PAYLOAD.
+     */
+    public static final String EVENT_PAYLOAD = "event is :: {}";
+    private static final AssessmentStudentMapper assessmentStudentMapper = AssessmentStudentMapper.mapper;
+    private static final SessionMapper sessionMapper = SessionMapper.mapper;
+    private final SessionRepository sessionRepository;
+    private final AssessmentStudentService assessmentStudentService;
+    private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
+    private final SagaService sagaService;
 
-  private final SessionRepository sessionRepository;
-
-  private final AssessmentStudentRepository assessmentStudentRepository;
-
-  private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
-
-  private static final AssessmentStudentMapper assessmentStudentMapper = AssessmentStudentMapper.mapper;
-
-  private static final SessionMapper sessionMapper = SessionMapper.mapper;
-
-  private final EasEventRepository easEventRepository;
-
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public byte[] handleCreateStudentRegistrationEvent(final Event event) throws JsonProcessingException {
-    final val studentEventOptional = easEventRepository.findBySagaIdAndEventType(event.getSagaId(), event.getEventType().toString());
-    if (studentEventOptional.isEmpty()) {
-      log.info(NO_RECORD_SAGA_ID_EVENT_TYPE);
-      final AssessmentStudent student = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
-      val saga = studentRegistrationOrchestrator.createSaga(event.getEventPayload(), student.getUpdateUser());
-      studentRegistrationOrchestrator.startSaga(saga);
-    } else {
-      log.trace("Execution is not required for this message returning EVENT is :: {}", event);
-    }
-    return JsonUtil.getJsonBytesFromObject(ResponseEntity.ok());
-  }
-
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public byte[] handleGetOpenAssessmentSessionsEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
-    var currentDate = LocalDateTime.now();
-    val sessions = sessionRepository.findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(currentDate, currentDate);
-    var sessionStructs = new ArrayList<>();
-    sessions.forEach(sessionStruct -> sessionStructs.add(sessionMapper.toStructure(sessionStruct)));
-    if (isSynchronous) {
-      if (!sessions.isEmpty()) {
-        return JsonUtil.getJsonBytesFromObject(sessionStructs);
-      } else {
-        return new byte[0];
-      }
+    public byte[] handleCreateStudentRegistrationEvent(Event event) throws JsonProcessingException {
+        final AssessmentStudent assessmentStudent = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
+        Optional<AssessmentStudentEntity> student = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(assessmentStudent.getAssessmentID()), UUID.fromString(assessmentStudent.getStudentID()));
+        if (student.isEmpty()) {
+            AssessmentStudentEntity createStudentEntity = assessmentStudentMapper.toModel(assessmentStudent);
+            createStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
+            assessmentStudentService.createStudent(createStudentEntity);
+            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_CREATED);
+        } else {
+            log.info("Student already exists in assessment {} ", assessmentStudent.getAssessmentStudentID());
+            event.setEventOutcome(EventOutcome.STUDENT_ALREADY_EXIST);
+        }
+        val studentEvent = createEventRecord(event);
+        return createResponseEvent(studentEvent);
     }
 
-    log.trace(EVENT_PAYLOAD, event);
-    event.setEventPayload(JsonUtil.getJsonStringFromObject(sessionStructs));
-    event.setEventOutcome(EventOutcome.SESSIONS_FOUND);
-    val studentEvent = createEventRecord(event);
-    return createResponseEvent(studentEvent);
-  }
+    public byte[] handleGetOpenAssessmentSessionsEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
+        var currentDate = LocalDateTime.now();
+        val sessions = sessionRepository.findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(currentDate, currentDate);
+        var sessionStructs = new ArrayList<>();
+        sessions.forEach(sessionStruct -> sessionStructs.add(sessionMapper.toStructure(sessionStruct)));
+        if (isSynchronous) {
+            if (!sessions.isEmpty()) {
+                return JsonUtil.getJsonBytesFromObject(sessionStructs);
+            } else {
+                return new byte[0];
+            }
+        }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public byte[] handleGetStudentRegistrationEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
-    AssessmentStudentGet student = JsonUtil.getJsonObjectFromString(AssessmentStudentGet.class, event.getEventPayload());
-    if (isSynchronous) {
-      val optionalStudentEntity = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
-      if (optionalStudentEntity.isPresent()) {
-        return JsonUtil.getJsonBytesFromObject(assessmentStudentMapper.toStructure(optionalStudentEntity.get()));
-      } else {
-        return new byte[0];
-      }
+        log.trace(EVENT_PAYLOAD, event);
+        event.setEventPayload(JsonUtil.getJsonStringFromObject(sessionStructs));
+        event.setEventOutcome(EventOutcome.SESSIONS_FOUND);
+        val studentEvent = createEventRecord(event);
+        return createResponseEvent(studentEvent);
     }
 
-    log.trace(EVENT_PAYLOAD, event);
-    val optionalStudentEntity = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
-    if (optionalStudentEntity.isPresent()) {
-      AssessmentStudent structStud = assessmentStudentMapper.toStructure(optionalStudentEntity.get()); // need to convert to structure MANDATORY otherwise jackson will break.
-      event.setEventPayload(JsonUtil.getJsonStringFromObject(structStud));
-      event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_FOUND);
-    } else {
-      event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_NOT_FOUND);
+    public byte[] handleGetStudentRegistrationEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
+        AssessmentStudentGet student = JsonUtil.getJsonObjectFromString(AssessmentStudentGet.class, event.getEventPayload());
+        if (isSynchronous) {
+            val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
+            if (optionalStudentEntity.isPresent()) {
+                return JsonUtil.getJsonBytesFromObject(assessmentStudentMapper.toStructure(optionalStudentEntity.get()));
+            } else {
+                return new byte[0];
+            }
+        }
+
+        log.trace(EVENT_PAYLOAD, event);
+        val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
+        if (optionalStudentEntity.isPresent()) {
+            AssessmentStudent structStud = assessmentStudentMapper.toStructure(optionalStudentEntity.get()); // need to convert to structure MANDATORY otherwise jackson will break.
+            event.setEventPayload(JsonUtil.getJsonStringFromObject(structStud));
+            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_FOUND);
+        } else {
+            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_NOT_FOUND);
+        }
+        val studentEvent = createEventRecord(event);
+        return createResponseEvent(studentEvent);
     }
-    val studentEvent = createEventRecord(event);
-    return createResponseEvent(studentEvent);
-  }
 
-  private EasEventEntity createEventRecord(Event event) {
-    return EasEventEntity.builder()
-        .createDate(LocalDateTime.now())
-        .updateDate(LocalDateTime.now())
-        .createUser(event.getEventType().toString()) //need to discuss what to put here.
-        .updateUser(event.getEventType().toString())
-        .eventPayloadBytes(event.getEventPayload().getBytes(StandardCharsets.UTF_8))
-        .eventType(event.getEventType().toString())
-        .sagaId(event.getSagaId())
-        .eventStatus(MESSAGE_PUBLISHED.toString())
-        .eventOutcome(event.getEventOutcome().toString())
-        .replyChannel(event.getReplyTo())
-        .build();
-  }
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handlePublishStudentRegistrationEvent(final Event event) throws JsonProcessingException {
+        if (event.getEventOutcome() == EventOutcome.STUDENT_REGISTRATION_EVENT_READ) {
+            final AssessmentStudent sagaData = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
+            final var sagaOptional = sagaService.findByAssessmentStudentIDAndSagaNameAndStatusNot(UUID.fromString(sagaData.getAssessmentStudentID()), SagaEnum.PUBLISH_STUDENT_REGISTRATION.toString(), SagaStatusEnum.COMPLETED.toString());
+            if (sagaOptional.isPresent()) { // possible duplicate message.
+                log.trace("Execution is not required for this message returning EVENT is :: {}", event);
+                return;
+            }
+            val saga = this.studentRegistrationOrchestrator.createSaga(event.getEventPayload(), sagaData.getUpdateUser(), UUID.fromString(sagaData.getAssessmentStudentID()));
+            log.debug("Starting student processing orchestrator :: {}", saga);
+            this.studentRegistrationOrchestrator.startSaga(saga);
+        }
+    }
 
-  private byte[] createResponseEvent(EasEventEntity event) throws JsonProcessingException {
-    val responseEvent = Event.builder()
-        .sagaId(event.getSagaId())
-        .eventType(EventType.valueOf(event.getEventType()))
-        .eventOutcome(EventOutcome.valueOf(event.getEventOutcome()))
-        .eventPayload(event.getEventPayload()).build();
-    return JsonUtil.getJsonBytesFromObject(responseEvent);
-  }
+    private EasEventEntity createEventRecord(Event event) {
+        return EasEventEntity.builder()
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .createUser(ApplicationProperties.EAS_API)
+                .updateUser(ApplicationProperties.EAS_API)
+                .eventPayloadBytes(event.getEventPayload().getBytes(StandardCharsets.UTF_8))
+                .eventType(event.getEventType().toString())
+                .sagaId(event.getSagaId())
+                .eventStatus(MESSAGE_PUBLISHED.toString())
+                .eventOutcome(event.getEventOutcome().toString())
+                .replyChannel(event.getReplyTo())
+                .build();
+    }
+
+    private byte[] createResponseEvent(EasEventEntity event) throws JsonProcessingException {
+        val responseEvent = Event.builder()
+                .sagaId(event.getSagaId())
+                .eventType(EventType.valueOf(event.getEventType()))
+                .eventOutcome(EventOutcome.valueOf(event.getEventOutcome()))
+                .eventPayload(event.getEventPayload()).build();
+        return JsonUtil.getJsonBytesFromObject(responseEvent);
+    }
 
 }

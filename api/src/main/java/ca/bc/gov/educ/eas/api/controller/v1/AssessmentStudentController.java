@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.eas.api.controller.v1;
 
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.endpoint.v1.AssessmentStudentEndpoint;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
@@ -49,12 +50,14 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     return mapper.toStructure(studentService.updateStudent(mapper.toModel(assessmentStudent)));
   }
 
-  @Override
-  public AssessmentStudent createStudent(AssessmentStudent assessmentStudent) {
-    ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
-    RequestUtil.setAuditColumnsForCreate(assessmentStudent);
-    return mapper.toStructure(studentService.createStudent(mapper.toModel(assessmentStudent)));
-  }
+    @Override
+    public AssessmentStudent createStudent(AssessmentStudent assessmentStudent) {
+        ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
+        RequestUtil.setAuditColumnsForCreate(assessmentStudent);
+        AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
+        assessmentStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
+        return mapper.toStructure(studentService.createStudent(assessmentStudentEntity));
+    }
 
   @Override
   public CompletableFuture<Page<AssessmentStudent>> findAll(Integer pageNumber, Integer pageSize, String sortCriteriaJson, String searchCriteriaListJson) {

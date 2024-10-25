@@ -1,10 +1,13 @@
 package ca.bc.gov.educ.eas.api;
 
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -55,9 +58,9 @@ public abstract class BaseEasAPITest {
             .courseMonth(Integer.toString(currentDate.getMonthValue()))
             .activeFromDate(currentDate.minusMonths(2))
             .activeUntilDate(currentDate.plusMonths(2))
-            .createUser("ABC")
+            .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
-            .updateUser("ABC")
+            .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
             .build();
   }
@@ -66,9 +69,9 @@ public abstract class BaseEasAPITest {
     return AssessmentEntity.builder()
             .sessionEntity(sessionEntity)
             .assessmentTypeCode(assessmentTypeCode)
-            .createUser("ABC")
+            .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
-            .updateUser("ABC")
+            .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
             .build();
   }
@@ -81,8 +84,8 @@ public abstract class BaseEasAPITest {
             .studentID(UUID.randomUUID().toString())
             .pen("120164447")
             .localID("123")
-            .createUser("ABC")
-            .updateUser("ABC")
+            .createUser(ApplicationProperties.EAS_API)
+            .updateUser(ApplicationProperties.EAS_API)
             .build();
   }
 
@@ -90,13 +93,14 @@ public abstract class BaseEasAPITest {
     return AssessmentStudentEntity.builder()
             .assessmentStudentID(UUID.randomUUID())
             .assessmentEntity(assessmentEntity)
+            .assessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode())
             .schoolID(UUID.randomUUID())
             .studentID(UUID.randomUUID())
             .pen("120164447")
             .localID("123")
-            .createUser("ABC")
+            .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
-            .updateUser("ABC")
+            .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
             .build();
   }
@@ -113,6 +117,13 @@ public abstract class BaseEasAPITest {
             .schoolReportingRequirementCode("REGULAR")
             .openedDate("2018-07-01 00:00:00.000")
             .closedDate(null)
+            .build();
+  }
+
+  public AssessmentStudentGet createMockAssessmentStudentGet(String assessmentID, String studentID) {
+    return AssessmentStudentGet.builder()
+            .assessmentID(assessmentID)
+            .studentID(studentID)
             .build();
   }
 

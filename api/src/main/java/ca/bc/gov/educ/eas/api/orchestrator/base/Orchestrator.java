@@ -3,6 +3,7 @@ package ca.bc.gov.educ.eas.api.orchestrator.base;
 import ca.bc.gov.educ.eas.api.model.v1.EasSagaEntity;
 
 import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -32,7 +33,7 @@ public interface Orchestrator {
    * @param userName  the user who created the saga
    * @return the saga
    */
-  EasSagaEntity createSaga(String payload, String userName);
+  EasSagaEntity createSaga(String payload, String userName, UUID assessmentStudentID);
 
   /**
    * Replay saga.

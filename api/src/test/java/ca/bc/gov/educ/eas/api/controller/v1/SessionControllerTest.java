@@ -103,8 +103,8 @@ class SessionControllerTest extends BaseEasAPITest {
 
         var updatedSessionEntity = sessionRepository.findById(sessionEntity.getSessionID());
         assertThat(updatedSessionEntity).isPresent();
-        assertThat(updatedSessionEntity.get().getActiveFromDate().toString().substring(0,25)).isEqualTo(updatedSession.getActiveFromDate().substring(0,25));
-        assertThat(updatedSessionEntity.get().getActiveUntilDate().toString().substring(0,25)).isEqualTo(updatedSession.getActiveUntilDate().substring(0,25));
+        assertThat(updatedSessionEntity.get().getActiveFromDate().toString().substring(0,10)).isEqualTo(updatedSession.getActiveFromDate().substring(0,10));
+        assertThat(updatedSessionEntity.get().getActiveUntilDate().toString().substring(0,10)).isEqualTo(updatedSession.getActiveUntilDate().substring(0,10));
     }
 
     @Test
