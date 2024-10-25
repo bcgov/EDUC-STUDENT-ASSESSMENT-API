@@ -82,7 +82,6 @@ public class EventHandlerService {
         return createResponseEvent(studentEvent);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public byte[] handleGetOpenAssessmentSessionsEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
         var currentDate = LocalDateTime.now();
         val sessions = sessionRepository.findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(currentDate, currentDate);
@@ -103,7 +102,6 @@ public class EventHandlerService {
         return createResponseEvent(studentEvent);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public byte[] handleGetStudentRegistrationEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
         AssessmentStudentGet student = JsonUtil.getJsonObjectFromString(AssessmentStudentGet.class, event.getEventPayload());
         if (isSynchronous) {
