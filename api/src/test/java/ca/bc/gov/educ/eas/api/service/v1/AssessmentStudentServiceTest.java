@@ -169,4 +169,5 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     //then throw exception
     assertThrows(EntityNotFoundException.class, () -> service.updateStudent(student));
   }
+
 }

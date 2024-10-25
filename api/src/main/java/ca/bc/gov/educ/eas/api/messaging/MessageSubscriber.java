@@ -98,6 +98,9 @@ public class MessageSubscriber {
                     final var eventString = new String(message.getData());
                     final var event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
                     eventHandler.handleEvent(event);
+                } catch (final InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                        log.error("InterruptedException while findAndProcessPendingSagaEvents :: {}", ex);
                 } catch (final Exception e) {
                     log.error("Exception ", e);
                 }

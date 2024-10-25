@@ -40,8 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EventTaskSchedulerTest extends BaseEasAPITest {
 
     private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
-    @Autowired
-    EventTaskScheduler eventTaskScheduler;
+
     @Autowired
     EventTaskSchedulerAsyncService eventTaskSchedulerAsyncService;
     @Autowired
