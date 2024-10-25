@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -17,6 +19,12 @@ import java.util.UUID;
  */
 @Repository
 public interface SagaRepository extends JpaRepository<EasSagaEntity, UUID>, JpaSpecificationExecutor<EasSagaEntity> {
+
+  long countAllByStatusIn(List<String> statuses);
+
+  Optional<EasSagaEntity> findByAssessmentStudentIDAndSagaNameAndStatusNot(UUID assessmentStudentID, String sagaName, String status);
+
+  Optional<EasSagaEntity> findByAssessmentStudentIDAndSagaName(UUID assessmentStudentID, String sagaName);
 
   @Transactional
   @Modifying

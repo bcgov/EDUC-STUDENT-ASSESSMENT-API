@@ -32,6 +32,9 @@ public class EasSagaEntity {
   @Column(name = "SAGA_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
   UUID sagaId;
 
+  @Column(name = "ASSESSMENT_STUDENT_ID", nullable = false, columnDefinition = "BINARY(16)")
+  private UUID assessmentStudentID;
+
   @NotNull(message = "saga name cannot be null")
   @Column(name = "SAGA_NAME")
   String sagaName;

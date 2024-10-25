@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.eas.api;
 
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
@@ -55,9 +56,9 @@ public abstract class BaseEasAPITest {
             .courseMonth(Integer.toString(currentDate.getMonthValue()))
             .activeFromDate(currentDate.minusMonths(2))
             .activeUntilDate(currentDate.plusMonths(2))
-            .createUser("ABC")
+            .createUser("EAS_API")
             .createDate(LocalDateTime.now())
-            .updateUser("ABC")
+            .updateUser("EAS_API")
             .updateDate(LocalDateTime.now())
             .build();
   }
@@ -66,9 +67,9 @@ public abstract class BaseEasAPITest {
     return AssessmentEntity.builder()
             .sessionEntity(sessionEntity)
             .assessmentTypeCode(assessmentTypeCode)
-            .createUser("ABC")
+            .createUser("EAS_API")
             .createDate(LocalDateTime.now())
-            .updateUser("ABC")
+            .updateUser("EAS_API")
             .updateDate(LocalDateTime.now())
             .build();
   }
@@ -81,8 +82,8 @@ public abstract class BaseEasAPITest {
             .studentID(UUID.randomUUID().toString())
             .pen("120164447")
             .localID("123")
-            .createUser("ABC")
-            .updateUser("ABC")
+            .createUser("EAS_API")
+            .updateUser("EAS_API")
             .build();
   }
 
@@ -90,13 +91,14 @@ public abstract class BaseEasAPITest {
     return AssessmentStudentEntity.builder()
             .assessmentStudentID(UUID.randomUUID())
             .assessmentEntity(assessmentEntity)
+            .assessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode())
             .schoolID(UUID.randomUUID())
             .studentID(UUID.randomUUID())
             .pen("120164447")
             .localID("123")
-            .createUser("ABC")
+            .createUser("EAS_API")
             .createDate(LocalDateTime.now())
-            .updateUser("ABC")
+            .updateUser("EAS_API")
             .updateDate(LocalDateTime.now())
             .build();
   }

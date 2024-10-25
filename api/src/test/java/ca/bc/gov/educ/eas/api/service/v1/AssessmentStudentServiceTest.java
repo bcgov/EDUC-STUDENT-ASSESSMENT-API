@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.BaseEasAPITest;
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
@@ -91,7 +92,7 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
 
     //when creating an assessment student
-    AssessmentStudentEntity student = service.createStudent(AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build());
+    AssessmentStudentEntity student = service.createStudent(AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).assessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode()).build());
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), student.getAssessmentStudentID());
     //then assessment student is created
     assertNotNull(student);
@@ -116,7 +117,7 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
-    AssessmentStudentEntity assessmentStudentEntity = service.createStudent(AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build());
+    AssessmentStudentEntity assessmentStudentEntity = service.createStudent(AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode()).assessmentEntity(assessmentEntity).build());
     //when updating the student
     AssessmentStudentEntity student = service.updateStudent(assessmentStudentEntity);
     assertNotNull(student);

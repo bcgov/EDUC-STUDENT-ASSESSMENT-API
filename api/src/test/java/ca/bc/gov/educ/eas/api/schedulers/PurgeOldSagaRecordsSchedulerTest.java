@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 class PurgeOldSagaRecordsSchedulerTest extends BaseEasAPITest {
 
@@ -41,6 +42,7 @@ class PurgeOldSagaRecordsSchedulerTest extends BaseEasAPITest {
     return EasSagaEntity
         .builder()
         .payload(payload)
+        .assessmentStudentID(UUID.randomUUID())
         .sagaName("EAS_TEST_SAGA")
         .status(SagaStatusEnum.STARTED.toString())
         .sagaState(EventType.INITIATED.toString())

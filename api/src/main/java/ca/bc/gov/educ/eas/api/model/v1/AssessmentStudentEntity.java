@@ -56,6 +56,9 @@ public class AssessmentStudentEntity {
   @Column(name = "COURSE_STATUS_CODE", length = 1)
   private String courseStatusCode;
 
+  @Column(name = "ASSESSMENT_STUDENT_STATUS_CODE", nullable = false, length = 20)
+  private String assessmentStudentStatusCode;
+
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;
 
