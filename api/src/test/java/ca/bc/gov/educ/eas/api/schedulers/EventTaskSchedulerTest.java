@@ -126,8 +126,8 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
         final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(mapper.toStructure(assessmentStudentEntity))).build();
         eventHandlerServiceUnderTest.handlePublishStudentRegistrationEvent(event);
 
-         var sagas = sagaRepository.findById(sagaEntity.getSagaId());
-         assertThat(sagas).isPresent();
+        var sagas = sagaRepository.findById(sagaEntity.getSagaId());
+        assertThat(sagas).isPresent();
         var sagaEvents = sagaEventRepository.findBySaga(sagaEntity);
         assertThat(sagaEvents).isEmpty();
     }

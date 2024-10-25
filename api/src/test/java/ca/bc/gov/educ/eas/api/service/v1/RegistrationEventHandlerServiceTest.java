@@ -89,7 +89,7 @@ class RegistrationEventHandlerServiceTest extends BaseEasAPITest {
     }
 
     @Test
-    void testHandleEvent_TopicName_verification() throws IOException {
+    void testHandleEvent_TopicName_verification() {
         assertThat(eventHandlerServiceUnderTest.getTopicToSubscribe()).isEqualTo(TopicsEnum.PUBLISH_STUDENT_REGISTRATION_TOPIC.name());
     }
 

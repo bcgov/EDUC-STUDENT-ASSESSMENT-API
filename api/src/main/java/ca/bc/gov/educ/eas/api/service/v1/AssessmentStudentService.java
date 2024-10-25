@@ -83,11 +83,7 @@ public class AssessmentStudentService {
             final var eventString = JsonUtil.getJsonString(event);
             if (eventString.isPresent()) {
                 this.messagePublisher.dispatchMessage(TopicsEnum.PUBLISH_STUDENT_REGISTRATION_TOPIC.toString(), eventString.get().getBytes());
-            } else {
-                log.error("Event String is empty, skipping the publish to topic :: {}", assessmentStudent);
             }
-        } else {
-            log.error("Event payload is empty, skipping the publish to topic :: {}", assessmentStudent);
         }
     }
 

@@ -41,10 +41,10 @@ class EventHandlerServiceTest extends BaseEasAPITest {
 
   public static final String EAS_API_TOPIC = TopicsEnum.EAS_API_TOPIC.toString();
   @Autowired
-  private SessionRepository sessionRepository;
+  SessionRepository sessionRepository;
 
   @Autowired
-  private AssessmentRepository assessmentRepository;
+  AssessmentRepository assessmentRepository;
 
   @Autowired
   AssessmentStudentRepository assessmentStudentRepository;
@@ -53,7 +53,7 @@ class EventHandlerServiceTest extends BaseEasAPITest {
   AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
   @Autowired
-  private EventHandlerService eventHandlerServiceUnderTest;
+  EventHandlerService eventHandlerServiceUnderTest;
   private final boolean isSynchronous = false;
 
   @BeforeEach
@@ -143,11 +143,11 @@ class EventHandlerServiceTest extends BaseEasAPITest {
     assertThat(studentResponseEvent).isNotNull();
     assertThat(studentResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_FOUND);
 
-    byte[] async_studentResponse = eventHandlerServiceUnderTest.handleGetStudentRegistrationEvent(getStudentEvent, true);
+    byte[] asyncStudentResponse = eventHandlerServiceUnderTest.handleGetStudentRegistrationEvent(getStudentEvent, true);
     assertThat(studentResponse).isNotEmpty();
-    Event async_studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, async_studentResponse);
-    assertThat(async_studentResponseEvent).isNotNull();
-    assertThat(async_studentResponseEvent.getEventOutcome()).isNull();
+    Event asyncStudentResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, asyncStudentResponse);
+    assertThat(asyncStudentResponseEvent).isNotNull();
+    assertThat(asyncStudentResponseEvent.getEventOutcome()).isNull();
   }
 
   @Test
