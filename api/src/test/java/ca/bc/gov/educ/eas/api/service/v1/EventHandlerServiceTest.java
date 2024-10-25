@@ -82,6 +82,45 @@ class EventHandlerServiceTest extends BaseEasAPITest {
   }
 
   @Test
+  void testHandleEvent_givenEventTypeCREATE_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_CREATED() throws IOException {
+    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudent student1 = createMockStudent();
+    student1.setAssessmentID(assessment.getAssessmentID().toString());
+
+    var sagaId = UUID.randomUUID();
+    final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
+    byte[] response = eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event);
+    assertThat(response).isNotEmpty();
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+    assertThat(responseEvent).isNotNull();
+    assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_CREATED);
+  }
+
+  @Test
+  void testHandleEvent_givenEventTypeCREATE_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_EXISTS() throws IOException {
+    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudent student1 = createMockStudent();
+    student1.setAssessmentID(assessment.getAssessmentID().toString());
+
+    var sagaId = UUID.randomUUID();
+    final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
+    byte[] response = eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event);
+    assertThat(response).isNotEmpty();
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+    assertThat(responseEvent).isNotNull();
+    assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_CREATED);
+
+    byte[] responseDuplicate = eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event);
+    assertThat(responseDuplicate).isNotEmpty();
+    Event responseEventDuplicate = JsonUtil.getJsonObjectFromByteArray(Event.class, responseDuplicate);
+    assertThat(responseEventDuplicate).isNotNull();
+    assertThat(responseEventDuplicate.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_ALREADY_EXIST);
+
+  }
+
+  @Test
   void testHandleEvent_givenEventTypeGET_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_FOUND() throws IOException {
     SessionEntity session = sessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
@@ -103,6 +142,12 @@ class EventHandlerServiceTest extends BaseEasAPITest {
     Event studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, studentResponse);
     assertThat(studentResponseEvent).isNotNull();
     assertThat(studentResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_FOUND);
+
+    byte[] async_studentResponse = eventHandlerServiceUnderTest.handleGetStudentRegistrationEvent(getStudentEvent, true);
+    assertThat(studentResponse).isNotEmpty();
+    Event async_studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, async_studentResponse);
+    assertThat(async_studentResponseEvent).isNotNull();
+    assertThat(async_studentResponseEvent.getEventOutcome()).isNull();
   }
 
   @Test

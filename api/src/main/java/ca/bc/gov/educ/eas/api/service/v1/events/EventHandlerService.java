@@ -73,10 +73,11 @@ public class EventHandlerService {
             AssessmentStudentEntity createStudentEntity = assessmentStudentMapper.toModel(assessmentStudent);
             createStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
             assessmentStudentService.createStudent(createStudentEntity);
+            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_CREATED);
         } else {
             log.info("Student already exists in assessment {} ", assessmentStudent.getAssessmentStudentID());
+            event.setEventOutcome(EventOutcome.STUDENT_ALREADY_EXIST);
         }
-        event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_CREATED);
         val studentEvent = createEventRecord(event);
         return createResponseEvent(studentEvent);
     }

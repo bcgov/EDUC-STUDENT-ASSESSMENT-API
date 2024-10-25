@@ -4,6 +4,7 @@ import ca.bc.gov.educ.eas.api.BaseEasAPITest;
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.constants.SagaEnum;
+import ca.bc.gov.educ.eas.api.constants.TopicsEnum;
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
@@ -87,5 +88,9 @@ class RegistrationEventHandlerServiceTest extends BaseEasAPITest {
         assertThat(sagas).isEmpty();
     }
 
+    @Test
+    void testHandleEvent_TopicName_verification() throws IOException {
+        assertThat(eventHandlerServiceUnderTest.getTopicToSubscribe()).isEqualTo(TopicsEnum.PUBLISH_STUDENT_REGISTRATION_TOPIC.name());
+    }
 
 }
