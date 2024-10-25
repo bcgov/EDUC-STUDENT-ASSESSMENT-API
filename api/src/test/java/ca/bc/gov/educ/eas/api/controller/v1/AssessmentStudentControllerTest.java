@@ -9,6 +9,7 @@ import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
@@ -179,7 +180,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentStudentID", equalTo(student.getAssessmentStudentID())))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.updateUser", equalTo("EAS_API")));
+            .andExpect(MockMvcResultMatchers.jsonPath("$.updateUser", equalTo(ApplicationProperties.EAS_API)));
   }
 
   @Test
@@ -258,7 +259,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
                             .with(mockAuthority))
             .andDo(print())
             .andExpect(status().isOk())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.updateUser", equalTo("EAS_API")));
+            .andExpect(MockMvcResultMatchers.jsonPath("$.updateUser", equalTo(ApplicationProperties.EAS_API)));
   }
 
   @Test

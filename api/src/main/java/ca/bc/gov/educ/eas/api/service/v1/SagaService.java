@@ -141,12 +141,14 @@ public class SagaService {
    * @param sagaName             the saga name
    * @param userName             the username
    * @param payload              the payload
+   * @param assessmentStudentID  EAS generated studentID
    * @return the saga
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public EasSagaEntity createSagaRecordInDB(final String sagaName, final String userName, final String payload) {
+  public EasSagaEntity createSagaRecordInDB(final String sagaName, final String userName, final String payload, final UUID assessmentStudentID) {
     final var saga = EasSagaEntity
       .builder()
+      .assessmentStudentID(assessmentStudentID)
       .payload(payload)
       .sagaName(sagaName)
       .status(STARTED.toString())
@@ -183,5 +185,16 @@ public class SagaService {
         throw new CompletionException(ex);
       }
     });
+  }
+
+  /**
+   * Find by student id optional.
+   *
+   * @param assessmentStudentID the student id
+   * @param sagaName             the saga name
+   * @return the list
+   */
+  public Optional<EasSagaEntity> findByAssessmentStudentIDAndSagaNameAndStatusNot(final UUID assessmentStudentID, final String sagaName, final String status) {
+    return this.getSagaRepository().findByAssessmentStudentIDAndSagaNameAndStatusNot(assessmentStudentID, sagaName, status);
   }
 }
