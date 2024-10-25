@@ -5,6 +5,7 @@ import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.eas.api.model.v1.SagaEventStatesEntity;
 import ca.bc.gov.educ.eas.api.model.v1.EasSagaEntity;
+import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.repository.v1.SagaEventRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SagaRepository;
 import org.junit.jupiter.api.Test;
@@ -47,8 +48,8 @@ class PurgeOldSagaRecordsSchedulerTest extends BaseEasAPITest {
         .status(SagaStatusEnum.STARTED.toString())
         .sagaState(EventType.INITIATED.toString())
         .createDate(LocalDateTime.now())
-        .createUser("EAS_API")
-        .updateUser("EAS_API")
+        .createUser(ApplicationProperties.EAS_API)
+        .updateUser(ApplicationProperties.EAS_API)
         .updateDate(LocalDateTime.now())
         .build();
   }
@@ -61,8 +62,8 @@ class PurgeOldSagaRecordsSchedulerTest extends BaseEasAPITest {
         .sagaStepNumber(4)
         .sagaEventOutcome("EAS_NOTIFIED")
         .createDate(LocalDateTime.now())
-        .createUser("EAS_API")
-        .updateUser("EAS_API")
+        .createUser(ApplicationProperties.EAS_API)
+        .updateUser(ApplicationProperties.EAS_API)
         .updateDate(LocalDateTime.now())
         .build();
   }

@@ -4,6 +4,7 @@ import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
@@ -57,9 +58,9 @@ public abstract class BaseEasAPITest {
             .courseMonth(Integer.toString(currentDate.getMonthValue()))
             .activeFromDate(currentDate.minusMonths(2))
             .activeUntilDate(currentDate.plusMonths(2))
-            .createUser("EAS_API")
+            .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
-            .updateUser("EAS_API")
+            .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
             .build();
   }
@@ -68,9 +69,9 @@ public abstract class BaseEasAPITest {
     return AssessmentEntity.builder()
             .sessionEntity(sessionEntity)
             .assessmentTypeCode(assessmentTypeCode)
-            .createUser("EAS_API")
+            .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
-            .updateUser("EAS_API")
+            .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
             .build();
   }
@@ -83,8 +84,8 @@ public abstract class BaseEasAPITest {
             .studentID(UUID.randomUUID().toString())
             .pen("120164447")
             .localID("123")
-            .createUser("EAS_API")
-            .updateUser("EAS_API")
+            .createUser(ApplicationProperties.EAS_API)
+            .updateUser(ApplicationProperties.EAS_API)
             .build();
   }
 
@@ -97,9 +98,9 @@ public abstract class BaseEasAPITest {
             .studentID(UUID.randomUUID())
             .pen("120164447")
             .localID("123")
-            .createUser("EAS_API")
+            .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
-            .updateUser("EAS_API")
+            .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
             .build();
   }

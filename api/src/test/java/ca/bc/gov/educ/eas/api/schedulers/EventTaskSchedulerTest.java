@@ -13,6 +13,7 @@ import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.EasSagaEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.repository.v1.*;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.service.v1.SagaService;
@@ -112,8 +113,8 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
 
         var saga = EasSagaEntity.builder()
                 .updateDate(LocalDateTime.now().minusMinutes(15))
-                .createUser("EAS_API")
-                .updateUser("EAS_API")
+                .createUser(ApplicationProperties.EAS_API)
+                .updateUser(ApplicationProperties.EAS_API)
                 .createDate(LocalDateTime.now().minusMinutes(15))
                 .sagaName(SagaEnum.PUBLISH_STUDENT_REGISTRATION.name())
                 .assessmentStudentID(assessmentStudentEntity.getAssessmentStudentID())

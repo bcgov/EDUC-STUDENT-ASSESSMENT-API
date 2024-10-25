@@ -10,6 +10,7 @@ import ca.bc.gov.educ.eas.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.EasEventEntity;
 import ca.bc.gov.educ.eas.api.orchestrator.StudentRegistrationOrchestrator;
+import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.service.v1.SagaService;
@@ -145,8 +146,8 @@ public class EventHandlerService {
         return EasEventEntity.builder()
                 .createDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
-                .createUser(event.getEventType().toString()) //need to discuss what to put here.
-                .updateUser(event.getEventType().toString())
+                .createUser(ApplicationProperties.EAS_API)
+                .updateUser(ApplicationProperties.EAS_API)
                 .eventPayloadBytes(event.getEventPayload().getBytes(StandardCharsets.UTF_8))
                 .eventType(event.getEventType().toString())
                 .sagaId(event.getSagaId())
