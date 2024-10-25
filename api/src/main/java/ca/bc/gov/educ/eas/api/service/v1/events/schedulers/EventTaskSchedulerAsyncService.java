@@ -44,7 +44,6 @@ public class EventTaskSchedulerAsyncService {
             log.debug("Saga count is greater than 100, so not processing student records");
             return;
         }
-        System.out.println(numberOfStudentsToPublish);
         final var studentEntities = this.assessmentStudentRepository.findTopLoadedStudentForPublishing(numberOfStudentsToPublish);
         log.debug("Found :: {}  records in loaded status", studentEntities.size());
         if (!studentEntities.isEmpty()) {

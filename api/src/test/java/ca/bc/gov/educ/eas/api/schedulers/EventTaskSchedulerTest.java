@@ -17,6 +17,7 @@ import ca.bc.gov.educ.eas.api.repository.v1.*;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.service.v1.SagaService;
 import ca.bc.gov.educ.eas.api.service.v1.events.EventHandlerService;
+import ca.bc.gov.educ.eas.api.service.v1.events.schedulers.EventTaskSchedulerAsyncService;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
@@ -33,9 +34,13 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class EventTaskSchedulerTest extends BaseEasAPITest {
+class EventTaskSchedulerTest extends BaseEasAPITest {
 
     private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
+    @Autowired
+    EventTaskScheduler eventTaskScheduler;
+    @Autowired
+    EventTaskSchedulerAsyncService eventTaskSchedulerAsyncService;
     @Autowired
     SagaService sagaService;
     @Autowired
@@ -122,7 +127,26 @@ public class EventTaskSchedulerTest extends BaseEasAPITest {
          var sagas = sagaRepository.findById(sagaEntity.getSagaId());
          assertThat(sagas).isPresent();
         var sagaEvents = sagaEventRepository.findBySaga(sagaEntity);
-        assertThat(sagaEvents).hasSize(0);
+        assertThat(sagaEvents).isEmpty();
+    }
+
+    @SneakyThrows
+    @Test
+    void test_findAndPublishLoadedStudentRecordsForPublishing_LOADED_shouldReturnOk() {
+        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+
+        AssessmentStudent student1 = createMockStudent();
+        student1.setAssessmentID(assessment.getAssessmentID().toString());
+        AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
+        studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
+        AssessmentStudentEntity assessmentStudentEntity = assessmentStudentService.createStudent(studentEntity1);
+
+        eventTaskSchedulerAsyncService.findAndPublishLoadedStudentRegistrationsForProcessing();
+        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(mapper.toStructure(assessmentStudentEntity))).build();
+        eventHandlerServiceUnderTest.handlePublishStudentRegistrationEvent(event);
+        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(assessmentStudentEntity.getAssessmentStudentID(), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
+        assertThat(sagas).isPresent();
     }
 
 }
