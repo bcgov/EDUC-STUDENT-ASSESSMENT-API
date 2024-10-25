@@ -5,10 +5,17 @@ import ca.bc.gov.educ.eas.api.BaseEasAPITest;
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.constants.TopicsEnum;
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
+import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
+import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentHistoryRepository;
+import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.service.v1.events.EventHandlerService;
 import ca.bc.gov.educ.eas.api.struct.Event;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -40,6 +47,12 @@ class EventHandlerServiceTest extends BaseEasAPITest {
   private AssessmentRepository assessmentRepository;
 
   @Autowired
+  AssessmentStudentRepository assessmentStudentRepository;
+
+  @Autowired
+  AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+
+  @Autowired
   private EventHandlerService eventHandlerServiceUnderTest;
   private final boolean isSynchronous = false;
 
@@ -51,6 +64,8 @@ class EventHandlerServiceTest extends BaseEasAPITest {
 
   @AfterEach
   public void tearDown() {
+    assessmentStudentRepository.deleteAll();
+    assessmentStudentHistoryRepository.deleteAll();
     assessmentRepository.deleteAll();
     sessionRepository.deleteAll();
   }
@@ -64,6 +79,41 @@ class EventHandlerServiceTest extends BaseEasAPITest {
     Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
     assertThat(responseEvent).isNotNull();
     assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.SESSIONS_FOUND);
+  }
+
+  @Test
+  void testHandleEvent_givenEventTypeGET_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_FOUND() throws IOException {
+    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudent student1 = createMockStudent();
+    student1.setAssessmentID(assessment.getAssessmentID().toString());
+
+    var sagaId = UUID.randomUUID();
+    final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
+    byte[] response = eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event);
+    assertThat(response).isNotEmpty();
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+    assertThat(responseEvent).isNotNull();
+    assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_CREATED);
+
+    AssessmentStudentGet assessmentStudentGet = createMockAssessmentStudentGet(assessment.getAssessmentID().toString(), student1.getStudentID());
+    final Event getStudentEvent = Event.builder().eventType(EventType.GET_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudentGet)).build();
+    byte[] studentResponse = eventHandlerServiceUnderTest.handleGetStudentRegistrationEvent(getStudentEvent, false);
+    assertThat(studentResponse).isNotEmpty();
+    Event studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, studentResponse);
+    assertThat(studentResponseEvent).isNotNull();
+    assertThat(studentResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_FOUND);
+  }
+
+  @Test
+  void testHandleEvent_givenEventTypeGET_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_NOTFOUND() throws IOException {
+    AssessmentStudentGet assessmentStudentGet = createMockAssessmentStudentGet(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+    final Event getStudentEvent = Event.builder().eventType(EventType.GET_STUDENT_REGISTRATION).sagaId(UUID.randomUUID()).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudentGet)).build();
+    byte[] studentResponse = eventHandlerServiceUnderTest.handleGetStudentRegistrationEvent(getStudentEvent, false);
+    assertThat(studentResponse).isNotEmpty();
+    Event studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, studentResponse);
+    assertThat(studentResponseEvent).isNotNull();
+    assertThat(studentResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_NOT_FOUND);
   }
 
 }

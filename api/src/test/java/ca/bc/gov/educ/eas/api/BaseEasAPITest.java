@@ -6,6 +6,7 @@ import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -115,6 +116,13 @@ public abstract class BaseEasAPITest {
             .schoolReportingRequirementCode("REGULAR")
             .openedDate("2018-07-01 00:00:00.000")
             .closedDate(null)
+            .build();
+  }
+
+  public AssessmentStudentGet createMockAssessmentStudentGet(String assessmentID, String studentID) {
+    return AssessmentStudentGet.builder()
+            .assessmentID(assessmentID)
+            .studentID(studentID)
             .build();
   }
 

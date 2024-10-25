@@ -23,13 +23,16 @@ import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import io.nats.client.Connection;
 import lombok.SneakyThrows;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -147,6 +150,22 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
         eventHandlerServiceUnderTest.handlePublishStudentRegistrationEvent(event);
         var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(assessmentStudentEntity.getAssessmentStudentID(), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
         assertThat(sagas).isPresent();
+    }
+
+    @Test
+    void testHandleEvent_givenEventTypeCREATE_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_CREATED() throws IOException {
+        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+        AssessmentStudent student1 = createMockStudent();
+        student1.setAssessmentID(assessment.getAssessmentID().toString());
+
+        var sagaId = UUID.randomUUID();
+        final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
+        byte[] response = eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event);
+        AssertionsForClassTypes.assertThat(response).isNotEmpty();
+        Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+        AssertionsForClassTypes.assertThat(responseEvent).isNotNull();
+        AssertionsForClassTypes.assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_CREATED);
     }
 
 }

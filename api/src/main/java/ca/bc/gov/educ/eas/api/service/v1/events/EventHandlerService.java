@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,7 +76,9 @@ public class EventHandlerService {
         } else {
             log.info("Student already exists in assessment {} ", assessmentStudent.getAssessmentStudentID());
         }
-        return JsonUtil.getJsonBytesFromObject(ResponseEntity.ok());
+        event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_CREATED);
+        val studentEvent = createEventRecord(event);
+        return createResponseEvent(studentEvent);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
