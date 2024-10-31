@@ -42,8 +42,8 @@ public abstract class BaseEasAPITest {
     return Session.builder()
             .sessionID(UUID.randomUUID().toString())
             .schoolYear(String.valueOf(currentDate.getYear()))
-            .courseYear(currentDate.getYear())
-            .courseMonth(currentDate.getMonthValue())
+            .courseYear(Integer.toString(currentDate.getYear()))
+            .courseMonth(Integer.toString(currentDate.getMonthValue()))
             .activeFromDate(currentDate.minusMonths(2).toString())
             .activeUntilDate(currentDate.plusMonths(2).toString())
             .build();

@@ -13,6 +13,7 @@ public enum AssessmentTypeCodes {
   LTF12("LTF12"),
   LTP10("LTP10"),
   LTP12("LTP12"),
+  NME("NME"),
   NME10("NME10"),
   NMF("NMF"),
   NMF10("NMF10");

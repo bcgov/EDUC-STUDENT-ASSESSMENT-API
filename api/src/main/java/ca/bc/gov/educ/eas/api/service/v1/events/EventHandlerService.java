@@ -16,6 +16,7 @@ import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.service.v1.SagaService;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentDetailResponse;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -103,28 +104,15 @@ public class EventHandlerService {
         return createResponseEvent(studentEvent);
     }
 
-    public byte[] handleGetStudentRegistrationEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
+    public byte[] handleGetStudentAssessmentDetailEvent(Event event) throws JsonProcessingException {
         AssessmentStudentGet student = JsonUtil.getJsonObjectFromString(AssessmentStudentGet.class, event.getEventPayload());
-        if (isSynchronous) {
-            val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
-            if (optionalStudentEntity.isPresent()) {
-                return JsonUtil.getJsonBytesFromObject(assessmentStudentMapper.toStructure(optionalStudentEntity.get()));
-            } else {
-                return new byte[0];
-            }
-        }
-
-        log.trace(EVENT_PAYLOAD, event);
         val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
-        if (optionalStudentEntity.isPresent()) {
-            AssessmentStudent structStud = assessmentStudentMapper.toStructure(optionalStudentEntity.get()); // need to convert to structure MANDATORY otherwise jackson will break.
-            event.setEventPayload(JsonUtil.getJsonStringFromObject(structStud));
-            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_FOUND);
-        } else {
-            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_NOT_FOUND);
-        }
-        val studentEvent = createEventRecord(event);
-        return createResponseEvent(studentEvent);
+        var response = new AssessmentStudentDetailResponse();
+        response.setHasPriorRegistration(optionalStudentEntity.isPresent());
+
+        val numberOfAttempts = assessmentStudentService.getNumberOfAttempts(student.getAssessmentID(), UUID.fromString(student.getStudentID()));
+        response.setNumberOfAttempts(Integer.toString(numberOfAttempts));
+        return JsonUtil.getJsonBytesFromObject(response);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

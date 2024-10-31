@@ -30,10 +30,10 @@ public class Session extends BaseRequest implements Serializable {
   private String schoolYear;
 
   @ReadOnlyProperty
-  private Integer courseMonth;
+  private String courseMonth;
 
   @ReadOnlyProperty
-  private Integer courseYear;
+  private String courseYear;
 
   @NotNull(message = "activeFromDate cannot be null")
   private String activeFromDate;

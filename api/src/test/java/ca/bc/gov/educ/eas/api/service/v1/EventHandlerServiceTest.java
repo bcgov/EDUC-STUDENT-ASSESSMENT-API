@@ -15,6 +15,7 @@ import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.service.v1.events.EventHandlerService;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentDetailResponse;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +72,7 @@ class EventHandlerServiceTest extends BaseEasAPITest {
   }
 
   @Test
-  void testHandleEvent_givenEventTypeGET_OPEN_ASSESSMENT_SESSIONS__whenNoStudentExist_shouldHaveEventOutcomeSESSIONS_FOUND() throws IOException {
+  void testHandleEvent_givenEventTypeGET_OPEN_ASSESSMENT_SESSIONS_shouldHaveEventOutcomeSESSIONS_FOUND() throws IOException {
     var sagaId = UUID.randomUUID();
     final Event event = Event.builder().eventType(EventType.GET_OPEN_ASSESSMENT_SESSIONS).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(UUID.randomUUID().toString()).build();
     byte[] response = eventHandlerServiceUnderTest.handleGetOpenAssessmentSessionsEvent(event, isSynchronous);
@@ -121,11 +122,12 @@ class EventHandlerServiceTest extends BaseEasAPITest {
   }
 
   @Test
-  void testHandleEvent_givenEventTypeGET_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_FOUND() throws IOException {
+  void testHandleEvent_givenEventTypeGET_STUDENT_ASSESSMENT_DETAILS_shouldReturnResponse() throws IOException {
     SessionEntity session = sessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudent student1 = createMockStudent();
     student1.setAssessmentID(assessment.getAssessmentID().toString());
+    student1.setProficiencyScore("1");
 
     var sagaId = UUID.randomUUID();
     final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
@@ -136,29 +138,39 @@ class EventHandlerServiceTest extends BaseEasAPITest {
     assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_CREATED);
 
     AssessmentStudentGet assessmentStudentGet = createMockAssessmentStudentGet(assessment.getAssessmentID().toString(), student1.getStudentID());
-    final Event getStudentEvent = Event.builder().eventType(EventType.GET_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudentGet)).build();
-    byte[] studentResponse = eventHandlerServiceUnderTest.handleGetStudentRegistrationEvent(getStudentEvent, false);
+    final Event getStudentEvent = Event.builder().eventType(EventType.GET_STUDENT_ASSESSMENT_DETAILS).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudentGet)).build();
+    byte[] studentResponse = eventHandlerServiceUnderTest.handleGetStudentAssessmentDetailEvent(getStudentEvent);
     assertThat(studentResponse).isNotEmpty();
-    Event studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, studentResponse);
+    AssessmentStudentDetailResponse studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(AssessmentStudentDetailResponse.class, studentResponse);
     assertThat(studentResponseEvent).isNotNull();
-    assertThat(studentResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_FOUND);
-
-    byte[] asyncStudentResponse = eventHandlerServiceUnderTest.handleGetStudentRegistrationEvent(getStudentEvent, true);
-    assertThat(studentResponse).isNotEmpty();
-    Event asyncStudentResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, asyncStudentResponse);
-    assertThat(asyncStudentResponseEvent).isNotNull();
-    assertThat(asyncStudentResponseEvent.getEventOutcome()).isNull();
+    assertThat(studentResponseEvent.getNumberOfAttempts()).isEqualTo("1");
+    assertThat(studentResponseEvent.isHasPriorRegistration()).isTrue();
   }
 
   @Test
-  void testHandleEvent_givenEventTypeGET_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_NOTFOUND() throws IOException {
-    AssessmentStudentGet assessmentStudentGet = createMockAssessmentStudentGet(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-    final Event getStudentEvent = Event.builder().eventType(EventType.GET_STUDENT_REGISTRATION).sagaId(UUID.randomUUID()).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudentGet)).build();
-    byte[] studentResponse = eventHandlerServiceUnderTest.handleGetStudentRegistrationEvent(getStudentEvent, false);
+  void testHandleEvent_givenEventTypeGET_STUDENT_ASSESSMENT_DETAILS_WithNME_shouldReturnResponse() throws IOException {
+    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.NME10.getCode()));
+    AssessmentStudent student1 = createMockStudent();
+    student1.setAssessmentID(assessment.getAssessmentID().toString());
+    student1.setProficiencyScore("1");
+
+    var sagaId = UUID.randomUUID();
+    final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
+    byte[] response = eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event);
+    assertThat(response).isNotEmpty();
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+    assertThat(responseEvent).isNotNull();
+    assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_CREATED);
+
+    AssessmentStudentGet assessmentStudentGet = createMockAssessmentStudentGet(assessment.getAssessmentID().toString(), student1.getStudentID());
+    final Event getStudentEvent = Event.builder().eventType(EventType.GET_STUDENT_ASSESSMENT_DETAILS).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudentGet)).build();
+    byte[] studentResponse = eventHandlerServiceUnderTest.handleGetStudentAssessmentDetailEvent(getStudentEvent);
     assertThat(studentResponse).isNotEmpty();
-    Event studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, studentResponse);
+    AssessmentStudentDetailResponse studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(AssessmentStudentDetailResponse.class, studentResponse);
     assertThat(studentResponseEvent).isNotNull();
-    assertThat(studentResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_NOT_FOUND);
+    assertThat(studentResponseEvent.getNumberOfAttempts()).isEqualTo("1");
+    assertThat(studentResponseEvent.isHasPriorRegistration()).isTrue();
   }
 
 }

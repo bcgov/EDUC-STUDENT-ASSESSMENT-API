@@ -23,4 +23,14 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     order by stud.createDate
     LIMIT :numberOfStudentsToPublish""")
     List<AssessmentStudentEntity> findTopLoadedStudentForPublishing(String numberOfStudentsToPublish);
+
+    @Query(value="""
+    select count(*) from AssessmentEntity as a, AssessmentStudentEntity as stud
+    where a.assessmentID = stud.assessmentEntity.assessmentID
+    and a.assessmentTypeCode in (:assessmentCodes)
+    and stud.studentID = :studentID
+    and (stud.proficiencyScore is not null
+    or stud.provincialSpecialCaseCode in ('A', 'Q'))""")
+    int findNumberOfAttemptsForStudent(UUID studentID, List<String> assessmentCodes);
+
 }
