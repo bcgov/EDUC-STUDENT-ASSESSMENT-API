@@ -3,6 +3,7 @@ package ca.bc.gov.educ.eas.api.service.v1;
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.constants.TopicsEnum;
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
@@ -59,7 +60,7 @@ public class AssessmentStudentService {
 
     private List<String> getAssessmentTypeCodeList(String assessmentTypeCode){
         if(assessmentTypeCode.startsWith("NM")){
-            return Arrays.asList("NME", "NME10", "NMF", "NMF10");
+            return Arrays.asList(AssessmentTypeCodes.NME.getCode(), AssessmentTypeCodes.NME10.getCode(), AssessmentTypeCodes.NMF.getCode(), AssessmentTypeCodes.NMF10.getCode());
         }
         return Arrays.asList(assessmentTypeCode);
     }

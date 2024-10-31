@@ -147,4 +147,30 @@ class EventHandlerServiceTest extends BaseEasAPITest {
     assertThat(studentResponseEvent.isHasPriorRegistration()).isTrue();
   }
 
+  @Test
+  void testHandleEvent_givenEventTypeGET_STUDENT_ASSESSMENT_DETAILS_WithNME_shouldReturnResponse() throws IOException {
+    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.NME10.getCode()));
+    AssessmentStudent student1 = createMockStudent();
+    student1.setAssessmentID(assessment.getAssessmentID().toString());
+    student1.setProficiencyScore(1);
+
+    var sagaId = UUID.randomUUID();
+    final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
+    byte[] response = eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event);
+    assertThat(response).isNotEmpty();
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+    assertThat(responseEvent).isNotNull();
+    assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_CREATED);
+
+    AssessmentStudentGet assessmentStudentGet = createMockAssessmentStudentGet(assessment.getAssessmentID().toString(), student1.getStudentID());
+    final Event getStudentEvent = Event.builder().eventType(EventType.GET_STUDENT_ASSESSMENT_DETAILS).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudentGet)).build();
+    byte[] studentResponse = eventHandlerServiceUnderTest.handleGetStudentAssessmentDetailEvent(getStudentEvent);
+    assertThat(studentResponse).isNotEmpty();
+    AssessmentStudentDetailResponse studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(AssessmentStudentDetailResponse.class, studentResponse);
+    assertThat(studentResponseEvent).isNotNull();
+    assertThat(studentResponseEvent.getNumberOfAttempts()).isEqualTo("1");
+    assertThat(studentResponseEvent.isHasPriorRegistration()).isTrue();
+  }
+
 }
