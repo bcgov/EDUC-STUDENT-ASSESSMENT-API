@@ -44,7 +44,7 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     private Boolean isElectronicExam;
 
     @Size(max = 1)
-    private Integer proficiencyScore;
+    private String proficiencyScore;
 
     @Size(max = 1)
     @IsAllowedValue(enumClass = ProvincialSpecialCaseCodes.class, message = "Invalid provincial special case code.")
