@@ -7,7 +7,6 @@ import ca.bc.gov.educ.eas.api.model.v1.EasEventEntity;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import io.nats.client.Message;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -62,10 +61,10 @@ public class EventHandlerDelegatorService {
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
-        case GET_STUDENT_REGISTRATION:
-          log.info("Received GET_STUDENT_REGISTRATION event :: {}", event.getSagaId());
+        case GET_STUDENT_ASSESSMENT_DETAILS:
+          log.info("Received GET_STUDENT_ASSESSMENT_DETAILS event :: {}", event.getSagaId());
           log.trace(PAYLOAD_LOG, event.getEventPayload());
-          response = eventHandlerService.handleGetStudentRegistrationEvent(event, isSynchronous);
+          response = eventHandlerService.handleGetStudentAssessmentDetailEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;

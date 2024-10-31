@@ -47,8 +47,8 @@ public class AssessmentStudentEntity {
   @Column(name = "IS_ELECTRONIC_EXAM", length = 1)
   private Boolean isElectronicExam;
 
-  @Column(name = "FINAL_PERCENTAGE", length = 3)
-  private String finalPercentage;
+  @Column(name = "PROFICIENCY_SCORE", length = 1)
+  private Integer proficiencyScore;
 
   @Column(name = "PROVINCIAL_SPECIAL_CASE_CODE", length = 1)
   private String provincialSpecialCaseCode;
