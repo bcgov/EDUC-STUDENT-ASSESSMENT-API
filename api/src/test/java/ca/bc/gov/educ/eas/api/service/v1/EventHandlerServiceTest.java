@@ -127,7 +127,7 @@ class EventHandlerServiceTest extends BaseEasAPITest {
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudent student1 = createMockStudent();
     student1.setAssessmentID(assessment.getAssessmentID().toString());
-    student1.setProficiencyScore(1);
+    student1.setProficiencyScore("1");
 
     var sagaId = UUID.randomUUID();
     final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
@@ -153,7 +153,7 @@ class EventHandlerServiceTest extends BaseEasAPITest {
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.NME10.getCode()));
     AssessmentStudent student1 = createMockStudent();
     student1.setAssessmentID(assessment.getAssessmentID().toString());
-    student1.setProficiencyScore(1);
+    student1.setProficiencyScore("1");
 
     var sagaId = UUID.randomUUID();
     final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(EAS_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
