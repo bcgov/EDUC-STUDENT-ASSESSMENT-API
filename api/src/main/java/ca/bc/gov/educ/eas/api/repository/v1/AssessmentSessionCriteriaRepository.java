@@ -11,5 +11,5 @@ import java.util.UUID;
 @Repository
 public interface AssessmentSessionCriteriaRepository extends JpaRepository<AssessmentSessionCriteriaEntity, UUID> {
 
-    List<AssessmentSessionCriteriaEntity> findAllByEffectiveDateGreaterThanEqualAndExpiryDateLessThanEqual(LocalDateTime effectiveDate, LocalDateTime expiryDate);
+    List<AssessmentSessionCriteriaEntity> findAllByEffectiveDateLessThanEqualAndExpiryDateGreaterThanEqual(LocalDateTime effectiveDate, LocalDateTime expiryDate);
 }

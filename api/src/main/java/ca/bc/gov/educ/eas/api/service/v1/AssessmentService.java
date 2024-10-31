@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -35,7 +36,9 @@ public class AssessmentService {
         List<AssessmentEntity> newAssessments = new ArrayList<>();
 
         for (SessionEntity session : sessions){
-            newAssessments.addAll(populateAssessmentsForSession(session));
+            List<AssessmentEntity> assessmentsForSession = populateAssessmentsForSession(session);
+            newAssessments.addAll(assessmentsForSession);
+            session.setAssessments(new HashSet<>(assessmentsForSession));
         }
 
         assessmentRepository.saveAll(newAssessments);

@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.eas.api.model.v1;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
@@ -37,25 +36,21 @@ public class AssessmentSessionTypeCodeCriteriaEntity {
     @JoinColumn(name = "ASSESSMENT_TYPE_CODE", referencedColumnName = "ASSESSMENT_TYPE_CODE", updatable = false)
     private AssessmentTypeCodeEntity assessmentTypeCodeEntity;
 
-    @PastOrPresent
     @Column(name = "EFFECTIVE_DATE", updatable = false)
     private LocalDateTime effectiveDate;
 
-    @PastOrPresent
     @Column(name = "EXPIRY_DATE")
     private LocalDateTime expiryDate;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
 
-    @PastOrPresent
     @Column(name = "CREATE_DATE", updatable = false)
     private LocalDateTime createDate;
 
     @Column(name = "UPDATE_USER", nullable = false, length = 100)
     private String updateUser;
 
-    @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
 }

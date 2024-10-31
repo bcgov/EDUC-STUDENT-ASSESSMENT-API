@@ -17,8 +17,8 @@ public interface AssessmentSessionTypeCodeCriteriaRepository extends JpaReposito
             ("SELECT astcc FROM AssessmentSessionTypeCodeCriteriaEntity astcc " +
             "JOIN astcc.assessmentSessionCriteriaEntity asc " +
             "WHERE MONTH(asc.sessionEnd) = :month " +
-            "AND astcc.effectiveDate >= :effectiveDate " +
-            "AND astcc.expiryDate <= :expiryDate")
+            "AND astcc.effectiveDate <= :effectiveDate " +
+            "AND astcc.expiryDate >= :expiryDate")
     List<AssessmentSessionTypeCodeCriteriaEntity> findAllBySessionEndMonth(@Param("month") Integer month, @Param("effectiveDate") LocalDateTime effectiveDate, @Param("expiryDate") LocalDateTime expiryDate);
 
 }

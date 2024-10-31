@@ -73,7 +73,7 @@ public class SessionService {
     }
 
     public void createAllAssessmentSessionsForSchoolYear(int schoolYearStart){
-        List<AssessmentSessionCriteriaEntity> activeSessionCriteria = assessmentSessionCriteriaRepository.findAllByEffectiveDateGreaterThanEqualAndExpiryDateLessThanEqual(LocalDateTime.now(), LocalDateTime.now());
+        List<AssessmentSessionCriteriaEntity> activeSessionCriteria = assessmentSessionCriteriaRepository.findAllByEffectiveDateLessThanEqualAndExpiryDateGreaterThanEqual(LocalDateTime.now(), LocalDateTime.now());
         List<SessionEntity> newSessions = populateSessionEntities(activeSessionCriteria, schoolYearStart);
         List<SessionEntity> savedSessions = sessionRepository.saveAll(newSessions);
 
@@ -85,7 +85,7 @@ public class SessionService {
         LocalDateTime activeFromDate = LocalDateTime.of(schoolYearStart, 10, 1, 0, 0);
 
         for(AssessmentSessionCriteriaEntity sessionType : sessionTypes){
-            String sessionMonth = String.valueOf(sessionType.getSessionEnd().getMonth());
+            String sessionMonth = String.valueOf(sessionType.getSessionEnd().getMonthValue());
             int sessionYear = sessionMonth.equalsIgnoreCase("11") ? schoolYearStart : schoolYearStart + 1;
             LocalDateTime endOfSessionDate = LocalDateTime.of(sessionYear, sessionType.getSessionEnd().getMonth(), sessionType.getSessionEnd().getDayOfMonth(), 0, 0);
 

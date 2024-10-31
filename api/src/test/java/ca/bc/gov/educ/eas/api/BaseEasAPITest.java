@@ -1,9 +1,7 @@
 package ca.bc.gov.educ.eas.api;
 
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
-import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.model.v1.*;
 import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
@@ -20,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @SpringBootTest(classes = {EasApiApplication.class})
@@ -74,6 +73,78 @@ public abstract class BaseEasAPITest {
             .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
             .build();
+  }
+
+  public List<AssessmentSessionCriteriaEntity> createMockAssessmentSessionCriteriaEntities() {
+    List<AssessmentSessionCriteriaEntity> sessionCriteriaEntities = new ArrayList<>();
+
+    AssessmentSessionCriteriaEntity novSession = AssessmentSessionCriteriaEntity.builder()
+            .assessmentSessionCriteriaId(UUID.randomUUID())
+            .sessionStart(LocalDateTime.of(2024, 10, 1, 0, 0))
+            .sessionEnd(LocalDateTime.of(2024, 11, 30, 0, 0))
+            .effectiveDate(LocalDateTime.of(2023, 1, 1, 0, 0))
+            .expiryDate(LocalDateTime.of(2024, 12, 31, 0, 0))
+            .createUser(ApplicationProperties.EAS_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.EAS_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+    sessionCriteriaEntities.add(novSession);
+
+    AssessmentSessionCriteriaEntity juneSession = AssessmentSessionCriteriaEntity.builder()
+            .assessmentSessionCriteriaId(UUID.randomUUID())
+            .sessionStart(LocalDateTime.of(2025, 5, 1, 0, 0))
+            .sessionEnd(LocalDateTime.of(2025, 6, 30, 0, 0))
+            .effectiveDate(LocalDateTime.of(2023, 1, 1, 0, 0))
+            .expiryDate(LocalDateTime.of(2024, 12, 31, 0, 0))
+            .createUser(ApplicationProperties.EAS_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.EAS_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+    sessionCriteriaEntities.add(juneSession);
+
+    return sessionCriteriaEntities;
+  }
+
+  public AssessmentTypeCodeEntity createMockAssessmentTypeCodeEntity(String assessmentTypeCode){
+    return AssessmentTypeCodeEntity.builder()
+            .assessmentTypeCode(assessmentTypeCode)
+            .label(assessmentTypeCode)
+            .description("This is a test code for assessment type.")
+            .displayOrder(1)
+            .effectiveDate(LocalDateTime.now())
+            .expiryDate(LocalDateTime.now().plusYears(1))
+            .language("EN")
+            .createUser("TEST-USER")
+            .createDate(LocalDateTime.now())
+            .updateUser("TEST-USER")
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
+  public List<AssessmentSessionTypeCodeCriteriaEntity> createMockAssessmentSessionTypeCodeCriteriaEntities(List<AssessmentSessionCriteriaEntity> sessionCriteriaEntities, AssessmentTypeCodeEntity assessmentTypeCodeEntity) {
+    AssessmentSessionCriteriaEntity novSession = sessionCriteriaEntities.stream()
+            .filter(entity -> entity.getSessionStart().getMonthValue() == 10)
+            .findFirst()
+            .orElseThrow();
+
+    List<AssessmentSessionTypeCodeCriteriaEntity> typeCodeCriteriaEntities = new ArrayList<>();
+
+    AssessmentSessionTypeCodeCriteriaEntity assessmentSessionTypeCodeCriteriaEntity = AssessmentSessionTypeCodeCriteriaEntity.builder()
+            .assessmentSessionTypeCodeCriteriaId(UUID.randomUUID())
+            .assessmentSessionCriteriaEntity(novSession)
+            .assessmentTypeCodeEntity(assessmentTypeCodeEntity)
+            .effectiveDate(LocalDateTime.of(2023, 1, 1, 0, 0))
+            .expiryDate(LocalDateTime.of(2025, 12, 31, 0, 0))
+            .createUser(ApplicationProperties.EAS_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.EAS_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+
+    typeCodeCriteriaEntities.add(assessmentSessionTypeCodeCriteriaEntity);
+    return typeCodeCriteriaEntities;
   }
 
   public AssessmentStudent createMockStudent() {
