@@ -57,7 +57,7 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
     @Autowired
     SessionRepository sessionRepository;
     @Autowired
-    AssessmentSessionTypeCodeCriteriaRepository assessmentSessionTypeCodeCriteriaRepository;
+    AssessmentCriteriaRepository assessmentCriteriaRepository;
     @Autowired
     AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository;
     @Autowired
@@ -84,7 +84,7 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
     public void after() {
         assessmentStudentRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
-        assessmentSessionTypeCodeCriteriaRepository.deleteAll();
+        assessmentCriteriaRepository.deleteAll();
         assessmentSessionCriteriaRepository.deleteAll();
         assessmentRepository.deleteAll();
         sessionRepository.deleteAll();
@@ -190,8 +190,12 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
     @Transactional
     void test_setupSessionsForUpcomingSchoolYear_ShouldCreateSessionsAndAssessments() {
         List<AssessmentSessionCriteriaEntity> savedAssessmentSessionCriteriaEntities = assessmentSessionCriteriaRepository.saveAll(createMockAssessmentSessionCriteriaEntities());
-        AssessmentTypeCodeEntity assessmentTypeCodeEntity = assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTF12"));
-        assessmentSessionTypeCodeCriteriaRepository.saveAll(createMockAssessmentSessionTypeCodeCriteriaEntities(savedAssessmentSessionCriteriaEntities, assessmentTypeCodeEntity));
+
+        for (AssessmentSessionCriteriaEntity entity : savedAssessmentSessionCriteriaEntities) {
+            entity.setAssessmentCriteriaEntities(createMockAssessmentSessionTypeCodeCriteriaEntities(savedAssessmentSessionCriteriaEntities, assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTF12"))));
+            assessmentSessionCriteriaRepository.save(entity);
+        }
+
         eventTaskSchedulerAsyncService.createSessionsForSchoolYear();
 
         List<SessionEntity> savedSessions = sessionRepository.findAll();

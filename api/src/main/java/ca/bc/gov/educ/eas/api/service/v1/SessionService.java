@@ -1,6 +1,8 @@
 package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentCriteriaEntity;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentSessionCriteriaEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentSessionCriteriaRepository;
@@ -16,9 +18,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * This class encapsulates assessment session functionalities.
@@ -36,6 +36,8 @@ public class SessionService {
 
     @Getter(AccessLevel.PRIVATE)
     private final AssessmentService assessmentService;
+
+    private static final String EAS_API = "EAS_API";
 
     @Autowired
     public SessionService(final SessionRepository sessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentService assessmentService) {
@@ -75,9 +77,7 @@ public class SessionService {
     public void createAllAssessmentSessionsForSchoolYear(int schoolYearStart){
         List<AssessmentSessionCriteriaEntity> activeSessionCriteria = assessmentSessionCriteriaRepository.findAllByEffectiveDateLessThanEqualAndExpiryDateGreaterThanEqual(LocalDateTime.now(), LocalDateTime.now());
         List<SessionEntity> newSessions = populateSessionEntities(activeSessionCriteria, schoolYearStart);
-        List<SessionEntity> savedSessions = sessionRepository.saveAll(newSessions);
-
-        assessmentService.createAllAssessmentsForSchoolYear(savedSessions);
+        sessionRepository.saveAll(newSessions);
     }
 
     public List<SessionEntity> populateSessionEntities(List<AssessmentSessionCriteriaEntity> sessionTypes, int schoolYearStart){
@@ -95,15 +95,38 @@ public class SessionService {
                     .courseMonth(sessionMonth)
                     .activeFromDate(activeFromDate)
                     .activeUntilDate(endOfSessionDate)
-                    .createUser("EAS_API")
+                    .createUser(EAS_API)
                     .createDate(LocalDateTime.now())
-                    .updateUser("EAS_API")
+                    .updateUser(EAS_API)
                     .updateDate(LocalDateTime.now())
                     .build();
 
+            Set<AssessmentEntity> assessments = populateAssessmentsForSession(sessionType, session);
+            session.setAssessments(assessments);
             newSessionEntities.add(session);
         }
 
         return newSessionEntities;
+    }
+
+    private Set<AssessmentEntity> populateAssessmentsForSession(AssessmentSessionCriteriaEntity sessionCriterion, SessionEntity session){
+        Set<AssessmentEntity> newAssessments = new HashSet<>();
+
+        for (AssessmentCriteriaEntity assessmentType : sessionCriterion.getAssessmentCriteriaEntities()){
+            if(assessmentType.getExpiryDate().isAfter(LocalDateTime.now()) && assessmentType.getEffectiveDate().isBefore(LocalDateTime.now())){
+                AssessmentEntity newAssessment = AssessmentEntity.builder()
+                        .assessmentTypeCode(assessmentType.getAssessmentTypeCodeEntity().getAssessmentTypeCode())
+                        .sessionEntity(session)
+                        .createUser(EAS_API)
+                        .createDate(LocalDateTime.now())
+                        .updateUser(EAS_API)
+                        .updateDate(LocalDateTime.now())
+                        .build();
+
+                newAssessments.add(newAssessment);
+            }
+        }
+
+        return newAssessments;
     }
 }

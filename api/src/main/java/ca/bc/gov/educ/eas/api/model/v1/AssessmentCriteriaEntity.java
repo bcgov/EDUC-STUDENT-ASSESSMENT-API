@@ -14,15 +14,14 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT_SESSION_TYPE_CODE_CRITERIA")
-public class AssessmentSessionTypeCodeCriteriaEntity {
+@Table(name = "ASSESSMENT_CRITERIA")
+public class AssessmentCriteriaEntity {
 
     @Id
     @GeneratedValue(generator = "UUID")
     @UuidGenerator
-    @Column(name = "ASSESSMENT_SESSION_TYPE_CODE_CRITERIA_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
-    private UUID assessmentSessionTypeCodeCriteriaId;
-
+    @Column(name = "ASSESSMENT_CRITERIA_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
+    private UUID assessmentCriteriaId;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

@@ -17,9 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @SpringBootTest(classes = {EasApiApplication.class})
 @ActiveProfiles("test")
@@ -123,16 +121,16 @@ public abstract class BaseEasAPITest {
             .build();
   }
 
-  public List<AssessmentSessionTypeCodeCriteriaEntity> createMockAssessmentSessionTypeCodeCriteriaEntities(List<AssessmentSessionCriteriaEntity> sessionCriteriaEntities, AssessmentTypeCodeEntity assessmentTypeCodeEntity) {
+  public Set<AssessmentCriteriaEntity> createMockAssessmentSessionTypeCodeCriteriaEntities(List<AssessmentSessionCriteriaEntity> sessionCriteriaEntities, AssessmentTypeCodeEntity assessmentTypeCodeEntity) {
     AssessmentSessionCriteriaEntity novSession = sessionCriteriaEntities.stream()
             .filter(entity -> entity.getSessionStart().getMonthValue() == 10)
             .findFirst()
             .orElseThrow();
 
-    List<AssessmentSessionTypeCodeCriteriaEntity> typeCodeCriteriaEntities = new ArrayList<>();
+    Set<AssessmentCriteriaEntity> typeCodeCriteriaEntities = new HashSet<>();
 
-    AssessmentSessionTypeCodeCriteriaEntity assessmentSessionTypeCodeCriteriaEntity = AssessmentSessionTypeCodeCriteriaEntity.builder()
-            .assessmentSessionTypeCodeCriteriaId(UUID.randomUUID())
+    AssessmentCriteriaEntity assessmentCriteriaEntity = AssessmentCriteriaEntity.builder()
+            .assessmentCriteriaId(UUID.randomUUID())
             .assessmentSessionCriteriaEntity(novSession)
             .assessmentTypeCodeEntity(assessmentTypeCodeEntity)
             .effectiveDate(LocalDateTime.of(2023, 1, 1, 0, 0))
@@ -143,7 +141,7 @@ public abstract class BaseEasAPITest {
             .updateDate(LocalDateTime.now())
             .build();
 
-    typeCodeCriteriaEntities.add(assessmentSessionTypeCodeCriteriaEntity);
+    typeCodeCriteriaEntities.add(assessmentCriteriaEntity);
     return typeCodeCriteriaEntities;
   }
 

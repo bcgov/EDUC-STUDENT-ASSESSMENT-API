@@ -38,8 +38,8 @@ public class AssessmentSessionCriteriaEntity {
 
   @ToString.Exclude
   @EqualsAndHashCode.Exclude
-  @OneToMany(mappedBy = "assessmentSessionCriteriaEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  private Set<AssessmentSessionTypeCodeCriteriaEntity> assessmentSessionTypeCodeCriteriaEntities;
+  @OneToMany(mappedBy = "assessmentSessionCriteriaEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  private Set<AssessmentCriteriaEntity> assessmentCriteriaEntities;
 
   @Column(name = "CREATE_USER", updatable = false, length = 100)
   private String createUser;
