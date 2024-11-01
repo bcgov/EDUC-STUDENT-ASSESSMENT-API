@@ -18,4 +18,6 @@ public class AssessmentStudentDetailResponse implements Serializable {
 
     private String numberOfAttempts;
 
+    private boolean alreadyWrittenAssessment;
+
 }
