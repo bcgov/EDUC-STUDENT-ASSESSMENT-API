@@ -114,7 +114,7 @@ public class EventHandlerService {
             response.setHasPriorRegistration(true);
 
             var stud = optionalStudentEntity.get();
-            if(stud.getProficiencyScore() != null || stud.getProvincialSpecialCaseCode().equalsIgnoreCase("A") || stud.getProvincialSpecialCaseCode().equalsIgnoreCase("Q")){
+            if(stud.getProficiencyScore() != null || (StringUtils.isNotBlank(stud.getProvincialSpecialCaseCode()) && (stud.getProvincialSpecialCaseCode().equalsIgnoreCase("A") || stud.getProvincialSpecialCaseCode().equalsIgnoreCase("Q")))){
                 response.setAlreadyWrittenAssessment(true);
             }
         }
