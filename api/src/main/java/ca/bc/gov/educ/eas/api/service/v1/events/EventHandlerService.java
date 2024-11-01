@@ -16,12 +16,14 @@ import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.service.v1.SagaService;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentDetailResponse;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,29 +105,25 @@ public class EventHandlerService {
         return createResponseEvent(studentEvent);
     }
 
-    public byte[] handleGetStudentRegistrationEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
+    public byte[] handleGetStudentAssessmentDetailEvent(Event event) throws JsonProcessingException {
         AssessmentStudentGet student = JsonUtil.getJsonObjectFromString(AssessmentStudentGet.class, event.getEventPayload());
-        if (isSynchronous) {
-            val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
-            if (optionalStudentEntity.isPresent()) {
-                return JsonUtil.getJsonBytesFromObject(assessmentStudentMapper.toStructure(optionalStudentEntity.get()));
-            } else {
-                return new byte[0];
+        val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
+        var response = new AssessmentStudentDetailResponse();
+
+        if(optionalStudentEntity.isPresent()){
+            response.setHasPriorRegistration(true);
+
+            var stud = optionalStudentEntity.get();
+            if(stud.getProficiencyScore() != null || (StringUtils.isNotBlank(stud.getProvincialSpecialCaseCode()) && (stud.getProvincialSpecialCaseCode().equalsIgnoreCase("A") || stud.getProvincialSpecialCaseCode().equalsIgnoreCase("Q")))){
+                response.setAlreadyWrittenAssessment(true);
             }
         }
 
-        log.trace(EVENT_PAYLOAD, event);
-        val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
-        if (optionalStudentEntity.isPresent()) {
-            AssessmentStudent structStud = assessmentStudentMapper.toStructure(optionalStudentEntity.get()); // need to convert to structure MANDATORY otherwise jackson will break.
-            event.setEventPayload(JsonUtil.getJsonStringFromObject(structStud));
-            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_FOUND);
-        } else {
-            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_NOT_FOUND);
-        }
-        val studentEvent = createEventRecord(event);
-        return createResponseEvent(studentEvent);
+        val numberOfAttempts = assessmentStudentService.getNumberOfAttempts(student.getAssessmentID(), UUID.fromString(student.getStudentID()));
+        response.setNumberOfAttempts(Integer.toString(numberOfAttempts));
+        return JsonUtil.getJsonBytesFromObject(response);
     }
+
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handlePublishStudentRegistrationEvent(final Event event) throws JsonProcessingException {

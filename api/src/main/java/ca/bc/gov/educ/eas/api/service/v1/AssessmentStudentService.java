@@ -3,10 +3,13 @@ package ca.bc.gov.educ.eas.api.service.v1;
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.constants.TopicsEnum;
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.struct.Event;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,6 +39,7 @@ public class AssessmentStudentService {
     private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
     private final AssessmentStudentHistoryService assessmentStudentHistoryService;
     private final MessagePublisher messagePublisher;
+    private final AssessmentRepository assessmentRepository;
 
     public AssessmentStudentEntity getStudentByID(UUID assessmentStudentID) {
         return assessmentStudentRepository.findById(assessmentStudentID).orElseThrow(() ->
@@ -44,6 +49,20 @@ public class AssessmentStudentService {
 
     public Optional<AssessmentStudentEntity> getStudentByAssessmentIDAndStudentID(UUID assessmentID, UUID studentID) {
         return assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentID, studentID);
+    }
+
+    public int getNumberOfAttempts(String assessmentID, UUID studentID) {
+        var assessment = assessmentRepository.findById(UUID.fromString(assessmentID)).orElseThrow(() ->
+                new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentID));
+
+        return assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, getAssessmentTypeCodeList(assessment.getAssessmentTypeCode()));
+    }
+
+    private List<String> getAssessmentTypeCodeList(String assessmentTypeCode){
+        if(assessmentTypeCode.startsWith("NM")){
+            return Arrays.asList(AssessmentTypeCodes.NME.getCode(), AssessmentTypeCodes.NME10.getCode(), AssessmentTypeCodes.NMF.getCode(), AssessmentTypeCodes.NMF10.getCode());
+        }
+        return Arrays.asList(assessmentTypeCode);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
