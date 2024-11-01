@@ -32,20 +32,14 @@ public class SessionService {
         this.sessionRepository = sessionRepository;
     }
 
-    /**
-     * Retrieves all managed assessment sessions.
-     * @return List of SessionEntity
-     */
     public List<SessionEntity> getAllSessions() {
         return this.getSessionRepository().findAll(Sort.by(Sort.Direction.DESC, "activeFromDate"));
     }
 
-    /**
-     * Updates the assessment session.
-     * @param sessionID  Assessment SessionId
-     * @param updatedSessionEntity Updated session object
-     * @return Persisted SessionEntity
-     */
+    public List<SessionEntity> getSessionsBySchoolYear(String schoolYear) {
+        return this.getSessionRepository().findBySchoolYear(schoolYear);
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public SessionEntity updateSession(UUID sessionID, SessionEntity updatedSessionEntity) {
         val optionalSession = getSessionRepository().findById(sessionID);

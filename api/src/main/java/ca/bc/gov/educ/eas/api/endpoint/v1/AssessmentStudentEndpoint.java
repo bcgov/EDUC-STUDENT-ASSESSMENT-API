@@ -4,6 +4,7 @@ import ca.bc.gov.educ.eas.api.constants.v1.URL;
 import ca.bc.gov.educ.eas.api.struct.OnCreate;
 import ca.bc.gov.educ.eas.api.struct.OnUpdate;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentListItem;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.groups.Default;
@@ -38,7 +39,7 @@ public interface AssessmentStudentEndpoint {
     @PreAuthorize("hasAuthority('SCOPE_READ_EAS_STUDENT')")
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
-    CompletableFuture<Page<AssessmentStudent>> findAll(@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
+    CompletableFuture<Page<AssessmentStudentListItem>> findAll(@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
                                                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                                        @RequestParam(name = "sort", defaultValue = "") String sortCriteriaJson,
                                                        @RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson);

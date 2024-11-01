@@ -11,4 +11,6 @@ import java.util.UUID;
 @Repository
 public interface SessionRepository extends JpaRepository<SessionEntity, UUID> {
     List<SessionEntity> findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(LocalDateTime currentDate1, LocalDateTime currentDate2);
+    List<SessionEntity> findBySchoolYear(String schoolYear);
+
 }

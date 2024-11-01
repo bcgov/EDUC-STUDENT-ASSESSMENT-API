@@ -17,21 +17,16 @@ import java.util.UUID;
 @RequestMapping(URL.SESSIONS_URL)
 public interface SessionEndpoint {
 
-    /**
-     * Retrieves all assessment sessions maintained in data store
-     * @return List of sessions
-     */
     @PreAuthorize("hasAuthority('SCOPE_READ_EAS_SESSIONS')")
     @GetMapping
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     List<Session> getAllSessions();
 
-    /**
-     * Updates the assessment session
-     * @param sessionID Identifier for assessment session
-     * @param session Modified session
-     * @return Updated session
-     */
+    @PreAuthorize("hasAuthority('SCOPE_READ_EAS_SESSIONS')")
+    @GetMapping("/school-year/{schoolYear}")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    List<Session> getSessionsBySchoolYear(@PathVariable String schoolYear);
+
     @PreAuthorize("hasAuthority('SCOPE_WRITE_EAS_SESSIONS')")
     @PutMapping("/{sessionID}")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND."), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
