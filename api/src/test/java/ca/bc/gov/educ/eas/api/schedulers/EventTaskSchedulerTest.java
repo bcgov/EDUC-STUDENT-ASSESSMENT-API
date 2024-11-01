@@ -9,12 +9,10 @@ import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
-import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.eas.api.model.v1.EasSagaEntity;
-import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.model.v1.*;
 import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.repository.v1.*;
+import ca.bc.gov.educ.eas.api.service.v1.AssessmentService;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.service.v1.SagaService;
 import ca.bc.gov.educ.eas.api.service.v1.events.EventHandlerService;
@@ -24,19 +22,19 @@ import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import io.nats.client.Connection;
 import lombok.SneakyThrows;
+import org.springframework.transaction.annotation.Transactional;
 import org.assertj.core.api.AssertionsForClassTypes;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
+import java.util.List;
 
 class EventTaskSchedulerTest extends BaseEasAPITest {
 
@@ -49,6 +47,8 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
     @Autowired
     AssessmentStudentService assessmentStudentService;
     @Autowired
+    AssessmentService assessmentService;
+    @Autowired
     EventHandlerService eventHandlerServiceUnderTest;
     @Autowired
     SagaRepository sagaRepository;
@@ -57,26 +57,44 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
     @Autowired
     SessionRepository sessionRepository;
     @Autowired
+    AssessmentCriteriaRepository assessmentCriteriaRepository;
+    @Autowired
+    AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository;
+    @Autowired
     AssessmentRepository assessmentRepository;
     @Autowired
     AssessmentStudentRepository assessmentStudentRepository;
     @Autowired
     AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
     @Autowired
+    AssessmentTypeCodeRepository assessmentTypeCodeRepository;
+    @Autowired
     MessagePublisher messagePublisher;
-    @Captor
-    ArgumentCaptor<byte[]> eventCaptor;
     @Autowired
     Connection connection;
+
+    private AutoCloseable closeable;
+
+    @BeforeEach
+    public void setup() {
+        closeable = MockitoAnnotations.openMocks(this);
+    }
 
     @AfterEach
     public void after() {
         assessmentStudentRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
+        assessmentCriteriaRepository.deleteAll();
+        assessmentSessionCriteriaRepository.deleteAll();
         assessmentRepository.deleteAll();
         sessionRepository.deleteAll();
         sagaEventRepository.deleteAll();
         sagaRepository.deleteAll();
+    }
+
+    @AfterEach
+    void close() throws Exception {
+        closeable.close();
     }
 
     @SneakyThrows
@@ -166,6 +184,35 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
         Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
         AssertionsForClassTypes.assertThat(responseEvent).isNotNull();
         AssertionsForClassTypes.assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_CREATED);
+    }
+
+    @Test
+    @Transactional
+    void test_setupSessionsForUpcomingSchoolYear_ShouldCreateSessionsAndAssessments() {
+        List<AssessmentSessionCriteriaEntity> savedAssessmentSessionCriteriaEntities = assessmentSessionCriteriaRepository.saveAll(createMockAssessmentSessionCriteriaEntities());
+
+        for (AssessmentSessionCriteriaEntity entity : savedAssessmentSessionCriteriaEntities) {
+            entity.setAssessmentCriteriaEntities(createMockAssessmentSessionTypeCodeCriteriaEntities(savedAssessmentSessionCriteriaEntities, assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTF12"))));
+            assessmentSessionCriteriaRepository.save(entity);
+        }
+
+        eventTaskSchedulerAsyncService.createSessionsForSchoolYear();
+
+        List<SessionEntity> savedSessions = sessionRepository.findAll();
+        assertThat(savedSessions)
+                .hasSize(2)
+                .anySatisfy(session -> {
+                    assertThat(session.getCourseMonth()).isEqualTo("11");
+                    assertThat(session.getCourseYear()).isEqualTo("2024");
+                    assertThat(session.getAssessments())
+                            .hasSize(1)
+                            .extracting(AssessmentEntity::getAssessmentTypeCode)
+                            .containsExactly("LTF12");
+                })
+                .anySatisfy(session -> {
+                    assertThat(session.getCourseMonth()).isEqualTo("6");
+                    assertThat(session.getCourseYear()).isEqualTo("2025");
+                });
     }
 
 }
