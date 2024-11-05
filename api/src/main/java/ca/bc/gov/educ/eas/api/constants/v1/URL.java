@@ -10,8 +10,9 @@ public final class URL {
 
   public static final String BASE_URL= "/api/v1/eas";
   public static final String PAGINATED="/paginated";
-
   public static final String BASE_URL_STUDENT = BASE_URL + "/student";  
   public static final String SESSIONS_URL = BASE_URL + "/sessions";
+  public static final String ASSESSMENTS_URL = BASE_URL + "/assessments";
+
 
 }

@@ -4,9 +4,11 @@ import ca.bc.gov.educ.eas.api.model.v1.AssessmentTypeCodeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface AssessmentTypeCodeRepository extends JpaRepository<AssessmentTypeCodeEntity, UUID> {
+    Optional<AssessmentTypeCodeEntity> findByAssessmentTypeCode(String assessmentTypeCode);
 
 }
