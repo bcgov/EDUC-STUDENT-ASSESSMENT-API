@@ -30,4 +30,11 @@ public class EventTaskScheduler {
         this.getTaskSchedulerAsyncService().findAndPublishLoadedStudentRegistrationsForProcessing();
     }
 
+    @Scheduled(cron = "${scheduled.jobs.setup.sessions.cron}")
+    @SchedulerLock(name = "SETUP_SESSIONS", lockAtLeastFor = "${scheduled.jobs.setup.sessions.cron.lockAtLeastFor}", lockAtMostFor = "${scheduled.jobs.setup.sessions.cron.lockAtMostFor}")
+    public void setupSessionsForUpcomingSchoolYear() {
+        LockAssert.assertLocked();
+        this.getTaskSchedulerAsyncService().createSessionsForSchoolYear();
+    }
+
 }

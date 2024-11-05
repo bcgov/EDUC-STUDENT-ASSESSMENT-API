@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -108,12 +109,21 @@ public class EventHandlerService {
         AssessmentStudentGet student = JsonUtil.getJsonObjectFromString(AssessmentStudentGet.class, event.getEventPayload());
         val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
         var response = new AssessmentStudentDetailResponse();
-        response.setHasPriorRegistration(optionalStudentEntity.isPresent());
+
+        if(optionalStudentEntity.isPresent()){
+            response.setHasPriorRegistration(true);
+
+            var stud = optionalStudentEntity.get();
+            if(stud.getProficiencyScore() != null || (StringUtils.isNotBlank(stud.getProvincialSpecialCaseCode()) && (stud.getProvincialSpecialCaseCode().equalsIgnoreCase("A") || stud.getProvincialSpecialCaseCode().equalsIgnoreCase("Q")))){
+                response.setAlreadyWrittenAssessment(true);
+            }
+        }
 
         val numberOfAttempts = assessmentStudentService.getNumberOfAttempts(student.getAssessmentID(), UUID.fromString(student.getStudentID()));
         response.setNumberOfAttempts(Integer.toString(numberOfAttempts));
         return JsonUtil.getJsonBytesFromObject(response);
     }
+
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handlePublishStudentRegistrationEvent(final Event event) throws JsonProcessingException {

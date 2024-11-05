@@ -3,7 +3,9 @@ package ca.bc.gov.educ.eas.api.service.v1.events.schedulers;
 import ca.bc.gov.educ.eas.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SagaRepository;
+import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
+import ca.bc.gov.educ.eas.api.service.v1.SessionService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -11,7 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +33,13 @@ public class EventTaskSchedulerAsyncService {
     private final AssessmentStudentRepository assessmentStudentRepository;
 
     @Getter(PRIVATE)
+    private final SessionRepository sessionRepository;
+
+    @Getter(PRIVATE)
     private final AssessmentStudentService assessmentStudentService;
+
+    @Getter(PRIVATE)
+    private final SessionService sessionService;
 
     @Value("${number.students.publish.saga}")
     private String numberOfStudentsToPublish;
@@ -48,6 +58,19 @@ public class EventTaskSchedulerAsyncService {
         log.debug("Found :: {}  records in loaded status", studentEntities.size());
         if (!studentEntities.isEmpty()) {
             this.assessmentStudentService.prepareAndPublishStudentRegistration(studentEntities);
+        }
+    }
+
+    @Transactional
+    public void createSessionsForSchoolYear(){
+        int schoolYearStart = LocalDate.now().getYear();
+        try {
+            if (!this.getSessionRepository().upcomingNovemberSessionExists(String.valueOf(schoolYearStart))) {
+                log.debug("Creating sessions for {}/{} school year", schoolYearStart, schoolYearStart + 1);
+                this.sessionService.createAllAssessmentSessionsForSchoolYear(schoolYearStart);
+            }
+        } catch (Exception e) {
+            log.error("Error creating sessions for {}/{} school year: ", schoolYearStart, schoolYearStart + 1, e);
         }
     }
 
