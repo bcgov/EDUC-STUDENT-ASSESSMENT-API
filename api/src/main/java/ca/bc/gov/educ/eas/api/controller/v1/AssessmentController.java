@@ -28,7 +28,7 @@ public class AssessmentController implements AssessmentEndpoint {
 
     @Override
     public Assessment updateAssessment(UUID assessmentID, Assessment assessment) {
-        ValidationUtil.validatePayload(() -> validator.validatePayload(assessment, false));
+        ValidationUtil.validatePayload(() -> validator.validatePayload(assessment));
         RequestUtil.setAuditColumnsForUpdate(assessment);
         return mapper.toStructure(assessmentService.updateAssessment(mapper.toEntity(assessment)));
     }
