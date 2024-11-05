@@ -32,11 +32,14 @@ public class AssessmentStudentEntity {
   @JoinColumn(name = "ASSESSMENT_ID", referencedColumnName = "ASSESSMENT_ID", updatable = false)
   AssessmentEntity assessmentEntity;
 
+  @Column(name = "DISTRICT_ID", nullable = false, columnDefinition = "BINARY(16)")
+  private UUID districtID;
+
   @Column(name = "SCHOOL_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID schoolID;
 
-  @Column(name = "ASSESSMENT_CENTER", nullable = false, columnDefinition = "BINARY(16)")
-  private UUID assessmentCenter;
+  @Column(name = "ASSESSMENT_CENTER_ID", columnDefinition = "BINARY(16)")
+  private UUID assessmentCenterID;
 
   @Column(name = "STUDENT_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID studentID;

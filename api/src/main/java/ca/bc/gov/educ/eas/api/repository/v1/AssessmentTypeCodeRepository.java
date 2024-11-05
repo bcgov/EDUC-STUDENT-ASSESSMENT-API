@@ -5,10 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface AssessmentTypeCodeRepository extends JpaRepository<AssessmentTypeCodeEntity, UUID> {
+public interface AssessmentTypeCodeRepository extends JpaRepository<AssessmentTypeCodeEntity, String> {
     Optional<AssessmentTypeCodeEntity> findByAssessmentTypeCode(String assessmentTypeCode);
 
 }

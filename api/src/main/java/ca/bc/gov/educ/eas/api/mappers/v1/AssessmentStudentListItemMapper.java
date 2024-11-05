@@ -18,7 +18,7 @@ public interface AssessmentStudentListItemMapper {
     @Mapping(target = "assessmentTypeCode", source = "assessmentEntity.assessmentTypeCode")
     @Mapping(target = "courseMonth", source = "assessmentEntity.sessionEntity.courseMonth")
     @Mapping(target = "courseYear", source = "assessmentEntity.sessionEntity.courseYear")
-    @Mapping(target = "assessmentCenter", source = "assessmentCenter")
+    @Mapping(target = "assessmentCenterID", source = "assessmentCenterID")
     @Mapping(target = "surName", source = "surName")
     AssessmentStudentListItem toStructure(AssessmentStudentEntity entity);
 

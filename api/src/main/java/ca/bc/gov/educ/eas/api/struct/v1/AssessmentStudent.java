@@ -28,11 +28,13 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @NotBlank(message = "assessmentID cannot be null")
     private String assessmentID;
 
+    @NotBlank(message = "districtID cannot be null")
+    private String districtID;
+
     @NotBlank(message = "schoolID cannot be null")
     private String schoolID;
 
-    @NotBlank(message = "assessmentCenter cannot be null")
-    private String assessmentCenter;
+    private String assessmentCenterID;
 
     @NotBlank(message = "studentID cannot be null")
     private String studentID;
