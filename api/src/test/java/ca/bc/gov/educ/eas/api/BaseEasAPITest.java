@@ -1,9 +1,11 @@
 package ca.bc.gov.educ.eas.api;
 
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.model.v1.*;
 import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
+import ca.bc.gov.educ.eas.api.struct.v1.Assessment;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;
@@ -111,8 +113,8 @@ public abstract class BaseEasAPITest {
             .label(assessmentTypeCode)
             .description("This is a test code for assessment type.")
             .displayOrder(1)
-            .effectiveDate(LocalDateTime.now())
-            .expiryDate(LocalDateTime.now().plusYears(1))
+            .effectiveDate(LocalDateTime.now().minusYears(10))
+            .expiryDate(LocalDateTime.now().plusYears(10))
             .language("EN")
             .createUser("TEST-USER")
             .createDate(LocalDateTime.now())
@@ -143,6 +145,16 @@ public abstract class BaseEasAPITest {
 
     typeCodeCriteriaEntities.add(assessmentCriteriaEntity);
     return typeCodeCriteriaEntities;
+  }
+
+  public Assessment createMockAssessment() {
+    return Assessment.builder()
+            .assessmentID(UUID.randomUUID().toString())
+            .sessionID(UUID.randomUUID().toString())
+            .assessmentTypeCode(AssessmentTypeCodes.LTF12.getCode())
+            .createUser(ApplicationProperties.EAS_API)
+            .updateUser(ApplicationProperties.EAS_API)
+            .build();
   }
 
   public AssessmentStudent createMockStudent() {
