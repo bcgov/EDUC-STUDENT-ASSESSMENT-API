@@ -2,7 +2,9 @@ package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
+import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
+import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.util.TransformUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -12,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class AssessmentService {
 
     private final AssessmentRepository assessmentRepository;
+    private final SessionRepository sessionRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentEntity updateAssessment(AssessmentEntity assessmentEntity){
@@ -35,9 +37,18 @@ public class AssessmentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteAssessment(UUID assessmentID) {
-        Optional<AssessmentEntity> assessmentOptionalEntity = assessmentRepository.findById(assessmentID);
-        AssessmentEntity assessmentEntity = assessmentOptionalEntity.orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", assessmentID.toString()));
-        assessmentRepository.delete(assessmentEntity);
+        var assessmentOptional = assessmentRepository.findById(assessmentID);
+
+        if (assessmentOptional.isPresent()) {
+            AssessmentEntity assessment = assessmentOptional.get();
+            SessionEntity session = assessment.getSessionEntity();
+            session.getAssessments().remove(assessment);
+            sessionRepository.save(session);
+            assessmentRepository.delete(assessment);
+        } else {
+            log.error("Assessment not found with id: {}", assessmentID);
+        }
+
     }
 
 }
