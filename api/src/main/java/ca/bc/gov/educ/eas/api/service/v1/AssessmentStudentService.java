@@ -9,7 +9,6 @@ import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentHistoryEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
@@ -85,12 +84,6 @@ public class AssessmentStudentService {
         AssessmentStudentEntity savedEntity = assessmentStudentRepository.save(assessmentStudentEntity);
         assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
         return savedEntity;
-    }
-
-    public void deleteAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
-        List<AssessmentStudentHistoryEntity> studentHistoryEntities = assessmentStudentHistoryRepository.findAllByAssessmentStudentID(assessmentStudentEntity.getAssessmentStudentID());
-        assessmentStudentHistoryRepository.deleteAll(studentHistoryEntities);
-        assessmentStudentRepository.delete(assessmentStudentEntity);
     }
 
     @Async("publisherExecutor")
