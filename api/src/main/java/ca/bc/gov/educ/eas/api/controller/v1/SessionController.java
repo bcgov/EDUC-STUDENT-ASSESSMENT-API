@@ -7,9 +7,9 @@ import ca.bc.gov.educ.eas.api.service.v1.SessionService;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;
 import ca.bc.gov.educ.eas.api.util.RequestUtil;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,32 +21,23 @@ import java.util.stream.Collectors;
  */
 @RestController
 @Slf4j
+@AllArgsConstructor
 public class SessionController implements SessionEndpoint {
 
     private static final SessionMapper mapper = SessionMapper.mapper;
     @Getter(AccessLevel.PRIVATE)
     private final SessionService sessionService;
 
-    @Autowired
-    SessionController(SessionService sessionService) {
-        this.sessionService = sessionService;
-    }
-
-    /**
-     * Retrieves all assessment sessions.
-     * @return List of sessions
-     */
     @Override
     public List<Session> getAllSessions() {
         return getSessionService().getAllSessions().stream().map(mapper::toStructure).collect(Collectors.toList());
     }
 
-    /**
-     * Updates the assessment session.
-     * @param sessionID Identifier for assessment session
-     * @param session             Modified session
-     * @return Updated session
-     */
+    @Override
+    public List<Session> getSessionsBySchoolYear(String schoolYear) {
+        return getSessionService().getSessionsBySchoolYear(schoolYear.replace("-","/")).stream().map(mapper::toStructure).collect(Collectors.toList());
+    }
+
     @Override
     public Session updateSession(UUID sessionID, Session session) {
         RequestUtil.setAuditColumnsForUpdate(session);

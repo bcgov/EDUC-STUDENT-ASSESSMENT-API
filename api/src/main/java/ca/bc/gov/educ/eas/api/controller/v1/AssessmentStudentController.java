@@ -2,11 +2,13 @@ package ca.bc.gov.educ.eas.api.controller.v1;
 
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.endpoint.v1.AssessmentStudentEndpoint;
+import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentSearchService;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentListItem;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import ca.bc.gov.educ.eas.api.util.RequestUtil;
 import ca.bc.gov.educ.eas.api.util.ValidationUtil;
@@ -30,6 +32,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   private final AssessmentStudentSearchService searchService;
 
   private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
+  private static final AssessmentStudentListItemMapper listItemMapper = AssessmentStudentListItemMapper.mapper;
 
   @Autowired
   public AssessmentStudentController(AssessmentStudentService assessmentStudentService, AssessmentStudentValidator validator, AssessmentStudentSearchService searchService) {
@@ -60,7 +63,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     }
 
   @Override
-  public CompletableFuture<Page<AssessmentStudent>> findAll(Integer pageNumber, Integer pageSize, String sortCriteriaJson, String searchCriteriaListJson) {
+  public CompletableFuture<Page<AssessmentStudentListItem>> findAll(Integer pageNumber, Integer pageSize, String sortCriteriaJson, String searchCriteriaListJson) {
     final List<Sort.Order> sorts = new ArrayList<>();
     Specification<AssessmentStudentEntity> specs = searchService
             .setSpecificationAndSortCriteria(
@@ -71,6 +74,6 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
             );
     return this.searchService
             .findAll(specs, pageNumber, pageSize, sorts)
-            .thenApplyAsync(assessmentStudentEntities -> assessmentStudentEntities.map(mapper::toStructure));
+            .thenApplyAsync(assessmentStudentEntities -> assessmentStudentEntities.map(listItemMapper::toStructure));
   }
 }

@@ -105,7 +105,9 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
 
     //when creating an assessment student
-    AssessmentStudentEntity student = service.createStudent(AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).assessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode()).build());
+    AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
+    assessmentStudentEntity.setAssessmentStudentID(null);
+    AssessmentStudentEntity student = service.createStudent(assessmentStudentEntity);
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), student.getAssessmentStudentID());
     //then assessment student is created
     assertNotNull(student);
@@ -130,7 +132,9 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
-    AssessmentStudentEntity assessmentStudentEntity = service.createStudent(AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode()).assessmentEntity(assessmentEntity).build());
+    AssessmentStudentEntity studentEntity= createMockStudentEntity(assessmentEntity);
+    studentEntity.setAssessmentStudentID(null);
+    AssessmentStudentEntity assessmentStudentEntity = service.createStudent(studentEntity);
     //when updating the student
     AssessmentStudentEntity student = service.updateStudent(assessmentStudentEntity);
     assertNotNull(student);

@@ -35,11 +35,20 @@ public class AssessmentStudentHistoryEntity {
     @Column(name = "ASSESSMENT_ID", columnDefinition = "BINARY(16)")
     private UUID assessmentID;
 
+    @Column(name = "DISTRICT_ID", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID districtID;
+
     @Column(name = "SCHOOL_ID", nullable = false, columnDefinition = "BINARY(16)")
     private UUID schoolID;
 
+    @Column(name = "ASSESSMENT_CENTER_ID", columnDefinition = "BINARY(16)")
+    private UUID assessmentCenterID;
+
     @Column(name = "STUDENT_ID", nullable = false, columnDefinition = "BINARY(16)")
     private UUID studentID;
+
+    @Column(name = "SURNAME", nullable = false, length = 25)
+    private String surName;
 
     @Column(name = "PEN", nullable = false, length = 9)
     private String pen;

@@ -20,6 +20,7 @@ public interface AssessmentStudentMapper {
     AssessmentStudent toStructure(AssessmentStudentEntity entity);
 
     @Mapping(target = "assessmentEntity.assessmentID", source = "assessmentID")
+    @Mapping(target = "assessmentCenterID", source = "assessmentCenterID")
     AssessmentStudentEntity toModel(AssessmentStudent assessmentStudent);
 
     @AfterMapping

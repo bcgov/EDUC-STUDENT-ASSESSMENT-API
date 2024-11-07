@@ -90,6 +90,19 @@ class SessionControllerTest extends BaseEasAPITest {
     }
 
     @Test
+    void testSessionManagement_GetSessionsBySchoolYear_ShouldReturnOK() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+        SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
+        this.mockMvc.perform(
+                        get(URL.SESSIONS_URL+"/school-year/"+sessionEntity.getSchoolYear()).with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
+    }
+
+    @Test
     void testSessionManagement_UpdateSession_ShouldReturnOK() throws Exception {
         SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
         Session updatedSession = new Session();
