@@ -21,6 +21,7 @@ import java.util.UUID;
 public class AssessmentService {
 
     private final AssessmentRepository assessmentRepository;
+    private final AssessmentStudentService assessmentStudentService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentEntity updateAssessment(AssessmentEntity assessmentEntity){

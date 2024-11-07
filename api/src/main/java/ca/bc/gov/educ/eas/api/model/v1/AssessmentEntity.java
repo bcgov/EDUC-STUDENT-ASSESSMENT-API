@@ -46,4 +46,5 @@ public class AssessmentEntity {
     @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
+
 }
