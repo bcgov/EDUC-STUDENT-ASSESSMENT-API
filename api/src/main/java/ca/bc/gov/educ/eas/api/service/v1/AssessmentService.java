@@ -2,7 +2,6 @@ package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.util.TransformUtil;
 
@@ -37,16 +36,9 @@ public class AssessmentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteAssessment(UUID assessmentID) {
-
         Optional<AssessmentEntity> assessmentOptionalEntity = assessmentRepository.findById(assessmentID);
         AssessmentEntity assessmentEntity = assessmentOptionalEntity.orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", assessmentID.toString()));
-
-        for (AssessmentStudentEntity student : assessmentEntity.getStudents()){
-            assessmentStudentService.deleteAssessmentStudentWithHistory(student);
-        }
-
         assessmentRepository.delete(assessmentEntity);
-
     }
 
 }

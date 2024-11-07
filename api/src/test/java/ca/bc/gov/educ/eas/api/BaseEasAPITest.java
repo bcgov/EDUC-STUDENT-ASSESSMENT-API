@@ -70,7 +70,6 @@ public abstract class BaseEasAPITest {
             .assessmentTypeCode(assessmentTypeCode)
             .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
-            .students(Collections.emptySet())
             .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
             .build();
