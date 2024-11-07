@@ -8,6 +8,7 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.ReadOnlyProperty;
 
 import java.io.Serializable;
+import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -26,5 +27,8 @@ public class Assessment extends BaseRequest implements Serializable {
 
     @ReadOnlyProperty
     private String assessmentTypeCode;
+
+    @ReadOnlyProperty
+    private Set<AssessmentStudent> students;
 
 }
