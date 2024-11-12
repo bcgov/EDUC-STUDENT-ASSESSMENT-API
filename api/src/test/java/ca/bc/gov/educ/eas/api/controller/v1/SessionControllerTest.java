@@ -182,8 +182,8 @@ class SessionControllerTest extends BaseEasAPITest {
         this.mockMvc.perform(get(URL.SESSIONS_URL + "/" + session.getSessionID() + "/assessments")
                         .with(mockAuthority))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", equalTo(0)));
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
 }
