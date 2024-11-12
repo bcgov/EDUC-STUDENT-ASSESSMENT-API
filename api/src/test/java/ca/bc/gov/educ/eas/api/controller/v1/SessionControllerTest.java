@@ -1,8 +1,11 @@
 package ca.bc.gov.educ.eas.api.controller.v1;
 
 import ca.bc.gov.educ.eas.api.BaseEasAPITest;
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.URL;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,18 +21,19 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -45,6 +49,10 @@ class SessionControllerTest extends BaseEasAPITest {
 
     @Autowired
     SessionRepository sessionRepository;
+
+    @Autowired
+    AssessmentRepository assessmentRepository;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -55,6 +63,7 @@ class SessionControllerTest extends BaseEasAPITest {
 
     @AfterEach
     public void afterEach() {
+        this.assessmentRepository.deleteAll();
         this.sessionRepository.deleteAll();
     }
 
@@ -84,9 +93,9 @@ class SessionControllerTest extends BaseEasAPITest {
         this.mockMvc.perform(
                         get(URL.SESSIONS_URL).with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
+                .andExpect(jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
+                .andExpect(jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
+                .andExpect(jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
     }
 
     @Test
@@ -97,9 +106,9 @@ class SessionControllerTest extends BaseEasAPITest {
         this.mockMvc.perform(
                         get(URL.SESSIONS_URL+"/school-year/"+sessionEntity.getSchoolYear()).with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
+                .andExpect(jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
+                .andExpect(jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
+                .andExpect(jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
     }
 
     @Test
@@ -131,6 +140,50 @@ class SessionControllerTest extends BaseEasAPITest {
                 .content(objectMapper.writeValueAsString(updatedSession))
                 .contentType(APPLICATION_JSON)).andExpect(status().isNotFound());
 
+    }
+
+    @Test
+    void testGetAssessmentsForSession_ShouldReturnAssessments() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentEntity assessmentEntity = createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode());
+        assessmentRepository.save(assessmentEntity);
+
+        this.mockMvc.perform(get(URL.SESSIONS_URL + "/" + session.getSessionID() + "/assessments")
+                        .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", equalTo(1)))
+                .andExpect(jsonPath("$[0].assessmentID", equalTo(assessmentEntity.getAssessmentID().toString())));
+    }
+
+    @Test
+    void testGetAssessmentsForSession_GivenNonExistentSession_ShouldReturn404() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        UUID nonExistentSessionId = UUID.randomUUID();
+
+        this.mockMvc.perform(get(URL.SESSIONS_URL + "/" + nonExistentSessionId + "/assessments")
+                        .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetAssessmentsForSession_GivenSessionWithNoAssessments_ShouldReturnEmptyList() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+
+        this.mockMvc.perform(get(URL.SESSIONS_URL + "/" + session.getSessionID() + "/assessments")
+                        .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", equalTo(0)));
     }
 
 }

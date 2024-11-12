@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentMapper;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.util.TransformUtil;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,7 +23,31 @@ import java.util.UUID;
 public class AssessmentService {
 
     private final AssessmentRepository assessmentRepository;
-    private final AssessmentStudentService assessmentStudentService;
+
+    public AssessmentEntity getAssessment(UUID assessmentID){
+        Optional<AssessmentEntity> assessmentOptionalEntity = assessmentRepository.findById(assessmentID);
+        return assessmentOptionalEntity.orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", assessmentID.toString()));
+    }
+
+    public List<AssessmentEntity> getAssessments(String typeCode, String schoolYearEnd){
+        Optional<List<AssessmentEntity>> optionalAssessments;
+        if (typeCode != null && schoolYearEnd != null) {
+            optionalAssessments = assessmentRepository.findByTypeCodeAndSchoolYear(typeCode, schoolYearEnd);
+        } else if (typeCode != null) {
+            optionalAssessments = assessmentRepository.findByAssessmentTypeCode(typeCode);
+        } else if (schoolYearEnd != null) {
+            optionalAssessments = assessmentRepository.findBySchoolYear(schoolYearEnd);
+        } else {
+            optionalAssessments = Optional.of(assessmentRepository.findAll());
+        }
+        return optionalAssessments.orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "typeCode", typeCode, "schoolYearEnd", schoolYearEnd));
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public AssessmentEntity createAssessment(AssessmentEntity assessmentEntity){
+        TransformUtil.uppercaseFields(assessmentEntity);
+        return assessmentRepository.save(assessmentEntity);
+    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentEntity updateAssessment(AssessmentEntity assessmentEntity){

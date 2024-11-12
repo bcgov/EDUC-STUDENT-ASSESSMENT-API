@@ -45,7 +45,7 @@ public class AssessmentValidator {
         this.sessionRepository = sessionRepository;
     }
 
-    public List<FieldError> validatePayload(Assessment assessment) {
+    public List<FieldError> validatePayload(Assessment assessment, boolean isCreateOperation) {
         final List<FieldError> apiValidationErrors = new ArrayList<>();
 
         Optional<SessionEntity> sessionEntity = sessionRepository.findById(UUID.fromString(assessment.getSessionID()));
@@ -58,6 +58,25 @@ public class AssessmentValidator {
             apiValidationErrors.add(ValidationUtil.createFieldError(ASSESSMENT, "assessmentTypeCode", assessment.getAssessmentTypeCode(), "Invalid assessment type code."));
         }
 
+        if(isCreateOperation){
+            apiValidationErrors.addAll(validateCreatePayload(assessment));
+        } else {
+            apiValidationErrors.addAll(validateUpdatePayload(assessment));
+        }
+
+        return apiValidationErrors;
+    }
+
+    List<FieldError> validateCreatePayload(Assessment assessment) {
+        final List<FieldError> apiValidationErrors = new ArrayList<>();
+        if (StringUtils.isNotEmpty(assessment.getAssessmentID())) {
+            apiValidationErrors.add(ValidationUtil.createFieldError(ASSESSMENT, ASSESSMENT_ID, assessment.getAssessmentID(), "assessmentID should be null for post operation."));
+        }
+        return apiValidationErrors;
+    }
+
+    List<FieldError> validateUpdatePayload(Assessment assessment) {
+        final List<FieldError> apiValidationErrors = new ArrayList<>();
         if (StringUtils.isEmpty(assessment.getAssessmentID())) {
             apiValidationErrors.add(ValidationUtil.createFieldError(ASSESSMENT, ASSESSMENT_ID, null, "Assessment ID cannot be null for put operation."));
         }
