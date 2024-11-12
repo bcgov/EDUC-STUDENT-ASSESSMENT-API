@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
-import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentMapper;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.util.TransformUtil;
