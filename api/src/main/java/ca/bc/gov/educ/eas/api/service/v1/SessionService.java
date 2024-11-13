@@ -5,6 +5,7 @@ import ca.bc.gov.educ.eas.api.model.v1.AssessmentCriteriaEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentSessionCriteriaEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentSessionCriteriaRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import lombok.AccessLevel;
@@ -35,14 +36,18 @@ public class SessionService {
     private final AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository;
 
     @Getter(AccessLevel.PRIVATE)
+    private final AssessmentRepository assessmentRepository;
+
+    @Getter(AccessLevel.PRIVATE)
     private final AssessmentService assessmentService;
 
     private static final String EAS_API = "EAS_API";
 
     @Autowired
-    public SessionService(final SessionRepository sessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentService assessmentService) {
+    public SessionService(final SessionRepository sessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService) {
         this.sessionRepository = sessionRepository;
         this.assessmentSessionCriteriaRepository = assessmentSessionCriteriaRepository;
+        this.assessmentRepository = assessmentRepository;
         this.assessmentService = assessmentService;
     }
 

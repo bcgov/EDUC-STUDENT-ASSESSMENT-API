@@ -18,7 +18,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -30,6 +29,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -45,6 +45,7 @@ class SessionControllerTest extends BaseEasAPITest {
 
     @Autowired
     SessionRepository sessionRepository;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -84,9 +85,9 @@ class SessionControllerTest extends BaseEasAPITest {
         this.mockMvc.perform(
                         get(URL.SESSIONS_URL).with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
+                .andExpect(jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
+                .andExpect(jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
+                .andExpect(jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
     }
 
     @Test
@@ -97,9 +98,9 @@ class SessionControllerTest extends BaseEasAPITest {
         this.mockMvc.perform(
                         get(URL.SESSIONS_URL+"/school-year/"+sessionEntity.getSchoolYear()).with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
+                .andExpect(jsonPath("$.[0].schoolYear").value(LocalDateTime.now().getYear()))
+                .andExpect(jsonPath("$.[0].courseYear").value(LocalDateTime.now().getYear()))
+                .andExpect(jsonPath("$.[0].courseMonth").value(LocalDateTime.now().getMonthValue()));
     }
 
     @Test

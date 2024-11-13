@@ -15,6 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -159,5 +160,38 @@ class AssessmentControllerTest extends BaseEasAPITest {
                 .andExpect(status().isNoContent());
     }
 
+    @Test
+    void testCreateAssessment_GivenValidPayload_ShouldReturnAssessment() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        Assessment assessment = createMockAssessment();
+        assessment.setSessionID(session.getSessionID().toString());
+        assessment.setAssessmentID(null);
+
+        this.mockMvc.perform(post(URL.ASSESSMENTS_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(assessment))
+                        .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentTypeCode", equalTo(assessment.getAssessmentTypeCode())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.createUser", equalTo(ApplicationProperties.EAS_API)));
+    }
+
+    @Test
+    void testCreateAssessment_GivenInvalidPayload_ShouldReturn400() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        this.mockMvc.perform(post(URL.ASSESSMENTS_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(createMockAssessment()))
+                        .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
 
 }

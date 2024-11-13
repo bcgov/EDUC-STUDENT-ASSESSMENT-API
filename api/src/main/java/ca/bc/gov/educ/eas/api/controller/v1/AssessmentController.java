@@ -2,6 +2,7 @@ package ca.bc.gov.educ.eas.api.controller.v1;
 
 import ca.bc.gov.educ.eas.api.endpoint.v1.AssessmentEndpoint;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentMapper;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentService;
 import ca.bc.gov.educ.eas.api.struct.v1.Assessment;
 import ca.bc.gov.educ.eas.api.util.RequestUtil;
@@ -27,8 +28,21 @@ public class AssessmentController implements AssessmentEndpoint {
     }
 
     @Override
+    public Assessment getAssessment(UUID assessmentID){
+        return mapper.toStructure(assessmentService.getAssessment(assessmentID));
+    }
+
+    @Override
+    public Assessment createAssessment(Assessment assessment) {
+        ValidationUtil.validatePayload(() -> validator.validatePayload(assessment, true));
+        RequestUtil.setAuditColumnsForCreate(assessment);
+        AssessmentEntity assessmentEntity = mapper.toEntity(assessment);
+        return mapper.toStructure(assessmentService.createAssessment(assessmentEntity));
+    }
+
+    @Override
     public Assessment updateAssessment(UUID assessmentID, Assessment assessment) {
-        ValidationUtil.validatePayload(() -> validator.validatePayload(assessment));
+        ValidationUtil.validatePayload(() -> validator.validatePayload(assessment, false));
         RequestUtil.setAuditColumnsForUpdate(assessment);
         return mapper.toStructure(assessmentService.updateAssessment(mapper.toEntity(assessment)));
     }

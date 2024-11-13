@@ -21,7 +21,17 @@ import java.util.UUID;
 public class AssessmentService {
 
     private final AssessmentRepository assessmentRepository;
-    private final AssessmentStudentService assessmentStudentService;
+
+    public AssessmentEntity getAssessment(UUID assessmentID){
+        Optional<AssessmentEntity> assessmentOptionalEntity = assessmentRepository.findById(assessmentID);
+        return assessmentOptionalEntity.orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", assessmentID.toString()));
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public AssessmentEntity createAssessment(AssessmentEntity assessmentEntity){
+        TransformUtil.uppercaseFields(assessmentEntity);
+        return assessmentRepository.save(assessmentEntity);
+    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentEntity updateAssessment(AssessmentEntity assessmentEntity){
