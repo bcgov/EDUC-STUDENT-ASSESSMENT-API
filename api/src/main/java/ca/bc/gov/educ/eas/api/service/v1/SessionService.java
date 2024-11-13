@@ -59,14 +59,6 @@ public class SessionService {
         return this.getSessionRepository().findBySchoolYear(schoolYear);
     }
 
-    public List<AssessmentEntity> getAssessmentsForSession(UUID sessionID){
-        Optional<List<AssessmentEntity>> optionalAssessmentEntities = getAssessmentRepository().findBySessionID(sessionID);
-        if (optionalAssessmentEntities.isEmpty() || optionalAssessmentEntities.get().isEmpty()) {
-            throw new EntityNotFoundException(AssessmentEntity.class, "sessionID", sessionID.toString());
-        }
-        return optionalAssessmentEntities.get();
-    }
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public SessionEntity updateSession(UUID sessionID, SessionEntity updatedSessionEntity) {
         val optionalSession = getSessionRepository().findById(sessionID);
