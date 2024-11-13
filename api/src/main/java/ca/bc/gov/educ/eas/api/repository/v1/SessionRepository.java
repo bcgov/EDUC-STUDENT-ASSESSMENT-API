@@ -13,6 +13,7 @@ import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 
 @Repository
 public interface SessionRepository extends JpaRepository<SessionEntity, UUID> {
+    List<SessionEntity> findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime currentDate1);
     List<SessionEntity> findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(LocalDateTime currentDate1, LocalDateTime currentDate2);
     List<SessionEntity> findBySchoolYear(String schoolYear);
     @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM SessionEntity s WHERE s.courseMonth = '10' AND s.schoolYear = :currentYear")

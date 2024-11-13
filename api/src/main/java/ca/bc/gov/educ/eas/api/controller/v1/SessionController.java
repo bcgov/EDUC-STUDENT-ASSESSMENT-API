@@ -41,6 +41,11 @@ public class SessionController implements SessionEndpoint {
     }
 
     @Override
+    public List<Session> getActiveSessions() {
+        return getSessionService().getActiveSessions().stream().map(mapper::toStructure).collect(Collectors.toList());
+    }
+
+    @Override
     public Session updateSession(UUID sessionID, Session session) {
         RequestUtil.setAuditColumnsForUpdate(session);
         SessionEntity sessionEntity = getSessionService().updateSession(sessionID, mapper.toEntity(session));

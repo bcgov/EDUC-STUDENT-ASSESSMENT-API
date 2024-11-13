@@ -52,11 +52,15 @@ public class SessionService {
     }
 
     public List<SessionEntity> getAllSessions() {
-        return this.getSessionRepository().findAll(Sort.by(Sort.Direction.DESC, "activeFromDate"));
+        return this.getSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now());
     }
 
     public List<SessionEntity> getSessionsBySchoolYear(String schoolYear) {
         return this.getSessionRepository().findBySchoolYear(schoolYear);
+    }
+
+    public List<SessionEntity> getActiveSessions() {
+        return this.getSessionRepository().findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
