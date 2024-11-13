@@ -65,7 +65,7 @@ public class EventTaskSchedulerAsyncService {
     public void createSessionsForSchoolYear(){
         int schoolYearStart = LocalDate.now().getYear();
         try {
-            if (!this.getSessionRepository().upcomingNovemberSessionExists(String.valueOf(schoolYearStart))) {
+            if (!this.getSessionRepository().upcomingNovemberSessionExists(String.valueOf(schoolYearStart + 1))) {
                 log.debug("Creating sessions for {}/{} school year", schoolYearStart, schoolYearStart + 1);
                 this.sessionService.createAllAssessmentSessionsForSchoolYear(schoolYearStart);
             }
