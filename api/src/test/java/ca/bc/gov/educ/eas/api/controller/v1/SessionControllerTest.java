@@ -94,7 +94,7 @@ class SessionControllerTest extends BaseEasAPITest {
     void testSessionManagement_GetActiveSessions_ShouldReturnOK() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
         final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-        SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
+        sessionRepository.save(createMockSessionEntity());
         this.mockMvc.perform(
                         get(URL.SESSIONS_URL+"/active").with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk())
