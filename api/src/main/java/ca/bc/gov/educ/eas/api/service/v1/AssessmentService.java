@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,20 +25,6 @@ public class AssessmentService {
     public AssessmentEntity getAssessment(UUID assessmentID){
         Optional<AssessmentEntity> assessmentOptionalEntity = assessmentRepository.findById(assessmentID);
         return assessmentOptionalEntity.orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", assessmentID.toString()));
-    }
-
-    public List<AssessmentEntity> getAssessments(String typeCode, String schoolYearEnd){
-        Optional<List<AssessmentEntity>> optionalAssessments;
-        if (typeCode != null && schoolYearEnd != null) {
-            optionalAssessments = assessmentRepository.findByTypeCodeAndSchoolYear(typeCode, schoolYearEnd);
-        } else if (typeCode != null) {
-            optionalAssessments = assessmentRepository.findByAssessmentTypeCode(typeCode);
-        } else if (schoolYearEnd != null) {
-            optionalAssessments = assessmentRepository.findBySchoolYear(schoolYearEnd);
-        } else {
-            optionalAssessments = Optional.of(assessmentRepository.findAll());
-        }
-        return optionalAssessments.orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "typeCode", typeCode, "schoolYearEnd", schoolYearEnd));
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

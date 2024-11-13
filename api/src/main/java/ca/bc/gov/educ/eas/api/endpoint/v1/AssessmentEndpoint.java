@@ -10,11 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.groups.Default;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -26,12 +24,6 @@ public interface AssessmentEndpoint {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND")})
     @Tag(name= "Assessment Entity", description = "Endpoints for assessment entity.")
     Assessment getAssessment(@PathVariable UUID assessmentID);
-
-    @GetMapping( "")
-    @PreAuthorize("hasAuthority('SCOPE_READ_EAS_SESSIONS')")
-    @Transactional(readOnly = true)
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND")})
-    List<Assessment> getAssessments(@RequestParam(name = "typeCode", required = false) String typeCode, @RequestParam(name="schoolYearEnd", required = false) String schoolYearEnd);
 
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_WRITE_EAS_SESSIONS')")

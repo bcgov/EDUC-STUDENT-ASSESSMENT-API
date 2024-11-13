@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -31,11 +30,6 @@ public class AssessmentController implements AssessmentEndpoint {
     @Override
     public Assessment getAssessment(UUID assessmentID){
         return mapper.toStructure(assessmentService.getAssessment(assessmentID));
-    }
-
-    @Override
-    public List<Assessment> getAssessments(String typeCode, String schoolYearEnd){
-        return assessmentService.getAssessments(typeCode, schoolYearEnd).stream().map(mapper::toStructure).toList();
     }
 
     @Override

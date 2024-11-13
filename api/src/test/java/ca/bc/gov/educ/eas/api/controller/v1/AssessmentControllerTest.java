@@ -20,7 +20,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -193,77 +192,6 @@ class AssessmentControllerTest extends BaseEasAPITest {
                         .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void testGetAssessments_GivenNoParams_ShouldReturnAllAssessments() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
-        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
-        AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
-
-        this.mockMvc.perform(get(URL.ASSESSMENTS_URL)
-                        .with(mockAuthority))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", equalTo(1)))
-                .andExpect(jsonPath("$[0].assessmentID", equalTo(assessmentEntity.getAssessmentID().toString())));
-    }
-
-    @Test
-    void testGetAssessments_GivenTypeCode_ShouldReturnMatchingAssessments() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
-        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
-        assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
-
-        this.mockMvc.perform(get(URL.ASSESSMENTS_URL)
-                        .param("typeCode", AssessmentTypeCodes.LTF12.getCode())
-                        .with(mockAuthority))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", equalTo(1)));
-    }
-
-    @Test
-    void testGetAssessments_GivenSchoolYearEnd_ShouldReturnMatchingAssessments() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
-        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
-        assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
-
-        this.mockMvc.perform(get(URL.ASSESSMENTS_URL)
-                        .param("schoolYearEnd", String.valueOf(LocalDateTime.now().getYear()))
-                        .with(mockAuthority))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", equalTo(1)));
-    }
-
-    @Test
-    void testGetAssessments_GivenTypeCodeAndSchoolYearEnd_ShouldReturnMatchingAssessments() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
-        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
-        assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
-
-        this.mockMvc.perform(get(URL.ASSESSMENTS_URL)
-                        .param("typeCode", AssessmentTypeCodes.LTF12.getCode())
-                        .param("schoolYearEnd", String.valueOf(LocalDateTime.now().getYear()))
-                        .header("Accept", MediaType.APPLICATION_JSON_VALUE)
-                        .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .with(mockAuthority))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", equalTo(1)));
     }
 
 }

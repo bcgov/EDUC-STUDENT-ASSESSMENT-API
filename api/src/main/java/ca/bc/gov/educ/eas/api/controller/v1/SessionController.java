@@ -5,7 +5,6 @@ import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentMapper;
 import ca.bc.gov.educ.eas.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.service.v1.SessionService;
-import ca.bc.gov.educ.eas.api.struct.v1.Assessment;
 import ca.bc.gov.educ.eas.api.struct.v1.Session;
 import ca.bc.gov.educ.eas.api.util.RequestUtil;
 import lombok.AccessLevel;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 public class SessionController implements SessionEndpoint {
 
     private static final SessionMapper mapper = SessionMapper.mapper;
-    private static final AssessmentMapper assessmentMapper = AssessmentMapper.mapper;
+
     @Getter(AccessLevel.PRIVATE)
     private final SessionService sessionService;
 
@@ -48,8 +47,4 @@ public class SessionController implements SessionEndpoint {
         return mapper.toStructure(sessionEntity);
     }
 
-    @Override
-    public List<Assessment> getAssessmentsForSession(UUID sessionID) {
-        return getSessionService().getAssessmentsForSession(sessionID).stream().map(assessmentMapper::toStructure).collect(Collectors.toList());
-    }
 }
