@@ -64,9 +64,11 @@ public class EventTaskSchedulerAsyncService {
     @Transactional
     public void createSessionsForSchoolYear(){
         int schoolYearStart = LocalDate.now().getYear();
+        int schoolYearEnd = schoolYearStart + 1;
+        String schoolYear = schoolYearStart + "/" + schoolYearEnd;
         try {
-            if (!this.getSessionRepository().upcomingNovemberSessionExists(String.valueOf(schoolYearStart + 1))) {
-                log.debug("Creating sessions for {}/{} school year", schoolYearStart, schoolYearStart + 1);
+            if (!this.getSessionRepository().upcomingSchoolYearSessionsExist(schoolYear)) {
+                log.debug("Creating sessions for {}/{} school year", schoolYearStart, schoolYearEnd);
                 this.sessionService.createAllAssessmentSessionsForSchoolYear(schoolYearStart);
             }
         } catch (Exception e) {
