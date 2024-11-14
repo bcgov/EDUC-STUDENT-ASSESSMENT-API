@@ -8,6 +8,7 @@ import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentSessionCriteriaRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.eas.api.util.SchoolYearUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -89,7 +90,7 @@ public class SessionService {
             LocalDateTime endOfSessionDate = LocalDateTime.of(sessionYear, sessionType.getSessionEnd().getMonth(), sessionType.getSessionEnd().getDayOfMonth(), 0, 0);
 
             SessionEntity session = SessionEntity.builder()
-                    .schoolYear(String.valueOf(schoolYearStart + 1))
+                    .schoolYear(SchoolYearUtil.generateSchoolYearString(schoolYearStart))
                     .courseYear(String.valueOf(sessionYear))
                     .courseMonth(sessionMonth)
                     .activeFromDate(activeFromDate)

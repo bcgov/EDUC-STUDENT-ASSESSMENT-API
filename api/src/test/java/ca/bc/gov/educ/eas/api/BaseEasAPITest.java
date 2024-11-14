@@ -61,6 +61,7 @@ public abstract class BaseEasAPITest {
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
+            .assessments(null)
             .build();
   }
 

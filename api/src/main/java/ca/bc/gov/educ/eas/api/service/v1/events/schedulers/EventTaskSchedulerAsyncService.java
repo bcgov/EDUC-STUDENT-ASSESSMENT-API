@@ -6,6 +6,7 @@ import ca.bc.gov.educ.eas.api.repository.v1.SagaRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.service.v1.SessionService;
+import ca.bc.gov.educ.eas.api.util.SchoolYearUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -64,11 +65,10 @@ public class EventTaskSchedulerAsyncService {
     @Transactional
     public void createSessionsForSchoolYear(){
         int schoolYearStart = LocalDate.now().getYear();
-        int schoolYearEnd = schoolYearStart + 1;
-        String schoolYear = schoolYearStart + "/" + schoolYearEnd;
+        String schoolYear = SchoolYearUtil.generateSchoolYearString(schoolYearStart);
         try {
             if (!this.getSessionRepository().upcomingSchoolYearSessionsExist(schoolYear)) {
-                log.debug("Creating sessions for {}/{} school year", schoolYearStart, schoolYearEnd);
+                log.debug("Creating sessions for {}/{} school year", schoolYearStart, schoolYearStart + 1);
                 this.sessionService.createAllAssessmentSessionsForSchoolYear(schoolYearStart);
             }
         } catch (Exception e) {
