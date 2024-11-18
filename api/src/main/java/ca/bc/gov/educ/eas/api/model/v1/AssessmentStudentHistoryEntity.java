@@ -47,6 +47,9 @@ public class AssessmentStudentHistoryEntity {
     @Column(name = "STUDENT_ID", nullable = false, columnDefinition = "BINARY(16)")
     private UUID studentID;
 
+    @Column(name = "GIVEN_NAME", nullable = false, length = 25)
+    private String givenName;
+
     @Column(name = "SURNAME", nullable = false, length = 25)
     private String surName;
 

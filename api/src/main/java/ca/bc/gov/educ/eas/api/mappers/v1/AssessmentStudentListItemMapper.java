@@ -20,6 +20,7 @@ public interface AssessmentStudentListItemMapper {
     @Mapping(target = "courseYear", source = "assessmentEntity.sessionEntity.courseYear")
     @Mapping(target = "assessmentCenterID", source = "assessmentCenterID")
     @Mapping(target = "surName", source = "surName")
+    @Mapping(target = "givenName", source = "givenName")
     AssessmentStudentListItem toStructure(AssessmentStudentEntity entity);
 
 }
