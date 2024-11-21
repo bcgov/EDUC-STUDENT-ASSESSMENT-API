@@ -15,6 +15,8 @@ import java.util.UUID;
 public interface AssessmentStudentRepository extends JpaRepository<AssessmentStudentEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentEntity> {
     Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentID(UUID assessmentID, UUID studentID);
 
+    List<AssessmentStudentEntity> findByAssessmentEntity_SessionEntity_SessionID(UUID sessionID);
+
     @Query(value="""
     SELECT stud FROM AssessmentStudentEntity stud WHERE stud.assessmentStudentID
     NOT IN (SELECT saga.assessmentStudentID FROM EasSagaEntity saga WHERE saga.status != 'COMPLETED'

@@ -42,6 +42,12 @@ echo Removing EAS API client if exists
 curl -sX DELETE "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients/$EAS_APIServiceClientID" \
   -H "Authorization: Bearer $TKN"
 
+echo Writing scope READ_EAS_REPORT
+curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TKN" \
+  -d "{\"description\": \"Read EAS report\",\"id\": \"READ_EAS_REPORT\",\"name\": \"READ_EAS_REPORT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+
 echo Writing scope WRITE_EAS_STUDENT
 curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
   -H "Content-Type: application/json" \
