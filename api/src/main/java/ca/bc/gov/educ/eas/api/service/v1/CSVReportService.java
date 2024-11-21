@@ -6,7 +6,9 @@ import ca.bc.gov.educ.eas.api.constants.v1.reports.EASReportTypeCode;
 import ca.bc.gov.educ.eas.api.exception.EasAPIRuntimeException;
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.eas.api.rest.RestUtils;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.eas.api.struct.v1.reports.DownloadableReportResponse;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -27,20 +30,27 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class CSVReportService {
+    private final SessionRepository sessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final RestUtils restUtils;
     private static final String SCHOOL_ID = "schoolID";
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
+        var session = sessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(SessionEntity.class, "sessionID", sessionID.toString()));
         List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_SessionEntity_SessionID(sessionID);
         List<String> headers = Arrays.stream(AllStudentRegistrationsHeader.values()).map(AllStudentRegistrationsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                .setHeader(headers.toArray(String[]::new))
                 .build();
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(Arrays.asList("Registered Students                                            Date: " + LocalDate.now()));
+            csvPrinter.printRecord(Arrays.asList("Assessment Centres for Session " + session.getCourseYear() + "/" + session.getCourseMonth()));
+            csvPrinter.printRecord(Arrays.asList("-----------------------------------------------------------------------------------------------"));
+
+            csvPrinter.printRecord(headers);
 
             for (AssessmentStudentEntity result : results) {
                 var school = restUtils.getSchoolBySchoolID(result.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, result.getSchoolID().toString()));

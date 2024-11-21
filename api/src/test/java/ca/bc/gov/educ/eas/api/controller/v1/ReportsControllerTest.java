@@ -75,7 +75,7 @@ class ReportsControllerTest extends BaseEasAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_REPORTS";
     final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
     this.mockMvc.perform(get(URL.BASE_URL_REPORT + "/" + UUID.randomUUID() + "/testing").with(mockAuthority))
-        .andDo(print()).andExpect(status().isBadRequest());
+        .andDo(print()).andExpect(status().isNotFound());
   }
 
   @Test
