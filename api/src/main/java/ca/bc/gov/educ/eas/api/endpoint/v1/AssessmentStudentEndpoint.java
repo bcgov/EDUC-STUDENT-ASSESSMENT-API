@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.groups.Default;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RequestMapping(URL.BASE_URL_STUDENT)
 public interface AssessmentStudentEndpoint {
@@ -43,5 +46,11 @@ public interface AssessmentStudentEndpoint {
                                                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                                        @RequestParam(name = "sort", defaultValue = "") String sortCriteriaJson,
                                                        @RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson);
+
+    @DeleteMapping("/{assessmentStudentID}")
+    @PreAuthorize("hasAuthority('SCOPE_WRITE_EAS_STUDENT')")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "NO CONTENT"), @ApiResponse(responseCode = "409", description = "CONFLICT."), @ApiResponse(responseCode = "404", description = "NOT FOUND")})
+    @ResponseStatus(NO_CONTENT)
+    ResponseEntity<Void> deleteStudent(@PathVariable UUID assessmentStudentID);
 
 }

@@ -455,4 +455,85 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
             .andReturn();
     this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
   }
+
+  @Test
+  void testDeleteStudent_GivenValidID_ShouldReturn204() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+
+    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + assessmentStudentID)
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void testDeleteStudent_GivenInvalidID_ShouldReturn404() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + UUID.randomUUID())
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testDeleteStudent_GivenNoAuthority_ShouldReturn403() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+
+    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + assessmentStudentID)
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void testDeleteStudent_WhenSessionHasEnded_ShouldReturn409() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    SessionEntity session = createMockSessionEntity();
+    session.setActiveUntilDate(LocalDateTime.now().minusDays(1));
+    SessionEntity savedSession = sessionRepository.save(session);
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTF12.getCode()));
+    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+
+    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + assessmentStudentID)
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isConflict());
+  }
+
+  @Test
+  void testDeleteStudent_WhenStudentHasResult_ShouldReturn409() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudentEntity student = createMockStudentEntity(assessment);
+    student.setProficiencyScore(1);
+    UUID assessmentStudentID = studentRepository.save(student).getAssessmentStudentID();
+
+    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + assessmentStudentID)
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isConflict());
+  }
+
 }
