@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -75,5 +76,11 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     return this.searchService
             .findAll(specs, pageNumber, pageSize, sorts)
             .thenApplyAsync(assessmentStudentEntities -> assessmentStudentEntities.map(listItemMapper::toStructure));
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteStudent(UUID assessmentStudentID) {
+    studentService.deleteStudent(assessmentStudentID);
+    return ResponseEntity.noContent().build();
   }
 }

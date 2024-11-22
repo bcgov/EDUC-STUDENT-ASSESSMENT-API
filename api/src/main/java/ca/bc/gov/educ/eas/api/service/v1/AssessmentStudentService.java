@@ -9,6 +9,7 @@ import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentHistoryEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
@@ -19,11 +20,14 @@ import ca.bc.gov.educ.eas.api.util.TransformUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -104,6 +108,31 @@ public class AssessmentStudentService {
                 this.messagePublisher.dispatchMessage(TopicsEnum.PUBLISH_STUDENT_REGISTRATION_TOPIC.toString(), eventString.get().getBytes());
             }
         }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void deleteStudent(UUID assessmentStudentID) {
+        Optional<AssessmentStudentEntity> entityOptional = assessmentStudentRepository.findById(assessmentStudentID);
+        AssessmentStudentEntity entity = entityOptional.orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "assessmentStudentID", assessmentStudentID.toString()));
+
+        LocalDateTime sessionEnd = entity.getAssessmentEntity().getSessionEntity().getActiveUntilDate();
+        boolean hasResult = entity.getProficiencyScore() != null;
+
+        if(sessionEnd.isAfter(LocalDateTime.now()) && !hasResult){
+            List<AssessmentStudentHistoryEntity> studentHistoryEntities = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(entity.getAssessmentEntity().getAssessmentID(), assessmentStudentID);
+            if(!studentHistoryEntities.isEmpty()) {
+                assessmentStudentHistoryRepository.deleteAll(studentHistoryEntities);
+            }
+            assessmentStudentRepository.delete(entity);
+        } else {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Cannot delete student.  Reason: " +
+                            (sessionEnd.isBefore(LocalDateTime.now()) ? "Session has ended. " : "") +
+                            (hasResult ? "Student has a proficiency score." : "")
+            );
+        }
+
     }
 
 }
