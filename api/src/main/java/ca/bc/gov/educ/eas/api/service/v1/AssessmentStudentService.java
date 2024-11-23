@@ -70,7 +70,7 @@ public class AssessmentStudentService {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
         );
-        BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "assessmentEntity", "createUser", "createDate", "assessmentStudentStatusCode");
+        BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "districtID", "schoolID", "studentID", "givenName", "surName", "pen", "localID", "isElectronicExam", "proficiencyScore", "courseStatusCode", "assessmentStudentStatusCode", "createUser", "createDate");
         TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
         return createAssessmentStudentWithHistory(currentAssessmentStudentEntity);
     }

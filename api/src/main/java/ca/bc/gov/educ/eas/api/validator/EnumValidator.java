@@ -1,21 +1,22 @@
 package ca.bc.gov.educ.eas.api.validator;
 
+import ca.bc.gov.educ.eas.api.constants.v1.ProvincialSpecialCaseCodes;
+import ca.bc.gov.educ.eas.api.constants.v1.CourseStatusCodes;
 import ca.bc.gov.educ.eas.api.validator.constraint.IsAllowedValue;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import org.apache.commons.lang3.EnumUtils;
 
-@SuppressWarnings("rawtypes")
+
 public class EnumValidator implements ConstraintValidator<IsAllowedValue, String> {
 
-    private Class enumClass;
+    private String enumName;
 
     private EnumValidator() {
     }
 
     @Override
     public void initialize(IsAllowedValue annotation) {
-        this.enumClass = annotation.enumClass();
+        this.enumName = annotation.enumName();
     }
 
     @Override
@@ -23,6 +24,11 @@ public class EnumValidator implements ConstraintValidator<IsAllowedValue, String
         if (value == null || value.isEmpty()) {
             return true;
         }
-        return EnumUtils.isValidEnum(enumClass, value);
+
+        return switch (enumName) {
+            case "ProvincialSpecialCaseCodes" -> ProvincialSpecialCaseCodes.findByValue(value).isPresent();
+            case "CourseStatusCodes" -> CourseStatusCodes.findByValue(value).isPresent();
+            default -> false;
+        };
     }
 }

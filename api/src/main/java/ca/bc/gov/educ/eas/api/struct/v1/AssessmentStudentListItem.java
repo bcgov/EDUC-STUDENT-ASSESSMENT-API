@@ -26,4 +26,7 @@ public class AssessmentStudentListItem extends AssessmentStudent {
     @ReadOnlyProperty
     private String courseYear;
 
+    @ReadOnlyProperty
+    private Integer numberOfAttempts;
+
 }

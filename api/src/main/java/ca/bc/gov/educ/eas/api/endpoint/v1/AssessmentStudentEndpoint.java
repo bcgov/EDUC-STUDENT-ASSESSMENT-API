@@ -23,7 +23,7 @@ public interface AssessmentStudentEndpoint {
     @GetMapping("/{assessmentStudentID}")
     @PreAuthorize("hasAuthority('SCOPE_READ_EAS_STUDENT')")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
-    AssessmentStudent readStudent(@PathVariable UUID assessmentStudentID);
+    AssessmentStudentListItem readStudent(@PathVariable UUID assessmentStudentID);
 
     @PutMapping("/{assessmentStudentID}")
     @PreAuthorize("hasAuthority('SCOPE_WRITE_EAS_STUDENT')")

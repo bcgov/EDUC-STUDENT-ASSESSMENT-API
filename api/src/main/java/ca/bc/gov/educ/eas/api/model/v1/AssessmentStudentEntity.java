@@ -29,7 +29,7 @@ public class AssessmentStudentEntity {
   @ToString.Exclude
   @EqualsAndHashCode.Exclude
   @ManyToOne(optional = false, targetEntity = AssessmentEntity.class)
-  @JoinColumn(name = "ASSESSMENT_ID", referencedColumnName = "ASSESSMENT_ID", updatable = false)
+  @JoinColumn(name = "ASSESSMENT_ID", referencedColumnName = "ASSESSMENT_ID")
   AssessmentEntity assessmentEntity;
 
   @Column(name = "DISTRICT_ID", nullable = false, columnDefinition = "BINARY(16)")

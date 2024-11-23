@@ -42,8 +42,10 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public AssessmentStudent readStudent(UUID assessmentStudentID) {
-    return mapper.toStructure(studentService.getStudentByID(assessmentStudentID));
+  public AssessmentStudentListItem readStudent(UUID assessmentStudentID) {
+    AssessmentStudentListItem assessmentStudentItem =  listItemMapper.toStructure(studentService.getStudentByID(assessmentStudentID));
+    assessmentStudentItem.setNumberOfAttempts(studentService.getNumberOfAttempts(assessmentStudentItem.getAssessmentID(), UUID.fromString(assessmentStudentItem.getStudentID())));
+    return assessmentStudentItem;
   }
 
   @Override

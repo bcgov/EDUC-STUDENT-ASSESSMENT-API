@@ -23,4 +23,7 @@ public class AssessmentTypeCode extends BaseRequest implements Serializable {
     @ReadOnlyProperty
     private String label;
 
+    @ReadOnlyProperty
+    private Integer displayOrder;
+
 }
