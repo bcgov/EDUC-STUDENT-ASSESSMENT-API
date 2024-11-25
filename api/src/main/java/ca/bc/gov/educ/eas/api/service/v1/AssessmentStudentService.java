@@ -116,7 +116,7 @@ public class AssessmentStudentService {
         AssessmentStudentEntity entity = entityOptional.orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "assessmentStudentID", assessmentStudentID.toString()));
 
         LocalDateTime sessionEnd = entity.getAssessmentEntity().getSessionEntity().getActiveUntilDate();
-        boolean hasResult = entity.getProficiencyScore() != null;
+        boolean hasResult = entity.getProficiencyScore() != null || entity.getProvincialSpecialCaseCode() != null;
 
         if(sessionEnd.isAfter(LocalDateTime.now()) && !hasResult){
             List<AssessmentStudentHistoryEntity> studentHistoryEntities = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(entity.getAssessmentEntity().getAssessmentID(), assessmentStudentID);
