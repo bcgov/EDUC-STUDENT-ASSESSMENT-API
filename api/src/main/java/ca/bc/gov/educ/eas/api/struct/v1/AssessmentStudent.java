@@ -1,7 +1,5 @@
 package ca.bc.gov.educ.eas.api.struct.v1;
 
-import ca.bc.gov.educ.eas.api.constants.v1.CourseStatusCodes;
-import ca.bc.gov.educ.eas.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.eas.api.struct.OnUpdate;
 import ca.bc.gov.educ.eas.api.validator.constraint.IsAllowedValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -58,10 +56,10 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     private String proficiencyScore;
 
     @Size(max = 1)
-    @IsAllowedValue(enumClass = ProvincialSpecialCaseCodes.class, message = "Invalid provincial special case code.")
+    @IsAllowedValue(enumName = "ProvincialSpecialCaseCodes", message = "Invalid provincial special case code.")
     private String provincialSpecialCaseCode;
 
     @Size(max = 1)
-    @IsAllowedValue(enumClass = CourseStatusCodes.class, message = "Invalid course status code.")
+    @IsAllowedValue(enumName = "CourseStatusCodes", message = "Invalid course status code.")
     private String courseStatusCode;
 }

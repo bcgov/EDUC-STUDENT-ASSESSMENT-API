@@ -9,14 +9,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@SuppressWarnings("rawtypes")
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = EnumValidator.class)
 public @interface IsAllowedValue {
     String message() default "Invalid value";
 
-    Class<? extends Enum<?>> enumClass();
+    String enumName();
 
     Class<?>[] groups() default {};
 
