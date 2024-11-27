@@ -32,7 +32,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     and a.assessmentTypeCode in (:assessmentCodes)
     and stud.studentID = :studentID
     and (stud.proficiencyScore is not null
-    or stud.provincialSpecialCaseCode in ('A', 'Q'))""")
+    or stud.provincialSpecialCaseCode in ('X', 'Q'))""")
     int findNumberOfAttemptsForStudent(UUID studentID, List<String> assessmentCodes);
 
 }
