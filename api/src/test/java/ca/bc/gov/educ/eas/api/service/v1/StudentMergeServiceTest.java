@@ -2,6 +2,7 @@ package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.exception.EasAPIRuntimeException;
 import ca.bc.gov.educ.eas.api.rest.RestUtils;
+import ca.bc.gov.educ.eas.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.eas.api.struct.v1.StudentMerge;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,8 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,11 +38,20 @@ class StudentMergeServiceTest {
                 StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("FROM").studentMergeSourceCode("MI").build(),
                 StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("TO").studentMergeSourceCode("API").build()
         );
+        List<Student> mockStudents = new ArrayList<>();
+        Set<String> studentIDs = new HashSet<>();
+        for (StudentMerge mockMergedStudent : mockMergedStudents) {
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getStudentID()).pen("123456789").build());
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getMergeStudentID()).pen("987654321").build());
+            studentIDs.add(mockMergedStudent.getStudentID());
+            studentIDs.add(mockMergedStudent.getMergeStudentID());
+        }
+
         when(restUtils.getMergedStudentsForDateRange(any(UUID.class), eq(createDateStart), eq(createDateEnd)))
                 .thenReturn(mockMergedStudents);
+        when(restUtils.getStudents(any(), any())).thenReturn(mockStudents);
 
         val result = studentMergeService.getMergedStudentsForDateRange(createDateStart, createDateEnd);
-
         assertEquals(mockMergedStudents.size(), result.size());
         verify(restUtils, times(1)).getMergedStudentsForDateRange(any(UUID.class), eq(createDateStart), eq(createDateEnd)); // Use any(UUID.class) here
     }
