@@ -7,6 +7,7 @@ import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
+import ca.bc.gov.educ.eas.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.eas.api.struct.v1.StudentMerge;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -344,6 +345,27 @@ public class RestUtils {
 
     } catch (final Exception ex) {
       log.error("Error occurred calling PEN SERVICES API service :: " + ex.getMessage());
+      Thread.currentThread().interrupt();
+      throw new EasAPIRuntimeException(ex.getMessage());
+    }
+  }
+
+  public List<Student> getStudents(UUID correlationID, Set<String> studentIDs) {
+    try {
+      final TypeReference<Event> refEventResponse = new TypeReference<>() {};
+      final TypeReference<List<Student>> refStudentResponse = new TypeReference<>() {};
+      Object event = Event.builder().sagaId(correlationID).eventType(EventType.GET_STUDENTS).eventPayload(objectMapper.writeValueAsString(studentIDs)).build();
+      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.STUDENT_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
+      if (responseMessage == null) {
+        log.error("Received null response from GET STUDENTS for correlationID: {}", correlationID);
+        throw new EasAPIRuntimeException(NATS_TIMEOUT + correlationID);
+      } else {
+        val eventResponse = objectMapper.readValue(responseMessage.getData(), refEventResponse);
+        return objectMapper.readValue(eventResponse.getEventPayload(), refStudentResponse);
+      }
+
+    } catch (final Exception ex) {
+      log.error("Error occurred calling GET STUDENTS service :: " + ex.getMessage());
       Thread.currentThread().interrupt();
       throw new EasAPIRuntimeException(ex.getMessage());
     }

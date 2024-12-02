@@ -43,7 +43,7 @@ class StudentMergeServiceTest {
 
         val result = studentMergeService.getMergedStudentsForDateRange(createDateStart, createDateEnd);
 
-        assertEquals(mockMergedStudents, result);
+        assertEquals(mockMergedStudents.size(), result.size());
         verify(restUtils, times(1)).getMergedStudentsForDateRange(any(UUID.class), eq(createDateStart), eq(createDateEnd)); // Use any(UUID.class) here
     }
 

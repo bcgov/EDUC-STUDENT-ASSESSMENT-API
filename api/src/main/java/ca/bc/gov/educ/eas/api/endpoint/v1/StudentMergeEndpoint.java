@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.eas.api.endpoint.v1;
 
 import ca.bc.gov.educ.eas.api.constants.v1.URL;
-import ca.bc.gov.educ.eas.api.struct.v1.StudentMerge;
+import ca.bc.gov.educ.eas.api.struct.v1.StudentMergeResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -20,6 +20,6 @@ public interface StudentMergeEndpoint {
     @PreAuthorize("hasAuthority('SCOPE_READ_EAS_STUDENT')")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     @Tag(name = "PEN Records", description = "Endpoints to retrieve PEN records.")
-    List<StudentMerge> getMergedStudentsForDateRange(@RequestParam(name = "createDateStart") String createDateStart, @RequestParam(name = "createDateEnd") String createDateEnd) throws JsonProcessingException;
+    List<StudentMergeResult> getMergedStudentsForDateRange(@RequestParam(name = "createDateStart") String createDateStart, @RequestParam(name = "createDateEnd") String createDateEnd) throws JsonProcessingException;
 
 }
