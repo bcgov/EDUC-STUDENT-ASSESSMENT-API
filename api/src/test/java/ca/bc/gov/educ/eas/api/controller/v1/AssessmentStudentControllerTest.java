@@ -420,7 +420,7 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
     studentRepository.save(student2);
 
     AssessmentStudentEntity student3 = createMockStudentEntity(assessment2);
-    student3.setProvincialSpecialCaseCode(ProvincialSpecialCaseCodes.EXEMPTION.getCode());
+    student3.setProvincialSpecialCaseCode(ProvincialSpecialCaseCodes.EXEMPT.getCode());
     studentRepository.save(student3);
     SearchCriteria criteriaAssessmentID = SearchCriteria.builder()
             .key("assessmentEntity.sessionEntity.schoolYear")
