@@ -102,7 +102,7 @@ public class CSVReportService {
 
             for (StudentMergeResult result : results) {
                 if (StringUtils.isNotEmpty(result.getCurrentPEN()) && StringUtils.isNotEmpty(result.getMergedPEN())) {
-                    csvPrinter.printRecord(StringUtils.rightPad(result.getCurrentPEN(), PenMergesHeader.CURRENT_PEN.getCode().length(), ' '), StringUtils.rightPad(result.getMergedPEN(), PenMergesHeader.CURRENT_PEN.getCode().length(), ' '));
+                    csvPrinter.printRecord(StringUtils.rightPad(result.getCurrentPEN(), PenMergesHeader.CURRENT_PEN.getCode().length(), ' '), StringUtils.rightPad(result.getMergedPEN(), PenMergesHeader.MERGED_PEN.getCode().length(), ' '));
                 }
             }
             csvPrinter.flush();
