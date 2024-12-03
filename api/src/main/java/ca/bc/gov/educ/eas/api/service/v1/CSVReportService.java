@@ -88,7 +88,10 @@ public class CSVReportService {
         List<StudentMergeResult> results = studentMergeService.getMergedStudentsForDateRange(fromDate.format(formatter), toDate.format(formatter));
         List<String> headers = Arrays.stream(PenMergesHeader.values()).map(PenMergesHeader::getCode).toList();
 
-        CSVFormat csvFormat = CSVFormat.DEFAULT.withEscape('\\').withQuoteMode(QuoteMode.NONE);
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                .setQuoteMode(QuoteMode.NONE)
+                .setEscape('\\')
+                .build();
 
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
