@@ -2,8 +2,8 @@ package ca.bc.gov.educ.eas.api.service.v1;
 
 
 import ca.bc.gov.educ.eas.api.constants.v1.reports.AllStudentRegistrationsHeader;
-import ca.bc.gov.educ.eas.api.constants.v1.reports.PenMergesHeader;
 import ca.bc.gov.educ.eas.api.constants.v1.reports.EASReportTypeCode;
+import ca.bc.gov.educ.eas.api.constants.v1.reports.PenMergesHeader;
 import ca.bc.gov.educ.eas.api.exception.EasAPIRuntimeException;
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -35,11 +36,11 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class CSVReportService {
+    private static final String SCHOOL_ID = "schoolID";
     private final SessionRepository sessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final StudentMergeService studentMergeService;
     private final RestUtils restUtils;
-    private static final String SCHOOL_ID = "schoolID";
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
         var session = sessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(SessionEntity.class, "sessionID", sessionID.toString()));
@@ -52,9 +53,9 @@ public class CSVReportService {
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
 
-            csvPrinter.printRecord(Arrays.asList("Registered Students                                            Date: " + LocalDate.now()));
-            csvPrinter.printRecord(Arrays.asList("Assessment Centres for Session " + session.getCourseYear() + "/" + session.getCourseMonth()));
-            csvPrinter.printRecord(Arrays.asList("-----------------------------------------------------------------------------------------------"));
+            csvPrinter.printRecord(List.of("Registered Students                                            Date: " + LocalDate.now()));
+            csvPrinter.printRecord(List.of("Assessment Centres for Session " + session.getCourseYear() + "/" + session.getCourseMonth()));
+            csvPrinter.printRecord(List.of("-----------------------------------------------------------------------------------------------"));
 
             csvPrinter.printRecord(headers);
 
@@ -62,7 +63,7 @@ public class CSVReportService {
                 var school = restUtils.getSchoolBySchoolID(result.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, result.getSchoolID().toString()));
 
                 Optional<SchoolTombstone> assessmentCenter = Optional.empty();
-                if(result.getAssessmentCenterID() != null) {
+                if (result.getAssessmentCenterID() != null) {
                     assessmentCenter = restUtils.getSchoolBySchoolID(result.getAssessmentCenterID().toString());
                 }
                 List<String> csvRowData = prepareEnrolmentFteDataForCsv(result, school, assessmentCenter);
@@ -86,20 +87,25 @@ public class CSVReportService {
         LocalDateTime toDate = LocalDate.now().atStartOfDay();
         List<StudentMergeResult> results = studentMergeService.getMergedStudentsForDateRange(fromDate.format(formatter), toDate.format(formatter));
         List<String> headers = Arrays.stream(PenMergesHeader.values()).map(PenMergesHeader::getCode).toList();
+
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                .setQuoteMode(QuoteMode.NONE)
+                .setEscape('\\')
                 .build();
+
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
 
-            csvPrinter.printRecord(Arrays.asList("Student Assessment Merged PENS                     Date: " + LocalDate.now()));
-            csvPrinter.printRecord(Arrays.asList("--------------------------------------------------------------------------------"));
+
+            csvPrinter.printRecord(List.of("Student Assessment Merged PENS                                Date: " + LocalDate.now()));
+            csvPrinter.printRecord(List.of("--------------------------------------------------------------------------------"));
             csvPrinter.printRecord(headers);
 
             for (StudentMergeResult result : results) {
-                if(StringUtils.isNotEmpty(result.getCurrentPEN()) && StringUtils.isNotEmpty(result.getMergedPEN())) {
-                    csvPrinter.printRecord(result.getCurrentPEN(),result.getMergedPEN());
+                if (StringUtils.isNotEmpty(result.getCurrentPEN()) && StringUtils.isNotEmpty(result.getMergedPEN())) {
+                    csvPrinter.printRecord(StringUtils.rightPad(result.getCurrentPEN(), PenMergesHeader.CURRENT_PEN.getCode().length(), StringUtils.SPACE), StringUtils.rightPad(result.getMergedPEN(), PenMergesHeader.MERGED_PEN.getCode().length(), StringUtils.SPACE));
                 }
             }
             csvPrinter.flush();
