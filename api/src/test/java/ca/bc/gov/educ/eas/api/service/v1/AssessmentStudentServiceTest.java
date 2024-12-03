@@ -1,9 +1,9 @@
 package ca.bc.gov.educ.eas.api.service.v1;
 
 import ca.bc.gov.educ.eas.api.BaseEasAPITest;
-import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentHistoryEntity;
@@ -12,6 +12,7 @@ import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @Slf4j
 class AssessmentStudentServiceTest extends BaseEasAPITest {
+
+  private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
 
   @Autowired
   AssessmentStudentService service;
@@ -107,11 +110,11 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     //when creating an assessment student
     AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
     assessmentStudentEntity.setAssessmentStudentID(null);
-    AssessmentStudentEntity student = service.createStudent(assessmentStudentEntity);
-    List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), student.getAssessmentStudentID());
+    AssessmentStudent student = service.createStudent(assessmentStudentEntity);
+    List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
     //then assessment student is created
     assertNotNull(student);
-    assertNotNull(assessmentStudentRepository.findById(student.getStudentID()));
+    assertNotNull(assessmentStudentRepository.findById(UUID.fromString(student.getStudentID())));
     assertThat(studentHistory).hasSize(1);
   }
 
@@ -134,9 +137,9 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
 
     AssessmentStudentEntity studentEntity= createMockStudentEntity(assessmentEntity);
     studentEntity.setAssessmentStudentID(null);
-    AssessmentStudentEntity assessmentStudentEntity = service.createStudent(studentEntity);
+    AssessmentStudent assessmentStudent = service.createStudent(studentEntity);
     //when updating the student
-    AssessmentStudentEntity student = service.updateStudent(assessmentStudentEntity);
+    AssessmentStudentEntity student = service.updateStudent(mapper.toModel(assessmentStudent));
     assertNotNull(student);
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), student.getAssessmentStudentID());
 

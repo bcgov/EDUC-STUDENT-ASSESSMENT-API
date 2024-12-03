@@ -94,11 +94,11 @@ class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
         student.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity = mapper.toModel(student);
         studentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudentEntity assessmentStudentEntity = assessmentStudentService.createStudent(studentEntity);
-        sagaData = mapper.toStructure(assessmentStudentEntity);
+        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity);
+        sagaData = assessmentStudent;
         MockitoAnnotations.openMocks(this);
         sagaPayload = JsonUtil.getJsonString(sagaData).get();
-        saga = this.sagaService.createSagaRecordInDB(SagaEnum.PUBLISH_STUDENT_REGISTRATION.name(), "test", sagaPayload, assessmentStudentEntity.getAssessmentStudentID());
+        saga = this.sagaService.createSagaRecordInDB(SagaEnum.PUBLISH_STUDENT_REGISTRATION.name(), "test", sagaPayload, UUID.fromString(assessmentStudent.getAssessmentStudentID()));
     }
 
     @SneakyThrows

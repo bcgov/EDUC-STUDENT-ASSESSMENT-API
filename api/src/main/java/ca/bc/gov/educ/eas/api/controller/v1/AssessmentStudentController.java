@@ -62,7 +62,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
         RequestUtil.setAuditColumnsForCreate(assessmentStudent);
         AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
         assessmentStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        return mapper.toStructure(studentService.createStudent(assessmentStudentEntity));
+        return studentService.createStudent(assessmentStudentEntity);
     }
 
   @Override

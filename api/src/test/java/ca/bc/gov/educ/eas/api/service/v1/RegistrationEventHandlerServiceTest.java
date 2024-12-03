@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -64,11 +65,11 @@ class RegistrationEventHandlerServiceTest extends BaseEasAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudentEntity assessmentStudentEntity = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
 
-        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(mapper.toStructure(assessmentStudentEntity))).build();
+        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
         eventHandlerServiceUnderTest.handleEvent(event);
-        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(assessmentStudentEntity.getAssessmentStudentID(), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
+        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(UUID.fromString(assessmentStudent.getAssessmentStudentID()), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
         assertThat(sagas).isPresent();
     }
 
@@ -81,10 +82,10 @@ class RegistrationEventHandlerServiceTest extends BaseEasAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudentEntity assessmentStudentEntity = assessmentStudentService.createStudent(studentEntity1);
-        final Event event = Event.builder().eventType(EventType.GET_OPEN_ASSESSMENT_SESSIONS).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(mapper.toStructure(assessmentStudentEntity))).build();
+        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
+        final Event event = Event.builder().eventType(EventType.GET_OPEN_ASSESSMENT_SESSIONS).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
         eventHandlerServiceUnderTest.handleEvent(event);
-        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(assessmentStudentEntity.getAssessmentStudentID(), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
+        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(UUID.fromString(assessmentStudent.getAssessmentStudentID()), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
         assertThat(sagas).isEmpty();
     }
 

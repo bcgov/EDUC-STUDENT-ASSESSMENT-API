@@ -13,8 +13,15 @@ import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentHistoryEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.eas.api.rest.RestUtils;
+import ca.bc.gov.educ.eas.api.rules.StudentValidationIssueSeverityCode;
+import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentRulesProcessor;
 import ca.bc.gov.educ.eas.api.struct.Event;
+import ca.bc.gov.educ.eas.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.eas.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentValidationIssue;
+import ca.bc.gov.educ.eas.api.struct.v1.StudentRuleData;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
 import ca.bc.gov.educ.eas.api.util.TransformUtil;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +34,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.swing.text.html.parser.Entity;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +52,8 @@ public class AssessmentStudentService {
     private final AssessmentStudentHistoryService assessmentStudentHistoryService;
     private final MessagePublisher messagePublisher;
     private final AssessmentRepository assessmentRepository;
+    private final AssessmentStudentRulesProcessor assessmentStudentRulesProcessor;
+    private final RestUtils restUtils;
 
     public AssessmentStudentEntity getStudentByID(UUID assessmentStudentID) {
         return assessmentStudentRepository.findById(assessmentStudentID).orElseThrow(() ->
@@ -80,14 +90,37 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AssessmentStudentEntity createStudent(AssessmentStudentEntity assessmentStudentEntity) {
-        return createAssessmentStudentWithHistory(assessmentStudentEntity);
+    public AssessmentStudent createStudent(AssessmentStudentEntity assessmentStudentEntity) {
+        SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolID().toString()).orElse(null);
+
+        UUID studentCorrelationID = UUID.randomUUID();
+        log.info("Retrieving student record for PEN ::{} with correlationID :: {}", assessmentStudentEntity.getPen(), studentCorrelationID);
+        Student studentApiStudent = restUtils.getStudentByPEN(studentCorrelationID, assessmentStudentEntity.getPen());
+
+        List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, studentApiStudent);
+
+        if(validationIssues.isEmpty()){
+            return mapper.toStructure(createAssessmentStudentWithHistory(assessmentStudentEntity));
+        }
+
+        AssessmentStudent studentWithValidationIssues = mapper.toStructure(assessmentStudentEntity);
+        studentWithValidationIssues.setAssessmentStudentValidationIssues(validationIssues);
+
+        return studentWithValidationIssues;
     }
 
     public AssessmentStudentEntity createAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
         AssessmentStudentEntity savedEntity = assessmentStudentRepository.save(assessmentStudentEntity);
         assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
         return savedEntity;
+    }
+    public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, Student studentApiStudent) {
+        StudentRuleData studentRuleData = new StudentRuleData();
+        studentRuleData.setAssessmentStudentEntity(assessmentStudentEntity);
+        studentRuleData.setSchool(schoolTombstone);
+        studentRuleData.setStudentApiStudent(studentApiStudent);
+
+        return this.assessmentStudentRulesProcessor.processRules(studentRuleData);
     }
 
     @Async("publisherExecutor")
