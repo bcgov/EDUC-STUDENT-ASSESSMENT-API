@@ -34,7 +34,6 @@ public class V317ExamSchool implements AssessmentValidationBaseRule {
         this.restUtils = restUtils;
     }
 
-
     @Override
     public boolean shouldExecute(StudentRuleData studentRuleData, List<AssessmentStudentValidationIssue> validationErrorsMap) {
         log.debug("In shouldExecute of V317: for assessment {} and assessment student PEN :: {}", studentRuleData.getAssessmentStudentEntity().getAssessmentEntity().getAssessmentID() ,
@@ -55,12 +54,15 @@ public class V317ExamSchool implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V317 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        Optional<SchoolTombstone> assessmentCenter = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterID()));
+        if(student.getAssessmentStudentID() != null){
+            Optional<SchoolTombstone> assessmentCenter = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterID()));
 
-        if (assessmentCenter.isEmpty()){
-            log.debug("V317: Invalid assessment centre provided with schoolID :: {}", student.getSchoolID());
-            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.EXAM_SCHOOL, AssessmentStudentValidationIssueTypeCode.EXAM_SCHOOL_INVALID));
+            if(assessmentCenter.isEmpty() || !RuleUtil.isSchoolValid(assessmentCenter.get())){
+                log.debug("V317: Invalid assessment centre provided with schoolID :: {}", student.getSchoolID());
+                errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.EXAM_SCHOOL, AssessmentStudentValidationIssueTypeCode.EXAM_SCHOOL_INVALID));
+            }
         }
+
         return errors;
     }
 
