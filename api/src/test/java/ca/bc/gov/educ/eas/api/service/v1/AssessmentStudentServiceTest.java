@@ -199,4 +199,27 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     assertThrows(EntityNotFoundException.class, () -> service.updateStudent(student));
   }
 
+  @Test
+  void testCreateStudent_WhenNamesDoNotMatchStudentAPI_ShouldReturnValidationErrors(){
+    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
+    assessmentStudentEntity.setAssessmentStudentID(null);
+
+    var studentAPIStudent = this.createMockStudentAPIStudent();
+    studentAPIStudent.setPen(assessmentStudentEntity.getPen());
+    studentAPIStudent.setLegalFirstName("Bugs");
+    studentAPIStudent.setLegalLastName("Bunny");
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
+
+    AssessmentStudent student = service.createStudent(assessmentStudentEntity);
+    assertThat(student.getAssessmentStudentValidationIssues()).hasSize(2);
+  }
+
 }
