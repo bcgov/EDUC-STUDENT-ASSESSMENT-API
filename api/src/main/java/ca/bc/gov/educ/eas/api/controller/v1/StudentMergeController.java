@@ -2,7 +2,6 @@ package ca.bc.gov.educ.eas.api.controller.v1;
 
 import ca.bc.gov.educ.eas.api.endpoint.v1.StudentMergeEndpoint;
 import ca.bc.gov.educ.eas.api.service.v1.StudentMergeService;
-import ca.bc.gov.educ.eas.api.struct.v1.StudentMerge;
 import ca.bc.gov.educ.eas.api.struct.v1.StudentMergeResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;

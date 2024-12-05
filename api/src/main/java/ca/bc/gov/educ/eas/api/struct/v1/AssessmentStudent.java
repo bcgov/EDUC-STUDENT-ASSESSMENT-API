@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -62,6 +63,8 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @Size(max = 1)
     @IsAllowedValue(enumName = "CourseStatusCodes", message = "Invalid course status code.")
     private String courseStatusCode;
+
+    private List<AssessmentStudentValidationIssue> assessmentStudentValidationIssues;
 
     private Integer numberOfAttempts;
 }

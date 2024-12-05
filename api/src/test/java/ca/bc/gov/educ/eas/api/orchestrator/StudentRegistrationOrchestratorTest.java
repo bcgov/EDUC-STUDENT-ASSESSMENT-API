@@ -4,7 +4,6 @@ import ca.bc.gov.educ.eas.api.BaseEasAPITest;
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.constants.SagaEnum;
-import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
@@ -13,6 +12,7 @@ import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.eas.api.model.v1.EasSagaEntity;
 import ca.bc.gov.educ.eas.api.model.v1.SessionEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.*;
+import ca.bc.gov.educ.eas.api.rest.RestUtils;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.eas.api.service.v1.SagaService;
 import ca.bc.gov.educ.eas.api.struct.Event;
@@ -69,6 +69,8 @@ class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
     SagaService sagaService;
     @Autowired
     AssessmentStudentService assessmentStudentService;
+    @Autowired
+    RestUtils restUtils;
     @Captor
     ArgumentCaptor<byte[]> eventCaptor;
     AssessmentStudent sagaData;
@@ -92,19 +94,29 @@ class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
         AssessmentStudent student = createMockStudent();
         student.setAssessmentID(assessment.getAssessmentID().toString());
-        AssessmentStudentEntity studentEntity = mapper.toModel(student);
-        studentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudentEntity assessmentStudentEntity = assessmentStudentService.createStudent(studentEntity);
-        sagaData = mapper.toStructure(assessmentStudentEntity);
+        sagaData = student;
         MockitoAnnotations.openMocks(this);
         sagaPayload = JsonUtil.getJsonString(sagaData).get();
-        saga = this.sagaService.createSagaRecordInDB(SagaEnum.PUBLISH_STUDENT_REGISTRATION.name(), "test", sagaPayload, assessmentStudentEntity.getAssessmentStudentID());
+        saga = this.sagaService.createSagaRecordInDB(SagaEnum.PUBLISH_STUDENT_REGISTRATION.name(), "test", sagaPayload, UUID.fromString(String.valueOf(student.getAssessmentStudentID())));
     }
 
     @SneakyThrows
     @Test
     void testHandleEvent_createAssessmentStudent_CreateStudentAndPostMessageToNats() {
         final var invocations = mockingDetails(this.messagePublisher).getInvocations().size();
+
+        var school = this.createMockSchool();
+        school.setSchoolId(sagaData.getSchoolID());
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        var studentAPIStudent = this.createMockStudentAPIStudent();
+        studentAPIStudent.setPen(sagaData.getPen());
+        studentAPIStudent.setLegalFirstName(sagaData.getGivenName());
+        studentAPIStudent.setLegalLastName(sagaData.getSurName());
+        when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
+
+        assessmentStudentService.createStudent(mapper.toModel(sagaData));
+
         final var event = Event.builder()
                 .eventType(INITIATED)
                 .eventOutcome(EventOutcome.INITIATE_SUCCESS)

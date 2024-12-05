@@ -3,6 +3,7 @@ package ca.bc.gov.educ.eas.api.rest;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.constants.TopicsEnum;
 import ca.bc.gov.educ.eas.api.exception.EasAPIRuntimeException;
+import ca.bc.gov.educ.eas.api.exception.SagaRuntimeException;
 import ca.bc.gov.educ.eas.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.Event;
@@ -347,6 +348,26 @@ public class RestUtils {
       log.error("Error occurred calling PEN SERVICES API service :: " + ex.getMessage());
       Thread.currentThread().interrupt();
       throw new EasAPIRuntimeException(ex.getMessage());
+    }
+  }
+
+  @Retryable(retryFor = {Exception.class}, noRetryFor = {SagaRuntimeException.class}, backoff = @Backoff(multiplier = 2, delay = 2000))
+  public Student getStudentByPEN(UUID correlationID, String assignedPEN) {
+    try {
+      final TypeReference<Student> refPenMatchResult = new TypeReference<>() {
+      };
+      Object event = Event.builder().sagaId(correlationID).eventType(EventType.GET_STUDENT).eventPayload(assignedPEN).build();
+      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.STUDENT_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
+      if (responseMessage != null) {
+        return objectMapper.readValue(responseMessage.getData(), refPenMatchResult);
+      } else {
+        throw new EasAPIRuntimeException(NATS_TIMEOUT + correlationID);
+      }
+
+    } catch (final Exception ex) {
+      log.error("Error occurred calling GET STUDENT service :: " + ex.getMessage());
+      Thread.currentThread().interrupt();
+      throw new EasAPIRuntimeException(NATS_TIMEOUT + correlationID + ex.getMessage());
     }
   }
 

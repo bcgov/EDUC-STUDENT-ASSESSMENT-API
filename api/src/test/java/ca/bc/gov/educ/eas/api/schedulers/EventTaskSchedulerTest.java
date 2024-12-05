@@ -108,11 +108,11 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudentEntity assessmentStudentEntity = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
 
-        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(mapper.toStructure(assessmentStudentEntity))).build();
+        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
         eventHandlerServiceUnderTest.handlePublishStudentRegistrationEvent(event);
-        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(assessmentStudentEntity.getAssessmentStudentID(), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
+        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(UUID.fromString(assessmentStudent.getAssessmentStudentID()), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
         assertThat(sagas).isPresent();
     }
 
@@ -127,7 +127,7 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudentEntity assessmentStudentEntity = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
 
         var saga = EasSagaEntity.builder()
                 .updateDate(LocalDateTime.now().minusMinutes(15))
@@ -135,14 +135,14 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
                 .updateUser(ApplicationProperties.EAS_API)
                 .createDate(LocalDateTime.now().minusMinutes(15))
                 .sagaName(SagaEnum.PUBLISH_STUDENT_REGISTRATION.name())
-                .assessmentStudentID(assessmentStudentEntity.getAssessmentStudentID())
+                .assessmentStudentID(UUID.fromString(assessmentStudent.getAssessmentStudentID()))
                 .status(SagaStatusEnum.COMPLETED.name())
                 .sagaState(EventType.MARK_SAGA_COMPLETE.name())
-                .payload(JsonUtil.getJsonStringFromObject(mapper.toStructure(assessmentStudentEntity)))
+                .payload(JsonUtil.getJsonStringFromObject(assessmentStudent))
                 .build();
         EasSagaEntity sagaEntity = sagaRepository.save(saga);
 
-        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(mapper.toStructure(assessmentStudentEntity))).build();
+        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
         eventHandlerServiceUnderTest.handlePublishStudentRegistrationEvent(event);
 
         var sagas = sagaRepository.findById(sagaEntity.getSagaId());
@@ -161,12 +161,12 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudentEntity assessmentStudentEntity = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
 
         eventTaskSchedulerAsyncService.findAndPublishLoadedStudentRegistrationsForProcessing();
-        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(mapper.toStructure(assessmentStudentEntity))).build();
+        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
         eventHandlerServiceUnderTest.handlePublishStudentRegistrationEvent(event);
-        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(assessmentStudentEntity.getAssessmentStudentID(), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
+        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(UUID.fromString(assessmentStudent.getAssessmentStudentID()), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
         assertThat(sagas).isPresent();
     }
 
