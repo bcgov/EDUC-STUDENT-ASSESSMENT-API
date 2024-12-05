@@ -19,7 +19,7 @@ import java.util.List;
 /**
  *  | ID   | Severity | Rule                                                                  | Dependent On |
  *  |------|----------|-----------------------------------------------------------------------|--------------|
- *  | V320 | ERROR    |  Student XAM record will not be processed due to an issue with the    |--------------|
+ *  | V320 | ERROR    |  Student record will not be processed due to an issue with the        | V001         |
  *                       student's demographics
  *
  */
@@ -55,7 +55,7 @@ public class V320ValidStudentInDEM implements AssessmentValidationBaseRule {
         }
 
         if(!givenNameMatches){
-            log.debug("V320: Student's surname does not match Student API record for PEN :: {}", student.getPen());
+            log.debug("V320: Student's given name does not match Student API record for PEN :: {}", student.getPen());
             errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.GIVEN_NAME, AssessmentStudentValidationIssueTypeCode.GIVEN_NAME_MISMATCH));
         }
 
