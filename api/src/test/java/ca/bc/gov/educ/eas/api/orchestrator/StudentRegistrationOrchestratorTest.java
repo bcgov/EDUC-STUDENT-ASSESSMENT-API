@@ -115,7 +115,7 @@ class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
         studentAPIStudent.setLegalLastName(sagaData.getSurName());
         when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
 
-        var savedAssessmentStudent = assessmentStudentService.createStudent(mapper.toModel(sagaData));
+        assessmentStudentService.createStudent(mapper.toModel(sagaData));
 
         final var event = Event.builder()
                 .eventType(INITIATED)

@@ -12,6 +12,7 @@ import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.eas.api.rest.RestUtils;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +30,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -52,6 +56,9 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
 
   @Autowired
   AssessmentRepository assessmentRepository;
+
+  @Autowired
+  RestUtils restUtils;
 
   @AfterEach
   public void after() {
@@ -106,9 +113,21 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
 
-    //when creating an assessment student
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
     AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
     assessmentStudentEntity.setAssessmentStudentID(null);
+
+    var studentAPIStudent = this.createMockStudentAPIStudent();
+    studentAPIStudent.setPen(assessmentStudentEntity.getPen());
+    studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
+    studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurName());
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
+
+    //when creating an assessment student
     AssessmentStudent student = service.createStudent(assessmentStudentEntity);
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
     //then assessment student is created
@@ -125,6 +144,21 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
 
     AssessmentStudentEntity studentEntity= createMockStudentEntity(assessmentEntity);
     studentEntity.setAssessmentStudentID(null);
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
+    assessmentStudentEntity.setAssessmentStudentID(null);
+
+    var studentAPIStudent = this.createMockStudentAPIStudent();
+    studentAPIStudent.setPen(assessmentStudentEntity.getPen());
+    studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
+    studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurName());
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
+
     AssessmentStudent assessmentStudent = service.createStudent(studentEntity);
     //when updating the student
     AssessmentStudent student = service.updateStudent(mapper.toModel(assessmentStudent));
