@@ -75,7 +75,7 @@ public class EventHandlerService {
         if (student.isEmpty()) {
             AssessmentStudentEntity createStudentEntity = assessmentStudentMapper.toModel(assessmentStudent);
             createStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-            assessmentStudentService.createStudent(createStudentEntity);
+            assessmentStudentService.createStudentWithoutValidation(createStudentEntity);
             event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_CREATED);
         } else {
             log.info("Student already exists in assessment {} ", assessmentStudent.getAssessmentStudentID());

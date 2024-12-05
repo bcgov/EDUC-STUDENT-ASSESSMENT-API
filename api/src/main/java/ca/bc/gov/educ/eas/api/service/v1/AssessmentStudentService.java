@@ -88,6 +88,11 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public AssessmentStudentEntity createStudentWithoutValidation(AssessmentStudentEntity assessmentStudentEntity) {
+        return createAssessmentStudentWithHistory(assessmentStudentEntity);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentStudent createStudent(AssessmentStudentEntity assessmentStudentEntity) {
         return processStudent(assessmentStudentEntity, null);
     }
