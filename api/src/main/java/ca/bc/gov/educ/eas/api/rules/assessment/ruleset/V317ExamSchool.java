@@ -1,9 +1,11 @@
 package ca.bc.gov.educ.eas.api.rules.assessment.ruleset;
 
+import ca.bc.gov.educ.eas.api.rest.RestUtils;
 import ca.bc.gov.educ.eas.api.rules.StudentValidationIssueSeverityCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationFieldCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentValidationBaseRule;
+import ca.bc.gov.educ.eas.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.eas.api.struct.v1.StudentRuleData;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import ca.bc.gov.educ.eas.api.rules.utils.RuleUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  *  | ID   | Severity | Rule                                                                  | Dependent On |
@@ -24,11 +27,13 @@ import java.util.List;
 @Slf4j
 @Order(240)
 public class V317ExamSchool implements AssessmentValidationBaseRule {
-    private final RuleUtil ruleUtil;
 
-    public V317ExamSchool(RuleUtil ruleUtil) {
-        this.ruleUtil = ruleUtil;
+    private final RestUtils restUtils;
+
+    public V317ExamSchool(RestUtils restUtils) {
+        this.restUtils = restUtils;
     }
+
 
     @Override
     public boolean shouldExecute(StudentRuleData studentRuleData, List<AssessmentStudentValidationIssue> validationErrorsMap) {
@@ -50,7 +55,9 @@ public class V317ExamSchool implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V317 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        if (!ruleUtil.validateAssessmentCenterIsValid(String.valueOf(student.getAssessmentCenterID()))){
+        Optional<SchoolTombstone> assessmentCenter = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterID()));
+
+        if (assessmentCenter.isEmpty()){
             log.debug("V317: Invalid assessment centre provided with schoolID :: {}", student.getSchoolID());
             errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.EXAM_SCHOOL, AssessmentStudentValidationIssueTypeCode.EXAM_SCHOOL_INVALID));
         }
