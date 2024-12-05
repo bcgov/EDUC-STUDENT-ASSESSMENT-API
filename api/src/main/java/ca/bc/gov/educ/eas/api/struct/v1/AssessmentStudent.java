@@ -64,5 +64,7 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @IsAllowedValue(enumName = "CourseStatusCodes", message = "Invalid course status code.")
     private String courseStatusCode;
 
-    List<AssessmentStudentValidationIssue> assessmentStudentValidationIssues;
+    private List<AssessmentStudentValidationIssue> assessmentStudentValidationIssues;
+
+    private Integer numberOfAttempts;
 }

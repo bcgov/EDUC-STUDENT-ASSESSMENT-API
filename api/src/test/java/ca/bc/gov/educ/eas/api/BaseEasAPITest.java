@@ -5,6 +5,7 @@ import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.model.v1.*;
 import ca.bc.gov.educ.eas.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.*;
+import ca.bc.gov.educ.eas.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.eas.api.struct.v1.Assessment;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
@@ -166,8 +167,8 @@ public abstract class BaseEasAPITest {
             .schoolID(UUID.randomUUID().toString())
             .assessmentCenterID(UUID.randomUUID().toString())
             .studentID(UUID.randomUUID().toString())
-            .givenName("TEST")
-            .surName("TEST")
+            .givenName("TestFirst")
+            .surName("TestLast")
             .pen("120164447")
             .localID("123")
             .createUser(ApplicationProperties.EAS_API)
@@ -184,14 +185,27 @@ public abstract class BaseEasAPITest {
             .schoolID(UUID.randomUUID())
             .assessmentCenterID(UUID.randomUUID())
             .studentID(UUID.randomUUID())
-            .givenName("TEST")
-            .surName("TEST")
+            .givenName("TestFirst")
+            .surName("TestLast")
             .pen("120164447")
             .localID("123")
             .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.EAS_API)
             .updateDate(LocalDateTime.now())
+            .build();
+  }
+
+  public Student createMockStudentAPIStudent(){
+    return Student.builder()
+            .studentID(String.valueOf(UUID.randomUUID()))
+            .pen("120164447")
+            .legalFirstName("TestFirst")
+            .legalLastName("TestLast")
+            .dob(String.valueOf(LocalDateTime.now().minusYears(16)))
+            .sexCode("F")
+            .genderCode("F")
+            .emailVerified("true")
             .build();
   }
 

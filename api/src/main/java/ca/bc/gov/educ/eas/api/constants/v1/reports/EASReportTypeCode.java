@@ -7,8 +7,8 @@ import java.util.Optional;
 
 @Getter
 public enum EASReportTypeCode {
-    ALL_SESSION_REGISTRATIONS("ALL_SESSION_REGISTRATIONS");
-
+    ALL_SESSION_REGISTRATIONS("ALL_SESSION_REGISTRATIONS"),
+    PEN_MERGES("PEN_MERGES");
     private final String code;
     EASReportTypeCode(String code) { this.code = code; }
 

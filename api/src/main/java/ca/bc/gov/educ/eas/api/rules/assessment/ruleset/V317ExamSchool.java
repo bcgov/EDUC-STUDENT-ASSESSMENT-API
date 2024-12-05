@@ -44,7 +44,7 @@ public class V317ExamSchool implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V317 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        if (studentRuleData.getSchool() == null){
+        if (studentRuleData.getAssessmentCentre() == null){
             log.debug("V317: Invalid assessment centre provided with schoolID :: {}", student.getSchoolID());
             errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.EXAM_SCHOOL, AssessmentStudentValidationIssueTypeCode.EXAM_SCHOOL_INVALID));
         }

@@ -71,6 +71,9 @@ public class AssessmentStudentEntity {
   @Column(name = "ASSESSMENT_STUDENT_STATUS_CODE", nullable = false, length = 20)
   private String assessmentStudentStatusCode;
 
+  @Column(name = "NUMBER_OF_ATTEMPTS", length = 1)
+  private Integer numberOfAttempts;
+
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;
 

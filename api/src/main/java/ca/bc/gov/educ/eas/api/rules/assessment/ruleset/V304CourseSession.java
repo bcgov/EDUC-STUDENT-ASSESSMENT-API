@@ -38,14 +38,14 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
 
     @Override
     public boolean shouldExecute(StudentRuleData studentRuleData, List<AssessmentStudentValidationIssue> validationErrorsMap) {
-        log.debug("In shouldExecute of V304: for assessment {} and assessmentStudentID :: {}", studentRuleData.getAssessmentStudentEntity().getAssessmentEntity().getAssessmentID() ,
-                studentRuleData.getAssessmentStudentEntity().getAssessmentStudentID());
+        log.debug("In shouldExecute of V304: for assessment {} and assessment student PEN :: {}", studentRuleData.getAssessmentStudentEntity().getAssessmentEntity().getAssessmentID() ,
+                studentRuleData.getAssessmentStudentEntity().getPen());
 
         var shouldExecute = isValidationDependencyResolved("V304", validationErrorsMap);
 
-        log.debug("In shouldExecute of V304: Condition returned - {} for assessmentStudentID :: {}" ,
+        log.debug("In shouldExecute of V304: Condition returned - {} for assessment student PEN :: {}" ,
                 shouldExecute,
-                studentRuleData.getAssessmentStudentEntity().getAssessmentStudentID());
+                studentRuleData.getAssessmentStudentEntity().getPen());
 
         return  shouldExecute;
     }
@@ -56,7 +56,7 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V304 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        if(student.getCourseStatusCode().equals(CourseStatusCodes.WITHDRAWN.getCode())){
+        if(student.getCourseStatusCode() != null && student.getCourseStatusCode().equals(CourseStatusCodes.WITHDRAWN.getCode())){
             if(assessmentRulesService.studentHasWrittenAssessment(student.getAssessmentStudentID())){
                 errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.COURSE_STATUS, AssessmentStudentValidationIssueTypeCode.COURSE_ALREADY_WRITTEN));
             }
@@ -68,10 +68,10 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
             boolean studentWritesExceeded = assessmentRulesService.studentAssessmentWritesExceeded(student.getPen(), assessmentCodes);
 
             if (studentAssessmentDuplicate != null) {
-                log.debug("V304: The assessment session is a duplicate of an existing assessment session for this student/assessment :: {}", student.getAssessmentStudentID());
+                log.debug("V304: The assessment session is a duplicate of an existing {} assessment session for student PEN :: {}", student.getAssessmentEntity().getAssessmentTypeCode(), student.getPen());
                 errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_DUP));
             }else if (studentWritesExceeded) {
-                log.debug("V304: Student has already reached the maximum number of writes for this Assessment :: {}", student.getAssessmentStudentID());
+                log.debug("V304: Student has already reached the maximum number of writes for the {} Assessment for student PEN :: {}", student.getAssessmentEntity().getAssessmentTypeCode(), student.getPen());
                 errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_EXCEED));
             }
         }

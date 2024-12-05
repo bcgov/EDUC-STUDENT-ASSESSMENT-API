@@ -9,8 +9,9 @@ import java.util.Optional;
 @Getter
 public enum ProvincialSpecialCaseCodes {
   AEGROTAT("A"),
-  EXEMPTION("E"),
-  DISQUALIFIED("D");
+  EXEMPT("E"),
+  DISQUALIFIED("Q"),
+  NOTCOMPLETED("X");
 
   private final String code;
   ProvincialSpecialCaseCodes(String code) {

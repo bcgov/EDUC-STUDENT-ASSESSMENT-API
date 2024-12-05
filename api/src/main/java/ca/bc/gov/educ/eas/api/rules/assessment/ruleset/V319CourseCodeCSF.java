@@ -47,10 +47,16 @@ public class V319CourseCodeCSF implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V319 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        if (studentRuleData.getSchool().getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode()) && student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.LTF12.getCode())){
-            log.debug("V319: Student is in a Francophone school and cannot register for this assessment session for student with PEN :: {}", student.getPen());
-            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_CODE_CSF));
+        if(studentRuleData.getSchool() == null){
+            log.debug("V319: School is not valid for student with PEN :: {}", student.getPen());
+            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.SCHOOL, AssessmentStudentValidationIssueTypeCode.SCHOOL_INVALID));
+        } else {
+            if (studentRuleData.getSchool().getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode()) && student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.LTF12.getCode())){
+                log.debug("V319: Student is in a Francophone school and cannot register for this assessment session for student with PEN :: {}", student.getPen());
+                errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_CODE_CSF));
+            }
         }
+
         return errors;
     }
 

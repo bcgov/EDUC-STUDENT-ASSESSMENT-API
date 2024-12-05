@@ -62,8 +62,8 @@ public class AssessmentStudentHistoryEntity {
     @Column(name = "IS_ELECTRONIC_EXAM", length = 1)
     private Boolean isElectronicExam;
 
-    @Column(name = "FINAL_PERCENTAGE", length = 3)
-    private String finalPercentage;
+    @Column(name = "PROFICIENCY_SCORE", length = 1)
+    private Integer proficiencyScore;
 
     @Column(name = "PROVINCIAL_SPECIAL_CASE_CODE", length = 1)
     private String provincialSpecialCaseCode;
@@ -73,6 +73,9 @@ public class AssessmentStudentHistoryEntity {
 
     @Column(name = "ASSESSMENT_STUDENT_STATUS_CODE", nullable = false, length = 20)
     private String assessmentStudentStatusCode;
+
+    @Column(name = "NUMBER_OF_ATTEMPTS", length = 1)
+    private Integer numberOfAttempts;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;

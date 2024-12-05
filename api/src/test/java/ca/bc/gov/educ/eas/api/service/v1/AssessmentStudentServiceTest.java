@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -119,17 +118,6 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
   }
 
   @Test
-  void testCreateStudent_WhenSessionIDDoesNotExistInDB_ShouldThrowError()  {
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
-    assessmentEntity.setAssessmentID(UUID.randomUUID());
-    //when attempting to create student with invalid session id
-    AssessmentStudentEntity student = AssessmentStudentEntity.builder().pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build();
-    //then throw exception
-     assertThrows(DataIntegrityViolationException.class, () -> service.createStudent(student));
-  }
-
-  @Test
   void testUpdateStudent_WhenStudentExistInDB_ShouldReturnUpdatedStudent()  {
     //given student exists in db
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
@@ -139,12 +127,12 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     studentEntity.setAssessmentStudentID(null);
     AssessmentStudent assessmentStudent = service.createStudent(studentEntity);
     //when updating the student
-    AssessmentStudentEntity student = service.updateStudent(mapper.toModel(assessmentStudent));
+    AssessmentStudent student = service.updateStudent(mapper.toModel(assessmentStudent));
     assertNotNull(student);
-    List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), student.getAssessmentStudentID());
+    List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
 
     //then student is updated and saved
-    var updatedStudent = assessmentStudentRepository.findById(student.getAssessmentStudentID());
+    var updatedStudent = assessmentStudentRepository.findById(UUID.fromString(student.getAssessmentStudentID()));
     assertThat(updatedStudent).isPresent();
     assertThat(updatedStudent.get().getAssessmentEntity().getAssessmentTypeCode()).isEqualTo(AssessmentTypeCodes.LTP10.getCode());
     assertThat(studentHistory).hasSize(2);

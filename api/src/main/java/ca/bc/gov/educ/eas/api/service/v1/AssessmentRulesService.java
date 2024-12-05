@@ -21,7 +21,7 @@ public class AssessmentRulesService {
     private static final int studentAssessmentWriteMax = 3;
 
     public AssessmentStudentEntity studentAssessmentDuplicate(String studentPEN, UUID assessmentID, UUID assessmentStudentID){
-        Optional<AssessmentStudentEntity> existingStudentAssessment = assessmentStudentRepository.findBYAssessmentEntity_AssessmentIDAndPen(assessmentID, studentPEN);
+        Optional<AssessmentStudentEntity> existingStudentAssessment = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndPen(assessmentID, studentPEN);
 
         if (assessmentStudentID != null && existingStudentAssessment.isPresent() && assessmentStudentID != existingStudentAssessment.get().getAssessmentStudentID()){
             return existingStudentAssessment.get();

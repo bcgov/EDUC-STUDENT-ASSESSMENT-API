@@ -53,7 +53,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID) {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, false));
     RequestUtil.setAuditColumnsForUpdate(assessmentStudent);
-    return mapper.toStructure(studentService.updateStudent(mapper.toModel(assessmentStudent)));
+    return studentService.updateStudent(mapper.toModel(assessmentStudent));
   }
 
     @Override

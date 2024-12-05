@@ -3,6 +3,7 @@ package ca.bc.gov.educ.eas.api.service.v1;
 import ca.bc.gov.educ.eas.api.constants.EventOutcome;
 import ca.bc.gov.educ.eas.api.constants.EventType;
 import ca.bc.gov.educ.eas.api.constants.TopicsEnum;
+import ca.bc.gov.educ.eas.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.eas.api.mappers.v1.AssessmentStudentMapper;
@@ -14,7 +15,6 @@ import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.eas.api.rest.RestUtils;
-import ca.bc.gov.educ.eas.api.rules.StudentValidationIssueSeverityCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentRulesProcessor;
 import ca.bc.gov.educ.eas.api.struct.Event;
 import ca.bc.gov.educ.eas.api.struct.external.institute.v1.SchoolTombstone;
@@ -34,7 +34,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.swing.text.html.parser.Entity;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -80,27 +79,37 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AssessmentStudentEntity updateStudent(AssessmentStudentEntity assessmentStudentEntity) {
+    public AssessmentStudent updateStudent(AssessmentStudentEntity assessmentStudentEntity) {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
         );
-        BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "districtID", "schoolID", "studentID", "givenName", "surName", "pen", "localID", "isElectronicExam", "courseStatusCode", "assessmentStudentStatusCode", "createUser", "createDate");
-        TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
-        return createAssessmentStudentWithHistory(currentAssessmentStudentEntity);
+
+        return processStudent(assessmentStudentEntity, currentAssessmentStudentEntity);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentStudent createStudent(AssessmentStudentEntity assessmentStudentEntity) {
+        return processStudent(assessmentStudentEntity, null);
+    }
+
+    private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity) {
         SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolID().toString()).orElse(null);
+        SchoolTombstone assessmentCentreTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getAssessmentCenterID().toString()).orElse(null);
 
         UUID studentCorrelationID = UUID.randomUUID();
         log.info("Retrieving student record for PEN ::{} with correlationID :: {}", assessmentStudentEntity.getPen(), studentCorrelationID);
         Student studentApiStudent = restUtils.getStudentByPEN(studentCorrelationID, assessmentStudentEntity.getPen());
 
-        List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, studentApiStudent);
+        List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, assessmentCentreTombstone, studentApiStudent);
 
-        if(validationIssues.isEmpty()){
-            return mapper.toStructure(createAssessmentStudentWithHistory(assessmentStudentEntity));
+        if (validationIssues.isEmpty()) {
+            if (currentAssessmentStudentEntity != null) {
+                BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "districtID", "schoolID", "studentID", "givenName", "surName", "pen", "localID", "isElectronicExam", "courseStatusCode", "assessmentStudentStatusCode", "createUser", "createDate");
+                TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
+                return mapper.toStructure(createAssessmentStudentWithHistory(currentAssessmentStudentEntity));
+            } else {
+                return mapper.toStructure(createAssessmentStudentWithHistory(assessmentStudentEntity));
+            }
         }
 
         AssessmentStudent studentWithValidationIssues = mapper.toStructure(assessmentStudentEntity);
@@ -110,14 +119,16 @@ public class AssessmentStudentService {
     }
 
     public AssessmentStudentEntity createAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
+        assessmentStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
         AssessmentStudentEntity savedEntity = assessmentStudentRepository.save(assessmentStudentEntity);
         assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
         return savedEntity;
     }
-    public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, Student studentApiStudent) {
+    public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, SchoolTombstone assessmentCentreTombstone, Student studentApiStudent) {
         StudentRuleData studentRuleData = new StudentRuleData();
         studentRuleData.setAssessmentStudentEntity(assessmentStudentEntity);
         studentRuleData.setSchool(schoolTombstone);
+        studentRuleData.setAssessmentCentre(assessmentCentreTombstone);
         studentRuleData.setStudentApiStudent(studentApiStudent);
 
         return this.assessmentStudentRulesProcessor.processRules(studentRuleData);

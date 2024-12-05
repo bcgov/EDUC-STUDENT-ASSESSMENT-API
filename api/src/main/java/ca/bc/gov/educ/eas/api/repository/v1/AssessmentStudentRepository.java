@@ -15,7 +15,7 @@ import java.util.UUID;
 public interface AssessmentStudentRepository extends JpaRepository<AssessmentStudentEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentEntity> {
     Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentID(UUID assessmentID, UUID studentID);
 
-    Optional<AssessmentStudentEntity> findBYAssessmentEntity_AssessmentIDAndPen(UUID AssessmentID, String pen);
+    Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndPen(UUID AssessmentID, String pen);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_SessionEntity_SessionID(UUID sessionID);
 

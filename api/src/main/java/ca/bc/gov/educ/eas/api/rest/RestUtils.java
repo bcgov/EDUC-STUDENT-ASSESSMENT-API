@@ -370,4 +370,25 @@ public class RestUtils {
       throw new EasAPIRuntimeException(NATS_TIMEOUT + correlationID + ex.getMessage());
     }
   }
+
+  public List<Student> getStudents(UUID correlationID, Set<String> studentIDs) {
+    try {
+      final TypeReference<Event> refEventResponse = new TypeReference<>() {};
+      final TypeReference<List<Student>> refStudentResponse = new TypeReference<>() {};
+      Object event = Event.builder().sagaId(correlationID).eventType(EventType.GET_STUDENTS).eventPayload(objectMapper.writeValueAsString(studentIDs)).build();
+      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.STUDENT_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
+      if (responseMessage == null) {
+        log.error("Received null response from GET STUDENTS for correlationID: {}", correlationID);
+        throw new EasAPIRuntimeException(NATS_TIMEOUT + correlationID);
+      } else {
+        val eventResponse = objectMapper.readValue(responseMessage.getData(), refEventResponse);
+        return objectMapper.readValue(eventResponse.getEventPayload(), refStudentResponse);
+      }
+
+    } catch (final Exception ex) {
+      log.error("Error occurred calling GET STUDENTS service :: " + ex.getMessage());
+      Thread.currentThread().interrupt();
+      throw new EasAPIRuntimeException(ex.getMessage());
+    }
+  }
 }
