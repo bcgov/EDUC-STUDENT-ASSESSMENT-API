@@ -6,10 +6,12 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum AssessmentValidationRulesDependencyMatrix {
-    ENTRY1("V304", new String[]{}),
-    ENTRY2("V318", new String[]{}),
-    ENTRY3("V319", new String[]{}),
-    ENTRY4("V320", new String[]{});
+    ENTRY1("V001", new String[]{}),
+    ENTRY2("V002", new String[]{}),
+    ENTRY3("V304", new String[]{}),
+    ENTRY4("V318", new String[]{}),
+    ENTRY5("V319", new String[]{AssessmentStudentValidationIssueTypeCode.SCHOOL_INVALID.getCode()}),
+    ENTRY6("V320", new String[]{AssessmentStudentValidationIssueTypeCode.PEN_INVALID.getCode()});
 
     @Getter
     private final String ruleID;

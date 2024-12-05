@@ -99,13 +99,12 @@ public class AssessmentStudentService {
 
     private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity) {
         SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolID().toString()).orElse(null);
-        SchoolTombstone assessmentCentreTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getAssessmentCenterID().toString()).orElse(null);
 
         UUID studentCorrelationID = UUID.randomUUID();
         log.info("Retrieving student record for PEN ::{} with correlationID :: {}", assessmentStudentEntity.getPen(), studentCorrelationID);
         Student studentApiStudent = restUtils.getStudentByPEN(studentCorrelationID, assessmentStudentEntity.getPen());
 
-        List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, assessmentCentreTombstone, studentApiStudent);
+        List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, studentApiStudent);
 
         if (validationIssues.isEmpty()) {
             if (currentAssessmentStudentEntity != null) {
@@ -129,11 +128,10 @@ public class AssessmentStudentService {
         assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
         return savedEntity;
     }
-    public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, SchoolTombstone assessmentCentreTombstone, Student studentApiStudent) {
+    public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, Student studentApiStudent) {
         StudentRuleData studentRuleData = new StudentRuleData();
         studentRuleData.setAssessmentStudentEntity(assessmentStudentEntity);
         studentRuleData.setSchool(schoolTombstone);
-        studentRuleData.setAssessmentCentre(assessmentCentreTombstone);
         studentRuleData.setStudentApiStudent(studentApiStudent);
 
         return this.assessmentStudentRulesProcessor.processRules(studentRuleData);

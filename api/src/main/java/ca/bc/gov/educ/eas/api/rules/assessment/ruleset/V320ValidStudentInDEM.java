@@ -47,21 +47,16 @@ public class V320ValidStudentInDEM implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V320 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        if(studentRuleData.getStudentApiStudent() == null){
-            log.debug("V320: No matches found for assessment student PEN :: {}", student.getPen());
-            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.PEN, AssessmentStudentValidationIssueTypeCode.PEN_INVALID));
-        } else {
-            boolean surnameMatches = RuleUtil.validateStudentSurnameMatches(student, studentRuleData.getStudentApiStudent());
-            boolean givenNameMatches = RuleUtil.validateStudentGivenNameMatches(student, studentRuleData.getStudentApiStudent());
-            if (!surnameMatches) {
-                log.debug("V320: Student's surname does not match Student API record for PEN :: {}", student.getPen());
-                errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.SURNAME, AssessmentStudentValidationIssueTypeCode.SURNAME_MISMATCH));
-            }
+        boolean surnameMatches = RuleUtil.validateStudentSurnameMatches(student, studentRuleData.getStudentApiStudent());
+        boolean givenNameMatches = RuleUtil.validateStudentGivenNameMatches(student, studentRuleData.getStudentApiStudent());
+        if (!surnameMatches) {
+            log.debug("V320: Student's surname does not match Student API record for PEN :: {}", student.getPen());
+            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.SURNAME, AssessmentStudentValidationIssueTypeCode.SURNAME_MISMATCH));
+        }
 
-            if(!givenNameMatches){
-                log.debug("V320: Student's surname does not match Student API record for PEN :: {}", student.getPen());
-                errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.GIVEN_NAME, AssessmentStudentValidationIssueTypeCode.GIVEN_NAME_MISMATCH));
-            }
+        if(!givenNameMatches){
+            log.debug("V320: Student's surname does not match Student API record for PEN :: {}", student.getPen());
+            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.GIVEN_NAME, AssessmentStudentValidationIssueTypeCode.GIVEN_NAME_MISMATCH));
         }
 
         return errors;

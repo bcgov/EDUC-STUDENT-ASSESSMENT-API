@@ -9,7 +9,6 @@ import ca.bc.gov.educ.eas.api.struct.v1.StudentRuleData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import ca.bc.gov.educ.eas.api.rules.utils.RuleUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,27 +16,23 @@ import java.util.List;
 /**
  *  | ID   | Severity | Rule                                                                  | Dependent On |
  *  |------|----------|-----------------------------------------------------------------------|--------------|
- *  | V317 | ERROR    |  Invalid assessment centre provided.                                  |--------------|
+ *  | V001 | ERROR    |  PEN is invalid                                                       |--------------|
+ *
  *
  */
 @Component
 @Slf4j
-@Order(240)
-public class V317ExamSchool implements AssessmentValidationBaseRule {
-    private final RuleUtil ruleUtil;
-
-    public V317ExamSchool(RuleUtil ruleUtil) {
-        this.ruleUtil = ruleUtil;
-    }
+@Order(100)
+public class V001StudentPEN implements AssessmentValidationBaseRule {
 
     @Override
     public boolean shouldExecute(StudentRuleData studentRuleData, List<AssessmentStudentValidationIssue> validationErrorsMap) {
-        log.debug("In shouldExecute of V317: for assessment {} and assessment student PEN :: {}", studentRuleData.getAssessmentStudentEntity().getAssessmentEntity().getAssessmentID() ,
+        log.debug("In shouldExecute of V001: for assessment {} and assessment student PEN :: {}", studentRuleData.getAssessmentStudentEntity().getAssessmentEntity().getAssessmentID() ,
                 studentRuleData.getAssessmentStudentEntity().getPen());
 
-        var shouldExecute = true;
+        var shouldExecute = isValidationDependencyResolved("V001", validationErrorsMap);
 
-        log.debug("In shouldExecute of V317: Condition returned - {} for assessment student PEN :: {}" ,
+        log.debug("In shouldExecute of V001: Condition returned - {} for assessment student PEN :: {}" ,
                 shouldExecute,
                 studentRuleData.getAssessmentStudentEntity().getPen());
 
@@ -47,13 +42,14 @@ public class V317ExamSchool implements AssessmentValidationBaseRule {
     @Override
     public List<AssessmentStudentValidationIssue> executeValidation(StudentRuleData studentRuleData) {
         var student = studentRuleData.getAssessmentStudentEntity();
-        log.debug("In executeValidation of V317 for assessment student PEN :: {}", student.getPen());
+        log.debug("In executeValidation of V001 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        if (!ruleUtil.validateAssessmentCenterIsValid(String.valueOf(student.getAssessmentCenterID()))){
-            log.debug("V317: Invalid assessment centre provided with schoolID :: {}", student.getSchoolID());
-            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.EXAM_SCHOOL, AssessmentStudentValidationIssueTypeCode.EXAM_SCHOOL_INVALID));
+        if(studentRuleData.getStudentApiStudent() == null){
+            log.debug("V001: Student PEN is invalid :: {}", student.getPen());
+            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.PEN, AssessmentStudentValidationIssueTypeCode.PEN_INVALID));
         }
+
         return errors;
     }
 
