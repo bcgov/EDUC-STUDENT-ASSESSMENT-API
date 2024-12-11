@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.eas.api.rules.assessment.ruleset;
 
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.eas.api.rules.StudentValidationIssueSeverityCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationFieldCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentValidationBaseRule;
@@ -51,12 +50,12 @@ public class V320ValidStudentInDEM implements AssessmentValidationBaseRule {
         boolean givenNameMatches = RuleUtil.validateStudentGivenNameMatches(student, studentRuleData.getStudentApiStudent());
         if (!surnameMatches) {
             log.debug("V320: Student's surname does not match Student API record for PEN :: {}", student.getPen());
-            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.SURNAME, AssessmentStudentValidationIssueTypeCode.SURNAME_MISMATCH));
+            errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.SURNAME, AssessmentStudentValidationIssueTypeCode.SURNAME_MISMATCH));
         }
 
         if(!givenNameMatches){
             log.debug("V320: Student's given name does not match Student API record for PEN :: {}", student.getPen());
-            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.GIVEN_NAME, AssessmentStudentValidationIssueTypeCode.GIVEN_NAME_MISMATCH));
+            errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.GIVEN_NAME, AssessmentStudentValidationIssueTypeCode.GIVEN_NAME_MISMATCH));
         }
 
         return errors;

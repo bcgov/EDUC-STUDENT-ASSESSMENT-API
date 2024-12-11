@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.eas.api.rules.assessment;
 
 import ca.bc.gov.educ.eas.api.rules.Rule;
-import ca.bc.gov.educ.eas.api.rules.StudentValidationIssueSeverityCode;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.eas.api.struct.v1.StudentRuleData;
 
@@ -11,12 +10,13 @@ import java.util.Optional;
 
 public interface AssessmentValidationBaseRule extends Rule<StudentRuleData, AssessmentStudentValidationIssue> {
 
-    default AssessmentStudentValidationIssue createValidationIssue(StudentValidationIssueSeverityCode severityCode, AssessmentStudentValidationFieldCode fieldCode, AssessmentStudentValidationIssueTypeCode typeCode){
-        AssessmentStudentValidationIssue sdcSchoolCollectionStudentValidationIssue = new AssessmentStudentValidationIssue();
-        sdcSchoolCollectionStudentValidationIssue.setValidationIssueSeverityCode(severityCode.toString());
-        sdcSchoolCollectionStudentValidationIssue.setValidationIssueCode(typeCode.getCode());
-        sdcSchoolCollectionStudentValidationIssue.setValidationIssueFieldCode(fieldCode.getCode());
-        return sdcSchoolCollectionStudentValidationIssue;
+    default AssessmentStudentValidationIssue createValidationIssue(AssessmentStudentValidationFieldCode fieldCode, AssessmentStudentValidationIssueTypeCode typeCode){
+        AssessmentStudentValidationIssue assessmentStudentValidationIssue = new AssessmentStudentValidationIssue();
+        assessmentStudentValidationIssue.setValidationIssueCode(typeCode.getCode());
+        assessmentStudentValidationIssue.setValidationIssueFieldCode(fieldCode.getCode());
+        assessmentStudentValidationIssue.setAssessmentStudentValidationMessage(typeCode.getMessage());
+        assessmentStudentValidationIssue.setAssessmentStudentValidationLabel(typeCode.getLabel());
+        return assessmentStudentValidationIssue;
     }
 
     default boolean isValidationDependencyResolved(String fieldName, List<AssessmentStudentValidationIssue> validationErrorsMap) {
