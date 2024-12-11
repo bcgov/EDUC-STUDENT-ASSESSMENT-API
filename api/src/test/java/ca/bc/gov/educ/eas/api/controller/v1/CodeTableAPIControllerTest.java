@@ -54,5 +54,13 @@ class CodeTableAPIControllerTest extends BaseEasAPITest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void test_getValidationIssueTypeCdes_WithValidScope_ShouldReturnOK() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_EAS_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+        this.mockMvc.perform(get(URL.VALIDATION_ISSUE_TYPE_CODE_URL).with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
 
 }
