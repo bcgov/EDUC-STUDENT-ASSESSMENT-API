@@ -2,7 +2,6 @@ package ca.bc.gov.educ.eas.api.rules.assessment.ruleset;
 
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.SchoolReportingRequirementCodes;
-import ca.bc.gov.educ.eas.api.rules.StudentValidationIssueSeverityCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationFieldCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentValidationBaseRule;
@@ -49,7 +48,7 @@ public class V319CourseCodeCSF implements AssessmentValidationBaseRule {
 
         if (studentRuleData.getSchool().getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode()) && student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.LTF12.getCode())){
             log.debug("V319: Student is in a Francophone school and cannot register for this assessment session for student with PEN :: {}", student.getPen());
-            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_CODE_CSF));
+            errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_CODE_CSF));
         }
 
         return errors;

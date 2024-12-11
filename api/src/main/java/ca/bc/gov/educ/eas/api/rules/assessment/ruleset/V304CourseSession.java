@@ -2,7 +2,6 @@ package ca.bc.gov.educ.eas.api.rules.assessment.ruleset;
 
 import ca.bc.gov.educ.eas.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.eas.api.constants.v1.CourseStatusCodes;
-import ca.bc.gov.educ.eas.api.rules.StudentValidationIssueSeverityCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationFieldCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentValidationBaseRule;
@@ -58,7 +57,7 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
 
         if(student.getCourseStatusCode() != null && student.getCourseStatusCode().equals(CourseStatusCodes.WITHDRAWN.getCode())){
             if(assessmentRulesService.studentHasWrittenAssessment(student.getAssessmentStudentID())){
-                errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.COURSE_STATUS, AssessmentStudentValidationIssueTypeCode.COURSE_ALREADY_WRITTEN));
+                errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.COURSE_STATUS, AssessmentStudentValidationIssueTypeCode.COURSE_ALREADY_WRITTEN));
             }
         } else {
             List<String> assessmentCodes = NUMERACY_ASSESSMENT_CODES.contains(student.getAssessmentEntity().getAssessmentTypeCode()) ? NUMERACY_ASSESSMENT_CODES : Collections.singletonList(student.getAssessmentEntity().getAssessmentTypeCode());
@@ -69,10 +68,10 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
 
             if (studentAssessmentDuplicate != null) {
                 log.debug("V304: The assessment session is a duplicate of an existing {} assessment session for student PEN :: {}", student.getAssessmentEntity().getAssessmentTypeCode(), student.getPen());
-                errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_DUP));
+                errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_DUP));
             }else if (studentWritesExceeded) {
                 log.debug("V304: Student has already reached the maximum number of writes for the {} Assessment for student PEN :: {}", student.getAssessmentEntity().getAssessmentTypeCode(), student.getPen());
-                errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_EXCEED));
+                errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_EXCEED));
             }
         }
 

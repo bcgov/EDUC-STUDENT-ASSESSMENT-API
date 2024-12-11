@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.eas.api.rules.assessment;
 
 import ca.bc.gov.educ.eas.api.rules.Rule;
-import ca.bc.gov.educ.eas.api.rules.StudentValidationIssueSeverityCode;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.eas.api.struct.v1.StudentRuleData;
 
@@ -11,9 +10,8 @@ import java.util.Optional;
 
 public interface AssessmentValidationBaseRule extends Rule<StudentRuleData, AssessmentStudentValidationIssue> {
 
-    default AssessmentStudentValidationIssue createValidationIssue(StudentValidationIssueSeverityCode severityCode, AssessmentStudentValidationFieldCode fieldCode, AssessmentStudentValidationIssueTypeCode typeCode){
+    default AssessmentStudentValidationIssue createValidationIssue(AssessmentStudentValidationFieldCode fieldCode, AssessmentStudentValidationIssueTypeCode typeCode){
         AssessmentStudentValidationIssue assessmentStudentValidationIssue = new AssessmentStudentValidationIssue();
-        assessmentStudentValidationIssue.setValidationIssueSeverityCode(severityCode.toString());
         assessmentStudentValidationIssue.setValidationIssueCode(typeCode.getCode());
         assessmentStudentValidationIssue.setValidationIssueFieldCode(fieldCode.getCode());
         assessmentStudentValidationIssue.setAssessmentStudentValidationMessage(typeCode.getMessage());

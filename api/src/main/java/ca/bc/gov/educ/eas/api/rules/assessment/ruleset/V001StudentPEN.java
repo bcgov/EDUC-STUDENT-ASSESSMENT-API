@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.eas.api.rules.assessment.ruleset;
 
-import ca.bc.gov.educ.eas.api.rules.StudentValidationIssueSeverityCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationFieldCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentValidationBaseRule;
@@ -47,7 +46,7 @@ public class V001StudentPEN implements AssessmentValidationBaseRule {
 
         if(studentRuleData.getStudentApiStudent() == null){
             log.debug("V001: Student PEN is invalid :: {}", student.getPen());
-            errors.add(createValidationIssue(StudentValidationIssueSeverityCode.ERROR, AssessmentStudentValidationFieldCode.PEN, AssessmentStudentValidationIssueTypeCode.PEN_INVALID));
+            errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.PEN, AssessmentStudentValidationIssueTypeCode.PEN_INVALID));
         }
 
         return errors;
