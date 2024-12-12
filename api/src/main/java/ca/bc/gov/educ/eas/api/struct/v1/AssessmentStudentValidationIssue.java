@@ -18,7 +18,7 @@ public class AssessmentStudentValidationIssue extends BaseStudentValidationIssue
 
     private String assessmentStudentID;
 
-    private String assessmentStudentValidationLabel;
+    private String validationLabel;
 
-    private String assessmentStudentValidationMessage;
+    private String validationMessage;
 }
