@@ -3,6 +3,7 @@ package ca.bc.gov.educ.eas.api.validator;
 import ca.bc.gov.educ.eas.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.eas.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.eas.api.util.PenUtil;
 import ca.bc.gov.educ.eas.api.util.ValidationUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,6 +33,10 @@ public class AssessmentStudentValidator {
 
     public List<FieldError> validatePayload(AssessmentStudent assessmentStudent, boolean isCreateOperation) {
         final List<FieldError> apiValidationErrors = new ArrayList<>();
+
+        if (StringUtils.isNotEmpty(assessmentStudent.getPen()) && !PenUtil.validCheckDigit(assessmentStudent.getPen())) {
+            apiValidationErrors.add(ValidationUtil.createFieldError(ASSESSMENT_STUDENT, "pen", assessmentStudent.getPen(), "Invalid Student Pen."));
+        }
 
         Optional<AssessmentEntity> assessmentEntity = assessmentRepository.findById(UUID.fromString(assessmentStudent.getAssessmentID()));
         if (assessmentEntity.isEmpty()) {

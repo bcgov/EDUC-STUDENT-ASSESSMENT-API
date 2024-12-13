@@ -142,6 +142,24 @@ class AssessmentStudentControllerTest extends BaseEasAPITest {
   }
 
   @Test
+  void testUpdateStudent_GivenInvalidPEN_ShouldReturn400() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentStudent student = createMockStudent();
+    student.setPen("123456789");
+
+    this.mockMvc.perform(
+                    put(URL.BASE_URL_STUDENT + "/" + student.getAssessmentStudentID())
+                            .contentType(APPLICATION_JSON)
+                            .content(asJsonString(student))
+                            .with(mockAuthority))
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("pen"));
+  }
+
+  @Test
   void testUpdateStudent_GivenValidPayload_ShouldReturnStudent() throws Exception {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_EAS_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
