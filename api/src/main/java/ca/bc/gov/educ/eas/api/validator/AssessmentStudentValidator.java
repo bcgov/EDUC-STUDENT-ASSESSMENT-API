@@ -37,6 +37,7 @@ public class AssessmentStudentValidator {
         if (StringUtils.isNotEmpty(assessmentStudent.getPen()) && !PenUtil.validCheckDigit(assessmentStudent.getPen())) {
             apiValidationErrors.add(ValidationUtil.createFieldError(ASSESSMENT_STUDENT, "pen", assessmentStudent.getPen(), "Invalid Student Pen."));
         }
+
         Optional<AssessmentEntity> assessmentEntity = assessmentRepository.findById(UUID.fromString(assessmentStudent.getAssessmentID()));
         if (assessmentEntity.isEmpty()) {
             apiValidationErrors.add(ValidationUtil.createFieldError(ASSESSMENT_STUDENT, "assessmentID", assessmentStudent.getAssessmentID(), "Invalid assessment session."));

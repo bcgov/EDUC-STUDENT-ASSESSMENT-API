@@ -14,8 +14,8 @@ public interface AssessmentValidationBaseRule extends Rule<StudentRuleData, Asse
         AssessmentStudentValidationIssue assessmentStudentValidationIssue = new AssessmentStudentValidationIssue();
         assessmentStudentValidationIssue.setValidationIssueCode(typeCode.getCode());
         assessmentStudentValidationIssue.setValidationIssueFieldCode(fieldCode.getCode());
-        assessmentStudentValidationIssue.setAssessmentStudentValidationMessage(typeCode.getMessage());
-        assessmentStudentValidationIssue.setAssessmentStudentValidationLabel(typeCode.getLabel());
+        assessmentStudentValidationIssue.setValidationMessage(typeCode.getMessage());
+        assessmentStudentValidationIssue.setValidationLabel(typeCode.getLabel());
         return assessmentStudentValidationIssue;
     }
 

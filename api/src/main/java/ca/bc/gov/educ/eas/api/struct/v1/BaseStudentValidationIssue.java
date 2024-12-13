@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.eas.api.struct.v1;
 
-import ca.bc.gov.educ.eas.api.struct.v1.BaseRequest;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -16,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @EqualsAndHashCode(callSuper = false)
-public class BaseStudentValidationIssue extends BaseRequest {
+public class BaseStudentValidationIssue {
 
     @Size(max = 10)
     @NotNull(message = "validationIssueSeverityCode cannot be null")
