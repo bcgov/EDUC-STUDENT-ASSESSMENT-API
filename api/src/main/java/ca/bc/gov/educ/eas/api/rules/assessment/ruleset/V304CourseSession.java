@@ -8,7 +8,6 @@ import ca.bc.gov.educ.eas.api.rules.assessment.AssessmentValidationBaseRule;
 import ca.bc.gov.educ.eas.api.service.v1.AssessmentRulesService;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.eas.api.struct.v1.StudentRuleData;
-import ca.bc.gov.educ.eas.api.model.v1.AssessmentStudentEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -62,11 +61,11 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
         } else {
             List<String> assessmentCodes = NUMERACY_ASSESSMENT_CODES.contains(student.getAssessmentEntity().getAssessmentTypeCode()) ? NUMERACY_ASSESSMENT_CODES : Collections.singletonList(student.getAssessmentEntity().getAssessmentTypeCode());
 
-            AssessmentStudentEntity studentAssessmentDuplicate = assessmentRulesService.studentAssessmentDuplicate(student.getPen(), student.getAssessmentEntity().getAssessmentID(), student.getAssessmentStudentID());
+            boolean hasStudentAssessmentDuplicate = assessmentRulesService.hasStudentAssessmentDuplicate(student.getPen(), student.getAssessmentEntity().getAssessmentID(), student.getAssessmentStudentID());
 
             boolean studentWritesExceeded = assessmentRulesService.studentAssessmentWritesExceeded(student.getPen(), assessmentCodes);
 
-            if (studentAssessmentDuplicate != null) {
+            if (hasStudentAssessmentDuplicate) {
                 log.debug("V304: The assessment session is a duplicate of an existing {} assessment session for student PEN :: {}", student.getAssessmentEntity().getAssessmentTypeCode(), student.getPen());
                 errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_DUP));
             }else if (studentWritesExceeded) {

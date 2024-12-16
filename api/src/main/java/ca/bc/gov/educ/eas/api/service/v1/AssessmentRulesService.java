@@ -20,14 +20,10 @@ public class AssessmentRulesService {
 
     private static final int studentAssessmentWriteMax = 3;
 
-    public AssessmentStudentEntity studentAssessmentDuplicate(String studentPEN, UUID assessmentID, UUID assessmentStudentID){
-        Optional<AssessmentStudentEntity> existingStudentAssessment = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndPen(assessmentID, studentPEN);
-
-        if (assessmentStudentID != null && existingStudentAssessment.isPresent() && assessmentStudentID != existingStudentAssessment.get().getAssessmentStudentID()){
-            return existingStudentAssessment.get();
-        } else {
-            return null;
-        }
+    public boolean hasStudentAssessmentDuplicate(String studentPEN, UUID assessmentID, UUID assessmentStudentID){
+        return assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndPen(assessmentID, studentPEN)
+                .filter(existing -> assessmentStudentID == null || !existing.getAssessmentStudentID().equals(assessmentStudentID))
+                .isPresent();
     }
 
     public boolean studentAssessmentWritesExceeded(String pen, List<String> assessmentTypeCodes){
