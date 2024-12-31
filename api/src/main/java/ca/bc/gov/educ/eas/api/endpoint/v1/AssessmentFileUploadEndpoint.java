@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface AssessmentFileUploadEndpoint {
 
     @PostMapping(URL.ASSESSMENTS_KEY_URL+"/{sessionID}/file")
-    //@PreAuthorize("hasAuthority('SCOPE_WRITE_EAS_SESSIONS')")
     @PreAuthorize("hasAuthority('SCOPE_WRITE_EAS_ASSESSMENT_KEYS')")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "CREATED"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     @Tag(name = "Endpoint to upload a Assessment Key file and convert to json structure.", description = "Endpoint to upload a Assessment Key file and convert to json structure")
