@@ -56,6 +56,10 @@ public class SessionService {
         return this.getSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now());
     }
 
+    public Optional<SessionEntity> getSessionById(UUID sessionID) {
+        return this.getSessionRepository().findById(sessionID);
+    }
+
     public List<SessionEntity> getSessionsBySchoolYear(String schoolYear) {
         return this.getSessionRepository().findBySchoolYear(schoolYear);
     }

@@ -16,6 +16,6 @@ public final class URL {
   public static final String ASSESSMENT_TYPE_CODE_URL = BASE_URL + "/assessment-types";
   public static final String PROVINCIAL_SPECIALCASE_CODE_URL = BASE_URL + "/assessment-specialcase-types";
   public static final String ASSESSMENTS_URL = BASE_URL + "/assessments";
-
+  public static final String ASSESSMENTS_KEY_URL = BASE_URL +"/assessment-keys";
 
 }

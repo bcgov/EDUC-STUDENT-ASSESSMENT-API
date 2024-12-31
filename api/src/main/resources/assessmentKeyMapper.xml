@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE PZMAP SYSTEM	"flatpack.dtd" >
+<PZMAP>
+    <COLUMN name="assessmentSession" length="6" />
+    <COLUMN name="assessmentTypeCode" length="5" />
+    <COLUMN name="formCode" length="1" />
+    <COLUMN name="questionNumber" length="2" />
+    <COLUMN name="itemType" length="12" />
+    <COLUMN name="multipleChoiceAnswer" length="150" />
+    <COLUMN name="markValue" length="2" />
+    <COLUMN name="cognitiveLevel" length="4" />
+    <COLUMN name="taskCode" length="2" />
+    <COLUMN name="claimCode" length="3" />
+    <COLUMN name="contextCode" length="1" />
+    <COLUMN name="conceptsCode" length="3" />
+    <COLUMN name="topicType" length="1" />
+    <COLUMN name="scaleFactor" length="8" />
+    <COLUMN name="questionOrigin" length="160" />
+    <COLUMN name="item" length="4" />
+    <COLUMN name="irtColumn" length="3" />
+    <COLUMN name="assessmentSection" length="8" />
+</PZMAP>
