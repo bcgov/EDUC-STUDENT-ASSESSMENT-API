@@ -20,6 +20,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.*;
 
 @SpringBootTest(classes = {EasApiApplication.class})
@@ -82,10 +84,10 @@ public abstract class BaseEasAPITest {
 
     AssessmentSessionCriteriaEntity novSession = AssessmentSessionCriteriaEntity.builder()
             .assessmentSessionCriteriaId(UUID.randomUUID())
-            .sessionStart(LocalDateTime.of(2024, 10, 1, 0, 0))
-            .sessionEnd(LocalDateTime.of(2024, 11, 30, 0, 0))
-            .effectiveDate(LocalDateTime.of(2023, 1, 1, 0, 0))
-            .expiryDate(LocalDateTime.of(2024, 12, 31, 0, 0))
+            .sessionStart(createOctoberFirstDate())
+            .sessionEnd(createOctoberFirstDate().plusDays(59))
+            .effectiveDate(LocalDateTime.now().minusYears(5))
+            .expiryDate(LocalDateTime.of(2099, 12, 31, 0, 0))
             .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.EAS_API)
@@ -95,10 +97,10 @@ public abstract class BaseEasAPITest {
 
     AssessmentSessionCriteriaEntity juneSession = AssessmentSessionCriteriaEntity.builder()
             .assessmentSessionCriteriaId(UUID.randomUUID())
-            .sessionStart(LocalDateTime.of(2025, 5, 1, 0, 0))
-            .sessionEnd(LocalDateTime.of(2025, 6, 30, 0, 0))
-            .effectiveDate(LocalDateTime.of(2023, 1, 1, 0, 0))
-            .expiryDate(LocalDateTime.of(2024, 12, 31, 0, 0))
+            .sessionStart(createMayFirstDate())
+            .sessionEnd(createMayFirstDate().plusDays(59))
+            .effectiveDate(LocalDateTime.now().minusYears(5))
+            .expiryDate(LocalDateTime.of(2099, 12, 31, 0, 0))
             .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.EAS_API)
@@ -133,12 +135,12 @@ public abstract class BaseEasAPITest {
 
     Set<AssessmentCriteriaEntity> typeCodeCriteriaEntities = new HashSet<>();
 
-    AssessmentCriteriaEntity assessmentCriteriaEntity = AssessmentCriteriaEntity.builder()
+      AssessmentCriteriaEntity assessmentCriteriaEntity = AssessmentCriteriaEntity.builder()
             .assessmentCriteriaId(UUID.randomUUID())
             .assessmentSessionCriteriaEntity(novSession)
             .assessmentTypeCodeEntity(assessmentTypeCodeEntity)
-            .effectiveDate(LocalDateTime.of(2023, 1, 1, 0, 0))
-            .expiryDate(LocalDateTime.of(2025, 12, 31, 0, 0))
+            .effectiveDate(LocalDateTime.now().minusYears(5))
+            .expiryDate(LocalDateTime.of(2099, 12, 31, 0, 0))
             .createUser(ApplicationProperties.EAS_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.EAS_API)
@@ -299,6 +301,27 @@ public abstract class BaseEasAPITest {
       return om.writeValueAsString(obj);
     } catch (final Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  public static LocalDateTime createOctoberFirstDate() {
+    int currentMonth = LocalDate.now().getMonthValue();
+
+    if (currentMonth >= Month.SEPTEMBER.getValue()) {
+      return LocalDate.of(LocalDate.now().getYear() + 1, Month.OCTOBER, 1).atStartOfDay();
+    } else {
+      return LocalDate.of(LocalDate.now().getYear(), Month.OCTOBER, 1).atStartOfDay();
+    }
+  }
+
+  public static LocalDateTime createMayFirstDate() {
+    LocalDate now = LocalDate.now();
+    int currentMonth = now.getMonthValue();
+
+    if (currentMonth >= Month.SEPTEMBER.getValue()) {
+      return LocalDate.of(now.getYear() + 1, Month.MAY, 1).atStartOfDay();
+    } else {
+      return LocalDate.of(now.getYear(), Month.MAY, 1).atStartOfDay();
     }
   }
 }
