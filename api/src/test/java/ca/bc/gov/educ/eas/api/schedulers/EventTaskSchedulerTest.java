@@ -32,7 +32,9 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.UUID;
 import java.util.List;
 
@@ -192,27 +194,31 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
         List<AssessmentSessionCriteriaEntity> savedAssessmentSessionCriteriaEntities = assessmentSessionCriteriaRepository.saveAll(createMockAssessmentSessionCriteriaEntities());
 
         for (AssessmentSessionCriteriaEntity entity : savedAssessmentSessionCriteriaEntities) {
-            entity.setAssessmentCriteriaEntities(createMockAssessmentSessionTypeCodeCriteriaEntities(savedAssessmentSessionCriteriaEntities, assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTF12"))));
+            AssessmentTypeCodeEntity savedAssessmentTypeCode = assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTF12"));
+            entity.setAssessmentCriteriaEntities(createMockAssessmentSessionTypeCodeCriteriaEntities(savedAssessmentSessionCriteriaEntities, savedAssessmentTypeCode));
             assessmentSessionCriteriaRepository.save(entity);
         }
 
         eventTaskSchedulerAsyncService.createSessionsForSchoolYear();
 
+        int currentMonth = LocalDate.now().getMonthValue();
+        int targetYear = currentMonth >= Month.SEPTEMBER.getValue() ? LocalDate.now().getYear() + 1 : LocalDate.now().getYear();
+
         List<SessionEntity> savedSessions = sessionRepository.findAll();
         assertThat(savedSessions)
-                .hasSize(2)
-                .anySatisfy(session -> {
-                    assertThat(session.getCourseMonth()).isEqualTo("11");
-                    assertThat(session.getCourseYear()).isEqualTo("2024");
-                    assertThat(session.getAssessments())
-                            .hasSize(1)
-                            .extracting(AssessmentEntity::getAssessmentTypeCode)
-                            .containsExactly("LTF12");
-                })
-                .anySatisfy(session -> {
-                    assertThat(session.getCourseMonth()).isEqualTo("6");
-                    assertThat(session.getCourseYear()).isEqualTo("2025");
-                });
+            .hasSize(2)
+            .anySatisfy(session -> {
+                assertThat(session.getCourseMonth()).isEqualTo("11");
+                assertThat(session.getCourseYear()).isEqualTo(String.valueOf(targetYear));
+                assertThat(session.getAssessments())
+                        .hasSize(1)
+                        .extracting(AssessmentEntity::getAssessmentTypeCode)
+                        .containsExactly("LTF12");
+            })
+            .anySatisfy(session -> {
+                assertThat(session.getCourseMonth()).isEqualTo("6");
+                assertThat(session.getCourseYear()).isEqualTo(String.valueOf(targetYear + 1));
+            });
     }
 
 }
