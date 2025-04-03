@@ -13,7 +13,7 @@ import java.time.format.DateTimeParseException;
 public class RuleUtil {
 
     public static boolean validateStudentSurnameMatches(AssessmentStudentEntity student, Student studentFromAPI) {
-        return StringUtils.isNotBlank(studentFromAPI.getLegalLastName()) && StringUtils.isNotBlank(student.getSurName()) && studentFromAPI.getLegalLastName().equalsIgnoreCase(student.getSurName());
+        return StringUtils.isNotBlank(studentFromAPI.getLegalLastName()) && StringUtils.isNotBlank(student.getSurname()) && studentFromAPI.getLegalLastName().equalsIgnoreCase(student.getSurname());
     }
 
     public static boolean validateStudentGivenNameMatches(AssessmentStudentEntity student, Student studentFromAPI) {

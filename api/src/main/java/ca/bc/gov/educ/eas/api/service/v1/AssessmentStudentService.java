@@ -64,11 +64,11 @@ public class AssessmentStudentService {
         return assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentID, studentID);
     }
 
-    public int getNumberOfAttempts(String assessmentID, UUID studentID) {
+    public String getNumberOfAttempts(String assessmentID, UUID studentID) {
         var assessment = assessmentRepository.findById(UUID.fromString(assessmentID)).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentID));
 
-        return assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, getAssessmentTypeCodeList(assessment.getAssessmentTypeCode()));
+        return Integer.toString(assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, getAssessmentTypeCodeList(assessment.getAssessmentTypeCode())));
     }
 
     private List<String> getAssessmentTypeCodeList(String assessmentTypeCode){

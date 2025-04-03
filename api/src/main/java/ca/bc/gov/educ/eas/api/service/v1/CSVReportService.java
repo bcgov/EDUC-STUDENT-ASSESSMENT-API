@@ -125,7 +125,7 @@ public class CSVReportService {
                 school.getMincode(),
                 student.getPen(),
                 student.getGivenName(),
-                student.getSurName(),
+                student.getSurname(),
                 assessmentCenter.isPresent() ? assessmentCenter.get().getMincode() : "",
                 student.getAssessmentEntity().getAssessmentTypeCode()
         ));

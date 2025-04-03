@@ -124,7 +124,7 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     var studentAPIStudent = this.createMockStudentAPIStudent();
     studentAPIStudent.setPen(assessmentStudentEntity.getPen());
     studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
-    studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurName());
+    studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurname());
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
 
     //when creating an assessment student
@@ -156,7 +156,7 @@ class AssessmentStudentServiceTest extends BaseEasAPITest {
     var studentAPIStudent = this.createMockStudentAPIStudent();
     studentAPIStudent.setPen(assessmentStudentEntity.getPen());
     studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
-    studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurName());
+    studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurname());
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
 
     AssessmentStudent assessmentStudent = service.createStudent(studentEntity);

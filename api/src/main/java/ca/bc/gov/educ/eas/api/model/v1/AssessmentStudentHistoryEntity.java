@@ -51,7 +51,7 @@ public class AssessmentStudentHistoryEntity {
     private String givenName;
 
     @Column(name = "SURNAME", nullable = false, length = 25)
-    private String surName;
+    private String surname;
 
     @Column(name = "PEN", nullable = false, length = 9)
     private String pen;

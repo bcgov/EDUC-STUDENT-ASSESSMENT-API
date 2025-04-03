@@ -120,7 +120,7 @@ public class EventHandlerService {
         }
 
         val numberOfAttempts = assessmentStudentService.getNumberOfAttempts(student.getAssessmentID(), UUID.fromString(student.getStudentID()));
-        response.setNumberOfAttempts(Integer.toString(numberOfAttempts));
+        response.setNumberOfAttempts(numberOfAttempts);
         return JsonUtil.getJsonBytesFromObject(response);
     }
 

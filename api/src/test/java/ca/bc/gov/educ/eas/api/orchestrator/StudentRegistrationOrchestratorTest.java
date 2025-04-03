@@ -112,7 +112,7 @@ class StudentRegistrationOrchestratorTest extends BaseEasAPITest {
         var studentAPIStudent = this.createMockStudentAPIStudent();
         studentAPIStudent.setPen(sagaData.getPen());
         studentAPIStudent.setLegalFirstName(sagaData.getGivenName());
-        studentAPIStudent.setLegalLastName(sagaData.getSurName());
+        studentAPIStudent.setLegalLastName(sagaData.getSurname());
         when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
 
         assessmentStudentService.createStudentWithoutValidation(mapper.toModel(sagaData));

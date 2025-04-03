@@ -42,7 +42,7 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     private String givenName;
 
     @NotBlank(message = "surName cannot be null")
-    private String surName;
+    private String surname;
 
     @NotBlank(message = "pen cannot be null")
     @Size(max = 9)
@@ -51,7 +51,7 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @Size(max = 12)
     private String localID;
 
-    private Boolean isElectronicExam;
+    private String isElectronicExam;
 
     @Size(max = 1)
     private String proficiencyScore;
@@ -66,5 +66,5 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
 
     private List<AssessmentStudentValidationIssue> assessmentStudentValidationIssues;
 
-    private Integer numberOfAttempts;
+    private String numberOfAttempts;
 }
