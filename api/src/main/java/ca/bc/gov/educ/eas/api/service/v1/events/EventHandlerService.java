@@ -77,6 +77,8 @@ public class EventHandlerService {
             RequestUtil.setAuditColumnsForCreate(assessmentStudent);
             AssessmentStudentEntity createStudentEntity = assessmentStudentMapper.toModel(assessmentStudent);
             createStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
+            var attempts = assessmentStudentService.getNumberOfAttempts(createStudentEntity.getAssessmentEntity().getAssessmentID().toString(), createStudentEntity.getStudentID());
+            createStudentEntity.setNumberOfAttempts(Integer.parseInt(attempts));
             assessmentStudentService.createStudentWithoutValidation(createStudentEntity);
             event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_CREATED);
         } else {
