@@ -19,6 +19,7 @@ import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentDetailResponse;
 import ca.bc.gov.educ.eas.api.struct.v1.AssessmentStudentGet;
 import ca.bc.gov.educ.eas.api.util.JsonUtil;
+import ca.bc.gov.educ.eas.api.util.RequestUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +74,7 @@ public class EventHandlerService {
         final AssessmentStudent assessmentStudent = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
         Optional<AssessmentStudentEntity> student = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(assessmentStudent.getAssessmentID()), UUID.fromString(assessmentStudent.getStudentID()));
         if (student.isEmpty()) {
+            RequestUtil.setAuditColumnsForCreate(assessmentStudent);
             AssessmentStudentEntity createStudentEntity = assessmentStudentMapper.toModel(assessmentStudent);
             createStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
             assessmentStudentService.createStudentWithoutValidation(createStudentEntity);
