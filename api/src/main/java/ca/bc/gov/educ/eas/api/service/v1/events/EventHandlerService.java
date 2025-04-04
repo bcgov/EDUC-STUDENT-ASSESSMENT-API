@@ -79,6 +79,7 @@ public class EventHandlerService {
             createStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
             var attempts = assessmentStudentService.getNumberOfAttempts(createStudentEntity.getAssessmentEntity().getAssessmentID().toString(), createStudentEntity.getStudentID());
             createStudentEntity.setNumberOfAttempts(Integer.parseInt(attempts));
+            log.info("Writing student entity: " + createStudentEntity);
             assessmentStudentService.createStudentWithoutValidation(createStudentEntity);
             event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_CREATED);
         } else {
