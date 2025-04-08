@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -89,7 +90,7 @@ public class SessionService {
         LocalDateTime activeFromDate = LocalDateTime.of(schoolYearStart, 10, 1, 0, 0);
 
         for(AssessmentSessionCriteriaEntity sessionType : sessionTypes){
-            String sessionMonth = String.valueOf(sessionType.getSessionEnd().getMonthValue());
+            String sessionMonth = StringUtils.leftPad(String.valueOf(sessionType.getSessionEnd().getMonthValue()),2, "0");
             int sessionYear = sessionMonth.equalsIgnoreCase("11") ? schoolYearStart : schoolYearStart + 1;
             LocalDateTime endOfSessionDate = LocalDateTime.of(sessionYear, sessionType.getSessionEnd().getMonth(), sessionType.getSessionEnd().getDayOfMonth(), 0, 0);
 
