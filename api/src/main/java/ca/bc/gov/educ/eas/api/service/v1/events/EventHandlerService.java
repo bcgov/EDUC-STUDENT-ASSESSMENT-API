@@ -73,7 +73,9 @@ public class EventHandlerService {
     public byte[] handleCreateStudentRegistrationEvent(Event event) throws JsonProcessingException {
         final AssessmentStudent assessmentStudent = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
         Optional<AssessmentStudentEntity> student = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(assessmentStudent.getAssessmentID()), UUID.fromString(assessmentStudent.getStudentID()));
+        log.debug("handleCreateStudentRegistrationEvent found student :: {}", student);
         if (student.isEmpty()) {
+            log.debug("handleCreateStudentRegistrationEvent setting audit columns :: {}", student);
             RequestUtil.setAuditColumnsForCreate(assessmentStudent);
             AssessmentStudentEntity createStudentEntity = assessmentStudentMapper.toModel(assessmentStudent);
             createStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
