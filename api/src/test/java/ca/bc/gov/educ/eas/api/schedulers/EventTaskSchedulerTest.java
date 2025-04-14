@@ -216,7 +216,7 @@ class EventTaskSchedulerTest extends BaseEasAPITest {
                         .containsExactly("LTF12");
             })
             .anySatisfy(session -> {
-                assertThat(session.getCourseMonth()).isEqualTo("6");
+                assertThat(session.getCourseMonth()).isEqualTo("06");
                 assertThat(session.getCourseYear()).isEqualTo(String.valueOf(targetYear + 1));
             });
     }

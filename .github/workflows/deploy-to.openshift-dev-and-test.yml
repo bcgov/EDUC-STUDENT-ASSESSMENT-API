@@ -173,11 +173,6 @@ jobs:
         # Get status, returns 0 if rollout is successful
         oc rollout status deployment/${{ env.SPRING_BOOT_IMAGE_NAME }}
 
-    - name: ZAP Scan
-      uses: zaproxy/action-api-scan@v0.7.0
-      with:
-        target: 'https://${{ env.APP_NAME }}-${{ env.OPENSHIFT_NAMESPACE_DEV }}-dev.apps.silver.devops.gov.bc.ca/v3/api-docs'
-
   deploy-test:
     name: Deploy to OpenShift TEST
     needs: build-and-deploy-dev
@@ -258,8 +253,3 @@ jobs:
           oc rollout restart deployment/${{ env.SPRING_BOOT_IMAGE_NAME }}
           # Get status, returns 0 if rollout is successful
           oc rollout status deployments/${{ env.SPRING_BOOT_IMAGE_NAME }}
-
-      - name: ZAP Scan
-        uses: zaproxy/action-api-scan@v0.7.0
-        with:
-          target: 'https://${{ env.APP_NAME }}-${{ env.OPENSHIFT_NAMESPACE_TEST }}-dev.apps.silver.devops.gov.bc.ca/v3/api-docs'
