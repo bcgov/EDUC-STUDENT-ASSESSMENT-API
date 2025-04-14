@@ -1,0 +1,62 @@
+services:
+  - name: APP_SERVICE_PREFIX-api-dev
+    tags: [ ns.GATEWAY_NAMESPACE ]
+    host: BACKEND_SERVICE_NAME.OPENSHIFT_DEV_NAMESPACE.svc.cluster.local
+    port: 8080
+    protocol: http
+    retries: 0
+    routes:
+      - name: APP_SERVICE_PREFIX-api-dev-route
+        tags: [ ns.GATEWAY_NAMESPACE ]
+        hosts:
+          - PUBLIC_HOSTNAME_DEV
+        paths:
+          - ~/*
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        strip_path: false
+        https_redirect_status_code: 426
+        path_handling: v0
+  - name: APP_SERVICE_PREFIX-api-test
+    tags: [ ns.GATEWAY_NAMESPACE ]
+    host: BACKEND_SERVICE_NAME.OPENSHIFT_TEST_NAMESPACE.svc.cluster.local
+    port: 8080
+    protocol: http
+    retries: 0
+    routes:
+      - name: APP_SERVICE_PREFIX-api-test-route
+        tags: [ ns.GATEWAY_NAMESPACE ]
+        hosts:
+          - PUBLIC_HOSTNAME_TEST
+        paths:
+          - ~/*
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        strip_path: false
+        https_redirect_status_code: 426
+        path_handling: v0
+  - name: APP_SERVICE_PREFIX-api-prod
+    tags: [ ns.GATEWAY_NAMESPACE ]
+    host: BACKEND_SERVICE_NAME.OPENSHIFT_PROD_NAMESPACE.svc.cluster.local
+    port: 8080
+    protocol: http
+    retries: 0
+    routes:
+      - name: APP_SERVICE_PREFIX-api-prod-route
+        tags: [ ns.GATEWAY_NAMESPACE ]
+        hosts:
+          - PUBLIC_HOSTNAME_PROD
+        paths:
+          - ~/*
+        methods:
+          - GET
+          - POST
+        strip_path: false
+        https_redirect_status_code: 426
+        path_handling: v0
