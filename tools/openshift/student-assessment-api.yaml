@@ -79,7 +79,7 @@ objects:
                   protocol: TCP
               envFrom:
                 - configMapRef:
-                    name: assessment-api-config-map
+                    name: student-assessment-api-config-map
               env:
                 - name: DB_JDBC_CONNECT_STRING
                   value: "${DB_JDBC_CONNECT_STRING}"
