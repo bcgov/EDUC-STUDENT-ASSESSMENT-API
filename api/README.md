@@ -1,4 +1,4 @@
-# EDUC-EAS-API
+# EDUC-STUDENT-ASSESSMENT-API
 ## Build Setup
 
 ``` bash

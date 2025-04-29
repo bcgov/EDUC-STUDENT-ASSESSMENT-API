@@ -6,14 +6,14 @@ env:
   # To get a permanent token, refer to https://github.com/redhat-actions/oc-login/wiki/Using-a-Service-Account-for-GitHub-Actions
   OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
   OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
-  OPENSHIFT_NAMESPACE: ${{ secrets.EAS_NAMESPACE_NO_ENV }}-dev
+  OPENSHIFT_NAMESPACE: ${{ secrets.STUDENT_ASSESSMENT_NAMESPACE_NO_ENV }}-dev
 
   # 🖊️ EDIT to specify custom tags for the container image, or default tags will be generated below.
   IMAGE_TAGS: ""
 
-  REPO_NAME: "educ-eas-api"
+  REPO_NAME: "educ-student-assessment-api"
   BRANCH: "master"
-  NAMESPACE: ${{ secrets.EAS_NAMESPACE_NO_ENV }}
+  NAMESPACE: ${{ secrets.STUDENT_ASSESSMENT_NAMESPACE_NO_ENV }}
 
 on:
   # https://docs.github.com/en/actions/reference/events-that-trigger-workflows

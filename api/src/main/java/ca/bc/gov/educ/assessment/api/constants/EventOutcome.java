@@ -1,0 +1,16 @@
+package ca.bc.gov.educ.assessment.api.constants;
+
+/**
+ * The enum Event outcome.
+ */
+public enum EventOutcome {
+  INITIATE_SUCCESS,
+  SESSIONS_FOUND,
+  STUDENT_REGISTRATION_CREATED,
+  STUDENT_REGISTRATION_EVENT_READ,
+  STUDENT_REGISTRATION_PUBLISHED,
+  SAGA_COMPLETED,
+  STUDENT_ALREADY_EXIST,
+  MERGE_FOUND,
+  STUDENTS_FOUND
+}

@@ -24,85 +24,85 @@ TKN=$(curl -s \
   "https://$SOAM_KC/auth/realms/$SOAM_KC_REALM_ID/protocol/openid-connect/token" | jq -r '.access_token')
 
 echo
-echo Retrieving client ID for eas-api-service
-EAS_APIServiceClientID=$(curl -sX GET "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients" \
+echo Retrieving client ID for assessment-api-service
+ASSESSMENT_APIServiceClientID=$(curl -sX GET "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" |
-  jq '.[] | select(.clientId=="eas-api-service")' | jq -r '.id')
+  jq '.[] | select(.clientId=="assessment-api-service")' | jq -r '.id')
 
 echo
-echo Retrieving client secret for eas-api-service
-EAS_APIServiceClientSecret=$([ -n "$EAS_APIServiceClientID" ] && curl -sX GET "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients/$EAS_APIServiceClientID/client-secret" \
+echo Retrieving client secret for assessment-api-service
+ASSESSMENT_APIServiceClientSecret=$([ -n "$ASSESSMENT_APIServiceClientID" ] && curl -sX GET "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients/$ASSESSMENT_APIServiceClientID/client-secret" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" |
   jq -r '.value')
 
 echo
-echo Removing EAS API client if exists
-curl -sX DELETE "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients/$EAS_APIServiceClientID" \
+echo Removing Assessment API client if exists
+curl -sX DELETE "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients/$ASSESSMENT_APIServiceClientID" \
   -H "Authorization: Bearer $TKN"
 
-echo Writing scope READ_EAS_REPORT
+echo Writing scope READ_ASSESSMENT_REPORT
 curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" \
-  -d "{\"description\": \"Read EAS report\",\"id\": \"READ_EAS_REPORT\",\"name\": \"READ_EAS_REPORT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+  -d "{\"description\": \"Read Assessment report\",\"id\": \"READ_ASSESSMENT_REPORT\",\"name\": \"READ_ASSESSMENT_REPORT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
 
-echo Writing scope WRITE_EAS_STUDENT
+echo Writing scope WRITE_ASSESSMENT_STUDENT
 curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" \
-  -d "{\"description\": \"Write Assessment Students\",\"id\": \"WRITE_EAS_STUDENT\",\"name\": \"WRITE_EAS_STUDENT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+  -d "{\"description\": \"Write Assessment Students\",\"id\": \"WRITE_ASSESSMENT_STUDENT\",\"name\": \"WRITE_ASSESSMENT_STUDENT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
 
-echo Writing scope READ_EAS_STUDENT
+echo Writing scope READ_ASSESSMENT_STUDENT
 curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" \
-  -d "{\"description\": \"Read Assessment Students\",\"id\": \"READ_EAS_STUDENT\",\"name\": \"READ_EAS_STUDENT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+  -d "{\"description\": \"Read Assessment Students\",\"id\": \"READ_ASSESSMENT_STUDENT\",\"name\": \"READ_ASSESSMENT_STUDENT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
 
-if [[ -n "$EAS_APIServiceClientID" && -n "$EAS_APIServiceClientSecret" && ("$envValue" = "dev" || "$envValue" = "test") ]]; then
+if [[ -n "$ASSESSMENT_APIServiceClientID" && -n "$ASSESSMENT_APIServiceClientSecret" && ("$envValue" = "dev" || "$envValue" = "test") ]]; then
   echo
-  echo Creating client eas-api-service with secret
+  echo Creating client assessment-api-service with secret
   curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $TKN" \
-    -d "{\"clientId\" : \"eas-api-service\",\"secret\" : \"$EAS_APIServiceClientSecret\",\"surrogateAuthRequired\" : false,\"enabled\" : true,\"clientAuthenticatorType\" : \"client-secret\",\"redirectUris\" : [ ],\"webOrigins\" : [ ],\"notBefore\" : 0,\"bearerOnly\" : false,\"consentRequired\" : false,\"standardFlowEnabled\" : false,\"implicitFlowEnabled\" : false,\"directAccessGrantsEnabled\" : false,\"serviceAccountsEnabled\" : true,\"publicClient\" : false,\"frontchannelLogout\" : false,\"protocol\" : \"openid-connect\",\"attributes\" : {\"saml.assertion.signature\" : \"false\",\"saml.multivalued.roles\" : \"false\",\"saml.force.post.binding\" : \"false\",\"saml.encrypt\" : \"false\",\"saml.server.signature\" : \"false\",\"saml.server.signature.keyinfo.ext\" : \"false\",\"exclude.session.state.from.auth.response\" : \"false\",\"saml_force_name_id_format\" : \"false\",\"saml.client.signature\" : \"false\",\"tls.client.certificate.bound.access.tokens\" : \"false\",\"saml.authnstatement\" : \"false\",\"display.on.consent.screen\" : \"false\",\"saml.onetimeuse.condition\" : \"false\"},\"authenticationFlowBindingOverrides\" : { },\"fullScopeAllowed\" : true,\"nodeReRegistrationTimeout\" : -1,\"protocolMappers\" : [ {\"name\" : \"Client ID\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientId\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientId\",\"jsonType.label\" : \"String\"}}, {\"name\" : \"Client Host\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientHost\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientHost\",\"jsonType.label\" : \"String\"}}, {\"name\" : \"Client IP Address\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientAddress\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientAddress\",\"jsonType.label\" : \"String\"}} ],\"defaultClientScopes\" : [ \"READ_INSTITUTE_CODES\", \"READ_SCHOOL\", \"READ_DISTRICT\", \"READ_INDEPENDENT_AUTHORITY\", \"READ_EAS_USERS\",\"web-origins\", \"role_list\", \"profile\", \"roles\", \"email\"],\"optionalClientScopes\" : [ \"address\", \"phone\", \"offline_access\" ],\"access\" : {\"view\" : true,\"configure\" : true,\"manage\" : true}}"
+    -d "{\"clientId\" : \"assessment-api-service\",\"secret\" : \"$ASSESSMENT_APIServiceClientSecret\",\"surrogateAuthRequired\" : false,\"enabled\" : true,\"clientAuthenticatorType\" : \"client-secret\",\"redirectUris\" : [ ],\"webOrigins\" : [ ],\"notBefore\" : 0,\"bearerOnly\" : false,\"consentRequired\" : false,\"standardFlowEnabled\" : false,\"implicitFlowEnabled\" : false,\"directAccessGrantsEnabled\" : false,\"serviceAccountsEnabled\" : true,\"publicClient\" : false,\"frontchannelLogout\" : false,\"protocol\" : \"openid-connect\",\"attributes\" : {\"saml.assertion.signature\" : \"false\",\"saml.multivalued.roles\" : \"false\",\"saml.force.post.binding\" : \"false\",\"saml.encrypt\" : \"false\",\"saml.server.signature\" : \"false\",\"saml.server.signature.keyinfo.ext\" : \"false\",\"exclude.session.state.from.auth.response\" : \"false\",\"saml_force_name_id_format\" : \"false\",\"saml.client.signature\" : \"false\",\"tls.client.certificate.bound.access.tokens\" : \"false\",\"saml.authnstatement\" : \"false\",\"display.on.consent.screen\" : \"false\",\"saml.onetimeuse.condition\" : \"false\"},\"authenticationFlowBindingOverrides\" : { },\"fullScopeAllowed\" : true,\"nodeReRegistrationTimeout\" : -1,\"protocolMappers\" : [ {\"name\" : \"Client ID\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientId\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientId\",\"jsonType.label\" : \"String\"}}, {\"name\" : \"Client Host\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientHost\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientHost\",\"jsonType.label\" : \"String\"}}, {\"name\" : \"Client IP Address\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientAddress\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientAddress\",\"jsonType.label\" : \"String\"}} ],\"defaultClientScopes\" : [ \"READ_INSTITUTE_CODES\", \"READ_SCHOOL\", \"READ_DISTRICT\", \"READ_INDEPENDENT_AUTHORITY\", \"READ_ASSESSMENT_USERS\",\"web-origins\", \"role_list\", \"profile\", \"roles\", \"email\"],\"optionalClientScopes\" : [ \"address\", \"phone\", \"offline_access\" ],\"access\" : {\"view\" : true,\"configure\" : true,\"manage\" : true}}"
 else
   echo
-    echo Creating client eas-api-service without secret
+    echo Creating client assessment-api-service without secret
     curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients" \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer $TKN" \
-      -d "{\"clientId\" : \"eas-api-service\",\"surrogateAuthRequired\" : false,\"enabled\" : true,\"clientAuthenticatorType\" : \"client-secret\",\"redirectUris\" : [ ],\"webOrigins\" : [ ],\"notBefore\" : 0,\"bearerOnly\" : false,\"consentRequired\" : false,\"standardFlowEnabled\" : false,\"implicitFlowEnabled\" : false,\"directAccessGrantsEnabled\" : false,\"serviceAccountsEnabled\" : true,\"publicClient\" : false,\"frontchannelLogout\" : false,\"protocol\" : \"openid-connect\",\"attributes\" : {\"saml.assertion.signature\" : \"false\",\"saml.multivalued.roles\" : \"false\",\"saml.force.post.binding\" : \"false\",\"saml.encrypt\" : \"false\",\"saml.server.signature\" : \"false\",\"saml.server.signature.keyinfo.ext\" : \"false\",\"exclude.session.state.from.auth.response\" : \"false\",\"saml_force_name_id_format\" : \"false\",\"saml.client.signature\" : \"false\",\"tls.client.certificate.bound.access.tokens\" : \"false\",\"saml.authnstatement\" : \"false\",\"display.on.consent.screen\" : \"false\",\"saml.onetimeuse.condition\" : \"false\"},\"authenticationFlowBindingOverrides\" : { },\"fullScopeAllowed\" : true,\"nodeReRegistrationTimeout\" : -1,\"protocolMappers\" : [ {\"name\" : \"Client ID\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientId\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientId\",\"jsonType.label\" : \"String\"}}, {\"name\" : \"Client Host\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientHost\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientHost\",\"jsonType.label\" : \"String\"}}, {\"name\" : \"Client IP Address\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientAddress\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientAddress\",\"jsonType.label\" : \"String\"}} ],\"defaultClientScopes\" : [ \"READ_INSTITUTE_CODES\", \"READ_SCHOOL\", \"READ_DISTRICT\", \"READ_INDEPENDENT_AUTHORITY\", \"READ_EAS_USERS\", \"web-origins\", \"role_list\", \"profile\", \"roles\", \"email\"],\"optionalClientScopes\" : [ \"address\", \"phone\", \"offline_access\" ],\"access\" : {\"view\" : true,\"configure\" : true,\"manage\" : true}}"
+      -d "{\"clientId\" : \"assessment-api-service\",\"surrogateAuthRequired\" : false,\"enabled\" : true,\"clientAuthenticatorType\" : \"client-secret\",\"redirectUris\" : [ ],\"webOrigins\" : [ ],\"notBefore\" : 0,\"bearerOnly\" : false,\"consentRequired\" : false,\"standardFlowEnabled\" : false,\"implicitFlowEnabled\" : false,\"directAccessGrantsEnabled\" : false,\"serviceAccountsEnabled\" : true,\"publicClient\" : false,\"frontchannelLogout\" : false,\"protocol\" : \"openid-connect\",\"attributes\" : {\"saml.assertion.signature\" : \"false\",\"saml.multivalued.roles\" : \"false\",\"saml.force.post.binding\" : \"false\",\"saml.encrypt\" : \"false\",\"saml.server.signature\" : \"false\",\"saml.server.signature.keyinfo.ext\" : \"false\",\"exclude.session.state.from.auth.response\" : \"false\",\"saml_force_name_id_format\" : \"false\",\"saml.client.signature\" : \"false\",\"tls.client.certificate.bound.access.tokens\" : \"false\",\"saml.authnstatement\" : \"false\",\"display.on.consent.screen\" : \"false\",\"saml.onetimeuse.condition\" : \"false\"},\"authenticationFlowBindingOverrides\" : { },\"fullScopeAllowed\" : true,\"nodeReRegistrationTimeout\" : -1,\"protocolMappers\" : [ {\"name\" : \"Client ID\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientId\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientId\",\"jsonType.label\" : \"String\"}}, {\"name\" : \"Client Host\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientHost\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientHost\",\"jsonType.label\" : \"String\"}}, {\"name\" : \"Client IP Address\",\"protocol\" : \"openid-connect\",\"protocolMapper\" : \"oidc-usersessionmodel-note-mapper\",\"consentRequired\" : false,\"config\" : {\"user.session.note\" : \"clientAddress\",\"id.token.claim\" : \"true\",\"access.token.claim\" : \"true\",\"claim.name\" : \"clientAddress\",\"jsonType.label\" : \"String\"}} ],\"defaultClientScopes\" : [ \"READ_INSTITUTE_CODES\", \"READ_SCHOOL\", \"READ_DISTRICT\", \"READ_INDEPENDENT_AUTHORITY\", \"READ_ASSESSMENT_USERS\", \"web-origins\", \"role_list\", \"profile\", \"roles\", \"email\"],\"optionalClientScopes\" : [ \"address\", \"phone\", \"offline_access\" ],\"access\" : {\"view\" : true,\"configure\" : true,\"manage\" : true}}"
 fi
 
 echo
-echo Retrieving client ID for eas-api-service
-EAS_APIServiceClientID=$(curl -sX GET "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients" \
+echo Retrieving client ID for assessment-api-service
+ASSESSMENT_APIServiceClientID=$(curl -sX GET "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" |
-  jq '.[] | select(.clientId=="eas-api-service")' | jq -r '.id')
+  jq '.[] | select(.clientId=="assessment-api-service")' | jq -r '.id')
 
 echo
-echo Retrieving client secret for eas-api-service
-EAS_APIServiceClientSecret=$(curl -sX GET "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients/$EAS_APIServiceClientID/client-secret" \
+echo Retrieving client secret for assessment-api-service
+ASSESSMENT_APIServiceClientSecret=$(curl -sX GET "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/clients/$ASSESSMENT_APIServiceClientID/client-secret" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" |
   jq -r '.value')
 
 echo
-echo Writing scope READ_EAS_SESSIONS
+echo Writing scope READ_ASSESSMENT_SESSIONS
 curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" \
-  -d "{\"description\": \"Read Assessment Sessions Data\",\"id\": \"READ_EAS_SESSIONS\",\"name\": \"READ_EAS_SESSIONS\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+  -d "{\"description\": \"Read Assessment Sessions Data\",\"id\": \"READ_ASSESSMENT_SESSIONS\",\"name\": \"READ_ASSESSMENT_SESSIONS\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
 
 echo
-echo Writing scope WRITE_EAS_SESSIONS
+echo Writing scope WRITE_ASSESSMENT_SESSIONS
 curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" \
-  -d "{\"description\": \"Write Assessment Sessions Data\",\"id\": \"WRITE_EAS_SESSIONS\",\"name\": \"WRITE_EAS_SESSIONS\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+  -d "{\"description\": \"Write Assessment Sessions Data\",\"id\": \"WRITE_ASSESSMENT_SESSIONS\",\"name\": \"WRITE_ASSESSMENT_SESSIONS\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
 
 
 ###########################################################
@@ -148,15 +148,15 @@ PARSER_CONFIG="
 THREADS_MIN_SUBSCRIBER=8
 THREADS_MAX_SUBSCRIBER=12
 
-SCHEDULED_JOBS_PUBLISH_LOADED_EAS_STUDENTS_CRON="0/2 * * * * *"
-SCHEDULED_JOBS_PUBLISH_LOADED_EAS_STUDENTS_CRON_LOCK_AT_LEAST_FOR="1700ms"
-SCHEDULED_JOBS_PUBLISH_LOADED_EAS_STUDENTS_CRON_LOCK_AT_MOST_FOR="1900ms"
+SCHEDULED_JOBS_PUBLISH_LOADED_ASSESSMENT_STUDENTS_CRON="0/2 * * * * *"
+SCHEDULED_JOBS_PUBLISH_LOADED_ASSESSMENT_STUDENTS_CRON_LOCK_AT_LEAST_FOR="1700ms"
+SCHEDULED_JOBS_PUBLISH_LOADED_ASSESSMENT_STUDENTS_CRON_LOCK_AT_MOST_FOR="1900ms"
 
 SCHEDULED_JOBS_SETUP_SESSIONS_CRON="0 0 0 * AUG ?"
 SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_LEAST_FOR="1700ms"
 SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_MOST_FOR="1900ms"
 
-EAS_NOTIFICATION_EMAIL_FROM="educationdataexchange@gov.bc.ca"
+ASSESSMENT_NOTIFICATION_EMAIL_FROM="educationdataexchange@gov.bc.ca"
 
 MAXIMUM_DB_POOL_SIZE=25
 MINIMUM_IDLE_DB_POOL_SIZE=15
@@ -164,15 +164,15 @@ MINIMUM_IDLE_DB_POOL_SIZE=15
 
 if [ "$envValue" = "dev" ]
 then
-  EAS_NOTIFICATION_EMAIL_FROM="dev.educationdataexchange@gov.bc.ca"
+  ASSESSMENT_NOTIFICATION_EMAIL_FROM="dev.educationdataexchange@gov.bc.ca"
 elif [ "$envValue" = "test" ]
 then
-  EAS_NOTIFICATION_EMAIL_FROM="test.educationdataexchange@gov.bc.ca"
+  ASSESSMENT_NOTIFICATION_EMAIL_FROM="test.educationdataexchange@gov.bc.ca"
 fi
 
 echo
 echo Creating config map "$APP_NAME"-config-map
-oc create -n "$OPENSHIFT_NAMESPACE"-"$envValue" configmap "$APP_NAME"-config-map --from-literal=TZ=$TZVALUE --from-literal=STUDENT_API_URL="http://student-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/api/v1/student" --from-literal=EAS_NOTIFICATION_EMAIL_FROM=$EAS_NOTIFICATION_EMAIL_FROM --from-literal=JDBC_URL="$DB_JDBC_CONNECT_STRING" --from-literal=PURGE_RECORDS_SAGA_AFTER_DAYS=400 --from-literal=SCHEDULED_JOBS_PURGE_OLD_SAGA_RECORDS_CRON="@midnight" --from-literal=DB_USERNAME="$DB_USER" --from-literal=DB_PASSWORD="$DB_PWD" --from-literal=SPRING_SECURITY_LOG_LEVEL=INFO --from-literal=SPRING_WEB_LOG_LEVEL=INFO --from-literal=APP_LOG_LEVEL=INFO --from-literal=SPRING_BOOT_AUTOCONFIG_LOG_LEVEL=INFO --from-literal=SPRING_SHOW_REQUEST_DETAILS=false --from-literal=SPRING_JPA_SHOW_SQL="false" --from-literal=TOKEN_ISSUER_URL="https://$SOAM_KC/auth/realms/$SOAM_KC_REALM_ID" --from-literal=TOKEN_URL="https://$SOAM_KC/auth/realms/$SOAM_KC_REALM_ID/protocol/openid-connect/token" --from-literal=NATS_MAX_RECONNECT=60 --from-literal=NATS_URL=$NATS_URL --from-literal=CLIENT_ID="eas-api-service" --from-literal=CLIENT_SECRET="$EAS_APIServiceClientSecret" --from-literal=THREADS_MIN_SUBSCRIBER="$THREADS_MIN_SUBSCRIBER" --from-literal=THREADS_MAX_SUBSCRIBER="$THREADS_MAX_SUBSCRIBER" --from-literal=INSTITUTE_API_URL="http://institute-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/api/v1/institute" --from-literal=MAXIMUM_DB_POOL_SIZE="$MAXIMUM_DB_POOL_SIZE" --from-literal=MINIMUM_IDLE_DB_POOL_SIZE="$MINIMUM_IDLE_DB_POOL_SIZE" --from-literal=SCHEDULED_JOBS_PUBLISH_LOADED_EAS_STUDENTS_CRON="$SCHEDULED_JOBS_PUBLISH_LOADED_EAS_STUDENTS_CRON" --from-literal=SCHEDULED_JOBS_PUBLISH_LOADED_EAS_STUDENTS_CRON_LOCK_AT_LEAST_FOR="$SCHEDULED_JOBS_PUBLISH_LOADED_EAS_STUDENTS_CRON_LOCK_AT_LEAST_FOR" --from-literal=SCHEDULED_JOBS_PUBLISH_LOADED_EAS_STUDENTS_CRON_LOCK_AT_MOST_FOR="$SCHEDULED_JOBS_PUBLISH_LOADED_EAS_STUDENTS_CRON_LOCK_AT_MOST_FOR" --from-literal=SCHEDULED_JOBS_SETUP_SESSIONS_CRON="$SCHEDULED_JOBS_SETUP_SESSIONS_CRON" --from-literal=SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_LEAST_FOR="$SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_LEAST_FOR" --from-literal=SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_MOST_FOR="$SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_MOST_FOR" --dry-run -o yaml | oc apply -f -
+oc create -n "$OPENSHIFT_NAMESPACE"-"$envValue" configmap "$APP_NAME"-config-map --from-literal=TZ=$TZVALUE --from-literal=STUDENT_API_URL="http://student-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/api/v1/student" --from-literal=ASSESSMENT_NOTIFICATION_EMAIL_FROM=$ASSESSMENT_NOTIFICATION_EMAIL_FROM --from-literal=JDBC_URL="$DB_JDBC_CONNECT_STRING" --from-literal=PURGE_RECORDS_SAGA_AFTER_DAYS=400 --from-literal=SCHEDULED_JOBS_PURGE_OLD_SAGA_RECORDS_CRON="@midnight" --from-literal=DB_USERNAME="$DB_USER" --from-literal=DB_PASSWORD="$DB_PWD" --from-literal=SPRING_SECURITY_LOG_LEVEL=INFO --from-literal=SPRING_WEB_LOG_LEVEL=INFO --from-literal=APP_LOG_LEVEL=INFO --from-literal=SPRING_BOOT_AUTOCONFIG_LOG_LEVEL=INFO --from-literal=SPRING_SHOW_REQUEST_DETAILS=false --from-literal=SPRING_JPA_SHOW_SQL="false" --from-literal=TOKEN_ISSUER_URL="https://$SOAM_KC/auth/realms/$SOAM_KC_REALM_ID" --from-literal=TOKEN_URL="https://$SOAM_KC/auth/realms/$SOAM_KC_REALM_ID/protocol/openid-connect/token" --from-literal=NATS_MAX_RECONNECT=60 --from-literal=NATS_URL=$NATS_URL --from-literal=CLIENT_ID="assessment-api-service" --from-literal=CLIENT_SECRET="$ASSESSMENT_APIServiceClientSecret" --from-literal=THREADS_MIN_SUBSCRIBER="$THREADS_MIN_SUBSCRIBER" --from-literal=THREADS_MAX_SUBSCRIBER="$THREADS_MAX_SUBSCRIBER" --from-literal=INSTITUTE_API_URL="http://institute-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/api/v1/institute" --from-literal=MAXIMUM_DB_POOL_SIZE="$MAXIMUM_DB_POOL_SIZE" --from-literal=MINIMUM_IDLE_DB_POOL_SIZE="$MINIMUM_IDLE_DB_POOL_SIZE" --from-literal=SCHEDULED_JOBS_PUBLISH_LOADED_ASSESSMENT_STUDENTS_CRON="$SCHEDULED_JOBS_PUBLISH_LOADED_ASSESSMENT_STUDENTS_CRON" --from-literal=SCHEDULED_JOBS_PUBLISH_LOADED_ASSESSMENT_STUDENTS_CRON_LOCK_AT_LEAST_FOR="$SCHEDULED_JOBS_PUBLISH_LOADED_ASSESSMENT_STUDENTS_CRON_LOCK_AT_LEAST_FOR" --from-literal=SCHEDULED_JOBS_PUBLISH_LOADED_ASSESSMENT_STUDENTS_CRON_LOCK_AT_MOST_FOR="$SCHEDULED_JOBS_PUBLISH_LOADED_ASSESSMENT_STUDENTS_CRON_LOCK_AT_MOST_FOR" --from-literal=SCHEDULED_JOBS_SETUP_SESSIONS_CRON="$SCHEDULED_JOBS_SETUP_SESSIONS_CRON" --from-literal=SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_LEAST_FOR="$SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_LEAST_FOR" --from-literal=SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_MOST_FOR="$SCHEDULED_JOBS_SETUP_SESSIONS_CRON_LOCK_AT_MOST_FOR" --dry-run -o yaml | oc apply -f -
 
 echo
 echo Setting environment variables for $APP_NAME-$SOAM_KC_REALM_ID application

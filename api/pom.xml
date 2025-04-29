@@ -3,23 +3,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>ca.bc.gov.educ.eas</groupId>
-  <artifactId>eas-api</artifactId>
+  <groupId>ca.bc.gov.educ.assessment</groupId>
+  <artifactId>student-assessment-api</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>eas-api</name>
-  <description>EAS API</description>
+  <name>student-assessment-api</name>
+  <description>Student Assessment API</description>
 
   <properties>
     <sonar.language>java</sonar.language>
     <sonar.exclusions>
       src/test/**,
       src/main/resources/**,
-      src/main/java/ca/bc/gov/educ/eas/api/endpoint/**,
-      src/main/java/ca/bc/gov/educ/eas/api/config/**,
-      src/main/java/ca/bc/gov/educ/eas/api/mappers/**,
-      src/main/java/ca/bc/gov/educ/eas/api/exception/**,
-      src/main/java/ca/bc/gov/educ/eas/api/model/**,
-      src/main/java/ca/bc/gov/educ/eas/api/struct/**
+      src/main/java/ca/bc/gov/educ/assessment/api/endpoint/**,
+      src/main/java/ca/bc/gov/educ/assessment/api/config/**,
+      src/main/java/ca/bc/gov/educ/assessment/api/mappers/**,
+      src/main/java/ca/bc/gov/educ/assessment/api/exception/**,
+      src/main/java/ca/bc/gov/educ/assessment/api/model/**,
+      src/main/java/ca/bc/gov/educ/assessment/api/struct/**
     </sonar.exclusions>
     <java.version>21</java.version>
 
