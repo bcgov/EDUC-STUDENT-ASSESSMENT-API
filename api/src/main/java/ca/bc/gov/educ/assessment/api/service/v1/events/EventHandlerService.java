@@ -70,11 +70,19 @@ public class EventHandlerService {
     private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
     private final SagaService sagaService;
 
-    public byte[] handleCreateStudentRegistrationEvent(Event event) throws JsonProcessingException {
+    public byte[] handleProcessStudentRegistrationEvent(Event event) throws JsonProcessingException {
         final AssessmentStudent assessmentStudent = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
         Optional<AssessmentStudentEntity> student = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(assessmentStudent.getAssessmentID()), UUID.fromString(assessmentStudent.getStudentID()));
         log.debug("handleCreateStudentRegistrationEvent found student :: {}", student);
-        if (student.isEmpty()) {
+
+        var isWithdrawal = StringUtils.isNotBlank(assessmentStudent.getCourseStatusCode()) && assessmentStudent.getCourseStatusCode().equalsIgnoreCase("W");
+
+        if(isWithdrawal && student.isEmpty()){
+            log.error("Student withdrawal record submitted but no registration record is present; ignoring message to remove record");
+        } else if (isWithdrawal) {
+            log.debug("Removing student registration due to incoming withdrawal record :: student ID: {}", student.get().getStudentID());
+            assessmentStudentService.deleteStudent(student.get().getStudentID());
+        } else if (student.isEmpty()) {
             log.debug("handleCreateStudentRegistrationEvent setting audit columns :: {}", student);
             RequestUtil.setAuditColumnsForCreate(assessmentStudent);
             AssessmentStudentEntity createStudentEntity = assessmentStudentMapper.toModel(assessmentStudent);
@@ -83,11 +91,10 @@ public class EventHandlerService {
             createStudentEntity.setNumberOfAttempts(Integer.parseInt(attempts));
             log.debug("Writing student entity: " + createStudentEntity);
             assessmentStudentService.createStudentWithoutValidation(createStudentEntity);
-            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_CREATED);
         } else {
             log.info("Student already exists in assessment {} ", assessmentStudent.getAssessmentStudentID());
-            event.setEventOutcome(EventOutcome.STUDENT_ALREADY_EXIST);
         }
+        event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
         val studentEvent = createEventRecord(event);
         return createResponseEvent(studentEvent);
     }
