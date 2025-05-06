@@ -181,9 +181,9 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
 
         var sagaId = UUID.randomUUID();
         final Event event = Event.builder().eventType(EventType.PROCESS_STUDENT_REGISTRATION).sagaId(sagaId).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
-        byte[] response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
-        AssertionsForClassTypes.assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+        var response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
+        AssertionsForClassTypes.assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response.getLeft());
         AssertionsForClassTypes.assertThat(responseEvent).isNotNull();
         AssertionsForClassTypes.assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
     }

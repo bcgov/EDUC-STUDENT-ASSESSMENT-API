@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,4 +15,5 @@ public interface AssessmentEventRepository extends JpaRepository<AssessmentEvent
 
   Optional<AssessmentEventEntity> findBySagaIdAndEventType(UUID sagaId, String eventType);
 
+  List<AssessmentEventEntity> findByEventStatus(String eventStatus);
 }

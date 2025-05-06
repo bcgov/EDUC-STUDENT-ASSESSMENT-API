@@ -91,9 +91,9 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
     var sagaId = UUID.randomUUID();
     final Event event = Event.builder().eventType(EventType.PROCESS_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
-    byte[] response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
-    assertThat(response).isNotEmpty();
-    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+    var response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
+    assertThat(response.getLeft()).isNotEmpty();
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response.getLeft());
     assertThat(responseEvent).isNotNull();
     assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
   }
@@ -107,15 +107,15 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
     var sagaId = UUID.randomUUID();
     final Event event = Event.builder().eventType(EventType.PROCESS_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
-    byte[] response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
-    assertThat(response).isNotEmpty();
-    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+    var response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
+    assertThat(response.getLeft()).isNotEmpty();
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response.getLeft());
     assertThat(responseEvent).isNotNull();
     assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
 
-    byte[] responseDuplicate = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
-    assertThat(responseDuplicate).isNotEmpty();
-    Event responseEventDuplicate = JsonUtil.getJsonObjectFromByteArray(Event.class, responseDuplicate);
+    var responseDuplicate = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
+    assertThat(responseDuplicate.getLeft()).isNotEmpty();
+    Event responseEventDuplicate = JsonUtil.getJsonObjectFromByteArray(Event.class, responseDuplicate.getLeft());
     assertThat(responseEventDuplicate).isNotNull();
     assertThat(responseEventDuplicate.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_ALREADY_EXIST);
 
@@ -131,9 +131,9 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
     var sagaId = UUID.randomUUID();
     final Event event = Event.builder().eventType(EventType.PROCESS_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
-    byte[] response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
-    assertThat(response).isNotEmpty();
-    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+    var response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
+    assertThat(response.getLeft()).isNotEmpty();
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response.getLeft());
     assertThat(responseEvent).isNotNull();
     assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
 
@@ -157,9 +157,9 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
     var sagaId = UUID.randomUUID();
     final Event event = Event.builder().eventType(EventType.PROCESS_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
-    byte[] response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
-    assertThat(response).isNotEmpty();
-    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+    var response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
+    assertThat(response.getLeft()).isNotEmpty();
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response.getLeft());
     assertThat(responseEvent).isNotNull();
     assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
 

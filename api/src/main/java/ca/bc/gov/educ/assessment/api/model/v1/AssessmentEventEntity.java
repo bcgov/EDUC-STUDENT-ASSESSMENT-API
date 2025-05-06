@@ -63,11 +63,11 @@ public class AssessmentEventEntity {
     setEventPayloadBytes(eventPayload.getBytes(StandardCharsets.UTF_8));
   }
 
-  public static class AssessmentEventBuilder {
+  public static class AssessmentEventEntityBuilder {
 
     byte[] eventPayloadBytes;
 
-    public AssessmentEventEntity.AssessmentEventBuilder eventPayload(String eventPayload) {
+    public AssessmentEventEntity.AssessmentEventEntityBuilder eventPayload(String eventPayload) {
       this.eventPayloadBytes = eventPayload.getBytes(StandardCharsets.UTF_8);
       return this;
     }
