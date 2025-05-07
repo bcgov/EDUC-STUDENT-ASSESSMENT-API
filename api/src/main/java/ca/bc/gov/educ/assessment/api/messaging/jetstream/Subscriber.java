@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.STUDENT_ASSESSMENT_EVENTS_TOPIC;
+import static ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher.STREAM_NAME;
+
 /**
  * The type Subscriber.
  */
@@ -59,8 +62,8 @@ public class Subscriber {
      */
     private void initializeStreamTopicMap() {
         final List<String> studentAssessmentEventsTopics = new ArrayList<>();
-        studentAssessmentEventsTopics.add("STUDENT_ASSESSMENT_EVENTS_TOPIC");
-        this.streamTopicsMap.put("STUDENT_ASSESSMENT_EVENTS", studentAssessmentEventsTopics);
+        studentAssessmentEventsTopics.add(STUDENT_ASSESSMENT_EVENTS_TOPIC.toString());
+        this.streamTopicsMap.put(STREAM_NAME, studentAssessmentEventsTopics);
     }
 
     @PostConstruct
