@@ -71,9 +71,12 @@ public class EventHandlerDelegatorService {
         case PROCESS_STUDENT_REGISTRATION:
           log.info("Received PROCESS_STUDENT_REGISTRATION event :: {}", event.getSagaId());
           log.trace(PAYLOAD_LOG, event.getEventPayload());
-          response = eventHandlerService.handleProcessStudentRegistrationEvent(event);
+          var pairResponse = eventHandlerService.handleProcessStudentRegistrationEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-          publishToNATS(event, message, isSynchronous, response);
+          publishToNATS(event, message, isSynchronous, pairResponse.getLeft());
+          if(pairResponse.getRight() != null) {
+            publishToJetStream(pairResponse.getRight());
+          }
           break;
         default:
           log.info("silently ignoring other events :: {}", event);
