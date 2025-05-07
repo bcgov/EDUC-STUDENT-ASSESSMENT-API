@@ -117,8 +117,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
     assertThat(responseDuplicate.getLeft()).isNotEmpty();
     Event responseEventDuplicate = JsonUtil.getJsonObjectFromByteArray(Event.class, responseDuplicate.getLeft());
     assertThat(responseEventDuplicate).isNotNull();
-    assertThat(responseEventDuplicate.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_ALREADY_EXIST);
-
+    assertThat(responseEventDuplicate.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
   }
 
   @Test
