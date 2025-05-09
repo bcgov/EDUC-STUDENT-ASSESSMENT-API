@@ -111,9 +111,8 @@ public class EventHandlerService {
                     JsonUtil.getJsonStringFromObject(assessmentStudent.getStudentID()),
                     ASSESSMENT_STUDENT_UPDATE, EventOutcome.ASSESSMENT_STUDENT_UPDATED);
 
-            log.info("Assessment event is: {}", assessmentEventEntity);
-            log.info("Assessment student is: {}", assessmentStudent);
-            log.info("JSON string for event is: {}", JsonUtil.getJsonStringFromObject(assessmentStudent.getStudentID()));
+            log.debug("Assessment event is: {}", assessmentEventEntity);
+            log.debug("Assessment student is: {}", assessmentStudent);
             assessmentEventRepository.save(assessmentEventEntity);
         }
 

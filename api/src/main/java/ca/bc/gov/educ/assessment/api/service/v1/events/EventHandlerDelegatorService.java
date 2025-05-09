@@ -74,6 +74,7 @@ public class EventHandlerDelegatorService {
           var pairResponse = eventHandlerService.handleProcessStudentRegistrationEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, pairResponse.getLeft());
+          log.info("Event response is currently {}", pairResponse.getRight());
           if(pairResponse.getRight() != null) {
             publishToJetStream(pairResponse.getRight());
           }

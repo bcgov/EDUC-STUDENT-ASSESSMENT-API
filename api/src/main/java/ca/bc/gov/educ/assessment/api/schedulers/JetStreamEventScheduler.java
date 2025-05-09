@@ -32,14 +32,16 @@ public class JetStreamEventScheduler {
   /**
    * Find and publish student events to stan.
    */
-  @Scheduled(cron = "0 0/5 * * * *") // every 5 minutes
-  @SchedulerLock(name = "PUBLISH_ASSESSMENT_EVENTS_TO_JET_STREAM", lockAtLeastFor = "PT4M", lockAtMostFor = "PT4M")
+  @Scheduled(cron = "0 0/1 * * * *") // every 5 minutes
+  @SchedulerLock(name = "PUBLISH_ASSESSMENT_EVENTS_TO_JET_STREAM", lockAtLeastFor = "PT45S", lockAtMostFor = "PT45S")
   public void findAndPublishStudentEventsToJetStream() {
     LockAssert.assertLocked();
+    log.info("Firing scheduler for jet stream events");
     var results = assessmentEventRepository.findByEventStatus(DB_COMMITTED.toString());
+    log.info("Found {} jet stream events to process", results.size());
     if (!results.isEmpty()) {
       results.forEach(el -> {
-        if (el.getUpdateDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
+        if (el.getUpdateDate().isBefore(LocalDateTime.now().minusMinutes(1))) {
           try {
             publisher.dispatchChoreographyEvent(el);
           } catch (final Exception ex) {
