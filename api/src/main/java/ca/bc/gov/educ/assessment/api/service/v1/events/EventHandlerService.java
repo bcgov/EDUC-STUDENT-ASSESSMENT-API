@@ -101,7 +101,7 @@ public class EventHandlerService {
             assessmentStudentService.createAssessmentStudentWithHistory(createStudentEntity);
             dataChangedForStudent = true;
         } else {
-            log.info("Student already exists in assessment {} ", assessmentStudent.getAssessmentStudentID());
+            log.info("Student already exists in assessment {} ", assessmentStudent);
         }
 
         AssessmentEventEntity assessmentEventEntity = null;
@@ -183,7 +183,7 @@ public class EventHandlerService {
                 .updateDate(LocalDateTime.now())
                 .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
                 .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
-                .eventPayloadBytes(event.getEventPayload().getBytes(StandardCharsets.UTF_8))
+                .eventPayload(event.getEventPayload())
                 .eventType(event.getEventType().toString())
                 .sagaId(event.getSagaId())
                 .eventStatus(MESSAGE_PUBLISHED.toString())
