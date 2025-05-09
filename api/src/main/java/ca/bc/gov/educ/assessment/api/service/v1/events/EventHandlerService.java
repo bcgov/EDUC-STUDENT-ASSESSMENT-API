@@ -109,6 +109,7 @@ public class EventHandlerService {
                     assessmentStudent.getUpdateUser(), assessmentStudent.getUpdateUser(),
                     JsonUtil.getJsonStringFromObject(assessmentStudent.getStudentID()),
                     ASSESSMENT_STUDENT_UPDATE, EventOutcome.ASSESSMENT_STUDENT_UPDATED);
+            log.info("Assessment event is: {}", assessmentEventEntity);
             assessmentEventRepository.save(assessmentEventEntity);
         }
 
