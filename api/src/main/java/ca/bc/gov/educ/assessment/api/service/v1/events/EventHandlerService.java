@@ -87,7 +87,7 @@ public class EventHandlerService {
             log.error("Student withdrawal record submitted but no registration record is present; ignoring message to remove record");
         } else if (isWithdrawal) {
             log.debug("Removing student registration due to incoming withdrawal record :: student ID: {}", student.get().getStudentID());
-            assessmentStudentService.deleteStudent(student.get().getStudentID());
+            assessmentStudentService.deleteStudent(student.get().getAssessmentStudentID());
             dataChangedForStudent = true;
         } else if (student.isEmpty()) {
             log.debug("handleCreateStudentRegistrationEvent setting audit columns :: {}", student);
