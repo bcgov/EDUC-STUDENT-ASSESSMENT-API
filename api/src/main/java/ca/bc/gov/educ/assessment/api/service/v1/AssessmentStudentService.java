@@ -129,6 +129,7 @@ public class AssessmentStudentService {
         assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
         return savedEntity;
     }
+
     public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, Student studentApiStudent) {
         StudentRuleData studentRuleData = new StudentRuleData();
         studentRuleData.setAssessmentStudentEntity(assessmentStudentEntity);
@@ -160,6 +161,10 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteStudent(UUID assessmentStudentID) {
+        performDeleteStudent(assessmentStudentID);
+    }
+
+    public void performDeleteStudent(UUID assessmentStudentID) {
         Optional<AssessmentStudentEntity> entityOptional = assessmentStudentRepository.findById(assessmentStudentID);
         AssessmentStudentEntity entity = entityOptional.orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "assessmentStudentID", assessmentStudentID.toString()));
 
@@ -180,7 +185,6 @@ public class AssessmentStudentService {
                             (hasResult ? "Student has a proficiency score." : "")
             );
         }
-
     }
 
 }

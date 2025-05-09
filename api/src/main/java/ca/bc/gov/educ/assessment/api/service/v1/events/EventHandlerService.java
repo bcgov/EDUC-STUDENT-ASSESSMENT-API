@@ -75,6 +75,7 @@ public class EventHandlerService {
     private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
     private final SagaService sagaService;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<byte[], AssessmentEventEntity> handleProcessStudentRegistrationEvent(Event event) throws JsonProcessingException {
         final AssessmentStudent assessmentStudent = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
         Optional<AssessmentStudentEntity> student = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(assessmentStudent.getAssessmentID()), UUID.fromString(assessmentStudent.getStudentID()));
@@ -97,7 +98,7 @@ public class EventHandlerService {
             var attempts = assessmentStudentService.getNumberOfAttempts(createStudentEntity.getAssessmentEntity().getAssessmentID().toString(), createStudentEntity.getStudentID());
             createStudentEntity.setNumberOfAttempts(Integer.parseInt(attempts));
             log.debug("Writing student entity: " + createStudentEntity);
-            assessmentStudentService.createStudentWithoutValidation(createStudentEntity);
+            assessmentStudentService.createAssessmentStudentWithHistory(createStudentEntity);
             dataChangedForStudent = true;
         } else {
             log.info("Student already exists in assessment {} ", assessmentStudent.getAssessmentStudentID());
@@ -109,7 +110,10 @@ public class EventHandlerService {
                     assessmentStudent.getUpdateUser(), assessmentStudent.getUpdateUser(),
                     JsonUtil.getJsonStringFromObject(assessmentStudent.getStudentID()),
                     ASSESSMENT_STUDENT_UPDATE, EventOutcome.ASSESSMENT_STUDENT_UPDATED);
+
             log.info("Assessment event is: {}", assessmentEventEntity);
+            log.info("Assessment student is: {}", assessmentStudent);
+            log.info("JSON string for event is: {}", JsonUtil.getJsonStringFromObject(assessmentStudent.getStudentID()));
             assessmentEventRepository.save(assessmentEventEntity);
         }
 
