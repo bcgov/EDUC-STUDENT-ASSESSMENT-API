@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.struct.OnCreate;
 import ca.bc.gov.educ.assessment.api.struct.OnUpdate;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentListItem;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.groups.Default;
@@ -31,12 +32,12 @@ public interface AssessmentStudentEndpoint {
     @PutMapping("/{assessmentStudentID}")
     @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_STUDENT')")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND"), @ApiResponse(responseCode = "400", description = "BAD REQUEST"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
-    AssessmentStudent updateStudent(@Validated({Default.class, OnUpdate.class}) @RequestBody AssessmentStudent assessmentStudent, @PathVariable UUID assessmentStudentID);
+    AssessmentStudent updateStudent(@Validated({Default.class, OnUpdate.class}) @RequestBody AssessmentStudent assessmentStudent, @PathVariable UUID assessmentStudentID) throws JsonProcessingException;
 
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_STUDENT')")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND"), @ApiResponse(responseCode = "400", description = "BAD REQUEST"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
-    AssessmentStudent createStudent(@Validated({Default.class, OnCreate.class}) @RequestBody AssessmentStudent assessmentStudent);
+    AssessmentStudent createStudent(@Validated({Default.class, OnCreate.class}) @RequestBody AssessmentStudent assessmentStudent) throws JsonProcessingException;
 
     @GetMapping(URL.PAGINATED)
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_STUDENT')")
@@ -51,6 +52,6 @@ public interface AssessmentStudentEndpoint {
     @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_STUDENT')")
     @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "NO CONTENT"), @ApiResponse(responseCode = "409", description = "CONFLICT."), @ApiResponse(responseCode = "404", description = "NOT FOUND")})
     @ResponseStatus(NO_CONTENT)
-    ResponseEntity<Void> deleteStudent(@PathVariable UUID assessmentStudentID);
+    ResponseEntity<Void> deleteStudent(@PathVariable UUID assessmentStudentID) throws JsonProcessingException;
 
 }

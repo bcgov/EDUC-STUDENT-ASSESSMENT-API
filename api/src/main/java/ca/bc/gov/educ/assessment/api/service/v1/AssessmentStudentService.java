@@ -9,8 +9,11 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentHistoryEntity;
+import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
@@ -22,8 +25,11 @@ import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentRuleData;
+import ca.bc.gov.educ.assessment.api.util.EventUtil;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import ca.bc.gov.educ.assessment.api.util.TransformUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nimbusds.jose.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -40,6 +46,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.ASSESSMENT_STUDENT_UPDATED;
+import static ca.bc.gov.educ.assessment.api.constants.EventType.ASSESSMENT_STUDENT_UPDATE;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -47,6 +56,7 @@ public class AssessmentStudentService {
 
     private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
     private final AssessmentStudentRepository assessmentStudentRepository;
+    private final AssessmentEventRepository assessmentEventRepository;
     private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
     private final AssessmentStudentHistoryService assessmentStudentHistoryService;
     private final MessagePublisher messagePublisher;
@@ -79,12 +89,20 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AssessmentStudent updateStudent(AssessmentStudentEntity assessmentStudentEntity) {
+    public Pair<AssessmentStudent, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity) throws JsonProcessingException {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
         );
 
-        return processStudent(assessmentStudentEntity, currentAssessmentStudentEntity);
+        var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity);
+
+        final AssessmentEventEntity event = EventUtil.createEvent(
+                student.getUpdateUser(), student.getUpdateUser(),
+                JsonUtil.getJsonStringFromObject(student),
+                ASSESSMENT_STUDENT_UPDATE, ASSESSMENT_STUDENT_UPDATED);
+        assessmentEventRepository.save(event);
+
+        return Pair.of(student, event);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -93,8 +111,15 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AssessmentStudent createStudent(AssessmentStudentEntity assessmentStudentEntity) {
-        return processStudent(assessmentStudentEntity, null);
+    public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity) throws JsonProcessingException {
+        var student = processStudent(assessmentStudentEntity, null);
+        final AssessmentEventEntity event = EventUtil.createEvent(
+                student.getUpdateUser(), student.getUpdateUser(),
+                JsonUtil.getJsonStringFromObject(student),
+                ASSESSMENT_STUDENT_UPDATE, ASSESSMENT_STUDENT_UPDATED);
+        assessmentEventRepository.save(event);
+
+        return Pair.of(student, event);
     }
 
     private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity) {
@@ -160,11 +185,18 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deleteStudent(UUID assessmentStudentID) {
-        performDeleteStudent(assessmentStudentID);
+    public AssessmentEventEntity deleteStudent(UUID assessmentStudentID) throws JsonProcessingException {
+        var deleted = performDeleteStudent(assessmentStudentID);
+        final AssessmentEventEntity event = EventUtil.createEvent(
+                ApplicationProperties.STUDENT_ASSESSMENT_API, ApplicationProperties.STUDENT_ASSESSMENT_API,
+                JsonUtil.getJsonStringFromObject(deleted.getStudentID()),
+                ASSESSMENT_STUDENT_UPDATE, ASSESSMENT_STUDENT_UPDATED);
+        assessmentEventRepository.save(event);
+
+        return event;
     }
 
-    public void performDeleteStudent(UUID assessmentStudentID) {
+    public AssessmentStudentEntity performDeleteStudent(UUID assessmentStudentID) {
         Optional<AssessmentStudentEntity> entityOptional = assessmentStudentRepository.findById(assessmentStudentID);
         AssessmentStudentEntity entity = entityOptional.orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "assessmentStudentID", assessmentStudentID.toString()));
 
@@ -177,6 +209,7 @@ public class AssessmentStudentService {
                 assessmentStudentHistoryRepository.deleteAll(studentHistoryEntities);
             }
             assessmentStudentRepository.delete(entity);
+            return entity;
         } else {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
