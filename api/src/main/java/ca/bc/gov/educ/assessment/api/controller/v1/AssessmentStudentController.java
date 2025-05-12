@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.endpoint.v1.AssessmentStudentEndpoint;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
+import ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentSearchService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
@@ -13,6 +14,7 @@ import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import ca.bc.gov.educ.assessment.api.util.RequestUtil;
 import ca.bc.gov.educ.assessment.api.util.ValidationUtil;
 import ca.bc.gov.educ.assessment.api.validator.AssessmentStudentValidator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -31,15 +33,17 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   private final AssessmentStudentService studentService;
   private final AssessmentStudentValidator validator;
   private final AssessmentStudentSearchService searchService;
+  private final Publisher publisher;
 
   private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
   private static final AssessmentStudentListItemMapper listItemMapper = AssessmentStudentListItemMapper.mapper;
 
   @Autowired
-  public AssessmentStudentController(AssessmentStudentService assessmentStudentService, AssessmentStudentValidator validator, AssessmentStudentSearchService searchService) {
+  public AssessmentStudentController(AssessmentStudentService assessmentStudentService, AssessmentStudentValidator validator, AssessmentStudentSearchService searchService, Publisher publisher) {
     this.studentService = assessmentStudentService;
     this.validator = validator;
     this.searchService = searchService;
+    this.publisher = publisher;
   }
 
   @Override
@@ -50,20 +54,24 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID) {
+  public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID) throws JsonProcessingException {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, false));
     RequestUtil.setAuditColumnsForUpdate(assessmentStudent);
-    return studentService.updateStudent(mapper.toModel(assessmentStudent));
+    var pair = studentService.updateStudent(mapper.toModel(assessmentStudent));
+    publisher.dispatchChoreographyEvent(pair.getRight());
+    return pair.getLeft();
   }
 
-    @Override
-    public AssessmentStudent createStudent(AssessmentStudent assessmentStudent) {
-        ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
-        RequestUtil.setAuditColumnsForCreate(assessmentStudent);
-        AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
-        assessmentStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        return studentService.createStudent(assessmentStudentEntity);
-    }
+  @Override
+  public AssessmentStudent createStudent(AssessmentStudent assessmentStudent) throws JsonProcessingException {
+    ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
+    RequestUtil.setAuditColumnsForCreate(assessmentStudent);
+    AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
+    assessmentStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
+    var pair = studentService.createStudent(assessmentStudentEntity);
+    publisher.dispatchChoreographyEvent(pair.getRight());
+    return pair.getLeft();
+  }
 
   @Override
   public CompletableFuture<Page<AssessmentStudentListItem>> findAll(Integer pageNumber, Integer pageSize, String sortCriteriaJson, String searchCriteriaListJson) {
@@ -81,8 +89,9 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public ResponseEntity<Void> deleteStudent(UUID assessmentStudentID) {
-    studentService.deleteStudent(assessmentStudentID);
+  public ResponseEntity<Void> deleteStudent(UUID assessmentStudentID) throws JsonProcessingException {
+    var event = studentService.deleteStudent(assessmentStudentID);
+    publisher.dispatchChoreographyEvent(event);
     return ResponseEntity.noContent().build();
   }
 }

@@ -110,7 +110,8 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
+        var pair = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = pair.getLeft();
 
         final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
         eventHandlerServiceUnderTest.handlePublishStudentRegistrationEvent(event);
@@ -129,7 +130,8 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
+        var pair = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = pair.getLeft();
 
         var saga = AssessmentSagaEntity.builder()
                 .updateDate(LocalDateTime.now().minusMinutes(15))
@@ -163,7 +165,8 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
+        var pair = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = pair.getLeft();
 
         eventTaskSchedulerAsyncService.findAndPublishLoadedStudentRegistrationsForProcessing();
         final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
