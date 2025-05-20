@@ -173,4 +173,33 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
     assertThat(studentResponseEvent.isHasPriorRegistration()).isTrue();
   }
 
+  @Test
+  void testHandleEvent_givenNumeracyAssessmentsAcrossCodes_shouldTreatAsSameForAttemptsAndRegistration() throws IOException {
+    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentNME10 = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.NME10.getCode()));
+    AssessmentEntity assessmentNMF10 = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.NMF10.getCode()));
+
+    AssessmentStudent student1 = createMockStudent();
+    student1.setAssessmentID(assessmentNME10.getAssessmentID().toString());
+    student1.setProficiencyScore("1");
+    var sagaId = UUID.randomUUID();
+    final Event event1 = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
+    eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event1);
+
+    AssessmentStudent student2 = createMockStudent();
+    student2.setAssessmentID(assessmentNMF10.getAssessmentID().toString());
+    student2.setStudentID(student1.getStudentID());
+    student2.setProficiencyScore("1");
+    final Event event2 = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student2)).build();
+    eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event2);
+
+    AssessmentStudentGet assessmentStudentGet = createMockAssessmentStudentGet(assessmentNME10.getAssessmentID().toString(), student1.getStudentID());
+    final Event getStudentEvent = Event.builder().eventType(EventType.GET_STUDENT_ASSESSMENT_DETAILS).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudentGet)).build();
+    byte[] studentResponse = eventHandlerServiceUnderTest.handleGetStudentAssessmentDetailEvent(getStudentEvent);
+    assertThat(studentResponse).isNotEmpty();
+    AssessmentStudentDetailResponse studentResponseEvent = JsonUtil.getJsonObjectFromByteArray(AssessmentStudentDetailResponse.class, studentResponse);
+    assertThat(studentResponseEvent).isNotNull();
+    assertThat(studentResponseEvent.isHasPriorRegistration()).isTrue();
+    assertThat(Integer.parseInt(studentResponseEvent.getNumberOfAttempts())).isEqualTo(2);
+  }
 }

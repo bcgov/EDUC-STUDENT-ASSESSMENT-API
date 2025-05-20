@@ -222,4 +222,24 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     assertThat(student.getAssessmentStudentValidationIssues()).hasSize(2);
   }
 
+  @Test
+  void testGetStudentsByAssessmentIDsInAndStudentID_WithNumeracyCodes_ReturnsAllNumeracyRegistrations() {
+    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentNME10 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.NME10.getCode()));
+    AssessmentEntity assessmentNMF10 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.NMF10.getCode()));
+
+    AssessmentStudentEntity studentEntity1 = createMockStudentEntity(assessmentNME10);
+    AssessmentStudentEntity studentEntity2 = createMockStudentEntity(assessmentNMF10);
+    studentEntity2.setStudentID(studentEntity1.getStudentID());
+
+    assessmentStudentRepository.save(studentEntity1);
+    assessmentStudentRepository.save(studentEntity2);
+
+    List<UUID> numeracyAssessmentIDs = List.of(assessmentNME10.getAssessmentID(), assessmentNMF10.getAssessmentID());
+    List<AssessmentStudentEntity> found = service.getStudentsByAssessmentIDsInAndStudentID(numeracyAssessmentIDs, studentEntity1.getStudentID());
+
+    assertThat(found).hasSize(2);
+    assertThat(found.stream().map(AssessmentStudentEntity::getAssessmentEntity).map(AssessmentEntity::getAssessmentTypeCode).anyMatch(code -> code.equals(AssessmentTypeCodes.NME10.getCode()))).isTrue();
+    assertThat(found.stream().map(AssessmentStudentEntity::getAssessmentEntity).map(AssessmentEntity::getAssessmentTypeCode).anyMatch(code -> code.equals(AssessmentTypeCodes.NMF10.getCode()))).isTrue();
+  }
 }

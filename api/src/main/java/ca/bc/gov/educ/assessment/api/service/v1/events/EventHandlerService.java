@@ -5,6 +5,8 @@ import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentStudentStatusCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.NumeracyAssessmentCodes;
+import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
@@ -12,6 +14,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.StudentRegistrationOrchestrator;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.service.v1.AssessmentService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
@@ -32,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -69,6 +73,7 @@ public class EventHandlerService {
     private final AssessmentStudentService assessmentStudentService;
     private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
     private final SagaService sagaService;
+    private final AssessmentService assessmentService;
 
     public byte[] handleCreateStudentRegistrationEvent(Event event) throws JsonProcessingException {
         final AssessmentStudent assessmentStudent = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
@@ -114,8 +119,36 @@ public class EventHandlerService {
 
     public byte[] handleGetStudentAssessmentDetailEvent(Event event) throws JsonProcessingException {
         AssessmentStudentGet student = JsonUtil.getJsonObjectFromString(AssessmentStudentGet.class, event.getEventPayload());
-        val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
         var response = new AssessmentStudentDetailResponse();
+
+        try {
+            val assessment = assessmentService.getAssessment(UUID.fromString(student.getAssessmentID()));
+            if (NumeracyAssessmentCodes.getAllCodes().stream().anyMatch(code -> code.equalsIgnoreCase(assessment.getAssessmentTypeCode()))) {
+                List<UUID> assessmentIDs = new ArrayList<>();
+                assessment.getSessionEntity().getAssessments().stream()
+                        .filter(a -> NumeracyAssessmentCodes.getAllCodes().stream().anyMatch(code -> code.equalsIgnoreCase(a.getAssessmentTypeCode())))
+                        .forEach(a -> assessmentIDs.add(a.getAssessmentID()));
+                val studentEntityList = assessmentStudentService.getStudentsByAssessmentIDsInAndStudentID(assessmentIDs, UUID.fromString(student.getStudentID()));
+                if (!studentEntityList.isEmpty()) {
+                    response.setHasPriorRegistration(true);
+
+                    for (var stud : studentEntityList) {
+                        if (stud.getProficiencyScore() != null || StringUtils.isNotBlank(stud.getProvincialSpecialCaseCode())) {
+                            response.setAlreadyWrittenAssessment(true);
+                            break;
+                        }
+                    }
+                }
+
+                val numberOfAttempts = assessmentStudentService.getNumberOfAttempts(student.getAssessmentID(), UUID.fromString(student.getStudentID()));
+                response.setNumberOfAttempts(numberOfAttempts);
+                return JsonUtil.getJsonBytesFromObject(response);
+            }
+        } catch (EntityNotFoundException e) {
+            log.debug("No assessment found for assessment id :: {} in handleGetStudentAssessmentDetailEvent", student.getAssessmentID());
+        }
+
+        val optionalStudentEntity = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(student.getAssessmentID()), UUID.fromString(student.getStudentID()));
 
         if(optionalStudentEntity.isPresent()){
             response.setHasPriorRegistration(true);
