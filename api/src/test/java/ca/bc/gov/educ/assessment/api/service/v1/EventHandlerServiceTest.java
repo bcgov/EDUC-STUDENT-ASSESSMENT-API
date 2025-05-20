@@ -182,15 +182,15 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
     student1.setAssessmentID(assessmentNME10.getAssessmentID().toString());
     student1.setProficiencyScore("1");
     var sagaId = UUID.randomUUID();
-    final Event event1 = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
-    eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event1);
+    final Event event1 = Event.builder().eventType(EventType.PROCESS_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
+    eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event1);
 
     AssessmentStudent student2 = createMockStudent();
     student2.setAssessmentID(assessmentNMF10.getAssessmentID().toString());
     student2.setStudentID(student1.getStudentID());
     student2.setProficiencyScore("1");
-    final Event event2 = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student2)).build();
-    eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event2);
+    final Event event2 = Event.builder().eventType(EventType.PROCESS_STUDENT_REGISTRATION).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(student2)).build();
+    eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event2);
 
     AssessmentStudentGet assessmentStudentGet = createMockAssessmentStudentGet(assessmentNME10.getAssessmentID().toString(), student1.getStudentID());
     final Event getStudentEvent = Event.builder().eventType(EventType.GET_STUDENT_ASSESSMENT_DETAILS).sagaId(sagaId).replyTo(ASSESSMENT_API_TOPIC).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudentGet)).build();
