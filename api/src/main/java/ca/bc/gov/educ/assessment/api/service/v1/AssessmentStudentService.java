@@ -74,6 +74,10 @@ public class AssessmentStudentService {
         return assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentID, studentID);
     }
 
+    public List<AssessmentStudentEntity> getStudentsByAssessmentIDsInAndStudentID(List<UUID> assessmentIDs, UUID studentID) {
+        return assessmentStudentRepository.findByAssessmentEntity_AssessmentIDInAndStudentID(assessmentIDs, studentID);
+    }
+
     public String getNumberOfAttempts(String assessmentID, UUID studentID) {
         var assessment = assessmentRepository.findById(UUID.fromString(assessmentID)).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentID));
