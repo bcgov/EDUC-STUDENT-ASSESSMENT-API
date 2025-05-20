@@ -67,12 +67,13 @@ public class Publisher {
      * @param event the event
      */
     public void dispatchChoreographyEvent(final AssessmentEventEntity event) {
-        if (event != null && event.getSagaId() != null) {
+        log.info("Dispatching choreography event {}", event);
+        if (event != null && event.getEventId() != null) {
             val choreographedEvent = new ChoreographedEvent();
             choreographedEvent.setEventType(EventType.valueOf(event.getEventType().toString()));
             choreographedEvent.setEventOutcome(EventOutcome.valueOf(event.getEventOutcome().toString()));
             choreographedEvent.setEventPayload(event.getEventPayload());
-            choreographedEvent.setEventID(event.getSagaId().toString());
+            choreographedEvent.setEventID(event.getEventId().toString());
             choreographedEvent.setCreateUser(event.getCreateUser());
             choreographedEvent.setUpdateUser(event.getUpdateUser());
             try {

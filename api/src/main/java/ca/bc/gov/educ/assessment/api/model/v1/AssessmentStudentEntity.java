@@ -56,6 +56,9 @@ public class AssessmentStudentEntity {
   @Column(name = "LOCAL_ID", length = 12)
   private String localID;
 
+  @Column(name = "LOCAL_COURSE_ID", length = 20)
+  private String localCourseID;
+
   @Column(name = "IS_ELECTRONIC_EXAM", length = 1)
   private Boolean isElectronicExam;
 

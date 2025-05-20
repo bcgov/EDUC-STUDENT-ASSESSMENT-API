@@ -110,7 +110,8 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
+        var pair = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = pair.getLeft();
 
         final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
         eventHandlerServiceUnderTest.handlePublishStudentRegistrationEvent(event);
@@ -129,7 +130,8 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
+        var pair = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = pair.getLeft();
 
         var saga = AssessmentSagaEntity.builder()
                 .updateDate(LocalDateTime.now().minusMinutes(15))
@@ -163,7 +165,8 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
+        var pair = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = pair.getLeft();
 
         eventTaskSchedulerAsyncService.findAndPublishLoadedStudentRegistrationsForProcessing();
         final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
@@ -173,19 +176,19 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testHandleEvent_givenEventTypeCREATE_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_CREATED() throws IOException {
+    void testHandleEvent_givenEventTypePROCESS_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_CREATED() throws IOException {
         SessionEntity session = sessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
         AssessmentStudent student1 = createMockStudent();
         student1.setAssessmentID(assessment.getAssessmentID().toString());
 
         var sagaId = UUID.randomUUID();
-        final Event event = Event.builder().eventType(EventType.CREATE_STUDENT_REGISTRATION).sagaId(sagaId).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
-        byte[] response = eventHandlerServiceUnderTest.handleCreateStudentRegistrationEvent(event);
-        AssertionsForClassTypes.assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response);
+        final Event event = Event.builder().eventType(EventType.PROCESS_STUDENT_REGISTRATION).sagaId(sagaId).eventPayload(JsonUtil.getJsonStringFromObject(student1)).build();
+        var response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(event);
+        AssertionsForClassTypes.assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response.getLeft());
         AssertionsForClassTypes.assertThat(responseEvent).isNotNull();
-        AssertionsForClassTypes.assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_CREATED);
+        AssertionsForClassTypes.assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
     }
 
     @Test

@@ -65,7 +65,8 @@ class RegistrationEventHandlerServiceTest extends BaseAssessmentAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
+        var pair = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = pair.getLeft();
 
         final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
         eventHandlerServiceUnderTest.handleEvent(event);
@@ -82,7 +83,9 @@ class RegistrationEventHandlerServiceTest extends BaseAssessmentAPITest {
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
         studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        AssessmentStudent assessmentStudent = assessmentStudentService.createStudent(studentEntity1);
+        var pair = assessmentStudentService.createStudent(studentEntity1);
+        AssessmentStudent assessmentStudent = pair.getLeft();
+
         final Event event = Event.builder().eventType(EventType.GET_OPEN_ASSESSMENT_SESSIONS).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
         eventHandlerServiceUnderTest.handleEvent(event);
         var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(UUID.fromString(assessmentStudent.getAssessmentStudentID()), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());

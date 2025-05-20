@@ -27,10 +27,9 @@ public class AssessmentEventEntity {
   @UuidGenerator
   @Column(name = "EVENT_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
   private UUID eventId;
-  @NotNull(message = "eventPayload cannot be null")
-  @Lob
-  @Column(name = "EVENT_PAYLOAD")
-  private byte[] eventPayloadBytes;
+  @NotNull(message = "payload cannot be null")
+  @Column(name = "EVENT_PAYLOAD",  length = 10485760)
+  private String eventPayload;
   @NotNull(message = "eventStatus cannot be null")
   @Column(name = "EVENT_STATUS")
   private String eventStatus;
@@ -55,21 +54,4 @@ public class AssessmentEventEntity {
   @Column(name = "REPLY_CHANNEL")
   private String replyChannel;
 
-  public String getEventPayload() {
-    return new String(getEventPayloadBytes(), StandardCharsets.UTF_8);
-  }
-
-  public void setEventPayload(String eventPayload) {
-    setEventPayloadBytes(eventPayload.getBytes(StandardCharsets.UTF_8));
-  }
-
-  public static class AssessmentEventBuilder {
-
-    byte[] eventPayloadBytes;
-
-    public AssessmentEventEntity.AssessmentEventBuilder eventPayload(String eventPayload) {
-      this.eventPayloadBytes = eventPayload.getBytes(StandardCharsets.UTF_8);
-      return this;
-    }
-  }
 }

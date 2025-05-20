@@ -55,25 +55,29 @@ public class EventHandlerDelegatorService {
     try {
       switch (event.getEventType()) {
         case GET_OPEN_ASSESSMENT_SESSIONS:
-          log.info("Received GET_OPEN_ASSESSMENT_SESSIONS event :: {}", event.getSagaId());
+          log.info("Received GET_OPEN_ASSESSMENT_SESSIONS event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           response = eventHandlerService.handleGetOpenAssessmentSessionsEvent(event, isSynchronous);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
         case GET_STUDENT_ASSESSMENT_DETAILS:
-          log.info("Received GET_STUDENT_ASSESSMENT_DETAILS event :: {}", event.getSagaId());
+          log.info("Received GET_STUDENT_ASSESSMENT_DETAILS event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           response = eventHandlerService.handleGetStudentAssessmentDetailEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
-        case CREATE_STUDENT_REGISTRATION:
-          log.info("Received CREATE_STUDENT_REGISTRATION event :: {}", event.getSagaId());
+        case PROCESS_STUDENT_REGISTRATION:
+          log.info("Received PROCESS_STUDENT_REGISTRATION event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
-          response = eventHandlerService.handleCreateStudentRegistrationEvent(event);
+          var pairResponse = eventHandlerService.handleProcessStudentRegistrationEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-          publishToNATS(event, message, isSynchronous, response);
+          publishToNATS(event, message, isSynchronous, pairResponse.getLeft());
+          log.info("Event response is currently {}", pairResponse.getRight());
+          if(pairResponse.getRight() != null) {
+            publishToJetStream(pairResponse.getRight());
+          }
           break;
         default:
           log.info("silently ignoring other events :: {}", event);

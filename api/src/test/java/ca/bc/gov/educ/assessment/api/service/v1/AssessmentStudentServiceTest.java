@@ -14,6 +14,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -108,7 +109,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testCreateStudent_WhenStudentDoesNotExistInDB_ShouldReturnStudent()  {
+  void testCreateStudent_WhenStudentDoesNotExistInDB_ShouldReturnStudent() throws JsonProcessingException {
     //given session exists
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
@@ -128,7 +129,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
 
     //when creating an assessment student
-    AssessmentStudent student = service.createStudent(assessmentStudentEntity);
+    var pair = service.createStudent(assessmentStudentEntity);
+    AssessmentStudent student = pair.getLeft();
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
     //then assessment student is created
     assertNotNull(student);
@@ -137,7 +139,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testUpdateStudent_WhenStudentExistInDB_ShouldReturnUpdatedStudent()  {
+  void testUpdateStudent_WhenStudentExistInDB_ShouldReturnUpdatedStudent() throws JsonProcessingException {
     //given student exists in db
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
@@ -159,9 +161,11 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurname());
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
 
-    AssessmentStudent assessmentStudent = service.createStudent(studentEntity);
+    var pair = service.createStudent(studentEntity);
+    AssessmentStudent assessmentStudent = pair.getLeft();
     //when updating the student
-    AssessmentStudent student = service.updateStudent(mapper.toModel(assessmentStudent));
+    var pair2 = service.updateStudent(mapper.toModel(assessmentStudent));
+    var student = pair2.getLeft();
     assertNotNull(student);
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
 
@@ -200,7 +204,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testCreateStudent_WhenNamesDoNotMatchStudentAPI_ShouldReturnValidationErrors(){
+  void testCreateStudent_WhenNamesDoNotMatchStudentAPI_ShouldReturnValidationErrors() throws JsonProcessingException {
     SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
 
@@ -218,7 +222,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     studentAPIStudent.setLegalLastName("Bunny");
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
 
-    AssessmentStudent student = service.createStudent(assessmentStudentEntity);
+    var pair = service.createStudent(assessmentStudentEntity);
+    AssessmentStudent student = pair.getLeft();
     assertThat(student.getAssessmentStudentValidationIssues()).hasSize(2);
   }
 

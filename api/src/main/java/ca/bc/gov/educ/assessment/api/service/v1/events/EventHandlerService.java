@@ -13,6 +13,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.StudentRegistrationOrchestrator;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
@@ -21,9 +22,11 @@ import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentDetailResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentGet;
+import ca.bc.gov.educ.assessment.api.util.EventUtil;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import ca.bc.gov.educ.assessment.api.util.RequestUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nimbusds.jose.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -40,6 +43,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventStatus.MESSAGE_PUBLISHED;
+import static ca.bc.gov.educ.assessment.api.constants.EventType.ASSESSMENT_STUDENT_UPDATE;
 
 /**
  * The type Event handler service.
@@ -70,16 +74,28 @@ public class EventHandlerService {
     private static final AssessmentStudentMapper assessmentStudentMapper = AssessmentStudentMapper.mapper;
     private static final SessionMapper sessionMapper = SessionMapper.mapper;
     private final SessionRepository sessionRepository;
+    private final AssessmentEventRepository assessmentEventRepository;
     private final AssessmentStudentService assessmentStudentService;
     private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
     private final SagaService sagaService;
     private final AssessmentService assessmentService;
 
-    public byte[] handleCreateStudentRegistrationEvent(Event event) throws JsonProcessingException {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Pair<byte[], AssessmentEventEntity> handleProcessStudentRegistrationEvent(Event event) throws JsonProcessingException {
         final AssessmentStudent assessmentStudent = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
         Optional<AssessmentStudentEntity> student = assessmentStudentService.getStudentByAssessmentIDAndStudentID(UUID.fromString(assessmentStudent.getAssessmentID()), UUID.fromString(assessmentStudent.getStudentID()));
         log.debug("handleCreateStudentRegistrationEvent found student :: {}", student);
-        if (student.isEmpty()) {
+
+        var isWithdrawal = StringUtils.isNotBlank(assessmentStudent.getCourseStatusCode()) && assessmentStudent.getCourseStatusCode().equalsIgnoreCase("W");
+
+        boolean dataChangedForStudent = false;
+        if(isWithdrawal && student.isEmpty()){
+            log.error("Student withdrawal record submitted but no registration record is present; ignoring message to remove record");
+        } else if (isWithdrawal) {
+            log.debug("Removing student registration due to incoming withdrawal record :: student ID: {}", student.get().getStudentID());
+            assessmentStudentService.deleteStudent(student.get().getAssessmentStudentID());
+            dataChangedForStudent = true;
+        } else if (student.isEmpty()) {
             log.debug("handleCreateStudentRegistrationEvent setting audit columns :: {}", student);
             RequestUtil.setAuditColumnsForCreate(assessmentStudent);
             AssessmentStudentEntity createStudentEntity = assessmentStudentMapper.toModel(assessmentStudent);
@@ -87,14 +103,27 @@ public class EventHandlerService {
             var attempts = assessmentStudentService.getNumberOfAttempts(createStudentEntity.getAssessmentEntity().getAssessmentID().toString(), createStudentEntity.getStudentID());
             createStudentEntity.setNumberOfAttempts(Integer.parseInt(attempts));
             log.debug("Writing student entity: " + createStudentEntity);
-            assessmentStudentService.createStudentWithoutValidation(createStudentEntity);
-            event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_CREATED);
+            assessmentStudentService.createAssessmentStudentWithHistory(createStudentEntity);
+            dataChangedForStudent = true;
         } else {
-            log.info("Student already exists in assessment {} ", assessmentStudent.getAssessmentStudentID());
-            event.setEventOutcome(EventOutcome.STUDENT_ALREADY_EXIST);
+            log.info("Student already exists in assessment {} ", assessmentStudent);
         }
+
+        AssessmentEventEntity assessmentEventEntity = null;
+        if(dataChangedForStudent) {
+            assessmentEventEntity = EventUtil.createEvent(
+                    assessmentStudent.getUpdateUser(), assessmentStudent.getUpdateUser(),
+                    JsonUtil.getJsonStringFromObject(assessmentStudent.getStudentID()),
+                    ASSESSMENT_STUDENT_UPDATE, EventOutcome.ASSESSMENT_STUDENT_UPDATED);
+
+            log.debug("Assessment event is: {}", assessmentEventEntity);
+            log.debug("Assessment student is: {}", assessmentStudent);
+            assessmentEventRepository.save(assessmentEventEntity);
+        }
+
+        event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
         val studentEvent = createEventRecord(event);
-        return createResponseEvent(studentEvent);
+        return Pair.of(createResponseEvent(studentEvent), assessmentEventEntity);
     }
 
     public byte[] handleGetOpenAssessmentSessionsEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
@@ -186,7 +215,7 @@ public class EventHandlerService {
                 .updateDate(LocalDateTime.now())
                 .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
                 .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
-                .eventPayloadBytes(event.getEventPayload().getBytes(StandardCharsets.UTF_8))
+                .eventPayload(event.getEventPayload())
                 .eventType(event.getEventType().toString())
                 .sagaId(event.getSagaId())
                 .eventStatus(MESSAGE_PUBLISHED.toString())
