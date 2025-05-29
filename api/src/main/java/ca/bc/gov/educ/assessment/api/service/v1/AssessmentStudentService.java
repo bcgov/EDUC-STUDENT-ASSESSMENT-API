@@ -139,9 +139,11 @@ public class AssessmentStudentService {
             if (currentAssessmentStudentEntity != null) {
                 BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "districtID", "schoolID", "studentID", "givenName", "surName", "pen", "localID", "isElectronicExam", "courseStatusCode", "assessmentStudentStatusCode", "createUser", "createDate");
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
+                currentAssessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), currentAssessmentStudentEntity.getStudentID())));
                 return mapper.toStructure(createAssessmentStudentWithHistory(currentAssessmentStudentEntity));
             } else {
                 assessmentStudentEntity.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
+                assessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), assessmentStudentEntity.getStudentID())));
                 return mapper.toStructure(createAssessmentStudentWithHistory(assessmentStudentEntity));
             }
         }
