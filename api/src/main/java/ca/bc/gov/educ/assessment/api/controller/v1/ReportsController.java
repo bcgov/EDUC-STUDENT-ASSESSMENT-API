@@ -35,6 +35,7 @@ public class ReportsController implements ReportsEndoint {
 
         return switch (code.get()) {
             case ALL_SESSION_REGISTRATIONS -> ministryReportsService.generateSessionRegistrationsReport(sessionID);
+            case ATTEMPTS -> ministryReportsService.generateNumberOfAttemptsReport(sessionID);
             case PEN_MERGES -> ministryReportsService.generatePenMergesReport();
             default -> new DownloadableReportResponse();
         };

@@ -8,6 +8,7 @@ import java.util.Optional;
 @Getter
 public enum AssessmentReportTypeCode {
     ALL_SESSION_REGISTRATIONS("ALL_SESSION_REGISTRATIONS"),
+    ATTEMPTS("ATTEMPTS"),
     PEN_MERGES("PEN_MERGES");
     private final String code;
     AssessmentReportTypeCode(String code) { this.code = code; }

@@ -114,6 +114,40 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
+    void testGetMinistryReport_ValidTypeAttempts_ShouldReturnReportData() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORTS";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        SessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        SessionEntity sessionEntity = sessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        AssessmentStudentEntity student = createMockStudentEntity(assessment);
+        studentRepository.save(student);
+
+        AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
+        studentRepository.save(student2);
+
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment2);
+        studentRepository.save(student3);
+
+        var resultActions1 = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ATTEMPTS.getCode() + "/download").with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary1 = objectMapper.readValue(resultActions1.andReturn().getResponse().getContentAsByteArray(), new TypeReference<DownloadableReportResponse>() {
+        });
+
+        assertThat(summary1).isNotNull();
+        assertThat(summary1.getReportType()).isEqualTo(AssessmentReportTypeCode.ATTEMPTS.getCode());
+    }
+
+    @Test
     void testGetMinistryReport_PenMerges_ShouldReturnReportData() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORTS";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);

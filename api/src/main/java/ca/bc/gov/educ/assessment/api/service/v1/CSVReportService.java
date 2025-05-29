@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AllStudentRegistrationsHeader;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
+import ca.bc.gov.educ.assessment.api.constants.v1.reports.NumberOfAttemptsHeader;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.PenMergesHeader;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
@@ -66,13 +67,45 @@ public class CSVReportService {
                 if (result.getAssessmentCenterID() != null) {
                     assessmentCenter = restUtils.getSchoolBySchoolID(result.getAssessmentCenterID().toString());
                 }
-                List<String> csvRowData = prepareEnrolmentFteDataForCsv(result, school, assessmentCenter);
+                List<String> csvRowData = prepareRegistrationDataForCsv(result, school, assessmentCenter);
                 csvPrinter.printRecord(csvRowData);
             }
             csvPrinter.flush();
 
             var downloadableReport = new DownloadableReportResponse();
             downloadableReport.setReportType(AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS.getCode());
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
+    public DownloadableReportResponse generateNumberOfAttemptsReport(UUID sessionID) {
+        sessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(SessionEntity.class, "sessionID", sessionID.toString()));
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_SessionEntity_SessionID(sessionID);
+        List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values()).map(NumberOfAttemptsHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                .build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(List.of("Student Assessment Attempts                        Date: " + LocalDate.now()));
+            csvPrinter.printRecord(List.of("--------------------------------------------------------------------------------"));
+
+            csvPrinter.printRecord(headers);
+
+            for (AssessmentStudentEntity result : results) {
+                List<String> csvRowData = prepareNumberOfAttemptsDataForCsv(result);
+                csvPrinter.printRecord(csvRowData);
+            }
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(AssessmentReportTypeCode.ATTEMPTS.getCode());
             downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
 
             return downloadableReport;
@@ -120,7 +153,15 @@ public class CSVReportService {
         }
     }
 
-    private List<String> prepareEnrolmentFteDataForCsv(AssessmentStudentEntity student, SchoolTombstone school, Optional<SchoolTombstone> assessmentCenter) {
+    private List<String> prepareNumberOfAttemptsDataForCsv(AssessmentStudentEntity student) {
+        return new ArrayList<>(Arrays.asList(
+                student.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getPen(),
+                student.getNumberOfAttempts() != null ? Integer.toString(student.getNumberOfAttempts()) : null
+        ));
+    }
+
+    private List<String> prepareRegistrationDataForCsv(AssessmentStudentEntity student, SchoolTombstone school, Optional<SchoolTombstone> assessmentCenter) {
         return new ArrayList<>(Arrays.asList(
                 school.getMincode(),
                 student.getPen(),
