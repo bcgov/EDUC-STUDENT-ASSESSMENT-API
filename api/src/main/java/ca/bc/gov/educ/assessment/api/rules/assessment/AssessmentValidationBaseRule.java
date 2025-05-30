@@ -19,6 +19,16 @@ public interface AssessmentValidationBaseRule extends Rule<StudentRuleData, Asse
         return assessmentStudentValidationIssue;
     }
 
+
+    default AssessmentStudentValidationIssue createValidationIssue(AssessmentStudentValidationFieldCode fieldCode, AssessmentStudentValidationIssueTypeCode typeCode, String message){
+        AssessmentStudentValidationIssue assessmentStudentValidationIssue = new AssessmentStudentValidationIssue();
+        assessmentStudentValidationIssue.setValidationIssueCode(typeCode.getCode());
+        assessmentStudentValidationIssue.setValidationIssueFieldCode(fieldCode.getCode());
+        assessmentStudentValidationIssue.setValidationMessage(message);
+        assessmentStudentValidationIssue.setValidationLabel(typeCode.getLabel());
+        return assessmentStudentValidationIssue;
+    }
+
     default boolean isValidationDependencyResolved(String fieldName, List<AssessmentStudentValidationIssue> validationErrorsMap) {
         Optional<AssessmentValidationRulesDependencyMatrix> errorCodesToCheck = AssessmentValidationRulesDependencyMatrix.findByValue(fieldName);
         if(errorCodesToCheck.isPresent()) {
