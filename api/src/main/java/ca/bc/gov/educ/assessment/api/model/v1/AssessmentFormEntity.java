@@ -47,16 +47,4 @@ public class AssessmentFormEntity {
     @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(mappedBy = "assessmentFormEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = AssessmentQuestionEntity.class)
-    Set<AssessmentQuestionEntity> assessmentQuestionEntities;
-
-    public Set<AssessmentQuestionEntity> getAssessmentQuestionEntities() {
-        if (this.assessmentQuestionEntities == null) {
-            this.assessmentQuestionEntities = new HashSet<>();
-        }
-        return this.assessmentQuestionEntities;
-    }
 }

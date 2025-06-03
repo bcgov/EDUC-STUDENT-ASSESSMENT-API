@@ -28,17 +28,29 @@ public class ContextCodeEntity {
     @Column(name = "CONTEXT_CODE", unique = true, length = 1)
     private String contextCode;
 
-    @Column(name = "LABEL")
+    @Column(name = "LABEL", length = 30)
     private String label;
 
-    @Column(name = "CREATE_USER", updatable = false , length = 100)
+    @Column(name = "DESCRIPTION")
+    private String description;
+
+    @Column(name = "DISPLAY_ORDER")
+    private Integer displayOrder;
+
+    @Column(name = "EFFECTIVE_DATE")
+    private LocalDateTime effectiveDate;
+
+    @Column(name = "EXPIRY_DATE")
+    private LocalDateTime expiryDate;
+
+    @Column(name = "CREATE_USER", updatable = false , length = 32)
     private String createUser;
 
     @PastOrPresent
     @Column(name = "CREATE_DATE", updatable = false)
     private LocalDateTime createDate;
 
-    @Column(name = "UPDATE_USER", length = 100)
+    @Column(name = "UPDATE_USER", length = 32)
     private String updateUser;
 
     @PastOrPresent

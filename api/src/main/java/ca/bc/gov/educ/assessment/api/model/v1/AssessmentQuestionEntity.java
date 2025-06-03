@@ -5,7 +5,6 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
-import org.springframework.scheduling.config.Task;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,11 +26,8 @@ public class AssessmentQuestionEntity {
     @Column(name = "ASSESSMENT_QUESTION_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
     private UUID assessmentQuestionID;
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentFormEntity.class)
-    @JoinColumn(name = "ASSESSMENT_FORM_ID", referencedColumnName = "ASSESSMENT_FORM_ID", updatable = false)
-    AssessmentFormEntity assessmentFormEntity;
+    @Column(name="ASSESSMENT_FORM_ID", nullable = false)
+    private UUID assessmentFormID;
 
     @Column(name="QUES_NUMBER", nullable = false)
     private Integer questionNumber;
@@ -42,25 +38,20 @@ public class AssessmentQuestionEntity {
     @Column(name = "MARK_VALUE", nullable = false)
     private Integer markValue;
 
-    @ManyToOne(targetEntity = CognitiveLevelCodeEntity.class)
-    @JoinColumn(name = "COGN_LEVEL_CODE", referencedColumnName = "COGN_LEVEL_CODE")
-    private CognitiveLevelCodeEntity cognitiveLevelCode;
+    @Column(name = "COGN_LEVEL_CODE")
+    private String cognitiveLevelCode;
 
-    @ManyToOne(targetEntity = TaskCodeEntity.class)
-    @JoinColumn(name = "TASK_CODE", referencedColumnName = "TASK_CODE")
-    private TaskCodeEntity taskCode;
+    @Column(name = "TASK_CODE")
+    private String taskCode;
 
-    @ManyToOne(targetEntity = ClaimCodeEntity.class)
-    @JoinColumn(name = "CLAIM_CODE", referencedColumnName = "CLAIM_CODE")
-    private ClaimCodeEntity claimCode;
+    @Column(name = "CLAIM_CODE")
+    private String claimCode;
 
-    @ManyToOne(targetEntity = ContextCodeEntity.class)
-    @JoinColumn(name = "CONTEXT_CODE", referencedColumnName = "CONTEXT_CODE")
-    private ContextCodeEntity contextCode;
+    @Column(name = "CONTEXT_CODE")
+    private String contextCode;
 
-    @ManyToOne(targetEntity = ConceptCodeEntity.class)
-    @JoinColumn(name = "CONCEPT_CODE", referencedColumnName = "CONCEPT_CODE")
-    private ConceptCodeEntity conceptCode;
+    @Column(name = "CONCEPT_CODE")
+    private String conceptCode;
 
     @Column(name = "SCALE_FACTOR")
     private BigDecimal scaleFactor;
