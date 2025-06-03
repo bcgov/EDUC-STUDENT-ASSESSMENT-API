@@ -108,15 +108,4 @@ public class AssessmentStudentEntity {
   @Column(name = "UPDATE_DATE")
   private LocalDateTime updateDate;
 
-  @EqualsAndHashCode.Exclude
-  @ToString.Exclude
-  @OneToMany(mappedBy = "assessmentStudentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = AssessmentStudentAnswerEntity.class)
-  Set<AssessmentStudentAnswerEntity> assessmentStudentAnswerEntities;
-
-  public Set<AssessmentStudentAnswerEntity> getAssessmentStudentAnswerEntities() {
-    if (this.assessmentStudentAnswerEntities == null) {
-      this.assessmentStudentAnswerEntities = new HashSet<>();
-    }
-    return this.assessmentStudentAnswerEntities;
-  }
 }

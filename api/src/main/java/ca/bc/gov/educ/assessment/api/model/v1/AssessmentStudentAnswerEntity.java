@@ -29,11 +29,8 @@ public class AssessmentStudentAnswerEntity {
     @JoinColumn(name = "ASSESSMENT_QUESTION_RESPONSE_OPTION_ID", referencedColumnName = "ASSESSMENT_QUESTION_RESPONSE_OPTION_ID", updatable = false)
     AssessmentQuestionResponseOptionEntity assessmentQuestionResponseOptionEntity;
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentStudentEntity.class)
-    @JoinColumn(name = "ASSESSMENT_STUDENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_ID", updatable = false)
-    AssessmentStudentEntity assessmentStudentEntity;
+    @Column(name = "ASSESSMENT_STUDENT_ID", updatable = false)
+    UUID assessmentStudentID;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
