@@ -1,0 +1,246 @@
+CREATE TABLE COGN_LEVEL_CODE
+(
+    COGN_LEVEL_CODE             VARCHAR(4)                          NOT NULL,
+    LABEL                       VARCHAR(255)                        NOT NULL,
+    CREATE_USER                 VARCHAR(100)                        NOT NULL,
+    CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATE_USER                 VARCHAR(100)                        NOT NULL,
+    UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT COGN_LEVEL_CODE_PK PRIMARY KEY (COGN_LEVEL_CODE)
+);
+
+CREATE TABLE TASK_CODE
+(
+    TASK_CODE                   VARCHAR(2)                          NOT NULL,
+    LABEL                       VARCHAR(255)                        NOT NULL,
+    CREATE_USER                 VARCHAR(100)                        NOT NULL,
+    CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATE_USER                 VARCHAR(100)                        NOT NULL,
+    UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT TASK_CODE_PK PRIMARY KEY (TASK_CODE)
+);
+
+CREATE TABLE CLAIM_CODE
+(
+    CLAIM_CODE                  VARCHAR(3)                          NOT NULL,
+    LABEL                       VARCHAR(255)                        NOT NULL,
+    CREATE_USER                 VARCHAR(100)                        NOT NULL,
+    CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATE_USER                 VARCHAR(100)                        NOT NULL,
+    UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT CLAIM_CODE_PK PRIMARY KEY (CLAIM_CODE)
+);
+
+CREATE TABLE CONTEXT_CODE
+(
+    CONTEXT_CODE                VARCHAR(1)                          NOT NULL,
+    LABEL                       VARCHAR(255)                        NOT NULL,
+    CREATE_USER                 VARCHAR(100)                        NOT NULL,
+    CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATE_USER                 VARCHAR(100)                        NOT NULL,
+    UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT CONTEXT_CODE_PK PRIMARY KEY (CONTEXT_CODE)
+);
+
+CREATE TABLE CONCEPT_CODE
+(
+    CONCEPT_CODE                VARCHAR(3)                          NOT NULL,
+    LABEL                       VARCHAR(255)                        NOT NULL,
+    CREATE_USER                 VARCHAR(100)                        NOT NULL,
+    CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATE_USER                 VARCHAR(100)                        NOT NULL,
+    UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT CONCEPT_CODE_PK PRIMARY KEY (CONCEPT_CODE)
+);
+
+CREATE TABLE ASSESSMENT_FORM
+(
+    ASSESSMENT_FORM_ID          UUID                                NOT NULL,
+    ASSESSMENT_ID               UUID                                NOT NULL,
+    FORM_CODE                   VARCHAR(1)                          NOT NULL,
+    CREATE_USER                 VARCHAR(100)                        NOT NULL,
+    CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATE_USER                 VARCHAR(100)                        NOT NULL,
+    UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT ASSESSMENT_FORM_ID_PK PRIMARY KEY (ASSESSMENT_FORM_ID),
+    CONSTRAINT FK_ASSESSMENT_ID FOREIGN KEY (ASSESSMENT_ID)
+        REFERENCES ASSESSMENT (ASSESSMENT_ID)
+);
+
+CREATE TABLE ASSESSMENT_QUESTION
+(
+    ASSESSMENT_QUESTION_ID      UUID                                NOT NULL,
+    ASSESSMENT_FORM_ID          UUID                                NOT NULL,
+    QUES_NUMBER                 INTEGER                             NOT NULL,
+    ITEM_TYPE                   VARCHAR(12)                         NOT NULL,
+    MARK_VALUE                  INTEGER                             NOT NULL,
+    COGN_LEVEL_CODE             VARCHAR(4)                                  ,
+    TASK_CODE                   VARCHAR(2)                                  ,
+    CLAIM_CODE                  VARCHAR(3)                                  ,
+    CONTEXT_CODE                VARCHAR(1)                                  ,
+    CONCEPT_CODE                VARCHAR(3)                                  ,
+    SCALE_FACTOR                NUMERIC                             NOT NULL,
+    ASSMT_SECTION               VARCHAR(8)                          NOT NULL,
+    CREATE_USER                 VARCHAR(100)                        NOT NULL,
+    CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATE_USER                 VARCHAR(100)                        NOT NULL,
+    UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT ASSESSMENT_QUESTION_ID_PK PRIMARY KEY (ASSESSMENT_QUESTION_ID),
+    CONSTRAINT FK_ASSESSMENT_FORM_ID FOREIGN KEY (ASSESSMENT_FORM_ID)
+        REFERENCES ASSESSMENT_FORM (ASSESSMENT_FORM_ID),
+    CONSTRAINT FK_COGN_LEVEL_CODE FOREIGN KEY (COGN_LEVEL_CODE)
+        REFERENCES COGN_LEVEL_CODE (COGN_LEVEL_CODE),
+    CONSTRAINT FK_TASK_CODE FOREIGN KEY (TASK_CODE)
+        REFERENCES TASK_CODE (TASK_CODE),
+    CONSTRAINT FK_CLAIM_CODE FOREIGN KEY (CLAIM_CODE)
+        REFERENCES CLAIM_CODE (CLAIM_CODE),
+    CONSTRAINT FK_CONTEXT_CODE FOREIGN KEY (CONTEXT_CODE)
+        REFERENCES CONTEXT_CODE (CONTEXT_CODE),
+    CONSTRAINT FK_CONCEPT_CODE FOREIGN KEY (CONCEPT_CODE)
+        REFERENCES CONCEPT_CODE (CONCEPT_CODE)
+);
+
+CREATE TABLE ASSESSMENT_QUESTION_RESPONSE_OPTION
+(
+    ASSESSMENT_QUESTION_RESPONSE_OPTION_ID     UUID                 NOT NULL,
+    ASSESSMENT_QUESTION_ID                     UUID                 NOT NULL,
+    IS_CORRECT_ANSWER                          BOOLEAN              NOT NULL,
+    CREATE_USER                                VARCHAR(100)         NOT NULL,
+    CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATE_USER                                 VARCHAR(100)        NOT NULL,
+    UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT ASSESSMENT_QUESTION_RESPONSE_OPTION_ID_PK PRIMARY KEY (ASSESSMENT_QUESTION_RESPONSE_OPTION_ID),
+    CONSTRAINT FK_ASSESSMENT_QUESTION_ID FOREIGN KEY (ASSESSMENT_QUESTION_ID)
+        REFERENCES ASSESSMENT_QUESTION (ASSESSMENT_QUESTION_ID)
+);
+
+CREATE TABLE ASSESSMENT_STUDENT_ANSWER
+(
+    ASSESSMENT_STUDENT_ANSWER_ID               UUID                 NOT NULL,
+    ASSESSMENT_QUESTION_RESPONSE_OPTION_ID     UUID                 NOT NULL,
+    ASSESSMENT_STUDENT_ID                      UUID                 NOT NULL,
+    CREATE_USER                                VARCHAR(100)         NOT NULL,
+    CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATE_USER                                 VARCHAR(100)        NOT NULL,
+    UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT ASSESSMENT_STUDENT_ANSWER_ID_PK PRIMARY KEY (ASSESSMENT_STUDENT_ANSWER_ID),
+    CONSTRAINT FK_ASSESSMENT_QUESTION_RESPONSE_OPTION_ID FOREIGN KEY (ASSESSMENT_QUESTION_RESPONSE_OPTION_ID)
+        REFERENCES ASSESSMENT_QUESTION_RESPONSE_OPTION (ASSESSMENT_QUESTION_RESPONSE_OPTION_ID),
+    CONSTRAINT FK_ASSESSMENT_STUDENT_ID FOREIGN KEY (ASSESSMENT_STUDENT_ID)
+        REFERENCES ASSESSMENT_STUDENT (ASSESSMENT_STUDENT_ID)
+);
+
+ALTER TABLE ASSESSMENT_STUDENT
+    ADD COLUMN ASSESSMENT_FORM_ID              UUID,
+    ADD COLUMN ADAPTED_ASSESSMENT_INDICATOR    VARCHAR(1),
+    ADD COLUMN IRT_SCORE                       VARCHAR(7),
+    ADD COLUMN SR_CHOICE_PATH                  VARCHAR(1),
+    ADD CONSTRAINT FK_ASSESSMENT_FORM_ID FOREIGN KEY (ASSESSMENT_FORM_ID)
+        REFERENCES ASSESSMENT_FORM (ASSESSMENT_FORM_ID);
+
+INSERT INTO COGN_LEVEL_CODE (COGN_LEVEL_CODE, LABEL, CREATE_USER, UPDATE_USER)
+VALUES
+    ('1', 'ORAL COMPONENT 1', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('2', 'ORAL COMPONENT 2', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('3', 'ORAL COMPONENT 3', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('7', 'LEVEL 1 RECALL', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('8', 'LEVEL 2 SKILL/CONCEPT', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('9', 'LEVEL 3 STRATEGIC THINKING', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('A', 'AUDITORY', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('C', 'COMPOSITION', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('F', 'FRENCH AUDIO VIDEO', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('G', 'GRAMMAR', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('H', 'HIGHER MENTAL PROCESSES', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('K', 'KNOWLEDGE', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('L', 'LISTENING', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('N', 'KNOWING', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O', 'ORAL PROFICIENCY', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('P', 'APPLYING', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('Q', 'REASONING', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('R', 'RETRIEVE INFO/RECOGNIZE MEANING', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('S', 'SPEAKING', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('U', 'UNDERSTANDING', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('W', 'RETRIEVE INFORMATION', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('X', 'RECOGNIZE MEANING', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('Y', 'INTERPRET TEXTS', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('Z', 'ANALYZE TEXTS', 'ASSESSMENT-API', 'ASSESSMENT-API');
+
+INSERT INTO TASK_CODE (TASK_CODE, LABEL, CREATE_USER, UPDATE_USER)
+VALUES
+    ('A', 'Part A', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('E', 'Part B - Literacy for Expression', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('F', 'Fair Share', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('I', 'Part B - Literacy for Information', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('M', 'Model', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O', 'Oral', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('P', 'Plan and Design', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('R', 'Reasoned Estimates', 'ASSESSMENT-API', 'ASSESSMENT-API');
+
+INSERT INTO CLAIM_CODE (CLAIM_CODE, LABEL, CREATE_USER, UPDATE_USER)
+VALUES
+    ('A', 'ALL', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('C', 'Comprehend (Literacy Only)', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('I', 'Interpret', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('N', 'Analyze', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O', 'Oral Communication', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('P', 'Apply', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('S', 'Solve', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('W', 'Written Communication', 'ASSESSMENT-API', 'ASSESSMENT-API');
+
+INSERT INTO CONTEXT_CODE (CONTEXT_CODE, LABEL, CREATE_USER, UPDATE_USER)
+VALUES
+    ('1', 'Career/Personal', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('2', 'Personal/Societal', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('3', 'Career/Scientific', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('4', 'Career/Societal', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('5', 'Personal/Scientific', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('6', 'Scientific/Societal', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('A', 'Career', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('B', 'Personal', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('C', 'Scientific', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('D', 'Societal', 'ASSESSMENT-API', 'ASSESSMENT-API');
+
+INSERT INTO CONCEPT_CODE (CONCEPT_CODE, LABEL, CREATE_USER, UPDATE_USER)
+VALUES
+    ('D', 'Data and Probability', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DF', 'Data and Probability/Financial Literacy', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DFG', 'Data, Prob/Fin Lit/Geometry, Meas', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DFN', 'Data, Prob/Fin Lit/Number Sense', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DFP', 'Data, Prob/Fin Lit/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DG', 'Data, Probability/Geometry, Measurement', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DGN', 'Data, Prob/Geometry, Meas/Number Sense', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DGP', 'Data, Prob/Geometry, Meas/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DN', 'Data, Probability/Number Sense', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DNP', 'Data, Prob/Number Sense/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('DP', 'Data and Probability/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('F', 'Financial Literacy', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('FG', 'Financial Literacy/Geometry, Measurement', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('FGN', 'Fin Lit/Geometry, Meas/Number Sense', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('FGP', 'Fin Lit/Geometry, Meas/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('FN', 'Financial Literacy/Number Sense', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('FNP', 'Fin Lit/Number Sense/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('FP', 'Financial Literacy/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('G', 'Geometry and Measurement', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('GN', 'Geometry and Measurement/Number Sense', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('GNP', 'Geometry, Meas/Number Sense/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('GO', 'Graphic organizer', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('GP', 'Geometry and Measurement/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('N', 'Number Sense', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('NP', 'Number Sense/Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O1', 'Oral Component Partie 1', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O1D', 'Oral Component Partie 1, fond', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O1E', 'Oral Component Partie 1, expression', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O1F', 'Oral Component Partie 1, forme', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O2', 'Oral Component Partie 2', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O2D', 'Oral Component Partie 2, fond', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O2E', 'Oral Component Partie 2, expression', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O2F', 'Oral Component Partie 2, forme', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('O3', 'Oral Component Partie 3', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('P', 'Patterns', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('WRA', 'Written Response - Long - Part A', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('WRB', 'Written', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('WRD', 'Long Written Response, fond', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('WRF', 'Long Written Response, forme', 'ASSESSMENT-API', 'ASSESSMENT-API'),
+    ('WRS', 'Written response - Short', 'ASSESSMENT-API', 'ASSESSMENT-API');
+
+
