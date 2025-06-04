@@ -34,11 +34,8 @@ public class AssessmentStudentEntity {
   @JoinColumn(name = "ASSESSMENT_ID", referencedColumnName = "ASSESSMENT_ID")
   AssessmentEntity assessmentEntity;
 
-  @ToString.Exclude
-  @EqualsAndHashCode.Exclude
-  @ManyToOne(targetEntity = AssessmentFormEntity.class)
-  @JoinColumn(name = "ASSESSMENT_FORM_ID", referencedColumnName = "ASSESSMENT_FORM_ID")
-  AssessmentFormEntity assessmentFormEntity;
+  @Column(name = "ASSESSMENT_FORM_ID")
+  UUID assessmentFormID;
 
   @Column(name = "DISTRICT_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID districtID;

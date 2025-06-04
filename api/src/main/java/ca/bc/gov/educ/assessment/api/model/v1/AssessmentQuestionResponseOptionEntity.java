@@ -32,7 +32,7 @@ public class AssessmentQuestionResponseOptionEntity {
     AssessmentQuestionEntity assessmentQuestionEntity;
 
     @Column(name = "IS_CORRECT_ANSWER", nullable = false)
-    private boolean isCorrectAnswer;
+    private Boolean isCorrectAnswer;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
