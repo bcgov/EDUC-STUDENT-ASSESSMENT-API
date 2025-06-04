@@ -8,6 +8,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -31,6 +33,9 @@ public class AssessmentStudentEntity {
   @ManyToOne(optional = false, targetEntity = AssessmentEntity.class)
   @JoinColumn(name = "ASSESSMENT_ID", referencedColumnName = "ASSESSMENT_ID")
   AssessmentEntity assessmentEntity;
+
+  @Column(name = "ASSESSMENT_FORM_ID")
+  UUID assessmentFormID;
 
   @Column(name = "DISTRICT_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID districtID;
@@ -77,6 +82,15 @@ public class AssessmentStudentEntity {
   @Column(name = "NUMBER_OF_ATTEMPTS", length = 1)
   private Integer numberOfAttempts;
 
+  @Column(name = "ADAPTED_ASSESSMENT_INDICATOR", length = 1)
+  private String adaptedAssessmentIndicator;
+
+  @Column(name = "IRT_SCORE", length = 7)
+  private String irtScore;
+
+  @Column(name = "SR_CHOICE_PATH", length = 1)
+  private String srChoicePath;
+
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;
 
@@ -90,4 +104,5 @@ public class AssessmentStudentEntity {
   @PastOrPresent
   @Column(name = "UPDATE_DATE")
   private LocalDateTime updateDate;
+
 }
