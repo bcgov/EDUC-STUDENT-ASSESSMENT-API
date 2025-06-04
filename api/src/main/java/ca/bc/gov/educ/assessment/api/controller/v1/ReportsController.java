@@ -5,12 +5,16 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCo
 import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
+import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CSVReportService;
+import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
+import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +27,8 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class ReportsController implements ReportsEndoint {
 
     private final CSVReportService ministryReportsService;
+    private final XAMFileService xamFileService;
+    private final RestUtils restUtils;
 
     @Override
     public DownloadableReportResponse getDownloadableReport(UUID sessionID, String type) {
@@ -41,5 +47,15 @@ public class ReportsController implements ReportsEndoint {
         };
     }
 
+    @Override
+    public File getDownloadableReportForSchool(UUID sessionID, UUID schoolID) {
+       Optional<SchoolTombstone> schoolTombstoneOptional = this.restUtils.getSchoolBySchoolID(schoolID.toString());
+        if (schoolTombstoneOptional.isEmpty()) {
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("School not found.").status(BAD_REQUEST).build();
+            throw new InvalidPayloadException(error);
+        }
 
+        SchoolTombstone schoolTombstone = schoolTombstoneOptional.get();
+        return this.xamFileService.generateXamFile(sessionID, schoolTombstone);
+    }
 }
