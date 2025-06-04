@@ -3,16 +3,16 @@ package ca.bc.gov.educ.assessment.api.service.v1;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+//import software.amazon.awssdk.services.s3.S3Client;
+//import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.nio.file.Files;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,8 +21,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class XAMFileService {
     private final AssessmentStudentRepository assessmentStudentRepository;
+    //private final S3Client s3Client;
 
-    public DownloadableReportResponse generateXamFile(UUID sessionID, SchoolTombstone school) {
+    @Value("${s3.bucket.name}")
+    private String bucketName;
+
+    public File generateXamFile(UUID sessionID, SchoolTombstone school) {
         List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_SessionEntity_SessionIDAndSchoolID(sessionID, UUID.fromString(school.getSchoolId()));
 
         StringBuilder sb = new StringBuilder();
@@ -69,16 +73,32 @@ public class XAMFileService {
             throw new RuntimeException("Failed to write XAM file", e);
         }
 
-        DownloadableReportResponse response = new DownloadableReportResponse();
+        return file;
+    }
+
+    public void uploadToS3(File file, String key) {
         try {
-            byte[] fileBytes = Files.readAllBytes(file.toPath());
-            response.setReportType("XAM_FILE");
-            response.setDocumentData(Base64.getEncoder().encodeToString(fileBytes));
+//            s3Client.putObject(PutObjectRequest.builder()
+//                    .bucket(bucketName)
+//                    .key(key)
+//                    .build(), Path.of(file.getPath()));
+            log.info("Uploaded file to S3: {}", key);
         } catch (Exception e) {
-            log.error("Failed to read XAM file", e);
-            throw new RuntimeException("Failed to read XAM file", e);
+            log.error("Failed to upload file to S3", e);
+            throw new RuntimeException("Failed to upload file to S3", e);
         }
-        return response;
+    }
+
+    public void generateXamFilesForSchools(UUID sessionID, List<SchoolTombstone> schools) {
+        for (SchoolTombstone school : schools) {
+            try {
+                File file = generateXamFile(sessionID, school);
+                String key = "xam-files/" + school.getMincode() + "_" + sessionID + ".xam";
+                uploadToS3(file, key);
+            } catch (Exception e) {
+                log.error("Failed to generate and upload XAM file for school: {}", school.getMincode(), e);
+            }
+        }
     }
 
     private String padRight(String value, int length) {

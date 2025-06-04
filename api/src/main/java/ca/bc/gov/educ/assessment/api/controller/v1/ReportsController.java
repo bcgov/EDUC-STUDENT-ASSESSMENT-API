@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,7 +48,7 @@ public class ReportsController implements ReportsEndoint {
     }
 
     @Override
-    public DownloadableReportResponse getDownloadableReportForSchool(UUID sessionID, UUID schoolID) {
+    public File getDownloadableReportForSchool(UUID sessionID, UUID schoolID) {
        Optional<SchoolTombstone> schoolTombstoneOptional = this.restUtils.getSchoolBySchoolID(schoolID.toString());
         if (schoolTombstoneOptional.isEmpty()) {
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("School not found.").status(BAD_REQUEST).build();
