@@ -10,7 +10,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.service.v1.events.RegistrationEventHandlerService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
@@ -38,7 +38,7 @@ class RegistrationEventHandlerServiceTest extends BaseAssessmentAPITest {
     @Autowired
     AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
     @Autowired
-    SessionRepository sessionRepository;
+    AssessmentSessionRepository assessmentSessionRepository;
     @Autowired
     AssessmentRepository assessmentRepository;
     @Autowired
@@ -51,14 +51,14 @@ class RegistrationEventHandlerServiceTest extends BaseAssessmentAPITest {
         assessmentStudentRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
         assessmentRepository.deleteAll();
-        sessionRepository.deleteAll();
+        assessmentSessionRepository.deleteAll();
         sagaEventRepository.deleteAll();
         sagaRepository.deleteAll();
     }
 
     @Test
     void testHandleEvent_givenEventType_GET_OPEN_ASSESSMENT_Loaded_Publish() throws IOException {
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
 
         AssessmentStudent student1 = createMockStudent();
@@ -76,7 +76,7 @@ class RegistrationEventHandlerServiceTest extends BaseAssessmentAPITest {
 
     @Test
     void testHandleEvent_givenEventType_INVALID_Loaded_Publish() throws IOException {
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
 
         AssessmentStudent student1 = createMockStudent();

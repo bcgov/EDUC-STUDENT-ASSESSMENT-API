@@ -8,11 +8,11 @@ import ca.bc.gov.educ.assessment.api.filter.FilterOperation;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -48,7 +48,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
   AssessmentStudentRepository studentRepository;
 
   @Autowired
-  SessionRepository sessionRepository;
+  AssessmentSessionRepository assessmentSessionRepository;
 
   @Autowired
   AssessmentRepository assessmentRepository;
@@ -59,7 +59,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
   public void after() {
     this.studentRepository.deleteAll();
     this.assessmentRepository.deleteAll();
-    this.sessionRepository.deleteAll();
+    this.assessmentSessionRepository.deleteAll();
   }
 
   @Test
@@ -67,7 +67,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
 
     UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
@@ -95,7 +95,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_SDC_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
 
@@ -164,7 +164,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudentEntity assessmentStudentEntity = studentRepository.save(createMockStudentEntity(assessment));
     AssessmentStudent student = mapper.toStructure(assessmentStudentEntity);
@@ -243,7 +243,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudent student = createMockStudent();
     student.setAssessmentStudentID(null);
@@ -267,15 +267,15 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = createMockSessionEntity();
+    AssessmentSessionEntity session = createMockSessionEntity();
     session.setCourseMonth("08");
-    SessionEntity sessionEntity = sessionRepository.save(session);
-    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
     AssessmentStudentEntity student = createMockStudentEntity(assessment);
     studentRepository.save(student);
 
-    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
     studentRepository.save(student2);
 
@@ -288,7 +288,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
 
     SearchCriteria criteriaSessionMonth = SearchCriteria.builder()
             .condition(AND)
-            .key("assessmentEntity.sessionEntity.courseMonth")
+            .key("assessmentEntity.assessmentSessionEntity.courseMonth")
             .operation(FilterOperation.EQUAL)
             .value("08")
             .valueType(ValueType.STRING)
@@ -317,15 +317,15 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = createMockSessionEntity();
+    AssessmentSessionEntity session = createMockSessionEntity();
     session.setCourseMonth("08");
-    SessionEntity sessionEntity = sessionRepository.save(session);
-    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
     AssessmentStudentEntity student = createMockStudentEntity(assessment);
     studentRepository.save(student);
 
-    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
     studentRepository.save(student2);
 
@@ -362,15 +362,15 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = createMockSessionEntity();
+    AssessmentSessionEntity session = createMockSessionEntity();
     session.setCourseMonth("08");
-    SessionEntity sessionEntity = sessionRepository.save(session);
-    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
     AssessmentStudentEntity student = createMockStudentEntity(assessment);
     studentRepository.save(student);
 
-    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
     studentRepository.save(student2);
 
@@ -378,7 +378,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     studentRepository.save(student3);
 
     SearchCriteria criteriaAssessmentID = SearchCriteria.builder()
-            .key("assessmentEntity.sessionEntity.schoolYear")
+            .key("assessmentEntity.assessmentSessionEntity.schoolYear")
             .operation(FilterOperation.EQUAL)
             .value(String.valueOf(LocalDateTime.now().getYear()))
             .valueType(ValueType.INTEGER)
@@ -407,15 +407,15 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = createMockSessionEntity();
+    AssessmentSessionEntity session = createMockSessionEntity();
     session.setCourseMonth("08");
-    SessionEntity sessionEntity = sessionRepository.save(session);
-    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
     AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
     studentRepository.save(student1);
 
-    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
     studentRepository.save(student2);
 
@@ -423,7 +423,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     student3.setProvincialSpecialCaseCode(ProvincialSpecialCaseCodes.EXEMPT.getCode());
     studentRepository.save(student3);
     SearchCriteria criteriaAssessmentID = SearchCriteria.builder()
-            .key("assessmentEntity.sessionEntity.schoolYear")
+            .key("assessmentEntity.assessmentSessionEntity.schoolYear")
             .operation(FilterOperation.EQUAL)
             .value(String.valueOf(LocalDateTime.now().getYear()))
             .valueType(ValueType.INTEGER)
@@ -461,7 +461,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
 
@@ -489,7 +489,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
 
@@ -505,9 +505,9 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = createMockSessionEntity();
+    AssessmentSessionEntity session = createMockSessionEntity();
     session.setActiveUntilDate(LocalDateTime.now().minusDays(1));
-    SessionEntity savedSession = sessionRepository.save(session);
+    AssessmentSessionEntity savedSession = assessmentSessionRepository.save(session);
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTF12.getCode()));
     UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
 
@@ -523,7 +523,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudentEntity student = createMockStudentEntity(assessment);
     student.setProficiencyScore(1);

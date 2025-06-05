@@ -13,10 +13,10 @@ public interface AssessmentMapper {
 
     AssessmentMapper mapper = Mappers.getMapper(AssessmentMapper.class);
 
-    @Mapping(target = "sessionID", source = "sessionEntity.sessionID")
+    @Mapping(target = "sessionID", source = "assessmentSessionEntity.sessionID")
     Assessment toStructure(AssessmentEntity entity);
 
-    @Mapping(target = "sessionEntity.sessionID", source = "session.sessionID")
+    @Mapping(target = "assessmentSessionEntity.sessionID", source = "session.sessionID")
     AssessmentEntity toEntity(Assessment session);
 
 }

@@ -1,13 +1,15 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.exception.InvalidParameterException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentCriteriaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionCriteriaEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionCriteriaRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentApproval;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,7 +33,7 @@ import java.util.*;
 public class SessionService {
 
     @Getter(AccessLevel.PRIVATE)
-    private final SessionRepository sessionRepository;
+    private final AssessmentSessionRepository assessmentSessionRepository;
 
     @Getter(AccessLevel.PRIVATE)
     private final AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository;
@@ -45,47 +47,72 @@ public class SessionService {
     private static final String ASSESSMENT_API = "ASSESSMENT_API";
 
     @Autowired
-    public SessionService(final SessionRepository sessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService) {
-        this.sessionRepository = sessionRepository;
+    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService) {
+        this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentSessionCriteriaRepository = assessmentSessionCriteriaRepository;
         this.assessmentRepository = assessmentRepository;
         this.assessmentService = assessmentService;
     }
 
-    public List<SessionEntity> getAllSessions() {
-        return this.getSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now());
+    public List<AssessmentSessionEntity> getAllSessions() {
+        return this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now());
     }
 
-    public List<SessionEntity> getSessionsBySchoolYear(String schoolYear) {
-        return this.getSessionRepository().findBySchoolYear(schoolYear);
+    public AssessmentSessionEntity approveAssessment(final AssessmentApproval assessmentApproval) {
+        var session = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID().toString()));
+
+        if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(session.getApprovalStudentCertUserID())){
+            throw new InvalidParameterException("Assessment session has already been approved by Student Cert User");
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID())){
+            session.setApprovalStudentCertUserID(assessmentApproval.getApprovalStudentCertUserID());
+            session.setApprovalStudentCertSignDate(LocalDateTime.now());
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentDesignUserID()) && StringUtils.isNotBlank(session.getApprovalAssessmentDesignUserID())){
+            throw new InvalidParameterException("Assessment session has already been approved by Assessment Design User");
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentDesignUserID())){
+            session.setApprovalAssessmentDesignUserID(assessmentApproval.getApprovalAssessmentDesignUserID());
+            session.setApprovalAssessmentDesignSignDate(LocalDateTime.now());
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentAnalysisUserID()) && StringUtils.isNotBlank(session.getApprovalAssessmentAnalysisUserID())){
+            throw new InvalidParameterException("Assessment session has already been approved by Assessment Analyst User");
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentAnalysisUserID())){
+            session.setApprovalAssessmentAnalysisUserID(assessmentApproval.getApprovalAssessmentAnalysisUserID());
+            session.setApprovalAssessmentAnalysisSignDate(LocalDateTime.now());
+        }
+
+        //Check if all 3 have been signed here and kick of the approval SAGA processing
+
+        return assessmentSessionRepository.save(session);
     }
 
-    public List<SessionEntity> getActiveSessions() {
-        return this.getSessionRepository().findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(LocalDateTime.now(), LocalDateTime.now());
+    public List<AssessmentSessionEntity> getSessionsBySchoolYear(String schoolYear) {
+        return this.getAssessmentSessionRepository().findBySchoolYear(schoolYear);
+    }
+
+    public List<AssessmentSessionEntity> getActiveSessions() {
+        return this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public SessionEntity updateSession(UUID sessionID, SessionEntity updatedSessionEntity) {
-        val optionalSession = getSessionRepository().findById(sessionID);
+    public AssessmentSessionEntity updateSession(UUID sessionID, AssessmentSessionEntity updatedAssessmentSessionEntity) {
+        val optionalSession = getAssessmentSessionRepository().findById(sessionID);
         if (optionalSession.isPresent()) {
-            SessionEntity sessionEntity = optionalSession.get();
-            log.debug("Assessment session update, current :: {}, new :: {}", sessionEntity, updatedSessionEntity);
-            sessionEntity.setActiveFromDate(updatedSessionEntity.getActiveFromDate());
-            sessionEntity.setActiveUntilDate(updatedSessionEntity.getActiveUntilDate());
-            return getSessionRepository().save(sessionEntity);
+            AssessmentSessionEntity assessmentSessionEntity = optionalSession.get();
+            log.debug("Assessment session update, current :: {}, new :: {}", assessmentSessionEntity, updatedAssessmentSessionEntity);
+            assessmentSessionEntity.setActiveFromDate(updatedAssessmentSessionEntity.getActiveFromDate());
+            assessmentSessionEntity.setActiveUntilDate(updatedAssessmentSessionEntity.getActiveUntilDate());
+            return getAssessmentSessionRepository().save(assessmentSessionEntity);
         } else {
-            throw new EntityNotFoundException(SessionEntity.class, "SessionEntity", sessionID.toString());
+            throw new EntityNotFoundException(AssessmentSessionEntity.class, "SessionEntity", sessionID.toString());
         }
     }
 
     public void createAllAssessmentSessionsForSchoolYear(int schoolYearStart){
         List<AssessmentSessionCriteriaEntity> activeSessionCriteria = assessmentSessionCriteriaRepository.findAllByEffectiveDateLessThanEqualAndExpiryDateGreaterThanEqual(LocalDateTime.now(), LocalDateTime.now());
-        List<SessionEntity> newSessions = populateSessionEntities(activeSessionCriteria, schoolYearStart);
-        sessionRepository.saveAll(newSessions);
+        List<AssessmentSessionEntity> newSessions = populateSessionEntities(activeSessionCriteria, schoolYearStart);
+        assessmentSessionRepository.saveAll(newSessions);
     }
 
-    public List<SessionEntity> populateSessionEntities(List<AssessmentSessionCriteriaEntity> sessionTypes, int schoolYearStart){
-        List<SessionEntity> newSessionEntities = new ArrayList<>();
+    public List<AssessmentSessionEntity> populateSessionEntities(List<AssessmentSessionCriteriaEntity> sessionTypes, int schoolYearStart){
+        List<AssessmentSessionEntity> newSessionEntities = new ArrayList<>();
         LocalDateTime activeFromDate = LocalDateTime.of(schoolYearStart, 10, 1, 0, 0);
 
         for(AssessmentSessionCriteriaEntity sessionType : sessionTypes){
@@ -93,7 +120,7 @@ public class SessionService {
             int sessionYear = sessionMonth.equalsIgnoreCase("11") ? schoolYearStart : schoolYearStart + 1;
             LocalDateTime endOfSessionDate = LocalDateTime.of(sessionYear, sessionType.getSessionEnd().getMonth(), sessionType.getSessionEnd().getDayOfMonth(), 0, 0);
 
-            SessionEntity session = SessionEntity.builder()
+            AssessmentSessionEntity session = AssessmentSessionEntity.builder()
                     .schoolYear(SchoolYearUtil.generateSchoolYearString(schoolYearStart))
                     .courseYear(String.valueOf(sessionYear))
                     .courseMonth(sessionMonth)
@@ -113,14 +140,14 @@ public class SessionService {
         return newSessionEntities;
     }
 
-    private Set<AssessmentEntity> populateAssessmentsForSession(AssessmentSessionCriteriaEntity sessionCriterion, SessionEntity session){
+    private Set<AssessmentEntity> populateAssessmentsForSession(AssessmentSessionCriteriaEntity sessionCriterion, AssessmentSessionEntity session){
         Set<AssessmentEntity> newAssessments = new HashSet<>();
 
         for (AssessmentCriteriaEntity assessmentType : sessionCriterion.getAssessmentCriteriaEntities()){
             if(assessmentType.getExpiryDate().isAfter(LocalDateTime.now()) && assessmentType.getEffectiveDate().isBefore(LocalDateTime.now())){
                 AssessmentEntity newAssessment = AssessmentEntity.builder()
                         .assessmentTypeCode(assessmentType.getAssessmentTypeCodeEntity().getAssessmentTypeCode())
-                        .sessionEntity(session)
+                        .assessmentSessionEntity(session)
                         .createUser(ASSESSMENT_API)
                         .createDate(LocalDateTime.now())
                         .updateUser(ASSESSMENT_API)

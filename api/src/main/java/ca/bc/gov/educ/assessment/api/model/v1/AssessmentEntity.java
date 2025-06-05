@@ -26,9 +26,9 @@ public class AssessmentEntity {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = SessionEntity.class)
+    @ManyToOne(optional = false, targetEntity = AssessmentSessionEntity.class)
     @JoinColumn(name = "SESSION_ID", referencedColumnName = "SESSION_ID", updatable = false)
-    SessionEntity sessionEntity;
+    AssessmentSessionEntity assessmentSessionEntity;
 
     @Column(name = "ASSESSMENT_TYPE_CODE", nullable = false, length = 10)
     private String assessmentTypeCode;

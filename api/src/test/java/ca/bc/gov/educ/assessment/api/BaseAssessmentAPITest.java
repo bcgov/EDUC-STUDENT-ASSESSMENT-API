@@ -9,7 +9,7 @@ import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentGet;
-import ca.bc.gov.educ.assessment.api.struct.v1.Session;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -39,9 +39,9 @@ public abstract class BaseAssessmentAPITest {
 
   }
 
-  public Session createMockSession() {
+  public AssessmentSession createMockSession() {
     LocalDateTime currentDate = LocalDateTime.now();
-    return Session.builder()
+    return AssessmentSession.builder()
             .sessionID(UUID.randomUUID().toString())
             .schoolYear(String.valueOf(currentDate.getYear()))
             .courseYear(Integer.toString(currentDate.getYear()))
@@ -51,9 +51,9 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
-  public SessionEntity createMockSessionEntity() {
+  public AssessmentSessionEntity createMockSessionEntity() {
     LocalDateTime currentDate = LocalDateTime.now();
-    return SessionEntity.builder()
+    return AssessmentSessionEntity.builder()
             .sessionID(UUID.randomUUID())
             .schoolYear(String.valueOf(currentDate.getYear()))
             .courseYear(Integer.toString(currentDate.getYear()))
@@ -68,9 +68,9 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
-  public AssessmentEntity createMockAssessmentEntity(SessionEntity sessionEntity, String assessmentTypeCode) {
+  public AssessmentEntity createMockAssessmentEntity(AssessmentSessionEntity assessmentSessionEntity, String assessmentTypeCode) {
     return AssessmentEntity.builder()
-            .sessionEntity(sessionEntity)
+            .assessmentSessionEntity(assessmentSessionEntity)
             .assessmentTypeCode(assessmentTypeCode)
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .createDate(LocalDateTime.now())
