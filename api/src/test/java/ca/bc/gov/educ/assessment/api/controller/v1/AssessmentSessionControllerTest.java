@@ -201,4 +201,25 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void testAssessmentApproval_NoApproval_ShouldReturn400() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+        var sess = createMockSessionEntity();
+        sess.setApprovalAssessmentAnalysisUserID("ABC");
+        AssessmentSessionEntity session = assessmentSessionRepository.save(sess);
+        AssessmentApproval assessmentApproval = new AssessmentApproval();
+        assessmentApproval.setSessionID(session.getSessionID().toString());
+
+        this.mockMvc.perform(
+                        post(URL.SESSIONS_URL + "/approval/" + session.getSessionID().toString())
+                                .contentType(APPLICATION_JSON)
+                                .content(asJsonString(assessmentApproval))
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
 }
