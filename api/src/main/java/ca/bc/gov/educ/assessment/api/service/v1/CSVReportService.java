@@ -8,9 +8,9 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.PenMergesHeader;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
@@ -38,14 +38,14 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CSVReportService {
     private static final String SCHOOL_ID = "schoolID";
-    private final SessionRepository sessionRepository;
+    private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final StudentMergeService studentMergeService;
     private final RestUtils restUtils;
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
-        var session = sessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(SessionEntity.class, "sessionID", sessionID.toString()));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_SessionEntity_SessionID(sessionID);
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
         List<String> headers = Arrays.stream(AllStudentRegistrationsHeader.values()).map(AllStudentRegistrationsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .build();
@@ -83,8 +83,8 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateNumberOfAttemptsReport(UUID sessionID) {
-        sessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(SessionEntity.class, "sessionID", sessionID.toString()));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_SessionEntity_SessionID(sessionID);
+        assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
         List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values()).map(NumberOfAttemptsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .build();

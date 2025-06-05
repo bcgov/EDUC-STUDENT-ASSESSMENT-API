@@ -2,10 +2,10 @@ package ca.bc.gov.educ.assessment.api.validator;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentTypeCodeEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
 import ca.bc.gov.educ.assessment.api.util.ValidationUtil;
 import lombok.AccessLevel;
@@ -33,22 +33,22 @@ public class AssessmentValidator {
     private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
 
     @Getter(AccessLevel.PRIVATE)
-    private final SessionRepository sessionRepository;
+    private final AssessmentSessionRepository assessmentSessionRepository;
 
     private static final String ASSESSMENT_ID = "assessmentID";
 
     @Autowired
-    AssessmentValidator(AssessmentRepository assessmentRepository, AssessmentTypeCodeRepository assessmentTypeCodeRepository, SessionRepository sessionRepository) {
+    AssessmentValidator(AssessmentRepository assessmentRepository, AssessmentTypeCodeRepository assessmentTypeCodeRepository, AssessmentSessionRepository assessmentSessionRepository) {
 
         this.assessmentRepository = assessmentRepository;
         this.assessmentTypeCodeRepository = assessmentTypeCodeRepository;
-        this.sessionRepository = sessionRepository;
+        this.assessmentSessionRepository = assessmentSessionRepository;
     }
 
     public List<FieldError> validatePayload(Assessment assessment, boolean isCreateOperation) {
         final List<FieldError> apiValidationErrors = new ArrayList<>();
 
-        Optional<SessionEntity> sessionEntity = sessionRepository.findById(UUID.fromString(assessment.getSessionID()));
+        Optional<AssessmentSessionEntity> sessionEntity = assessmentSessionRepository.findById(UUID.fromString(assessment.getSessionID()));
         if(sessionEntity.isEmpty()){
             apiValidationErrors.add(ValidationUtil.createFieldError(ASSESSMENT, "sessionID", assessment.getSessionID(), "Invalid session ID."));
         }

@@ -3,7 +3,7 @@ package ca.bc.gov.educ.assessment.api.service.v1.events.schedulers;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.SagaRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SessionService;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
@@ -34,7 +34,7 @@ public class EventTaskSchedulerAsyncService {
     private final AssessmentStudentRepository assessmentStudentRepository;
 
     @Getter(PRIVATE)
-    private final SessionRepository sessionRepository;
+    private final AssessmentSessionRepository assessmentSessionRepository;
 
     @Getter(PRIVATE)
     private final AssessmentStudentService assessmentStudentService;
@@ -67,7 +67,7 @@ public class EventTaskSchedulerAsyncService {
         int schoolYearStart = LocalDate.now().getYear();
         String schoolYear = SchoolYearUtil.generateSchoolYearString(schoolYearStart);
         try {
-            if (!this.getSessionRepository().upcomingSchoolYearSessionsExist(schoolYear)) {
+            if (!this.getAssessmentSessionRepository().upcomingSchoolYearSessionsExist(schoolYear)) {
                 log.debug("Creating sessions for {}/{} school year", schoolYearStart, schoolYearStart + 1);
                 this.sessionService.createAllAssessmentSessionsForSchoolYear(schoolYearStart);
             }

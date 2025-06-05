@@ -12,6 +12,6 @@ import java.util.UUID;
 @Repository
 public interface AssessmentRepository extends JpaRepository<AssessmentEntity, UUID> {
 
-    @Query("SELECT a FROM AssessmentEntity a WHERE a.sessionEntity.sessionID = :sessionID")
+    @Query("SELECT a FROM AssessmentEntity a WHERE a.assessmentSessionEntity.sessionID = :sessionID")
     Optional<List<AssessmentEntity>> findBySessionID(UUID sessionID);
 }

@@ -14,10 +14,10 @@ public interface AssessmentStudentListItemMapper {
     AssessmentStudentListItemMapper mapper = Mappers.getMapper(AssessmentStudentListItemMapper.class);
 
     @Mapping(target = "assessmentID", source = "assessmentEntity.assessmentID")
-    @Mapping(target = "sessionID", source = "assessmentEntity.sessionEntity.sessionID")
+    @Mapping(target = "sessionID", source = "assessmentEntity.assessmentSessionEntity.sessionID")
     @Mapping(target = "assessmentTypeCode", source = "assessmentEntity.assessmentTypeCode")
-    @Mapping(target = "courseMonth", source = "assessmentEntity.sessionEntity.courseMonth")
-    @Mapping(target = "courseYear", source = "assessmentEntity.sessionEntity.courseYear")
+    @Mapping(target = "courseMonth", source = "assessmentEntity.assessmentSessionEntity.courseMonth")
+    @Mapping(target = "courseYear", source = "assessmentEntity.assessmentSessionEntity.courseYear")
     @Mapping(target = "assessmentCenterID", source = "assessmentCenterID")
     @Mapping(target = "surname", source = "surname")
     @Mapping(target = "givenName", source = "givenName")

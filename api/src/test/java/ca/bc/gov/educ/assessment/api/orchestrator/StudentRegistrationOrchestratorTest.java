@@ -10,7 +10,7 @@ import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
@@ -51,7 +51,7 @@ class StudentRegistrationOrchestratorTest extends BaseAssessmentAPITest {
 
     private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
     @Autowired
-    SessionRepository sessionRepository;
+    AssessmentSessionRepository assessmentSessionRepository;
     @Autowired
     AssessmentRepository assessmentRepository;
     @Autowired
@@ -85,13 +85,13 @@ class StudentRegistrationOrchestratorTest extends BaseAssessmentAPITest {
         assessmentStudentRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
         assessmentRepository.deleteAll();
-        sessionRepository.deleteAll();
+        assessmentSessionRepository.deleteAll();
     }
 
     @BeforeEach
     public void setUp() {
         Mockito.reset(this.messagePublisher);
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
         AssessmentStudent student = createMockStudent();
         student.setAssessmentID(assessment.getAssessmentID().toString());

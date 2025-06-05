@@ -7,10 +7,10 @@ import ca.bc.gov.educ.assessment.api.constants.v1.URL;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
@@ -50,7 +50,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     AssessmentStudentRepository studentRepository;
 
     @Autowired
-    SessionRepository sessionRepository;
+    AssessmentSessionRepository assessmentSessionRepository;
 
     @Autowired
     AssessmentRepository assessmentRepository;
@@ -68,7 +68,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     public void after() {
         this.studentRepository.deleteAll();
         this.assessmentRepository.deleteAll();
-        this.sessionRepository.deleteAll();
+        this.assessmentSessionRepository.deleteAll();
     }
 
     @Test
@@ -87,15 +87,15 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var school = this.createMockSchool();
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
-        SessionEntity session = createMockSessionEntity();
+        AssessmentSessionEntity session = createMockSessionEntity();
         session.setCourseMonth("08");
-        SessionEntity sessionEntity = sessionRepository.save(session);
-        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
         AssessmentStudentEntity student = createMockStudentEntity(assessment);
         studentRepository.save(student);
 
-        AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+        AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
         AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
         studentRepository.save(student2);
 
@@ -103,7 +103,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentRepository.save(student3);
 
         var resultActions1 = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS.getCode() + "/download").with(mockAuthority))
+                        get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS.getCode() + "/download").with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk());
 
         val summary1 = objectMapper.readValue(resultActions1.andReturn().getResponse().getContentAsByteArray(), new TypeReference<DownloadableReportResponse>() {
@@ -121,15 +121,15 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var school = this.createMockSchool();
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
-        SessionEntity session = createMockSessionEntity();
+        AssessmentSessionEntity session = createMockSessionEntity();
         session.setCourseMonth("08");
-        SessionEntity sessionEntity = sessionRepository.save(session);
-        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
         AssessmentStudentEntity student = createMockStudentEntity(assessment);
         studentRepository.save(student);
 
-        AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+        AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
         AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
         studentRepository.save(student2);
 
@@ -137,7 +137,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentRepository.save(student3);
 
         var resultActions1 = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ATTEMPTS.getCode() + "/download").with(mockAuthority))
+                        get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ATTEMPTS.getCode() + "/download").with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk());
 
         val summary1 = objectMapper.readValue(resultActions1.andReturn().getResponse().getContentAsByteArray(), new TypeReference<DownloadableReportResponse>() {

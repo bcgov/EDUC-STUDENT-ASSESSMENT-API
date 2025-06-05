@@ -59,6 +59,14 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @Size(max = 1)
     private String proficiencyScore;
 
+    private String assessmentFormID;
+
+    private String adaptedAssessmentIndicator;
+
+    private String irtScore;
+
+    private String srChoicePath;
+
     @Size(max = 1)
     @IsAllowedValue(enumName = "ProvincialSpecialCaseCodes", message = "Invalid provincial special case code.")
     private String provincialSpecialCaseCode;
