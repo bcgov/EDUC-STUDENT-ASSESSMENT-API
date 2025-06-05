@@ -93,4 +93,112 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void testAssessmentApprovalSecond_GivenValidPayload_ShouldReturnAssessment() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+        AssessmentApproval assessmentApproval = new AssessmentApproval();
+        assessmentApproval.setSessionID(session.getSessionID().toString());
+        assessmentApproval.setApprovalAssessmentAnalysisUserID("ABC");
+
+        this.mockMvc.perform(
+                        post(URL.SESSIONS_URL + "/approval/" + session.getSessionID().toString())
+                                .contentType(APPLICATION_JSON)
+                                .content(asJsonString(assessmentApproval))
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testAssessmentApprovalThird_GivenValidPayload_ShouldReturnAssessment() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+        AssessmentApproval assessmentApproval = new AssessmentApproval();
+        assessmentApproval.setSessionID(session.getSessionID().toString());
+        assessmentApproval.setApprovalAssessmentDesignUserID("ABC");
+
+        this.mockMvc.perform(
+                        post(URL.SESSIONS_URL + "/approval/" + session.getSessionID().toString())
+                                .contentType(APPLICATION_JSON)
+                                .content(asJsonString(assessmentApproval))
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testAssessmentApproval_AlreadyApproved_ShouldReturn400() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+        var sess = createMockSessionEntity();
+        sess.setApprovalStudentCertUserID("ABC");
+        AssessmentSessionEntity session = assessmentSessionRepository.save(sess);
+        AssessmentApproval assessmentApproval = new AssessmentApproval();
+        assessmentApproval.setSessionID(session.getSessionID().toString());
+        assessmentApproval.setApprovalStudentCertUserID("ABC");
+
+        this.mockMvc.perform(
+                        post(URL.SESSIONS_URL + "/approval/" + session.getSessionID().toString())
+                                .contentType(APPLICATION_JSON)
+                                .content(asJsonString(assessmentApproval))
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testAssessmentApproval_AlreadyApprovedSecond_ShouldReturn400() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+        var sess = createMockSessionEntity();
+        sess.setApprovalAssessmentDesignUserID("ABC");
+        AssessmentSessionEntity session = assessmentSessionRepository.save(sess);
+        AssessmentApproval assessmentApproval = new AssessmentApproval();
+        assessmentApproval.setSessionID(session.getSessionID().toString());
+        assessmentApproval.setApprovalAssessmentDesignUserID("ABC");
+
+        this.mockMvc.perform(
+                        post(URL.SESSIONS_URL + "/approval/" + session.getSessionID().toString())
+                                .contentType(APPLICATION_JSON)
+                                .content(asJsonString(assessmentApproval))
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testAssessmentApproval_AlreadyApprovedThird_ShouldReturn400() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+        var sess = createMockSessionEntity();
+        sess.setApprovalAssessmentAnalysisUserID("ABC");
+        AssessmentSessionEntity session = assessmentSessionRepository.save(sess);
+        AssessmentApproval assessmentApproval = new AssessmentApproval();
+        assessmentApproval.setSessionID(session.getSessionID().toString());
+        assessmentApproval.setApprovalAssessmentAnalysisUserID("ABC");
+
+        this.mockMvc.perform(
+                        post(URL.SESSIONS_URL + "/approval/" + session.getSessionID().toString())
+                                .contentType(APPLICATION_JSON)
+                                .content(asJsonString(assessmentApproval))
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
 }
