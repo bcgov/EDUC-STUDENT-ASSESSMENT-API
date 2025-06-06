@@ -20,4 +20,6 @@ public class AssessmentStudentDetailResponse implements Serializable {
 
     private boolean alreadyWrittenAssessment;
 
+    private String alreadyRegisteredAssessmentTypeCode;
+
 }

@@ -159,6 +159,7 @@ public class EventHandlerService {
                 val studentEntityList = assessmentStudentService.getStudentsByAssessmentIDsInAndStudentID(assessmentIDs, UUID.fromString(student.getStudentID()));
                 if (!studentEntityList.isEmpty()) {
                     response.setHasPriorRegistration(true);
+                    response.setAlreadyRegisteredAssessmentTypeCode(studentEntityList.get(0).getAssessmentEntity().getAssessmentTypeCode());
 
                     for (var stud : studentEntityList) {
                         if (stud.getProficiencyScore() != null || StringUtils.isNotBlank(stud.getProvincialSpecialCaseCode())) {
