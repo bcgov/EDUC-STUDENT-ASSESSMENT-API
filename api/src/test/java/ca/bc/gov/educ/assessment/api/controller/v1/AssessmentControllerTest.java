@@ -5,11 +5,11 @@ import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.URL;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
     AssessmentRepository assessmentRepository;
 
     @Autowired
-    SessionRepository sessionRepository;
+    AssessmentSessionRepository assessmentSessionRepository;
 
     @Autowired
     AssessmentTypeCodeRepository assessmentTypeCodeRepository;
@@ -49,7 +49,7 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
     @AfterEach
     public void after() {
         this.assessmentRepository.deleteAll();
-        this.sessionRepository.deleteAll();
+        this.assessmentSessionRepository.deleteAll();
         this.assessmentTypeCodeRepository.deleteAll();
     }
 
@@ -76,7 +76,7 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_SESSIONS";
         final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         Assessment assessment = createMockAssessment();
         assessment.setSessionID(session.getSessionID().toString());
         assessment.setAssessmentTypeCode("INVALID");
@@ -116,7 +116,7 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
 
         assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
 
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
         Assessment assessment = mapper.toStructure(assessmentEntity);
         assessment.setCreateDate(null);
@@ -150,7 +150,7 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_SESSIONS";
         final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
 
         this.mockMvc.perform(
@@ -166,7 +166,7 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
         final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
         assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         Assessment assessment = createMockAssessment();
         assessment.setSessionID(session.getSessionID().toString());
         assessment.setAssessmentID(null);

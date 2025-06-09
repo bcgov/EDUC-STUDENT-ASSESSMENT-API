@@ -7,11 +7,11 @@ import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.TopicsEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.events.EventHandlerService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
@@ -42,7 +42,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
   public static final String ASSESSMENT_API_TOPIC = TopicsEnum.STUDENT_ASSESSMENT_API_TOPIC.toString();
   @Autowired
-  SessionRepository sessionRepository;
+  AssessmentSessionRepository assessmentSessionRepository;
 
   @Autowired
   AssessmentRepository assessmentRepository;
@@ -60,7 +60,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    sessionRepository.save(createMockSessionEntity());
+    assessmentSessionRepository.save(createMockSessionEntity());
   }
 
   @AfterEach
@@ -68,7 +68,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
     assessmentStudentRepository.deleteAll();
     assessmentStudentHistoryRepository.deleteAll();
     assessmentRepository.deleteAll();
-    sessionRepository.deleteAll();
+    assessmentSessionRepository.deleteAll();
   }
 
   @Test
@@ -84,7 +84,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
   @Test
   void testHandleEvent_givenEventTypePROCESS_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_CREATED() throws IOException {
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudent student1 = createMockStudent();
     student1.setAssessmentID(assessment.getAssessmentID().toString());
@@ -100,7 +100,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
   @Test
   void testHandleEvent_givenEventTypePROCESS_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_EXISTS() throws IOException {
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudent student1 = createMockStudent();
     student1.setAssessmentID(assessment.getAssessmentID().toString());
@@ -122,7 +122,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
   @Test
   void testHandleEvent_givenEventTypeGET_STUDENT_ASSESSMENT_DETAILS_shouldReturnResponse() throws IOException {
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudent student1 = createMockStudent();
     student1.setAssessmentID(assessment.getAssessmentID().toString());
@@ -148,7 +148,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
   @Test
   void testHandleEvent_givenEventTypeGET_STUDENT_ASSESSMENT_DETAILS_WithNME_shouldReturnResponse() throws IOException {
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.NME10.getCode()));
     AssessmentStudent student1 = createMockStudent();
     student1.setAssessmentID(assessment.getAssessmentID().toString());
@@ -174,7 +174,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
 
   @Test
   void testHandleEvent_givenNumeracyAssessmentsAcrossCodes_shouldTreatAsSameForAttemptsAndRegistration() throws IOException {
-    SessionEntity session = sessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentNME10 = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.NME10.getCode()));
     AssessmentEntity assessmentNMF10 = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.NMF10.getCode()));
 

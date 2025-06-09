@@ -15,23 +15,22 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT")
-public class AssessmentEntity {
+@Table(name = "ASSESSMENT_STUDENT_ANSWER")
+public class AssessmentStudentAnswerEntity {
 
     @Id
-    @GeneratedValue(generator = "UUID")
     @UuidGenerator
-    @Column(name = "ASSESSMENT_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
-    private UUID assessmentID;
+    @Column(name = "ASSESSMENT_STUDENT_ANSWER_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
+    private UUID assessmentStudentAnswerID;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentSessionEntity.class)
-    @JoinColumn(name = "SESSION_ID", referencedColumnName = "SESSION_ID", updatable = false)
-    AssessmentSessionEntity assessmentSessionEntity;
+    @ManyToOne(optional = false, targetEntity = AssessmentQuestionResponseOptionEntity.class)
+    @JoinColumn(name = "ASSESSMENT_QUESTION_RESPONSE_OPTION_ID", referencedColumnName = "ASSESSMENT_QUESTION_RESPONSE_OPTION_ID", updatable = false)
+    AssessmentQuestionResponseOptionEntity assessmentQuestionResponseOptionEntity;
 
-    @Column(name = "ASSESSMENT_TYPE_CODE", nullable = false, length = 10)
-    private String assessmentTypeCode;
+    @Column(name = "ASSESSMENT_STUDENT_ID", updatable = false)
+    UUID assessmentStudentID;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;

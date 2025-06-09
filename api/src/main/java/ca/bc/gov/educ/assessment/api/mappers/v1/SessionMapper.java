@@ -2,8 +2,8 @@ package ca.bc.gov.educ.assessment.api.mappers.v1;
 
 import ca.bc.gov.educ.assessment.api.mappers.LocalDateTimeMapper;
 import ca.bc.gov.educ.assessment.api.mappers.UUIDMapper;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
-import ca.bc.gov.educ.assessment.api.struct.v1.Session;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentSession;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -12,8 +12,8 @@ public interface SessionMapper {
 
     SessionMapper mapper = Mappers.getMapper(SessionMapper.class);
 
-    Session toStructure(SessionEntity entity);
+    AssessmentSession toStructure(AssessmentSessionEntity entity);
 
-    SessionEntity toEntity(Session session);
+    AssessmentSessionEntity toEntity(AssessmentSession assessmentSession);
 
 }

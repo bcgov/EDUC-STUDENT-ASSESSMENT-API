@@ -14,7 +14,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.StudentRegistrationOrchestrator;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
@@ -35,7 +35,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +72,7 @@ public class EventHandlerService {
     public static final String EVENT_PAYLOAD = "event is :: {}";
     private static final AssessmentStudentMapper assessmentStudentMapper = AssessmentStudentMapper.mapper;
     private static final SessionMapper sessionMapper = SessionMapper.mapper;
-    private final SessionRepository sessionRepository;
+    private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentEventRepository assessmentEventRepository;
     private final AssessmentStudentService assessmentStudentService;
     private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
@@ -128,7 +127,7 @@ public class EventHandlerService {
 
     public byte[] handleGetOpenAssessmentSessionsEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
         var currentDate = LocalDateTime.now();
-        val sessions = sessionRepository.findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(currentDate, currentDate);
+        val sessions = assessmentSessionRepository.findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(currentDate, currentDate);
         var sessionStructs = new ArrayList<>();
         sessions.forEach(sessionStruct -> sessionStructs.add(sessionMapper.toStructure(sessionStruct)));
         if (isSynchronous) {
@@ -154,7 +153,7 @@ public class EventHandlerService {
             val assessment = assessmentService.getAssessment(UUID.fromString(student.getAssessmentID()));
             if (NumeracyAssessmentCodes.getAllCodes().stream().anyMatch(code -> code.equalsIgnoreCase(assessment.getAssessmentTypeCode()))) {
                 List<UUID> assessmentIDs = new ArrayList<>();
-                assessment.getSessionEntity().getAssessments().stream()
+                assessment.getAssessmentSessionEntity().getAssessments().stream()
                         .filter(a -> NumeracyAssessmentCodes.getAllCodes().stream().anyMatch(code -> code.equalsIgnoreCase(a.getAssessmentTypeCode())))
                         .forEach(a -> assessmentIDs.add(a.getAssessmentID()));
                 val studentEntityList = assessmentStudentService.getStudentsByAssessmentIDsInAndStudentID(assessmentIDs, UUID.fromString(student.getStudentID()));

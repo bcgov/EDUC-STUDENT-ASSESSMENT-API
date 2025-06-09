@@ -7,6 +7,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -15,23 +17,22 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT")
-public class AssessmentEntity {
+@Table(name = "ASSESSMENT_FORM")
+public class AssessmentFormEntity {
 
     @Id
-    @GeneratedValue(generator = "UUID")
     @UuidGenerator
-    @Column(name = "ASSESSMENT_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
-    private UUID assessmentID;
+    @Column(name = "ASSESSMENT_FORM_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
+    private UUID assessmentFormID;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentSessionEntity.class)
-    @JoinColumn(name = "SESSION_ID", referencedColumnName = "SESSION_ID", updatable = false)
-    AssessmentSessionEntity assessmentSessionEntity;
+    @ManyToOne(optional = false, targetEntity = AssessmentEntity.class)
+    @JoinColumn(name = "ASSESSMENT_ID", referencedColumnName = "ASSESSMENT_ID", updatable = false)
+    AssessmentEntity assessmentEntity;
 
-    @Column(name = "ASSESSMENT_TYPE_CODE", nullable = false, length = 10)
-    private String assessmentTypeCode;
+    @Column(name="FORM_CODE", length = 1)
+    private String formCode;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
@@ -46,5 +47,4 @@ public class AssessmentEntity {
     @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
-
 }

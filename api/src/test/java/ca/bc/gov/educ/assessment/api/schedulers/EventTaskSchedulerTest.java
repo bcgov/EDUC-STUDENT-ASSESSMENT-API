@@ -57,7 +57,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     @Autowired
     SagaEventRepository sagaEventRepository;
     @Autowired
-    SessionRepository sessionRepository;
+    AssessmentSessionRepository assessmentSessionRepository;
     @Autowired
     AssessmentCriteriaRepository assessmentCriteriaRepository;
     @Autowired
@@ -89,7 +89,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         assessmentCriteriaRepository.deleteAll();
         assessmentSessionCriteriaRepository.deleteAll();
         assessmentRepository.deleteAll();
-        sessionRepository.deleteAll();
+        assessmentSessionRepository.deleteAll();
         sagaEventRepository.deleteAll();
         sagaRepository.deleteAll();
     }
@@ -103,7 +103,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     @Test
     void test_findAndPublishLoadedStudentRecordsForPublishing_WithStatusCode_LOADED_shouldReturnOk() {
 
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
 
         AssessmentStudent student1 = createMockStudent();
@@ -123,7 +123,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     @Test
     void test_findAndPublishLoadedStudentRecordsForPublishing_WithStatusCode_LOADED_ExistingSaga_shouldReturnOk() {
 
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
 
         AssessmentStudent student1 = createMockStudent();
@@ -158,7 +158,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     @SneakyThrows
     @Test
     void test_findAndPublishLoadedStudentRecordsForPublishing_LOADED_shouldReturnOk() {
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
 
         AssessmentStudent student1 = createMockStudent();
@@ -177,7 +177,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
 
     @Test
     void testHandleEvent_givenEventTypePROCESS_STUDENT_REGISTRATION__whenNoStudentExist_shouldHaveEventOutcome_CREATED() throws IOException {
-        SessionEntity session = sessionRepository.save(createMockSessionEntity());
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
         AssessmentStudent student1 = createMockStudent();
         student1.setAssessmentID(assessment.getAssessmentID().toString());
@@ -207,7 +207,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         int currentMonth = LocalDate.now().getMonthValue();
         int targetYear = currentMonth >= Month.SEPTEMBER.getValue() ? LocalDate.now().getYear() + 1 : LocalDate.now().getYear();
 
-        List<SessionEntity> savedSessions = sessionRepository.findAll();
+        List<AssessmentSessionEntity> savedSessions = assessmentSessionRepository.findAll();
         assertThat(savedSessions)
             .hasSize(2)
             .anySatisfy(session -> {

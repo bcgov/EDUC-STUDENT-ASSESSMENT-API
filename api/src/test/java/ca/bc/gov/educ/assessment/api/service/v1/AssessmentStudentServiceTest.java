@@ -7,11 +7,11 @@ import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentHistoryEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.SessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.SessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -53,7 +53,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
   @Autowired
-  SessionRepository sessionRepository;
+  AssessmentSessionRepository assessmentSessionRepository;
 
   @Autowired
   AssessmentRepository assessmentRepository;
@@ -66,14 +66,14 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     this.assessmentStudentRepository.deleteAll();
     this.assessmentStudentHistoryRepository.deleteAll();
     this.assessmentRepository.deleteAll();
-    this.sessionRepository.deleteAll();
+    this.assessmentSessionRepository.deleteAll();
   }
 
   @Test
   void testGetStudentByID_WhenStudentExistInDB_ShouldReturnStudent()  {
     //given student exists in db
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
     AssessmentStudentEntity assessmentStudentEntity = assessmentStudentRepository.save(createMockStudentEntity(assessmentEntity));
 
@@ -87,8 +87,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   @Test
   void testGetStudentBy_AssessmentIDAndStudentID_WhenStudentExistInDB_ShouldReturnStudent()  {
     //given student exists in db
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
     AssessmentStudentEntity assessmentStudentEntity = assessmentStudentRepository.save(createMockStudentEntity(assessmentEntity));
 
@@ -111,8 +111,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   @Test
   void testCreateStudent_WhenStudentDoesNotExistInDB_ShouldReturnStudent() throws JsonProcessingException {
     //given session exists
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
 
     var school = this.createMockSchool();
     UUID schoolID = UUID.randomUUID();
@@ -141,8 +141,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   @Test
   void testUpdateStudent_WhenStudentExistInDB_ShouldReturnUpdatedStudent() throws JsonProcessingException {
     //given student exists in db
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
     AssessmentStudentEntity studentEntity= createMockStudentEntity(assessmentEntity);
     studentEntity.setAssessmentStudentID(null);
@@ -178,8 +178,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
   @Test
   void testUpdateStudent_WhenStudentDoesNotExistInDB_ReturnError()  {
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
     //given student does not exist in database
     //when attempting to update student
@@ -192,9 +192,9 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   @Test
   void testUpdateStudent_WhenSessionIDDoesNotExistInDB_ShouldThrowError()  {
     //given student existing in db
-    SessionEntity sessionEntity = createMockSessionEntity();
+    AssessmentSessionEntity assessmentSessionEntity = createMockSessionEntity();
     //assessment does not exist in db
-    AssessmentEntity assessmentEntity =createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTF12.getCode());
+    AssessmentEntity assessmentEntity =createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode());
 
     //when attempting to update to session id that does not exist
     AssessmentStudentEntity student = createMockStudentEntity(assessmentEntity);
@@ -205,8 +205,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
   @Test
   void testCreateStudent_WhenNamesDoNotMatchStudentAPI_ShouldReturnValidationErrors() throws JsonProcessingException {
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
 
     var school = this.createMockSchool();
     UUID schoolID = UUID.randomUUID();
@@ -229,9 +229,9 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
   @Test
   void testGetStudentsByAssessmentIDsInAndStudentID_WithNumeracyCodes_ReturnsAllNumeracyRegistrations() {
-    SessionEntity sessionEntity = sessionRepository.save(createMockSessionEntity());
-    AssessmentEntity assessmentNME10 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.NME10.getCode()));
-    AssessmentEntity assessmentNMF10 = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.NMF10.getCode()));
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentNME10 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.NME10.getCode()));
+    AssessmentEntity assessmentNMF10 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.NMF10.getCode()));
 
     AssessmentStudentEntity studentEntity1 = createMockStudentEntity(assessmentNME10);
     AssessmentStudentEntity studentEntity2 = createMockStudentEntity(assessmentNMF10);

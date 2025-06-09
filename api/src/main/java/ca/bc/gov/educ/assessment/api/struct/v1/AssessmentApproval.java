@@ -9,37 +9,23 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.ReadOnlyProperty;
 
 import java.io.Serializable;
-import java.util.List;
 
-/**
- * DTO for Session entity.
- */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Session extends BaseRequest implements Serializable {
+public class AssessmentApproval extends BaseRequest implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  @ReadOnlyProperty
+  @NotNull
   private String sessionID;
 
-  @ReadOnlyProperty
-  private String schoolYear;
+  private String approvalStudentCertUserID;
 
-  @ReadOnlyProperty
-  private String courseMonth;
+  private String approvalAssessmentDesignUserID;
 
-  @ReadOnlyProperty
-  private String courseYear;
+  private String approvalAssessmentAnalysisUserID;
 
-  @NotNull(message = "activeFromDate cannot be null")
-  private String activeFromDate;
-
-  @NotNull(message = "activeUntilDate cannot be null")
-  private String activeUntilDate;
-
-  private List<Assessment> assessments;
 }
