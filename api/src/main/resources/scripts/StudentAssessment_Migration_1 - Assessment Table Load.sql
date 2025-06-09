@@ -297,21 +297,117 @@ VALUES (LOWER(REGEXP_REPLACE(dbms_crypto.randombytes(16), '(.{8})(.{4})(.{4})(.{
         'ASSESSMENT-API', CURRENT_TIMESTAMP,'ASSESSMENT-API',CURRENT_TIMESTAMP);
 
 
-assessment_id
-session_id
-assessment_type_code
-create_user
-create_date
-update_user
-update_date
-
 CREATE TABLE ASSESSMENT
 as
 SELECT
     LOWER(REGEXP_REPLACE(dbms_crypto.randombytes(16), '(.{8})(.{4})(.{4})(.{4})(.{12})', '\1-\2-\3-\4-\5')) as ASSESSMENT_ID,
-    (SELECT SESSION_ID FROM ASSESSMENT_SESSION sess WHERE sess.COURSE_YEAR = grad_assmnt. AND sess.COURSE_MONTH = ) AS COLLECTION_ID,
+    (SELECT SESSION_ID FROM ASSESSMENT_SESSION sess
+     WHERE sess.COURSE_YEAR = SUBSTR( TRIM(grad_assmnt.ASSMT_SESSION), 0 , 4)
+       AND sess.COURSE_MONTH = SUBSTR(TRIM(grad_assmnt.ASSMT_SESSION), 5)) AS SESSION_ID,
+    TRIM(grad_assmnt.ASSMT_CODE) as ASSESSMENT_TYPE_CODE,
     'ASSESSMENT-API' as CREATE_USER,
     CURRENT_TIMESTAMP as CREATE_DATE,
     'ASSESSMENT-API' as UPDATE_USER,
     CURRENT_TIMESTAMP as UPDATE_DATE
-FROM TAB_GRAD_ASSMT grad_assmnt;
+FROM TAB_AVAILABLE_GRAD_ASSMT_SESS grad_assmnt
+WHERE (SELECT SESSION_ID FROM ASSESSMENT_SESSION sess
+       WHERE sess.COURSE_YEAR = SUBSTR( TRIM(grad_assmnt.ASSMT_SESSION), 0 , 4)
+         AND sess.COURSE_MONTH = SUBSTR(TRIM(grad_assmnt.ASSMT_SESSION), 5)) IS NOT null;
+
+CREATE TABLE ASSESSMENT_FORM
+as
+SELECT
+    LOWER(REGEXP_REPLACE(dbms_crypto.randombytes(16), '(.{8})(.{4})(.{4})(.{4})(.{12})', '\1-\2-\3-\4-\5')) as ASSESSMENT_FORM_ID,
+    (SELECT assmnt.ASSESSMENT_ID FROM ASSESSMENT_SESSION sess, ASSESSMENT assmnt
+     WHERE sess.COURSE_YEAR = SUBSTR( TRIM(assmnt_key.ASSMT_SESSION), 0 , 4)
+       AND sess.COURSE_MONTH = SUBSTR(TRIM(assmnt_key.ASSMT_SESSION), 5)
+       AND assmnt.SESSION_ID = sess.SESSION_ID
+       AND TRIM(assmnt_key.ASSMT_CODE) = assmnt.ASSESSMENT_TYPE_CODE) AS ASSESSMENT_ID,
+    TRIM(assmnt_key.FORM_CODE) as FORM_CODE,
+    'ASSESSMENT-API' as CREATE_USER,
+    CURRENT_TIMESTAMP as CREATE_DATE,
+    'ASSESSMENT-API' as UPDATE_USER,
+    CURRENT_TIMESTAMP as UPDATE_DATE
+FROM TAB_GRAD_ASSMT_KEY assmnt_key;
+
+CREATE TABLE ASSESSMENT_QUESTION
+as
+SELECT
+    LOWER(REGEXP_REPLACE(dbms_crypto.randombytes(16), '(.{8})(.{4})(.{4})(.{4})(.{12})', '\1-\2-\3-\4-\5')) as ASSESSMENT_QUESTION_ID,
+    (SELECT form.ASSESSMENT_FORM_ID FROM ASSESSMENT_SESSION sess, ASSESSMENT assmnt, ASSESSMENT_FORM form
+     WHERE sess.COURSE_YEAR = SUBSTR( TRIM(assmnt_ques.ASSMT_SESSION), 0 , 4)
+       AND sess.COURSE_MONTH = SUBSTR(TRIM(assmnt_ques.ASSMT_SESSION), 5)
+       AND assmnt.SESSION_ID = sess.SESSION_ID
+       AND assmnt.ASSESSMENT_ID = form.ASSESSMENT_ID
+       AND TRIM(assmnt_ques.FORM_CODE) = form.FORM_CODE
+       AND TRIM(assmnt_ques.ASSMT_CODE) = assmnt.ASSESSMENT_TYPE_CODE) AS ASSESSMENT_FORM_ID,
+    TRIM(assmnt_ques.QUES_NUMBER) as QUES_NUMBER,
+    TRIM(assmnt_ques.MC_OE_FLAG) as MC_OE_FLAG,
+    TRIM(assmnt_ques.COGN_LEVEL) as COGN_LEVEL_CODE,
+    TRIM(assmnt_ques.ASSMT_SECTION) as ASSMT_SECTION,
+    CASE
+        WHEN TRIM(assmnt_ques.COMPONENT_TYPE) IS NULL THEN 'WRITTEN'
+        ELSE TRIM(assmnt_ques.COMPONENT_TYPE)
+        END as QUESTION_TYPE_CODE,
+    TRIM(assmnt_ques.CLAIM_CODE) as CLAIM_CODE,
+    TRIM(assmnt_ques.TASK_CODE) as TASK_CODE,
+    TRIM(assmnt_ques.CONTEXT_CODE) as CONTEXT_CODE,
+    TRIM(assmnt_ques.CONCEPTS_CODE) as CONCEPTS_CODE,
+    TRIM(assmnt_ques.ITEM_NUMBER) as ITEM_NUMBER,
+    TRIM(assmnt_ques.QUES_VALUE) as QUES_VALUE,
+    TRIM(assmnt_ques.MAX_QUES_VALUE) as MAX_QUES_VALUE,
+    TRIM(assmnt_ques.MASTER_QUES_NUMBER) as MASTER_QUES_NUMBER,
+    TRIM(assmnt_ques.IRT_INCREMENT) as IRT_INCREMENT,
+    TRIM(assmnt_ques.PRELOAD_ANSWER_STRING) as PRELOAD_ANSWER,
+    TRIM(assmnt_ques.IRT_COLUMN) as IRT,
+    'ASSESSMENT-API' as CREATE_USER,
+    CURRENT_TIMESTAMP as CREATE_DATE,
+    'ASSESSMENT-API' as UPDATE_USER,
+    CURRENT_TIMESTAMP as UPDATE_DATE
+FROM TAB_GRAD_ASSMT_QUES assmnt_ques;
+
+CREATE TABLE ASSESSMENT_ANSWER
+as
+SELECT
+    LOWER(REGEXP_REPLACE(dbms_crypto.randombytes(16), '(.{8})(.{4})(.{4})(.{4})(.{12})', '\1-\2-\3-\4-\5')) as ASSESSMENT_ANSWER_ID,
+    (SELECT ques.ASSESSMENT_QUESTION_ID FROM ASSESSMENT_SESSION sess, ASSESSMENT assmnt, ASSESSMENT_FORM form, ASSESSMENT_QUESTION ques
+     WHERE sess.COURSE_YEAR = SUBSTR( TRIM(assmnt_answer.ASSMT_SESSION), 0 , 4)
+       AND sess.COURSE_MONTH = SUBSTR(TRIM(assmnt_answer.ASSMT_SESSION), 5)
+       AND assmnt.SESSION_ID = sess.SESSION_ID
+       AND assmnt.ASSESSMENT_ID = form.ASSESSMENT_ID
+       AND form.ASSESSMENT_FORM_ID = ques.ASSESSMENT_FORM_ID
+       AND TRIM(assmnt_answer.QUES_NUMBER) = ques.QUES_NUMBER
+       AND TRIM(assmnt_answer.ITEM_NUMBER) = ques.ITEM_NUMBER
+       AND TRIM(assmnt_answer.CLAIM_CODE) = ques.CLAIM_CODE
+       AND TRIM(assmnt_answer.COGN_LEVEL) = ques.COGN_LEVEL_CODE
+       AND TRIM(assmnt_answer.TASK_CODE) = ques.TASK_CODE
+       AND TRIM(assmnt_answer.MC_OE_FLAG) = ques.MC_OE_FLAG
+       AND TRIM(assmnt_answer.FORM_CODE) = form.FORM_CODE
+       AND TRIM(assmnt_answer.ASSMT_CODE) = assmnt.ASSESSMENT_TYPE_CODE) AS ASSESSMENT_QUESTION_ID,
+    TRIM(assmnt_answer.QUES_NUMBER) as QUES_NUMBER,
+    TRIM(assmnt_answer.MC_OE_FLAG) as MC_OE_FLAG,
+    TRIM(assmnt_answer.COGN_LEVEL) as COGN_LEVEL_CODE,
+    CASE
+        WHEN TRIM(assmnt_answer.COMPONENT_TYPE) IS NULL THEN 'WRITTEN'
+        ELSE TRIM(assmnt_answer.COMPONENT_TYPE)
+        END as QUESTION_TYPE_CODE,
+    TRIM(assmnt_answer.CLAIM_CODE) as CLAIM_CODE,
+    TRIM(assmnt_answer.TASK_CODE) as TASK_CODE,
+    TRIM(assmnt_answer.CONTEXT_CODE) as CONTEXT_CODE,
+    TRIM(assmnt_answer.CONCEPTS_CODE) as CONCEPTS_CODE,
+    TRIM(assmnt_answer.ITEM_NUMBER) as ITEM_NUMBER,
+    TRIM(assmnt_answer.QUES_VALUE) as QUES_VALUE,
+    TRIM(assmnt_answer.OE_ITEM_TYPE) as OE_ITEM_TYPE,
+    TRIM(assmnt_answer.ANSWER_NUMBER) as ANSWER_NUMBER,
+    TRIM(assmnt_answer.MC_QUES_TYPE) as MC_QUES_TYPE,
+    TRIM(assmnt_answer.MC_ANSWER_STRING) as MC_ANSWER_STRING,
+    TRIM(assmnt_answer.MC_ANSWER_LOWER) as MC_ANSWER_LOWER,
+    TRIM(assmnt_answer.MC_ANSWER_UPPER) as MC_ANSWER_UPPER,
+    TRIM(assmnt_answer.IRT_COLUMN) as IRT,
+    TRIM(assmnt_answer.LINKED_ITEM_NUMBER) as LINKED_ITEM_NUMBER,
+    TRIM(assmnt_answer.SCALE_FACTOR) as SCALE_FACTOR,
+    'ASSESSMENT-API' as CREATE_USER,
+    CURRENT_TIMESTAMP as CREATE_DATE,
+    'ASSESSMENT-API' as UPDATE_USER,
+    CURRENT_TIMESTAMP as UPDATE_DATE
+FROM TAB_GRAD_ASSMT_ANSW assmnt_answer;
