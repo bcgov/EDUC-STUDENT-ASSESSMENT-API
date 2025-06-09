@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -33,13 +34,13 @@ public class AssessmentStudentAnswerEntity {
     private String mcAssessmentResponse;
 
     @Column(name = "MC_SCORE")
-    private String mcScore;
+    private BigDecimal mcScore;
 
     @Column(name = "NUM_OMITS")
-    private String numOmits;
+    private Integer numOmits;
 
     @Column(name = "COMPONENT_TOTAL")
-    private String componentTotal;
+    private BigDecimal componentTotal;
 
     @Column(name = "COMPONENT_SOURCE")
     private String componentSource;
