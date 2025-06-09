@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -39,7 +40,7 @@ public class AssessmentAnswerEntity {
     private String oeItemType;
 
     @Column(name = "ANSWER_NUMBER")
-    private String answerNumber;
+    private Integer answerNumber;
 
     @Column(name = "MC_QUES_TYPE")
     private String mcQuesType;
@@ -48,25 +49,25 @@ public class AssessmentAnswerEntity {
     private String mcAnswer;
 
     @Column(name = "MC_ANSWER_LOWER")
-    private String mcAnswerLower;
+    private BigDecimal mcAnswerLower;
 
     @Column(name = "MC_ANSWER_UPPER")
-    private String mcAnswerUpper;
+    private BigDecimal mcAnswerUpper;
 
     @Column(name = "QUES_VALUE")
-    private String questionValue;
+    private BigDecimal questionValue;
 
     @Column(name = "IRT")
-    private String irt;
+    private Integer irt;
 
     @Column(name = "ITEM_NUMBER")
-    private String itemNumber;
+    private Integer itemNumber;
 
     @Column(name = "LINKED_ITEM_NUMBER")
-    private String linkedItemNumber;
+    private Integer linkedItemNumber;
 
     @Column(name = "SCALE_FACTOR")
-    private String scaleFactor;
+    private Integer scaleFactor;
 
     @Column(name = "COGN_LEVEL_CODE")
     private String cognitiveLevelCode;

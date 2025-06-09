@@ -57,25 +57,25 @@ public class AssessmentQuestionEntity {
     private String mcOeFlag;
 
     @Column(name = "ITEM_NUMBER")
-    private String itemNumber;
+    private Integer itemNumber;
 
     @Column(name = "QUES_VALUE")
-    private String questionValue;
+    private BigDecimal questionValue;
 
     @Column(name = "MAX_QUES_VALUE")
-    private String maxQuestionValue;
+    private BigDecimal maxQuestionValue;
 
     @Column(name = "MASTER_QUES_NUMBER")
-    private String masterQuestionNumber;
+    private Integer masterQuestionNumber;
 
     @Column(name = "IRT_INCREMENT")
-    private String irtIncrement;
+    private BigDecimal irtIncrement;
 
     @Column(name = "PRELOAD_ANSWER")
     private String preloadAnswer;
 
     @Column(name = "IRT")
-    private String irt;
+    private Integer irt;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;

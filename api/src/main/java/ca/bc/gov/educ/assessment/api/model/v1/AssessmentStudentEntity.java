@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -89,7 +90,7 @@ public class AssessmentStudentEntity {
   private String irtScore;
 
   @Column(name = "RAW_SCORE")
-  private String rawScore;
+  private BigDecimal rawScore;
 
   @Column(name = "PRINT_CODE")
   private String printCode;
@@ -98,10 +99,10 @@ public class AssessmentStudentEntity {
   private String preprintFlag;
 
   @Column(name = "MC_TOTAL")
-  private String mcTotal;
+  private BigDecimal mcTotal;
 
   @Column(name = "OE_TOTAL")
-  private String oeTotal;
+  private BigDecimal oeTotal;
 
   @Column(name = "VENDOR_ID", length = 1)
   private String vendorID;
