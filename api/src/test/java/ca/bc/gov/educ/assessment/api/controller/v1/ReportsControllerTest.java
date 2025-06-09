@@ -202,7 +202,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo("XAM_FILE");
+        assertThat(summary.getReportType()).isEqualTo(school.getMincode() + "_" + sessionEntity.getSessionID() + ".xam");
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 
