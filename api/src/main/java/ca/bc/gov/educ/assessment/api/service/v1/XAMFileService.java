@@ -6,7 +6,7 @@ import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombston
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 //import software.amazon.awssdk.services.s3.S3Client;
 //import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -22,14 +22,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class XAMFileService {
     private final AssessmentStudentRepository assessmentStudentRepository;
-    private final RestUtils restUtils;
-    //private final S3Client s3Client;
+    private RestUtils restUtils;
+//    @Value("${s3.bucket.name}")
+//    private String bucketName;
 
-    @Value("${s3.bucket.name}")
-    private String bucketName;
+    @Autowired
+    public XAMFileService(AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils) {
+        this.assessmentStudentRepository = assessmentStudentRepository;
+        this.restUtils = restUtils;
+    }
 
     public File generateXamFile(UUID sessionID, SchoolTombstone school) {
-        List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_SessionEntity_SessionIDAndSchoolID(sessionID, UUID.fromString(school.getSchoolId()));
+        List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolID(sessionID, UUID.fromString(school.getSchoolId()));
 
         StringBuilder sb = new StringBuilder();
 
@@ -50,7 +54,9 @@ public class XAMFileService {
                 padRight("", 3) + // INTERIM_SCHOOL_PERCENT (BLANK)
                 padRight("", 3) + // FINAL_SCHOOL_PERCENT (BLANK)
                 padRight("", 3) + // EXAM_PERCENT (BLANK)
-                padRight(String.valueOf(student.getProficiencyScore()), 3) + // FINAL_PERCENT - PROFICIENCY_SCORE formatted as 001-004 TODO CHECK THE FORMAT
+                (student.getProficiencyScore() == null 
+                    ? padRight("", 3) 
+                    : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - formatted as 001-004
                 padRight("", 2) + // FINAL_LETTER_GRADE (BLANK)
                 padRight("Y", 1) + // E-EXAM FLAG - Always Y according to spec
                 padRight(student.getProvincialSpecialCaseCode(), 1) + // PROV_SPEC_CASE

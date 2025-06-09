@@ -88,9 +88,6 @@ public class AssessmentStudentEntity {
   @Column(name = "IRT_SCORE", length = 7)
   private String irtScore;
 
-  @Column(name = "SR_CHOICE_PATH", length = 1)
-  private String srChoicePath;
-
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;
 
