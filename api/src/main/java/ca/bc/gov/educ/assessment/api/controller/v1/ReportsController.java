@@ -15,9 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Base64;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -48,14 +50,23 @@ public class ReportsController implements ReportsEndoint {
     }
 
     @Override
-    public File getDownloadableReportForSchool(UUID sessionID, UUID schoolID) {
-       Optional<SchoolTombstone> schoolTombstoneOptional = this.restUtils.getSchoolBySchoolID(schoolID.toString());
+    public DownloadableReportResponse getDownloadableReportForSchool(UUID sessionID, UUID schoolID) {
+        Optional<SchoolTombstone> schoolTombstoneOptional = this.restUtils.getSchoolBySchoolID(schoolID.toString());
         if (schoolTombstoneOptional.isEmpty()) {
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("School not found.").status(BAD_REQUEST).build();
             throw new InvalidPayloadException(error);
         }
-
         SchoolTombstone schoolTombstone = schoolTombstoneOptional.get();
-        return this.xamFileService.generateXamFile(sessionID, schoolTombstone);
+        File xamFile = this.xamFileService.generateXamFile(sessionID, schoolTombstone);
+        try {
+            byte[] fileData = Files.readAllBytes(xamFile.toPath());
+            DownloadableReportResponse response = new DownloadableReportResponse();
+            response.setReportType(xamFile.getName());
+            response.setDocumentData(Base64.getEncoder().encodeToString(fileData));
+            return response;
+        } catch (Exception ex) {
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Error reading generated file.").status(BAD_REQUEST).build();
+            throw new InvalidPayloadException(error);
+        }
     }
 }

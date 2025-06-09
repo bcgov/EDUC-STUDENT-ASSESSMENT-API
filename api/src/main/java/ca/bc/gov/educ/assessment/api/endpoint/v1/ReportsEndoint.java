@@ -26,5 +26,5 @@ public interface ReportsEndoint {
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORTS')")
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    File getDownloadableReportForSchool(@PathVariable UUID sessionID, @PathVariable UUID schoolID);
+    DownloadableReportResponse getDownloadableReportForSchool(@PathVariable UUID sessionID, @PathVariable UUID schoolID);
 }

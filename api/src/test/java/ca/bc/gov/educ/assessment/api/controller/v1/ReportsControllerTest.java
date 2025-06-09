@@ -185,9 +185,9 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var school = this.createMockSchool();
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
-        SessionEntity session = createMockSessionEntity();
+        AssessmentSessionEntity session = createMockSessionEntity();
         session.setCourseMonth("08");
-        SessionEntity sessionEntity = sessionRepository.save(session);
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
 
         AssessmentStudentEntity student = createMockStudentEntity(assessment);
@@ -213,9 +213,9 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.empty());
 
-        SessionEntity session = createMockSessionEntity();
+        AssessmentSessionEntity session = createMockSessionEntity();
         session.setCourseMonth("08");
-        SessionEntity sessionEntity = sessionRepository.save(session);
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
 
         var randomSchoolId = UUID.randomUUID();
 
