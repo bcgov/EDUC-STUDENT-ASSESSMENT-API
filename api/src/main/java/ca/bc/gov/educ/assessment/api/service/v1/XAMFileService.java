@@ -31,6 +31,7 @@ public class XAMFileService {
 
         StringBuilder sb = new StringBuilder();
 
+        // need to bolster student assessment to have the data below for certain fields like percentages
         for (AssessmentStudentEntity student : students) {
             String record =
                 padRight("", 3) + // TX_ID
@@ -89,16 +90,23 @@ public class XAMFileService {
         }
     }
 
-    public void generateXamFilesForSchools(UUID sessionID, List<SchoolTombstone> schools) {
-        for (SchoolTombstone school : schools) {
-            try {
-                File file = generateXamFile(sessionID, school);
-                String key = "xam-files/" + school.getMincode() + "_" + sessionID + ".xam";
-                uploadToS3(file, key);
-            } catch (Exception e) {
-                log.error("Failed to generate and upload XAM file for school: {}", school.getMincode(), e);
-            }
-        }
+    /**
+     * For Orchestrator
+     * Generates a XAM file for the given school and session, returns the file path.
+     */
+    public String generateXamFileAndReturnPath(UUID sessionID, SchoolTombstone school) {
+        File file = generateXamFile(sessionID, school);
+        return file.getAbsolutePath();
+    }
+
+    /**
+     * For Orchestrator
+     * Uploads the file at the given path to S3 for the given school and session.
+     */
+    public void uploadFilePathToS3(String filePath, UUID sessionID, SchoolTombstone school) {
+        File file = new File(filePath);
+        String key = "xam-files/" + school.getMincode() + "_" + sessionID + ".xam";
+        uploadToS3(file, key);
     }
 
     private String padRight(String value, int length) {
