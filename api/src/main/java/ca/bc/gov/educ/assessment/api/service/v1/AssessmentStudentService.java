@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
+import ca.bc.gov.educ.assessment.api.constants.EventStatus;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.TopicsEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentStudentStatusCodes;
@@ -224,6 +225,21 @@ public class AssessmentStudentService {
                             (hasResult ? "Student has a proficiency score." : "")
             );
         }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateSchoolOfRecord(List<AssessmentStudentEntity> students, String schoolOfRecordID, String vendorID, AssessmentEventEntity event) {
+        students.forEach(student -> {
+            student.setSchoolID(UUID.fromString(schoolOfRecordID));
+            student.setVendorID(vendorID);
+        });
+        assessmentStudentRepository.saveAll(students);
+
+        this.assessmentEventRepository.findByEventId(event.getEventId()).ifPresent(existingEvent -> {
+            existingEvent.setEventStatus(EventStatus.PROCESSED.toString());
+            existingEvent.setUpdateDate(LocalDateTime.now());
+            this.assessmentEventRepository.save(existingEvent);
+        });
     }
 
 }

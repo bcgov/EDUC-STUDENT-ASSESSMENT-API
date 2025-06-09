@@ -19,6 +19,8 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndPen(UUID AssessmentID, String pen);
 
+    List<AssessmentStudentEntity> findByStudentID(UUID studentID);
+
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionID(UUID sessionID);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolID(UUID sessionID, UUID schoolID);

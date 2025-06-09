@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -87,6 +88,24 @@ public class AssessmentStudentEntity {
 
   @Column(name = "IRT_SCORE", length = 7)
   private String irtScore;
+
+  @Column(name = "RAW_SCORE")
+  private BigDecimal rawScore;
+
+  @Column(name = "PRINT_CODE")
+  private String printCode;
+
+  @Column(name = "PRE_PRINT_FLAG")
+  private String preprintFlag;
+
+  @Column(name = "MC_TOTAL")
+  private BigDecimal mcTotal;
+
+  @Column(name = "OE_TOTAL")
+  private BigDecimal oeTotal;
+
+  @Column(name = "VENDOR_ID", length = 1)
+  private String vendorID;
 
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;
