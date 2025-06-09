@@ -16,4 +16,6 @@ public interface AssessmentEventRepository extends JpaRepository<AssessmentEvent
   Optional<AssessmentEventEntity> findBySagaIdAndEventType(UUID sagaId, String eventType);
 
   List<AssessmentEventEntity> findByEventStatus(String eventStatus);
+
+  Optional<AssessmentEventEntity> findByEventId(UUID eventId);
 }

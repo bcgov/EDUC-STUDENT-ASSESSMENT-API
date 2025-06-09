@@ -88,8 +88,23 @@ public class AssessmentStudentEntity {
   @Column(name = "IRT_SCORE", length = 7)
   private String irtScore;
 
-  @Column(name = "SR_CHOICE_PATH", length = 1)
-  private String srChoicePath;
+  @Column(name = "RAW_SCORE")
+  private String rawScore;
+
+  @Column(name = "PRINT_CODE")
+  private String printCode;
+
+  @Column(name = "PRE_PRINT_FLAG")
+  private String preprintFlag;
+
+  @Column(name = "MC_TOTAL")
+  private String mcTotal;
+
+  @Column(name = "OE_TOTAL")
+  private String oeTotal;
+
+  @Column(name = "VENDOR_ID", length = 1)
+  private String vendorID;
 
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;

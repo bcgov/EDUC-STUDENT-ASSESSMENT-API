@@ -35,9 +35,6 @@ public class AssessmentQuestionEntity {
     @Column(name = "ITEM_TYPE", nullable = false)
     private String itemType;
 
-    @Column(name = "MARK_VALUE", nullable = false)
-    private Integer markValue;
-
     @Column(name = "COGN_LEVEL_CODE")
     private String cognitiveLevelCode;
 
@@ -53,11 +50,32 @@ public class AssessmentQuestionEntity {
     @Column(name = "CONCEPT_CODE")
     private String conceptCode;
 
-    @Column(name = "SCALE_FACTOR")
-    private BigDecimal scaleFactor;
-
     @Column(name = "ASSMT_SECTION")
     private String assessmentSection;
+
+    @Column(name = "MC_OE_FLAG")
+    private String mcOeFlag;
+
+    @Column(name = "ITEM_NUMBER")
+    private String itemNumber;
+
+    @Column(name = "QUES_VALUE")
+    private String questionValue;
+
+    @Column(name = "MAX_QUES_VALUE")
+    private String maxQuestionValue;
+
+    @Column(name = "MASTER_QUES_NUMBER")
+    private String masterQuestionNumber;
+
+    @Column(name = "IRT_INCREMENT")
+    private String irtIncrement;
+
+    @Column(name = "PRELOAD_ANSWER")
+    private String preloadAnswer;
+
+    @Column(name = "IRT")
+    private String irt;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
@@ -72,16 +90,4 @@ public class AssessmentQuestionEntity {
     @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(mappedBy = "assessmentQuestionEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = AssessmentQuestionResponseOptionEntity.class)
-    Set<AssessmentQuestionResponseOptionEntity> assessmentQuestionResponseOptionEntities;
-
-    public Set<AssessmentQuestionResponseOptionEntity> getAssessmentQuestionResponseOptionEntities() {
-        if (this.assessmentQuestionResponseOptionEntities == null) {
-            this.assessmentQuestionResponseOptionEntities = new HashSet<>();
-        }
-        return this.assessmentQuestionResponseOptionEntities;
-    }
 }

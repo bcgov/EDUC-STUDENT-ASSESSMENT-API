@@ -94,9 +94,17 @@ public class Subscriber {
                     return;
                 }
                 this.subscriberExecutor.execute(() -> {
-                    jetStreamEventHandlerService.updateEventStatus(event);
-                    log.info("Received event :: {} ", event);
-                    message.ack();
+                    try {
+                        if (event.getEventType().equals(EventType.UPDATE_SCHOOL_OF_RECORD)) {
+                            this.jetStreamEventHandlerService.handleEvent(event, message);
+                        } else {
+                            jetStreamEventHandlerService.updateEventStatus(event);
+                            log.info("Received event :: {} ", event);
+                            message.ack();
+                        }
+                    } catch (final IOException e) {
+                        log.error("IOException ", e);
+                    }
                 });
                 log.info("received event :: {} ", event);
             } catch (final Exception ex) {
