@@ -23,14 +23,29 @@ public class AssessmentStudentAnswerEntity {
     @Column(name = "ASSESSMENT_STUDENT_ANSWER_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
     private UUID assessmentStudentAnswerID;
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentQuestionResponseOptionEntity.class)
-    @JoinColumn(name = "ASSESSMENT_QUESTION_RESPONSE_OPTION_ID", referencedColumnName = "ASSESSMENT_QUESTION_RESPONSE_OPTION_ID", updatable = false)
-    AssessmentQuestionResponseOptionEntity assessmentQuestionResponseOptionEntity;
-
     @Column(name = "ASSESSMENT_STUDENT_ID", updatable = false)
     UUID assessmentStudentID;
+
+    @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
+    UUID assessmentQuestionID;
+
+    @Column(name = "MC_ASSESSMENT_RESPONSE")
+    private String mcAssessmentResponse;
+
+    @Column(name = "MC_SCORE")
+    private String mcScore;
+
+    @Column(name = "NUM_OMITS")
+    private String numOmits;
+
+    @Column(name = "COMPONENT_TOTAL")
+    private String componentTotal;
+
+    @Column(name = "COMPONENT_SOURCE")
+    private String componentSource;
+
+    @Column(name = "SR_CHOICE_PATH")
+    private String srChoicePath;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
