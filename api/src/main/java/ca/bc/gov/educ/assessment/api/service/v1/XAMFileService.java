@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-//import software.amazon.awssdk.services.s3.S3Client;
-//import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.BufferedWriter;
 import java.io.File;
