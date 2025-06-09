@@ -78,6 +78,7 @@ public class SessionService {
             session.setApprovalAssessmentAnalysisSignDate(LocalDateTime.now());
         }
 
+        // todo here if all three have been signed we kickoff are generate xam file saga -> this saga will also deal with emails after the xam files are generated and written to s3
         //Check if all 3 have been signed here and kick of the approval SAGA processing
 
         return assessmentSessionRepository.save(session);

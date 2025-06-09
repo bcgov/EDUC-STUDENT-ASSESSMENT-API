@@ -40,6 +40,7 @@ public class XAMFileGenerationOrchestrator extends BaseOrchestrator<SchoolTombst
 
     @Override
     public void populateStepsToExecuteMap() {
+        // todo one saga for all schools and upload all XAM files in one go
         // IMPORTANT: Both generate and upload steps must run on the same pod instance,
         // as the generated file is only available locally.
         // Cannot split these steps across different pods.
