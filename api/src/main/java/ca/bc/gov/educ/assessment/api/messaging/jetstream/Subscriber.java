@@ -5,7 +5,6 @@ import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.helpers.LogHelper;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.service.v1.JetStreamEventHandlerService;
-import ca.bc.gov.educ.assessment.api.service.v1.events.EventHandlerDelegatorService;
 import ca.bc.gov.educ.assessment.api.struct.v1.ChoreographedEvent;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -41,7 +40,6 @@ import static ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher.STREAM
 @DependsOn("publisher")
 @Slf4j
 public class Subscriber {
-    private final EventHandlerDelegatorService eventHandlerDelegatorService;
     private final Connection natsConnection;
     private final Executor subscriberExecutor = new EnhancedQueueExecutor.Builder()
             .setThreadFactory(new ThreadFactoryBuilder().setNameFormat("jet-stream-subscriber-%d").build())
@@ -50,8 +48,7 @@ public class Subscriber {
     private final JetStreamEventHandlerService jetStreamEventHandlerService;// one stream can have multiple topics.
 
     @Autowired
-    public Subscriber(final Connection natsConnection, EventHandlerDelegatorService eventHandlerDelegatorService, JetStreamEventHandlerService jetStreamEventHandlerService) {
-        this.eventHandlerDelegatorService = eventHandlerDelegatorService;
+    public Subscriber(final Connection natsConnection, JetStreamEventHandlerService jetStreamEventHandlerService) {
         this.natsConnection = natsConnection;
         this.jetStreamEventHandlerService = jetStreamEventHandlerService;
         this.initializeStreamTopicMap();
