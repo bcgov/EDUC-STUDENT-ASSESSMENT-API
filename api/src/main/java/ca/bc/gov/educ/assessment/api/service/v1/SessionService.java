@@ -6,11 +6,13 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentCriteriaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionCriteriaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.orchestrator.XAMFileGenerationOrchestrator;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionCriteriaRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentApproval;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -44,14 +46,18 @@ public class SessionService {
     @Getter(AccessLevel.PRIVATE)
     private final AssessmentService assessmentService;
 
+    @Getter(AccessLevel.PRIVATE)
+    private final XAMFileGenerationOrchestrator xamFileGenerationOrchestrator;
+
     private static final String ASSESSMENT_API = "ASSESSMENT_API";
 
     @Autowired
-    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService) {
+    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, XAMFileGenerationOrchestrator xamFileGenerationOrchestrator) {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentSessionCriteriaRepository = assessmentSessionCriteriaRepository;
         this.assessmentRepository = assessmentRepository;
         this.assessmentService = assessmentService;
+        this.xamFileGenerationOrchestrator = xamFileGenerationOrchestrator;
     }
 
     public List<AssessmentSessionEntity> getAllSessions() {
@@ -78,8 +84,16 @@ public class SessionService {
             session.setApprovalAssessmentAnalysisSignDate(LocalDateTime.now());
         }
 
-        // todo here if all three have been signed we kickoff are generate xam file saga -> this saga will also deal with emails after the xam files are generated and written to s3
-        //Check if all 3 have been signed here and kick of the approval SAGA processing
+        if(StringUtils.isNotBlank(session.getApprovalStudentCertUserID())
+                && StringUtils.isNotBlank(session.getApprovalAssessmentDesignUserID())
+                && StringUtils.isNotBlank(session.getApprovalAssessmentAnalysisUserID())) {
+            log.info("All three signoffs present for session {}. Triggering generate XAM file saga.", session.getSessionID());
+            try {
+                xamFileGenerationOrchestrator.startXamFileGenerationSaga(session.getSessionID());
+            } catch (JsonProcessingException e) {
+                log.debug("Error starting XAM file generation saga for session {}: {}", session.getSessionID(), e.getMessage());
+            }
+        }
 
         return assessmentSessionRepository.save(session);
     }

@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.service.v1;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class XAMFileService {
     private final AssessmentStudentRepository assessmentStudentRepository;
+    private final RestUtils restUtils;
     //private final S3Client s3Client;
 
     @Value("${s3.bucket.name}")
@@ -88,7 +90,7 @@ public class XAMFileService {
     }
 
     /**
-     * For Orchestrator
+     * for orchestration:
      * Generates a XAM file for the given school and session, returns the file path.
      */
     public String generateXamFileAndReturnPath(UUID sessionID, SchoolTombstone school) {
@@ -97,13 +99,30 @@ public class XAMFileService {
     }
 
     /**
-     * For Orchestrator
+     * for orchestration:
      * Uploads the file at the given path to S3 for the given school and session.
      */
     public void uploadFilePathToS3(String filePath, UUID sessionID, SchoolTombstone school) {
         File file = new File(filePath);
         String key = "xam-files/" + school.getMincode() + "_" + sessionID + ".xam";
         uploadToS3(file, key);
+    }
+
+    /**
+     * for orchestration:
+     * Generates and uploads XAM files for all schools for the given session.
+     */
+    public void generateAndUploadXamFiles(UUID sessionID) {
+        List<SchoolTombstone> schools = restUtils.getAllSchoolTombstones();
+        // todo only eligible schools
+        log.info("Starting generation and upload of XAM files for {} schools, session {}", schools.size(), sessionID);
+        for (SchoolTombstone school : schools) {
+            log.info("Generating XAM file for school: {}", school.getMincode());
+            String filePath = generateXamFileAndReturnPath(sessionID, school);
+            log.info("Uploading XAM file for school: {}", school.getMincode());
+            uploadFilePathToS3(filePath, sessionID, school);
+        }
+        log.info("Completed processing XAM files for session {}", sessionID);
     }
 
     private String padRight(String value, int length) {
