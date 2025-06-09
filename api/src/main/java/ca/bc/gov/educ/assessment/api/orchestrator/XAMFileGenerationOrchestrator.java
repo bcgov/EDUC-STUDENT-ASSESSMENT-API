@@ -45,8 +45,8 @@ public class XAMFileGenerationOrchestrator extends BaseOrchestrator<SchoolTombst
         // Cannot split these steps across different pods.
         // Generate and immediately upload in the same execution context
         this.stepBuilder()
-            .begin(EventType.GENERATE_XAM_FILE, this::generateXAMFileAndUpload)
-            .end(EventType.GENERATE_XAM_FILE, EventOutcome.XAM_FILE_GENERATED_AND_UPLOADED);
+            .begin(EventType.GENERATE_XAM_AND_UPLOAD_FILE, this::generateXAMFileAndUpload)
+            .end(EventType.GENERATE_XAM_AND_UPLOAD_FILE, EventOutcome.XAM_FILE_GENERATED_AND_UPLOADED);
     }
 
     // todo put in the controller where this is being called from (by endpoint?)
@@ -70,7 +70,7 @@ public class XAMFileGenerationOrchestrator extends BaseOrchestrator<SchoolTombst
 
     private void generateXAMFileAndUpload(Event event, AssessmentSagaEntity saga, SchoolTombstone school) throws JsonProcessingException {
         final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
-        saga.setSagaState(EventType.GENERATE_XAM_FILE.toString());
+        saga.setSagaState(EventType.GENERATE_XAM_AND_UPLOAD_FILE.toString());
         saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
         this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
 
@@ -81,7 +81,7 @@ public class XAMFileGenerationOrchestrator extends BaseOrchestrator<SchoolTombst
 
         final Event nextEvent = Event.builder()
                 .sagaId(saga.getSagaId())
-                .eventType(EventType.GENERATE_XAM_FILE)
+                .eventType(EventType.GENERATE_XAM_AND_UPLOAD_FILE)
                 .eventOutcome(EventOutcome.XAM_FILE_GENERATED_AND_UPLOADED)
                 .eventPayload(JsonUtil.getJsonStringFromObject(school))
                 .build();
