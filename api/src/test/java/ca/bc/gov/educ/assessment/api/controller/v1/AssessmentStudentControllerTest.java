@@ -25,9 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static ca.bc.gov.educ.assessment.api.struct.v1.Condition.AND;
 import static org.hamcrest.Matchers.equalTo;
@@ -457,51 +455,110 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testDeleteStudent_GivenValidID_ShouldReturn204() throws Exception {
+  void testDeleteStudents_GivenValidID_ShouldReturn204() throws Exception {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+    String payload = asJsonString(Collections.singletonList(assessmentStudentID));
 
-    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + assessmentStudentID)
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
                     .with(mockAuthority)
-                    .contentType(APPLICATION_JSON))
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
             .andDo(print())
             .andExpect(status().isNoContent());
   }
 
   @Test
-  void testDeleteStudent_GivenInvalidID_ShouldReturn404() throws Exception {
+  void testDeleteStudents_GivenValidIDs_ShouldReturn204() throws Exception {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + UUID.randomUUID())
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    UUID assessmentStudentID1 = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+    UUID assessmentStudentID2 = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+    String payload = asJsonString(Arrays.asList(assessmentStudentID1, assessmentStudentID2));
+
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
                     .with(mockAuthority)
-                    .contentType(APPLICATION_JSON))
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
             .andDo(print())
-            .andExpect(status().isNotFound());
+            .andExpect(status().isNoContent());
   }
 
   @Test
-  void testDeleteStudent_GivenNoAuthority_ShouldReturn403() throws Exception {
+  void testDeleteStudents_GivenInvalidID_ShouldReturn409() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    String payload = asJsonString(Collections.singletonList(UUID.randomUUID()));
+
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
+            .andDo(print())
+            .andExpect(status().isConflict());
+  }
+
+  @Test
+  void testDeleteStudents_GivenInvalidIDs_ShouldReturn409() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    String payload = asJsonString(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
+            .andDo(print())
+            .andExpect(status().isConflict());
+  }
+
+  @Test
+  void testDeleteStudents_GivenOneInvalidID_ShouldReturn409() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+    String payload = asJsonString(Arrays.asList(assessmentStudentID, UUID.randomUUID()));
+
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
+            .andDo(print())
+            .andExpect(status().isConflict());
+  }
+
+  @Test
+  void testDeleteStudents_GivenNoAuthority_ShouldReturn403() throws Exception {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+    String payload = asJsonString(Collections.singletonList(assessmentStudentID));
 
-    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + assessmentStudentID)
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
                     .with(mockAuthority)
-                    .contentType(APPLICATION_JSON))
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
             .andDo(print())
             .andExpect(status().isForbidden());
   }
 
   @Test
-  void testDeleteStudent_WhenSessionHasEnded_ShouldReturn409() throws Exception {
+  void testDeleteStudents_WhenSessionHasEnded_ShouldReturn409() throws Exception {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -510,16 +567,41 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     AssessmentSessionEntity savedSession = assessmentSessionRepository.save(session);
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTF12.getCode()));
     UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+    String payload = asJsonString(Collections.singletonList(assessmentStudentID));
 
-    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + assessmentStudentID)
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
                     .with(mockAuthority)
-                    .contentType(APPLICATION_JSON))
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
             .andDo(print())
             .andExpect(status().isConflict());
   }
 
   @Test
-  void testDeleteStudent_WhenStudentHasResult_ShouldReturn409() throws Exception {
+  void testDeleteStudents_WhenOneSessionHasEnded_ShouldReturn409() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session1 = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentSessionEntity session2 = createMockSessionEntity();
+    session2.setActiveUntilDate(LocalDateTime.now().minusDays(1));
+    AssessmentSessionEntity finalSession2 = assessmentSessionRepository.save(session2);
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(session1, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(finalSession2, AssessmentTypeCodes.LTF12.getCode()));
+    UUID assessmentStudentID1 = studentRepository.save(createMockStudentEntity(assessment1)).getAssessmentStudentID();
+    UUID assessmentStudentID2 = studentRepository.save(createMockStudentEntity(assessment2)).getAssessmentStudentID();
+    String payload = asJsonString(Arrays.asList(assessmentStudentID1, assessmentStudentID2));
+
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
+            .andDo(print())
+            .andExpect(status().isConflict());
+  }
+
+  @Test
+  void testDeleteStudents_WhenStudentHasResult_ShouldReturn409() throws Exception {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -528,10 +610,57 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity student = createMockStudentEntity(assessment);
     student.setProficiencyScore(1);
     UUID assessmentStudentID = studentRepository.save(student).getAssessmentStudentID();
+    String payload = asJsonString(Collections.singletonList(assessmentStudentID));
 
-    this.mockMvc.perform(delete(URL.BASE_URL_STUDENT + "/" + assessmentStudentID)
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
                     .with(mockAuthority)
-                    .contentType(APPLICATION_JSON))
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
+            .andDo(print())
+            .andExpect(status().isConflict());
+  }
+
+  @Test
+  void testDeleteStudents_WhenStudentsHaveResults_ShouldReturn409() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+    student1.setProficiencyScore(1);
+    AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+    student2.setProficiencyScore(1);
+    UUID assessmentStudentID1 = studentRepository.save(student1).getAssessmentStudentID();
+    UUID assessmentStudentID2 = studentRepository.save(student2).getAssessmentStudentID();
+    String payload = asJsonString(Arrays.asList(assessmentStudentID1, assessmentStudentID2));
+
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
+            .andDo(print())
+            .andExpect(status().isConflict());
+  }
+
+  @Test
+  void testDeleteStudents_WhenOneStudentHasResult_ShouldReturn409() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+    student1.setProficiencyScore(1);
+    AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+    UUID assessmentStudentID1 = studentRepository.save(student1).getAssessmentStudentID();
+    UUID assessmentStudentID2 = studentRepository.save(student2).getAssessmentStudentID();
+    String payload = asJsonString(Arrays.asList(assessmentStudentID1, assessmentStudentID2));
+
+    this.mockMvc.perform(post(URL.BASE_URL_STUDENT + "/delete-students")
+                    .with(mockAuthority)
+                    .contentType(APPLICATION_JSON)
+                    .content(payload))
             .andDo(print())
             .andExpect(status().isConflict());
   }
