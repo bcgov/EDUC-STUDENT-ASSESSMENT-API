@@ -8,8 +8,6 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -26,8 +24,11 @@ public class AssessmentQuestionEntity {
     @Column(name = "ASSESSMENT_QUESTION_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
     private UUID assessmentQuestionID;
 
-    @Column(name="ASSESSMENT_FORM_ID", nullable = false)
-    private UUID assessmentFormID;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false, targetEntity = AssessmentFormEntity.class)
+    @JoinColumn(name = "ASSESSMENT_FORM_ID", referencedColumnName = "ASSESSMENT_FORM_ID", updatable = false)
+    AssessmentFormEntity assessmentFormEntity;
 
     @Column(name="QUES_NUMBER", nullable = false)
     private Integer questionNumber;
