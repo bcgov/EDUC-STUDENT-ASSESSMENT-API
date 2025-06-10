@@ -230,7 +230,9 @@ public class AssessmentStudentService {
     public void updateSchoolOfRecord(List<AssessmentStudentEntity> students, String schoolOfRecordID, String vendorID, AssessmentEventEntity event) {
         students.forEach(student -> {
             student.setSchoolID(UUID.fromString(schoolOfRecordID));
-            student.setVendorID(vendorID);
+            if(vendorID != null) {
+                student.setVendorID(vendorID);
+            }
         });
         assessmentStudentRepository.saveAll(students);
 
