@@ -8,8 +8,6 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -26,17 +24,17 @@ public class AssessmentQuestionEntity {
     @Column(name = "ASSESSMENT_QUESTION_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
     private UUID assessmentQuestionID;
 
-    @Column(name="ASSESSMENT_FORM_ID", nullable = false)
-    private UUID assessmentFormID;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false, targetEntity = AssessmentFormEntity.class)
+    @JoinColumn(name = "ASSESSMENT_FORM_ID", referencedColumnName = "ASSESSMENT_FORM_ID", updatable = false)
+    AssessmentFormEntity assessmentFormEntity;
 
     @Column(name="QUES_NUMBER", nullable = false)
     private Integer questionNumber;
 
     @Column(name = "ITEM_TYPE", nullable = false)
     private String itemType;
-
-    @Column(name = "MARK_VALUE", nullable = false)
-    private Integer markValue;
 
     @Column(name = "COGN_LEVEL_CODE")
     private String cognitiveLevelCode;
@@ -53,11 +51,32 @@ public class AssessmentQuestionEntity {
     @Column(name = "CONCEPT_CODE")
     private String conceptCode;
 
-    @Column(name = "SCALE_FACTOR")
-    private BigDecimal scaleFactor;
-
     @Column(name = "ASSMT_SECTION")
     private String assessmentSection;
+
+    @Column(name = "MC_OE_FLAG")
+    private String mcOeFlag;
+
+    @Column(name = "ITEM_NUMBER")
+    private Integer itemNumber;
+
+    @Column(name = "QUES_VALUE")
+    private BigDecimal questionValue;
+
+    @Column(name = "MAX_QUES_VALUE")
+    private BigDecimal maxQuestionValue;
+
+    @Column(name = "MASTER_QUES_NUMBER")
+    private Integer masterQuestionNumber;
+
+    @Column(name = "IRT_INCREMENT")
+    private BigDecimal irtIncrement;
+
+    @Column(name = "PRELOAD_ANSWER")
+    private String preloadAnswer;
+
+    @Column(name = "IRT")
+    private Integer irt;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
@@ -72,16 +91,4 @@ public class AssessmentQuestionEntity {
     @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(mappedBy = "assessmentQuestionEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = AssessmentQuestionResponseOptionEntity.class)
-    Set<AssessmentQuestionResponseOptionEntity> assessmentQuestionResponseOptionEntities;
-
-    public Set<AssessmentQuestionResponseOptionEntity> getAssessmentQuestionResponseOptionEntities() {
-        if (this.assessmentQuestionResponseOptionEntities == null) {
-            this.assessmentQuestionResponseOptionEntities = new HashSet<>();
-        }
-        return this.assessmentQuestionResponseOptionEntities;
-    }
 }

@@ -198,6 +198,27 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
+  public AssessmentStudentHistoryEntity createMockStudentHistoryEntity(AssessmentStudentEntity assessmentStudentEntity) {
+    return AssessmentStudentHistoryEntity.builder()
+            .assessmentStudentHistoryID(UUID.randomUUID())
+            .assessmentStudentID(assessmentStudentEntity.getAssessmentStudentID())
+            .assessmentID(assessmentStudentEntity.getAssessmentEntity().getAssessmentID())
+            .assessmentStudentStatusCode(assessmentStudentEntity.getAssessmentStudentStatusCode())
+            .districtID(assessmentStudentEntity.getDistrictID())
+            .schoolID(assessmentStudentEntity.getSchoolID())
+            .assessmentCenterID(assessmentStudentEntity.getAssessmentCenterID())
+            .studentID(assessmentStudentEntity.getStudentID())
+            .givenName(assessmentStudentEntity.getGivenName())
+            .surname(assessmentStudentEntity.getSurname())
+            .pen(assessmentStudentEntity.getPen())
+            .localID(assessmentStudentEntity.getLocalID())
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
   public Student createMockStudentAPIStudent(){
     return Student.builder()
             .studentID(String.valueOf(UUID.randomUUID()))

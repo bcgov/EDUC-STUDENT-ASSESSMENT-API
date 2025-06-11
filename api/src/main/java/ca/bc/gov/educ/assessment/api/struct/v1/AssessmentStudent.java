@@ -78,4 +78,6 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     private List<AssessmentStudentValidationIssue> assessmentStudentValidationIssues;
 
     private String numberOfAttempts;
+
+    private String rawScore;
 }

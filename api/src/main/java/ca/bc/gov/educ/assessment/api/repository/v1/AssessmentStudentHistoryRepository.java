@@ -8,5 +8,5 @@ import java.util.UUID;
 
 public interface AssessmentStudentHistoryRepository extends JpaRepository<AssessmentStudentHistoryEntity, UUID> {
     List<AssessmentStudentHistoryEntity> findAllByAssessmentIDAndAssessmentStudentID(UUID asessmentID, UUID assessmentStudentID);
-
+    void deleteAllByAssessmentIDAndAssessmentStudentID(UUID assessmentID, UUID assessmentStudentID);
 }

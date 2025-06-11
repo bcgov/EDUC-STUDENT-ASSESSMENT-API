@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.endpoint.v1.AssessmentStudentEndpoint;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentSearchService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
@@ -89,9 +90,9 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public ResponseEntity<Void> deleteStudent(UUID assessmentStudentID) throws JsonProcessingException {
-    var event = studentService.deleteStudent(assessmentStudentID);
-    publisher.dispatchChoreographyEvent(event);
+  public ResponseEntity<Void> deleteStudents(List<UUID> assessmentStudentIDs) throws JsonProcessingException {
+    List<AssessmentEventEntity> events = studentService.deleteStudents(assessmentStudentIDs);
+    events.forEach(publisher::dispatchChoreographyEvent);
     return ResponseEntity.noContent().build();
   }
 }
