@@ -16,6 +16,9 @@ public class ValidationUtil {
   private ValidationUtil(){
 
   }
+  public static FieldError createFieldError(String fieldName, Object rejectedValue, String message) {
+    return new FieldError("session", fieldName, rejectedValue, false, null, null, message);
+  }
   public static FieldError createFieldError(String objectName, String fieldName, Object rejectedValue, String message) {
     return new FieldError(objectName, fieldName, rejectedValue, false, null, null, message);
   }

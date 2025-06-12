@@ -1,5 +1,3 @@
---Export TAB_SCHOOL from GRAD_TRAX_API to the Migration schema
-
 CREATE TABLE DISTRICT
 (
     district_id          VARCHAR(40)  NOT NULL,
@@ -42,3 +40,22 @@ CREATE TABLE SCHOOL
     display_name_no_spec_chars        varchar(255) NULL,
     CONSTRAINT school_id_pk PRIMARY KEY (school_id)
 );
+
+--Create STUDENT_LINK table from required environment
+
+-----------------------------------------------
+--Check query for missing sessions
+SELECT DISTINCT TRIM(tabSess.ASSMT_SESSION) AS sess
+FROM STUD_GRAD_ASSMT tabSess WHERE CONCAT(TRIM(tabSess.ASSMT_SESSION), TRIM(tabSess.ASSMT_CODE)) NOT in(
+    (SELECT CONCAT(TRIM(ASSMT_SESSION), TRIM(ASSMT_CODE)) AS overall
+     FROM TAB_AVAILABLE_GRAD_ASSMT_SESS sga
+     GROUP BY sga.ASSMT_SESSION, sga.ASSMT_CODE))
+                               AND TRIM(tabSess.ASSMT_SESSION) NOT IN (SELECT CONCAT(TRIM(as2.COURSE_YEAR), TRIM(as2.COURSE_MONTH)) FROM ASSESSMENT_SESSION as2) ;
+
+--Check query for missing assessment types
+SELECT DISTINCT TRIM(tabSess.ASSMT_SESSION), TRIM(tabSess.ASSMT_CODE) AS sess
+FROM STUD_GRAD_ASSMT tabSess WHERE CONCAT(TRIM(tabSess.ASSMT_SESSION), TRIM(tabSess.ASSMT_CODE)) NOT in(
+    (SELECT CONCAT(TRIM(ASSMT_SESSION), TRIM(ASSMT_CODE)) AS overall
+     FROM TAB_AVAILABLE_GRAD_ASSMT_SESS sga
+     GROUP BY sga.ASSMT_SESSION, sga.ASSMT_CODE));
+-----------------------------------------------

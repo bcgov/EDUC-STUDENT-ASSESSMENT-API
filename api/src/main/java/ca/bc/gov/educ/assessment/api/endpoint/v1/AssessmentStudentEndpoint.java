@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -48,10 +49,10 @@ public interface AssessmentStudentEndpoint {
                                                        @RequestParam(name = "sort", defaultValue = "") String sortCriteriaJson,
                                                        @RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson);
 
-    @DeleteMapping("/{assessmentStudentID}")
+    @PostMapping("/delete-students")
     @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_STUDENT')")
     @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "NO CONTENT"), @ApiResponse(responseCode = "409", description = "CONFLICT."), @ApiResponse(responseCode = "404", description = "NOT FOUND")})
     @ResponseStatus(NO_CONTENT)
-    ResponseEntity<Void> deleteStudent(@PathVariable UUID assessmentStudentID) throws JsonProcessingException;
+    ResponseEntity<Void> deleteStudents(@RequestBody List<UUID> assessmentStudentIDs) throws JsonProcessingException;
 
 }
