@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.controller.v1;
 import ca.bc.gov.educ.assessment.api.batch.processor.AssessmentKeysProcessor;
 import ca.bc.gov.educ.assessment.api.endpoint.v1.FileUploadEndpoint;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,12 @@ public class FileUploadController implements FileUploadEndpoint {
     @Override
     public ResponseEntity<Void> processAssessmentKeysFile(AssessmentKeyFileUpload fileUpload, String session) {
         assessmentKeysProcessor.processAssessmentKeys(fileUpload, session);
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<Void> processAssessmentResultsFile(AssessmentResultFileUpload fileUpload, String session) {
+        assessmentKeysProcessor.processAssessmentResults(fileUpload, session);
         return null;
     }
 }
