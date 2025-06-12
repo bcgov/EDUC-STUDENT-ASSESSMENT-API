@@ -23,6 +23,8 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionID(UUID sessionID);
 
+    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolID(UUID sessionID, UUID schoolID);
+
     @Query(value="""
     SELECT stud FROM AssessmentStudentEntity stud WHERE stud.assessmentStudentID
     NOT IN (SELECT saga.assessmentStudentID FROM AssessmentSagaEntity saga WHERE saga.status != 'COMPLETED'
