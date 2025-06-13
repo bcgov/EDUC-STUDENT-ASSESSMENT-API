@@ -472,7 +472,7 @@ SELECT
     TRIM(assmnt_ques.CONTEXT_CODE) as CONTEXT_CODE,
     TRIM(assmnt_ques.CONCEPTS_CODE) as CONCEPTS_CODE,
     TRIM(assmnt_ques.ITEM_NUMBER) as ITEM_NUMBER,
-    TRIM(assmnt_ques.QUES_VALUE) as QUES_VALUE,
+    TRIM(assmnt_ques.QUES_VALUE) as QUESTION_VALUE,
     TRIM(assmnt_ques.MAX_QUES_VALUE) as MAX_QUES_VALUE,
     TRIM(assmnt_ques.MASTER_QUES_NUMBER) as MASTER_QUES_NUMBER,
     TRIM(assmnt_ques.IRT_INCREMENT) as IRT_INCREMENT,

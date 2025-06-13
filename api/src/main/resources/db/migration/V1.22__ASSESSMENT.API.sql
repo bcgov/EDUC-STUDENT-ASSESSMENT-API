@@ -26,6 +26,7 @@ CREATE TABLE ASSESSMENT_ANSWER
     MC_ANSWER                   VARCHAR(75)                                 ,
     MC_ANSWER_LOWER             NUMERIC(10,2)                               ,
     MC_ANSWER_UPPER             NUMERIC(10,2)                               ,
+    QUESTION_NUMBER                INTEGER                             NOT NULL,
     QUESTION_VALUE                  NUMERIC(5,1)                                ,
     IRT                         NUMERIC                                     ,
     ITEM_NUMBER                 NUMERIC                                     ,
