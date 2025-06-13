@@ -98,7 +98,7 @@ CREATE TABLE ASSESSMENT_QUESTION
     TASK_CODE                   VARCHAR(10)                                  ,
     CLAIM_CODE                  VARCHAR(10)                                  ,
     CONTEXT_CODE                VARCHAR(10)                                  ,
-    CONCEPT_CODE                VARCHAR(10)                                  ,
+    CONCEPTS_CODE                VARCHAR(10)                                  ,
     SCALE_FACTOR                NUMERIC                             NOT NULL,
     ASSMT_SECTION               VARCHAR(8)                          NOT NULL,
     CREATE_USER                 VARCHAR(100)                        NOT NULL,
@@ -116,8 +116,8 @@ CREATE TABLE ASSESSMENT_QUESTION
         REFERENCES CLAIM_CODE (CLAIM_CODE),
     CONSTRAINT FK_CONTEXT_CODE FOREIGN KEY (CONTEXT_CODE)
         REFERENCES CONTEXT_CODE (CONTEXT_CODE),
-    CONSTRAINT FK_CONCEPT_CODE FOREIGN KEY (CONCEPT_CODE)
-        REFERENCES CONCEPT_CODE (CONCEPT_CODE)
+    CONSTRAINT FK_CONCEPTS_CODE FOREIGN KEY (CONCEPTS_CODE)
+        REFERENCES CONCEPTS_CODE (CONCEPTS_CODE)
 );
 
 CREATE TABLE ASSESSMENT_QUESTION_RESPONSE_OPTION
