@@ -3,12 +3,12 @@ ALTER TABLE ASSESSMENT_QUESTION
     DROP COLUMN SCALE_FACTOR;
 
 ALTER TABLE ASSESSMENT_QUESTION
-ALTER COLUMN QUES_NUMBER TYPE NUMERIC;
+ALTER COLUMN QUESTION_NUMBER TYPE NUMERIC;
 
 ALTER TABLE ASSESSMENT_QUESTION
     ADD COLUMN MC_OE_FLAG VARCHAR(1),
     ADD COLUMN ITEM_NUMBER NUMERIC,
-    ADD COLUMN QUES_VALUE NUMERIC(5,1),
+    ADD COLUMN QUESTION_VALUE NUMERIC(5,1),
     ADD COLUMN MAX_QUES_VALUE NUMERIC(5,1),
     ADD COLUMN MASTER_QUES_NUMBER NUMERIC,
     ADD COLUMN IRT_INCREMENT NUMERIC(10,1),
@@ -26,7 +26,7 @@ CREATE TABLE ASSESSMENT_ANSWER
     MC_ANSWER                   VARCHAR(75)                                 ,
     MC_ANSWER_LOWER             NUMERIC(10,2)                               ,
     MC_ANSWER_UPPER             NUMERIC(10,2)                               ,
-    QUES_VALUE                  NUMERIC(5,1)                                ,
+    QUESTION_VALUE                  NUMERIC(5,1)                                ,
     IRT                         NUMERIC                                     ,
     ITEM_NUMBER                 NUMERIC                                     ,
     LINKED_ITEM_NUMBER          NUMERIC                                     ,
@@ -35,7 +35,7 @@ CREATE TABLE ASSESSMENT_ANSWER
     TASK_CODE                   VARCHAR(10)                                  ,
     CLAIM_CODE                  VARCHAR(10)                                  ,
     CONTEXT_CODE                VARCHAR(10)                                  ,
-    CONCEPT_CODE                VARCHAR(10)                                  ,
+    CONCEPTS_CODE               VARCHAR(10)                                  ,
     CREATE_USER                 VARCHAR(100)                        NOT NULL,
     CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     UPDATE_USER                 VARCHAR(100)                        NOT NULL,
@@ -51,6 +51,6 @@ CREATE TABLE ASSESSMENT_ANSWER
         REFERENCES CLAIM_CODE (CLAIM_CODE),
     CONSTRAINT FK_CONTEXT_CODE FOREIGN KEY (CONTEXT_CODE)
         REFERENCES CONTEXT_CODE (CONTEXT_CODE),
-    CONSTRAINT FK_CONCEPT_CODE FOREIGN KEY (CONCEPT_CODE)
-        REFERENCES CONCEPT_CODE (CONCEPT_CODE)
+    CONSTRAINT FK_CONCEPTS_CODE FOREIGN KEY (CONCEPTS_CODE)
+        REFERENCES CONCEPTS_CODE (CONCEPTS_CODE)
 );

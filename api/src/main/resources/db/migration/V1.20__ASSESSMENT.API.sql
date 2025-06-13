@@ -58,9 +58,9 @@ CREATE TABLE CONTEXT_CODE
     CONSTRAINT CONTEXT_CODE_PK PRIMARY KEY (CONTEXT_CODE)
 );
 
-CREATE TABLE CONCEPT_CODE
+CREATE TABLE CONCEPTS_CODE
 (
-    CONCEPT_CODE                VARCHAR(10)                         NOT NULL,
+    CONCEPTS_CODE                VARCHAR(10)                         NOT NULL,
     LABEL                       VARCHAR(255)                        NOT NULL,
     DESCRIPTION                 VARCHAR(255)                        NOT NULL,
     DISPLAY_ORDER               INTEGER DEFAULT 10                  NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE CONCEPT_CODE
     CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     UPDATE_USER                 VARCHAR(100)                        NOT NULL,
     UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT CONCEPT_CODE_PK PRIMARY KEY (CONCEPT_CODE)
+    CONSTRAINT CONCEPTS_CODE_PK PRIMARY KEY (CONCEPTS_CODE)
 );
 
 CREATE TABLE ASSESSMENT_FORM
@@ -91,7 +91,7 @@ CREATE TABLE ASSESSMENT_QUESTION
 (
     ASSESSMENT_QUESTION_ID      UUID                                NOT NULL,
     ASSESSMENT_FORM_ID          UUID                                NOT NULL,
-    QUES_NUMBER                 INTEGER                             NOT NULL,
+    QUESTION_NUMBER                 INTEGER                             NOT NULL,
     ITEM_TYPE                   VARCHAR(12)                         NOT NULL,
     MARK_VALUE                  INTEGER                             NOT NULL,
     COGN_LEVEL_CODE             VARCHAR(10)                                  ,
@@ -220,7 +220,7 @@ VALUES
     ('C', 'Scientific', 'Scientific', TO_DATE('20250603', 'YYYYMMDD'), TO_DATE('99991231', 'YYYYMMDD'), 'ASSESSMENT-API', 'ASSESSMENT-API'),
     ('D', 'Societal', 'Societal', TO_DATE('20250603', 'YYYYMMDD'), TO_DATE('99991231', 'YYYYMMDD'), 'ASSESSMENT-API', 'ASSESSMENT-API');
 
-INSERT INTO CONCEPT_CODE (CONCEPT_CODE, LABEL, DESCRIPTION, EFFECTIVE_DATE, EXPIRY_DATE, CREATE_USER, UPDATE_USER)
+INSERT INTO CONCEPTS_CODE (CONCEPTS_CODE, LABEL, DESCRIPTION, EFFECTIVE_DATE, EXPIRY_DATE, CREATE_USER, UPDATE_USER)
 VALUES
     ('D', 'Data and Probability', 'Data and Probability', TO_DATE('20250603', 'YYYYMMDD'), TO_DATE('99991231', 'YYYYMMDD'), 'ASSESSMENT-API', 'ASSESSMENT-API'),
     ('DF', 'Data and Probability/Financial Literacy', 'Data and Probability/Financial Literacy', TO_DATE('20250603', 'YYYYMMDD'), TO_DATE('99991231', 'YYYYMMDD'), 'ASSESSMENT-API', 'ASSESSMENT-API'),
