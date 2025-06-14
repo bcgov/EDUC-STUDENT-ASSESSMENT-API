@@ -26,15 +26,12 @@ public class AssessmentQuestionEntity {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentFormEntity.class)
-    @JoinColumn(name = "ASSESSMENT_FORM_ID", referencedColumnName = "ASSESSMENT_FORM_ID", updatable = false)
-    AssessmentFormEntity assessmentFormEntity;
+    @ManyToOne(optional = false, targetEntity = AssessmentComponentEntity.class)
+    @JoinColumn(name = "ASSESSMENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_COMPONENT_ID", updatable = false)
+    AssessmentComponentEntity assessmentComponentEntity;
 
-    @Column(name="QUES_NUMBER", nullable = false)
+    @Column(name="QUESTION_NUMBER", nullable = false)
     private Integer questionNumber;
-
-    @Column(name = "ITEM_TYPE", nullable = false)
-    private String itemType;
 
     @Column(name = "COGN_LEVEL_CODE")
     private String cognitiveLevelCode;
@@ -48,19 +45,16 @@ public class AssessmentQuestionEntity {
     @Column(name = "CONTEXT_CODE")
     private String contextCode;
 
-    @Column(name = "CONCEPT_CODE")
+    @Column(name = "CONCEPTS_CODE")
     private String conceptCode;
 
     @Column(name = "ASSMT_SECTION")
     private String assessmentSection;
 
-    @Column(name = "MC_OE_FLAG")
-    private String mcOeFlag;
-
     @Column(name = "ITEM_NUMBER")
     private Integer itemNumber;
 
-    @Column(name = "QUES_VALUE")
+    @Column(name = "QUESTION_VALUE")
     private BigDecimal questionValue;
 
     @Column(name = "MAX_QUES_VALUE")
