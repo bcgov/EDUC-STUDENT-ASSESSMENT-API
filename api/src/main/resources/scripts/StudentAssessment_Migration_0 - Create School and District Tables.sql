@@ -41,7 +41,11 @@ CREATE TABLE SCHOOL
     CONSTRAINT school_id_pk PRIMARY KEY (school_id)
 );
 
---Create STUDENT_LINK table from required environment
+--Create STUDENT_LINK table from required environment (Student API)
+--SELECT STUDENT_ID,PEN,LEGAL_FIRST_NAME,LEGAL_LAST_NAME FROM STUDENT;
+
+--Create GRAD_STUDENT_RECORD table from required environment (Grad Student API)
+--SELECT GRADUATION_STUDENT_RECORD_ID, SCHOOL_OF_RECORD_ID FROM GRADUATION_STUDENT_RECORD;
 
 -----------------------------------------------
 --Check query for missing sessions
