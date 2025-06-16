@@ -54,10 +54,10 @@ public class V317ExamSchool implements AssessmentValidationBaseRule {
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
         if(student.getAssessmentStudentID() != null){
-            Optional<SchoolTombstone> assessmentCenter = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterID()));
+            Optional<SchoolTombstone> assessmentCenter = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
 
             if(assessmentCenter.isEmpty() || !RuleUtil.isSchoolValid(assessmentCenter.get())){
-                log.debug("V317: Invalid assessment centre provided with schoolID :: {}", student.getSchoolID());
+                log.debug("V317: Invalid assessment centre provided with schoolID :: {}", student.getSchoolOfRecordSchoolID());
                 errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.EXAM_SCHOOL, AssessmentStudentValidationIssueTypeCode.EXAM_SCHOOL_INVALID));
             }
         }

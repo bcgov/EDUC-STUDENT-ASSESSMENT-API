@@ -9,8 +9,6 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -36,16 +34,19 @@ public class AssessmentStudentEntity {
   AssessmentEntity assessmentEntity;
 
   @Column(name = "ASSESSMENT_FORM_ID")
-  UUID assessmentFormID;
+  private UUID assessmentFormID;
 
   @Column(name = "DISTRICT_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID districtID;
 
-  @Column(name = "SCHOOL_ID", nullable = false, columnDefinition = "BINARY(16)")
-  private UUID schoolID;
+  @Column(name = "SCHOOL_WRITE_SCHOOL_ID", columnDefinition = "BINARY(16)")
+  private UUID schoolAtWriteSchoolID;
 
-  @Column(name = "ASSESSMENT_CENTER_ID", columnDefinition = "BINARY(16)")
-  private UUID assessmentCenterID;
+  @Column(name = "ASSESSMENT_CENTER_SCHOOL_ID", columnDefinition = "BINARY(16)")
+  private UUID assessmentCenterSchoolID;
+
+  @Column(name = "SCHOOL_OF_RECORD_SCHOOL_ID", nullable = false, columnDefinition = "BINARY(16)")
+  private UUID schoolOfRecordSchoolID;
 
   @Column(name = "STUDENT_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID studentID;
@@ -62,20 +63,17 @@ public class AssessmentStudentEntity {
   @Column(name = "LOCAL_ID", length = 12)
   private String localID;
 
-  @Column(name = "LOCAL_COURSE_ID", length = 20)
-  private String localCourseID;
+  @Column(name = "LOCAL_ASSESSMENT_ID", length = 20)
+  private String localAssessmentID;
 
-  @Column(name = "IS_ELECTRONIC_EXAM", length = 1)
-  private Boolean isElectronicExam;
+  @Column(name = "IS_ELECTRONIC_ASSESSMENT", length = 1)
+  private Boolean isElectronicAssessment;
 
   @Column(name = "PROFICIENCY_SCORE", length = 1)
   private Integer proficiencyScore;
 
   @Column(name = "PROVINCIAL_SPECIAL_CASE_CODE", length = 1)
   private String provincialSpecialCaseCode;
-
-  @Column(name = "COURSE_STATUS_CODE", length = 1)
-  private String courseStatusCode;
 
   @Column(name = "ASSESSMENT_STUDENT_STATUS_CODE", nullable = false, length = 20)
   private String assessmentStudentStatusCode;
@@ -89,14 +87,11 @@ public class AssessmentStudentEntity {
   @Column(name = "IRT_SCORE", length = 7)
   private String irtScore;
 
+  @Column(name = "MARKING_SESSION", length = 6)
+  private String markingSession;
+
   @Column(name = "RAW_SCORE")
   private BigDecimal rawScore;
-
-  @Column(name = "PRINT_CODE")
-  private String printCode;
-
-  @Column(name = "PRE_PRINT_FLAG")
-  private String preprintFlag;
 
   @Column(name = "MC_TOTAL")
   private BigDecimal mcTotal;

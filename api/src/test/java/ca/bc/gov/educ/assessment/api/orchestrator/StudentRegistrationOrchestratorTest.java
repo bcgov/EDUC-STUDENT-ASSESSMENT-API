@@ -107,7 +107,7 @@ class StudentRegistrationOrchestratorTest extends BaseAssessmentAPITest {
         final var invocations = mockingDetails(this.messagePublisher).getInvocations().size();
 
         var school = this.createMockSchool();
-        school.setSchoolId(sagaData.getSchoolID());
+        school.setSchoolId(sagaData.getSchoolOfRecordSchoolID());
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
         var studentAPIStudent = this.createMockStudentAPIStudent();

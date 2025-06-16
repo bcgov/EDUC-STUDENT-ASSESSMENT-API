@@ -61,11 +61,11 @@ public class CSVReportService {
             csvPrinter.printRecord(headers);
 
             for (AssessmentStudentEntity result : results) {
-                var school = restUtils.getSchoolBySchoolID(result.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, result.getSchoolID().toString()));
+                var school = restUtils.getSchoolBySchoolID(result.getSchoolOfRecordSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, result.getSchoolOfRecordSchoolID().toString()));
 
                 Optional<SchoolTombstone> assessmentCenter = Optional.empty();
-                if (result.getAssessmentCenterID() != null) {
-                    assessmentCenter = restUtils.getSchoolBySchoolID(result.getAssessmentCenterID().toString());
+                if (result.getAssessmentCenterSchoolID() != null) {
+                    assessmentCenter = restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString());
                 }
                 List<String> csvRowData = prepareRegistrationDataForCsv(result, school, assessmentCenter);
                 csvPrinter.printRecord(csvRowData);

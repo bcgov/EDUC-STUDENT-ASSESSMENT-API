@@ -181,7 +181,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
     //given student does not exist in database
     //when attempting to update student
-    AssessmentStudentEntity student = AssessmentStudentEntity.builder().assessmentStudentID(UUID.randomUUID()).pen("120164447").schoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build();
+    AssessmentStudentEntity student = AssessmentStudentEntity.builder().assessmentStudentID(UUID.randomUUID()).pen("120164447").schoolOfRecordSchoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build();
 
     //then throw exception
     assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(student));

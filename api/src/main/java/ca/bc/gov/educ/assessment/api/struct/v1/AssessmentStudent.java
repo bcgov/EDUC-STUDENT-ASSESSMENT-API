@@ -30,10 +30,12 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @NotBlank(message = "districtID cannot be null")
     private String districtID;
 
-    @NotBlank(message = "schoolID cannot be null")
-    private String schoolID;
+    private String schoolAtWriteSchoolID;
 
-    private String assessmentCenterID;
+    private String assessmentCenterSchoolID;
+
+    @NotBlank(message = "schoolID cannot be null")
+    private String schoolOfRecordSchoolID;
 
     @NotBlank(groups = OnUpdate.class, message = "studentID cannot be null")
     private String studentID;

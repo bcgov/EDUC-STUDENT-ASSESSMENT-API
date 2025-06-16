@@ -125,7 +125,7 @@ public class AssessmentStudentService {
     }
 
     private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity) {
-        SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolID().toString()).orElse(null);
+        SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID().toString()).orElse(null);
 
         UUID studentCorrelationID = UUID.randomUUID();
         log.info("Retrieving student record for PEN ::{} with correlationID :: {}", assessmentStudentEntity.getPen(), studentCorrelationID);
@@ -229,7 +229,7 @@ public class AssessmentStudentService {
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateSchoolOfRecord(List<AssessmentStudentEntity> students, String schoolOfRecordID, String vendorID, AssessmentEventEntity event) {
         students.forEach(student -> {
-            student.setSchoolID(UUID.fromString(schoolOfRecordID));
+            student.setSchoolOfRecordSchoolID(UUID.fromString(schoolOfRecordID));
             if(vendorID != null) {
                 student.setVendorID(vendorID);
             }
