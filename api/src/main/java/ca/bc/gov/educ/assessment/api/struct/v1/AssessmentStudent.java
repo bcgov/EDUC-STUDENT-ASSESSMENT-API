@@ -3,7 +3,9 @@ package ca.bc.gov.educ.assessment.api.struct.v1;
 import ca.bc.gov.educ.assessment.api.struct.OnUpdate;
 import ca.bc.gov.educ.assessment.api.validator.constraint.IsAllowedValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,7 +13,10 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -26,9 +31,6 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
 
     @NotBlank(message = "assessmentID cannot be null")
     private String assessmentID;
-
-    @NotBlank(message = "districtID cannot be null")
-    private String districtID;
 
     private String schoolAtWriteSchoolID;
 
@@ -53,11 +55,6 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @Size(max = 12)
     private String localID;
 
-    @Size(max = 20)
-    private String localCourseID;
-
-    private String isElectronicExam;
-
     @Size(max = 1)
     private String proficiencyScore;
 
@@ -67,19 +64,29 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
 
     private String irtScore;
 
-    private String srChoicePath;
-
     @Size(max = 1)
     @IsAllowedValue(enumName = "ProvincialSpecialCaseCodes", message = "Invalid provincial special case code.")
     private String provincialSpecialCaseCode;
-
-    @Size(max = 1)
-    @IsAllowedValue(enumName = "CourseStatusCodes", message = "Invalid course status code.")
-    private String courseStatusCode;
 
     private List<AssessmentStudentValidationIssue> assessmentStudentValidationIssues;
 
     private String numberOfAttempts;
 
     private String rawScore;
+
+    @Size(max = 20)
+    private String localAssessmentID;
+
+    private String isElectronicAssessment;
+
+    private String assessmentStudentStatusCode;
+
+    private String markingSession;
+
+    private String courseStatusCode;
+
+    private String mcTotal;
+
+    private String oeTotal;
+
 }

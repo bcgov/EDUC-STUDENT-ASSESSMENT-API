@@ -227,12 +227,9 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateSchoolOfRecord(List<AssessmentStudentEntity> students, String schoolOfRecordID, String vendorID, AssessmentEventEntity event) {
+    public void updateSchoolOfRecord(List<AssessmentStudentEntity> students, String schoolOfRecordID, AssessmentEventEntity event) {
         students.forEach(student -> {
             student.setSchoolOfRecordSchoolID(UUID.fromString(schoolOfRecordID));
-            if(vendorID != null) {
-                student.setVendorID(vendorID);
-            }
         });
         assessmentStudentRepository.saveAll(students);
 

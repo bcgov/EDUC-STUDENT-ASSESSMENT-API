@@ -218,7 +218,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testCreateStudent_GivenInvalidCourseStatusCode_ShouldReturn400() throws Exception {
+  void testCreateStudent_GivenInvalidAssessmentID_ShouldReturn400() throws Exception {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -233,7 +233,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
                             .with(mockAuthority))
             .andDo(print())
             .andExpect(status().isBadRequest())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("courseStatusCode"));
+            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("assessmentID"));
   }
 
   @Test

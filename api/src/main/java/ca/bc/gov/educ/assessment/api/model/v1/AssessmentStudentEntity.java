@@ -36,9 +36,6 @@ public class AssessmentStudentEntity {
   @Column(name = "ASSESSMENT_FORM_ID")
   private UUID assessmentFormID;
 
-  @Column(name = "DISTRICT_ID", nullable = false, columnDefinition = "BINARY(16)")
-  private UUID districtID;
-
   @Column(name = "SCHOOL_WRITE_SCHOOL_ID", columnDefinition = "BINARY(16)")
   private UUID schoolAtWriteSchoolID;
 
@@ -98,9 +95,6 @@ public class AssessmentStudentEntity {
 
   @Column(name = "OE_TOTAL")
   private BigDecimal oeTotal;
-
-  @Column(name = "VENDOR_ID", length = 1)
-  private String vendorID;
 
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;
