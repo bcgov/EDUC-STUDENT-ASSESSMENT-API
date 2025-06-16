@@ -3,9 +3,7 @@ package ca.bc.gov.educ.assessment.api.struct.v1;
 import ca.bc.gov.educ.assessment.api.struct.OnUpdate;
 import ca.bc.gov.educ.assessment.api.validator.constraint.IsAllowedValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,10 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -78,8 +73,6 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     private String localAssessmentID;
 
     private String isElectronicAssessment;
-
-    private String assessmentStudentStatusCode;
 
     private String markingSession;
 

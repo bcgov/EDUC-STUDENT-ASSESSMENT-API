@@ -1,15 +1,14 @@
 package ca.bc.gov.educ.assessment.api;
 
-import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentSession;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentGet;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -19,8 +18,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.*;
 
@@ -181,7 +180,6 @@ public abstract class BaseAssessmentAPITest {
     return AssessmentStudentEntity.builder()
             .assessmentStudentID(UUID.randomUUID())
             .assessmentEntity(assessmentEntity)
-            .assessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode())
             .schoolOfRecordSchoolID(UUID.randomUUID())
             .assessmentCenterSchoolID(UUID.randomUUID())
             .studentID(UUID.randomUUID())
@@ -201,7 +199,6 @@ public abstract class BaseAssessmentAPITest {
             .assessmentStudentHistoryID(UUID.randomUUID())
             .assessmentStudentID(assessmentStudentEntity.getAssessmentStudentID())
             .assessmentID(assessmentStudentEntity.getAssessmentEntity().getAssessmentID())
-            .assessmentStudentStatusCode(assessmentStudentEntity.getAssessmentStudentStatusCode())
             .schoolOfRecordSchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID())
             .assessmentCenterSchoolID(assessmentStudentEntity.getAssessmentCenterSchoolID())
             .studentID(assessmentStudentEntity.getStudentID())

@@ -1,7 +1,8 @@
 package ca.bc.gov.educ.assessment.api.constants;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
-import ca.bc.gov.educ.assessment.api.constants.v1.*;
+import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.CourseStatusCodes;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -9,12 +10,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AssessmentAPIConstantsTest extends BaseAssessmentAPITest {
-
-    @Test
-    void test_AssessmentStudentStatusCodes() {
-        Optional<AssessmentStudentStatusCodes> assessmentStudentStatusCode = AssessmentStudentStatusCodes.findByValue("LOADED");
-        assertThat(assessmentStudentStatusCode.get().name()).isEqualTo(AssessmentStudentStatusCodes.LOADED.name());
-    }
 
     @Test
     void test_AssessmentTypeCodes() {

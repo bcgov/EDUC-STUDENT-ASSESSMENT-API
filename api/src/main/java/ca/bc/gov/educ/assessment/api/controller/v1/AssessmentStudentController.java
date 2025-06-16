@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.assessment.api.controller.v1;
 
-import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.endpoint.v1.AssessmentStudentEndpoint;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
@@ -68,7 +67,6 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
     RequestUtil.setAuditColumnsForCreate(assessmentStudent);
     AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
-    assessmentStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
     var pair = studentService.createStudent(assessmentStudentEntity);
     publisher.dispatchChoreographyEvent(pair.getRight());
     return pair.getLeft();

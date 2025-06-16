@@ -1,9 +1,9 @@
 package ca.bc.gov.educ.assessment.api.service.v1.events.schedulers;
 
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.SagaRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SessionService;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
@@ -47,20 +47,6 @@ public class EventTaskSchedulerAsyncService {
 
     @Setter
     private List<String> statusFilters;
-
-    @Async("processLoadedStudentsTaskExecutor")
-    public void findAndPublishLoadedStudentRegistrationsForProcessing() {
-        log.debug("Querying for loaded students to publish");
-        if (this.getSagaRepository().countAllByStatusIn(this.getStatusFilters()) > 100) { // at max there will be 100 parallel sagas.
-            log.debug("Saga count is greater than 100, so not processing student records");
-            return;
-        }
-        final var studentEntities = this.assessmentStudentRepository.findTopLoadedStudentForPublishing(numberOfStudentsToPublish);
-        log.debug("Found :: {}  records in loaded status", studentEntities.size());
-        if (!studentEntities.isEmpty()) {
-            this.assessmentStudentService.prepareAndPublishStudentRegistration(studentEntities);
-        }
-    }
 
     @Transactional
     public void createSessionsForSchoolYear(){

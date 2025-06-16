@@ -6,7 +6,6 @@ import ca.bc.gov.educ.assessment.api.constants.EventStatus;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 
-
 import java.time.LocalDateTime;
 
 

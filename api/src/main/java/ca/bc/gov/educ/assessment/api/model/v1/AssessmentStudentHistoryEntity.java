@@ -75,9 +75,6 @@ public class AssessmentStudentHistoryEntity {
     @Column(name = "PROVINCIAL_SPECIAL_CASE_CODE", length = 1)
     private String provincialSpecialCaseCode;
 
-    @Column(name = "ASSESSMENT_STUDENT_STATUS_CODE", nullable = false, length = 20)
-    private String assessmentStudentStatusCode;
-
     @Column(name = "NUMBER_OF_ATTEMPTS", length = 1)
     private Integer numberOfAttempts;
 

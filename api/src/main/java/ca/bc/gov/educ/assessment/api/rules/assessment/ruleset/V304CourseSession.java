@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.assessment.api.rules.assessment.ruleset;
 
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
-import ca.bc.gov.educ.assessment.api.constants.v1.CourseStatusCodes;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationFieldCode;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentValidationBaseRule;
@@ -12,7 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *  | ID          | Severity | Rule                                                                                                       | Dependent On |
