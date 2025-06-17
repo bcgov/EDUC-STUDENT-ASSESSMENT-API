@@ -36,7 +36,7 @@ public class AssessmentStudentEntity {
   @Column(name = "ASSESSMENT_FORM_ID")
   private UUID assessmentFormID;
 
-  @Column(name = "SCHOOL_WRITE_SCHOOL_ID", columnDefinition = "BINARY(16)")
+  @Column(name = "SCHOOL_OF_RECORD_AT_WRITE_SCHOOL_ID", columnDefinition = "BINARY(16)")
   private UUID schoolAtWriteSchoolID;
 
   @Column(name = "ASSESSMENT_CENTER_SCHOOL_ID", columnDefinition = "BINARY(16)")
