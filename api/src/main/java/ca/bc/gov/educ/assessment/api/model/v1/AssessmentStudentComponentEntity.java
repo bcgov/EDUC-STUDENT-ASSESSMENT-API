@@ -33,20 +33,11 @@ public class AssessmentStudentComponentEntity {
     @Column(name = "ASSESSMENT_STUDENT_ID", updatable = false)
     UUID assessmentStudentID;
 
-    @Column(name = "CSID")
-    private String csid;
-
-    @Column(name = "SEQN")
-    private BigDecimal seqn;
-
     @Column(name="COMPONENT_TYPE_CODE", nullable = false)
     private Integer componentTypeCode;
 
     @Column(name = "COMPONENT_SUB_TYPE_CODE")
     private String componentSubTypeCode;
-
-    @Column(name = "BATCH")
-    private String batch;
 
     @Column(name = "COMPONENT_TOTAL")
     private BigDecimal componentTotal;
