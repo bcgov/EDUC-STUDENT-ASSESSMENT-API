@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEventStatesEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEventStatesEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.SagaEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.SagaRepository;
 import lombok.AccessLevel;

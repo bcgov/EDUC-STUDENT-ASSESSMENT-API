@@ -5,7 +5,6 @@ import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
-import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
@@ -22,21 +21,22 @@ import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import io.nats.client.Connection;
 import lombok.SneakyThrows;
-import org.springframework.transaction.annotation.Transactional;
 import org.assertj.core.api.AssertionsForClassTypes;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.UUID;
 import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class EventTaskSchedulerTest extends BaseAssessmentAPITest {
 
@@ -109,7 +109,6 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         AssessmentStudent student1 = createMockStudent();
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
-        studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
         var pair = assessmentStudentService.createStudent(studentEntity1);
         AssessmentStudent assessmentStudent = pair.getLeft();
 
@@ -129,7 +128,6 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         AssessmentStudent student1 = createMockStudent();
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
-        studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
         var pair = assessmentStudentService.createStudent(studentEntity1);
         AssessmentStudent assessmentStudent = pair.getLeft();
 
@@ -153,26 +151,6 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
         assertThat(sagas).isPresent();
         var sagaEvents = sagaEventRepository.findBySaga(sagaEntity);
         assertThat(sagaEvents).isEmpty();
-    }
-
-    @SneakyThrows
-    @Test
-    void test_findAndPublishLoadedStudentRecordsForPublishing_LOADED_shouldReturnOk() {
-        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
-        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
-
-        AssessmentStudent student1 = createMockStudent();
-        student1.setAssessmentID(assessment.getAssessmentID().toString());
-        AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
-        studentEntity1.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
-        var pair = assessmentStudentService.createStudent(studentEntity1);
-        AssessmentStudent assessmentStudent = pair.getLeft();
-
-        eventTaskSchedulerAsyncService.findAndPublishLoadedStudentRegistrationsForProcessing();
-        final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(JsonUtil.getJsonStringFromObject(assessmentStudent)).build();
-        eventHandlerServiceUnderTest.handlePublishStudentRegistrationEvent(event);
-        var sagas = sagaRepository.findByAssessmentStudentIDAndSagaName(UUID.fromString(assessmentStudent.getAssessmentStudentID()), SagaEnum.PUBLISH_STUDENT_REGISTRATION.name());
-        assertThat(sagas).isPresent();
     }
 
     @Test

@@ -1,14 +1,8 @@
 package ca.bc.gov.educ.assessment.api.model.v1;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -30,11 +24,14 @@ public class AssessmentAnswerEntity {
     @Column(name = "ASSESSMENT_ANSWER_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
     private UUID assessmentAnswerID;
 
-    @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
-    UUID assessmentQuestionID;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false, targetEntity = AssessmentComponentEntity.class)
+    @JoinColumn(name = "ASSESSMENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_COMPONENT_ID", updatable = false)
+    AssessmentComponentEntity assessmentComponentEntity;
 
-    @Column(name = "MC_OE_FLAG")
-    private String mcOeFlag;
+    @Column(name = "ASSESSMENT_QUESTION_ID")
+    UUID assessmentQuestionID;
 
     @Column(name = "OE_ITEM_TYPE")
     private String oeItemType;
@@ -54,7 +51,7 @@ public class AssessmentAnswerEntity {
     @Column(name = "MC_ANSWER_UPPER")
     private BigDecimal mcAnswerUpper;
 
-    @Column(name = "QUES_VALUE")
+    @Column(name = "QUESTION_VALUE")
     private BigDecimal questionValue;
 
     @Column(name = "IRT")
@@ -81,7 +78,7 @@ public class AssessmentAnswerEntity {
     @Column(name = "CONTEXT_CODE")
     private String contextCode;
 
-    @Column(name = "CONCEPT_CODE")
+    @Column(name = "CONCEPTS_CODE")
     private String conceptCode;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)

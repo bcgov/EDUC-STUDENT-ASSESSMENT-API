@@ -1,15 +1,14 @@
 package ca.bc.gov.educ.assessment.api.repository.v1;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface AssessmentSessionRepository extends JpaRepository<AssessmentSessionEntity, UUID> {

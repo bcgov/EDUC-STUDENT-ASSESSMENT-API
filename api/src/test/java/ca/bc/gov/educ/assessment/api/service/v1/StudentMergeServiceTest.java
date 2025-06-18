@@ -2,7 +2,6 @@ package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
-import ca.bc.gov.educ.assessment.api.service.v1.StudentMergeService;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge;
 import lombok.val;

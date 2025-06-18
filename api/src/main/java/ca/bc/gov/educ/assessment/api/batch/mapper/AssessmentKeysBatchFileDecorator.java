@@ -20,7 +20,7 @@ public abstract class AssessmentKeysBatchFileDecorator implements AssessmentKeys
         final var entity = this.delegate.toKeyEntity(details);
         //formId
         entity.setQuestionNumber(StringUtils.isNotBlank(details.getQuestionNumber()) ? Integer.parseInt(details.getQuestionNumber()) : null); // add thePK/FK relationship
-        entity.setItemType(details.getItemType());
+//        entity.setItemType(details.getItemType());
 
         entity.setCognitiveLevelCode(StringMapper.trimAndUppercase(details.getCognLevel()));
         entity.setTaskCode(StringMapper.trimAndUppercase(details.getTaskCode()));

@@ -27,13 +27,12 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @NotBlank(message = "assessmentID cannot be null")
     private String assessmentID;
 
-    @NotBlank(message = "districtID cannot be null")
-    private String districtID;
+    private String schoolAtWriteSchoolID;
+
+    private String assessmentCenterSchoolID;
 
     @NotBlank(message = "schoolID cannot be null")
-    private String schoolID;
-
-    private String assessmentCenterID;
+    private String schoolOfRecordSchoolID;
 
     @NotBlank(groups = OnUpdate.class, message = "studentID cannot be null")
     private String studentID;
@@ -51,33 +50,36 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @Size(max = 12)
     private String localID;
 
-    @Size(max = 20)
-    private String localCourseID;
-
-    private String isElectronicExam;
-
     @Size(max = 1)
     private String proficiencyScore;
 
     private String assessmentFormID;
 
-    private String adaptedAssessmentIndicator;
+    private String adaptedAssessmentCode;
 
     private String irtScore;
-
-    private String srChoicePath;
 
     @Size(max = 1)
     @IsAllowedValue(enumName = "ProvincialSpecialCaseCodes", message = "Invalid provincial special case code.")
     private String provincialSpecialCaseCode;
-
-    @Size(max = 1)
-    @IsAllowedValue(enumName = "CourseStatusCodes", message = "Invalid course status code.")
-    private String courseStatusCode;
 
     private List<AssessmentStudentValidationIssue> assessmentStudentValidationIssues;
 
     private String numberOfAttempts;
 
     private String rawScore;
+
+    @Size(max = 20)
+    private String localAssessmentID;
+
+    private String isElectronicAssessment;
+
+    private String markingSession;
+
+    private String courseStatusCode;
+
+    private String mcTotal;
+
+    private String oeTotal;
+
 }

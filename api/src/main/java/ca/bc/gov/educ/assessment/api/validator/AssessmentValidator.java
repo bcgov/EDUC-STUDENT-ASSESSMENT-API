@@ -1,11 +1,11 @@
 package ca.bc.gov.educ.assessment.api.validator;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentTypeCodeEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentTypeCodeEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
 import ca.bc.gov.educ.assessment.api.util.ValidationUtil;
 import lombok.AccessLevel;

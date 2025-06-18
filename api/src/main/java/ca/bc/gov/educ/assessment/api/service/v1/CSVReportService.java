@@ -5,12 +5,12 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.AllStudentRegistration
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.NumberOfAttemptsHeader;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.PenMergesHeader;
-import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
@@ -61,11 +61,11 @@ public class CSVReportService {
             csvPrinter.printRecord(headers);
 
             for (AssessmentStudentEntity result : results) {
-                var school = restUtils.getSchoolBySchoolID(result.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, result.getSchoolID().toString()));
+                var school = restUtils.getSchoolBySchoolID(result.getSchoolOfRecordSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, result.getSchoolOfRecordSchoolID().toString()));
 
                 Optional<SchoolTombstone> assessmentCenter = Optional.empty();
-                if (result.getAssessmentCenterID() != null) {
-                    assessmentCenter = restUtils.getSchoolBySchoolID(result.getAssessmentCenterID().toString());
+                if (result.getAssessmentCenterSchoolID() != null) {
+                    assessmentCenter = restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString());
                 }
                 List<String> csvRowData = prepareRegistrationDataForCsv(result, school, assessmentCenter);
                 csvPrinter.printRecord(csvRowData);

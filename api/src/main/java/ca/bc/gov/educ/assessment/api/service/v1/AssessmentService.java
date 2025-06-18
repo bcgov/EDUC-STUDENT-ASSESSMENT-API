@@ -4,7 +4,6 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.util.TransformUtil;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -38,7 +37,7 @@ public class AssessmentService {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentEntity.getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentEntity.getAssessmentID().toString())
         );
-        BeanUtils.copyProperties(assessmentEntity, currentAssessmentEntity, "assessmentEntity", "createUser", "createDate", "assessmentStudentStatusCode");
+        BeanUtils.copyProperties(assessmentEntity, currentAssessmentEntity, "assessmentEntity", "createUser", "createDate");
         TransformUtil.uppercaseFields(currentAssessmentEntity);
         return assessmentRepository.save(assessmentEntity);
 

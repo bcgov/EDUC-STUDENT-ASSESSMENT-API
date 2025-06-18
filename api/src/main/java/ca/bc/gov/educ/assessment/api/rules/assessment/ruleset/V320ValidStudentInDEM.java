@@ -5,7 +5,6 @@ import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidatio
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentValidationBaseRule;
 import ca.bc.gov.educ.assessment.api.rules.utils.RuleUtil;
-
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentRuleData;
 import lombok.extern.slf4j.Slf4j;

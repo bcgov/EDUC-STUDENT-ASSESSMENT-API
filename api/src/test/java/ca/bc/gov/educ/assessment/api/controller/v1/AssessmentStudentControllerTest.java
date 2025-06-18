@@ -7,13 +7,16 @@ import ca.bc.gov.educ.assessment.api.constants.v1.URL;
 import ca.bc.gov.educ.assessment.api.filter.FilterOperation;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.struct.v1.*;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.assessment.api.struct.v1.Search;
+import ca.bc.gov.educ.assessment.api.struct.v1.SearchCriteria;
+import ca.bc.gov.educ.assessment.api.struct.v1.ValueType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -218,7 +221,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testCreateStudent_GivenInvalidCourseStatusCode_ShouldReturn400() throws Exception {
+  void testCreateStudent_GivenInvalidAssessmentID_ShouldReturn400() throws Exception {
     final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -233,7 +236,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
                             .with(mockAuthority))
             .andDo(print())
             .andExpect(status().isBadRequest())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("courseStatusCode"));
+            .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].field").value("assessmentID"));
   }
 
   @Test

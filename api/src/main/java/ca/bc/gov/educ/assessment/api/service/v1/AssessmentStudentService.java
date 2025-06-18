@@ -4,7 +4,6 @@ import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.constants.EventStatus;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.TopicsEnum;
-import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentStudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
@@ -125,7 +124,7 @@ public class AssessmentStudentService {
     }
 
     private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity) {
-        SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolID().toString()).orElse(null);
+        SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID().toString()).orElse(null);
 
         UUID studentCorrelationID = UUID.randomUUID();
         log.info("Retrieving student record for PEN ::{} with correlationID :: {}", assessmentStudentEntity.getPen(), studentCorrelationID);
@@ -135,7 +134,7 @@ public class AssessmentStudentService {
 
         if (validationIssues.isEmpty()) {
             if (currentAssessmentStudentEntity != null) {
-                BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "districtID", "schoolID", "studentID", "givenName", "surName", "pen", "localID", "isElectronicExam", "courseStatusCode", "assessmentStudentStatusCode", "createUser", "createDate");
+                BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "districtID", "schoolID", "studentID", "givenName", "surName", "pen", "localID", "isElectronicExam", "courseStatusCode", "createUser", "createDate");
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
                 currentAssessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), currentAssessmentStudentEntity.getStudentID())));
                 return mapper.toStructure(createAssessmentStudentWithHistory(currentAssessmentStudentEntity));
@@ -153,7 +152,6 @@ public class AssessmentStudentService {
     }
 
     public AssessmentStudentEntity createAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
-        assessmentStudentEntity.setAssessmentStudentStatusCode(AssessmentStudentStatusCodes.LOADED.getCode());
         AssessmentStudentEntity savedEntity = assessmentStudentRepository.save(assessmentStudentEntity);
         assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
         return savedEntity;
@@ -227,12 +225,9 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateSchoolOfRecord(List<AssessmentStudentEntity> students, String schoolOfRecordID, String vendorID, AssessmentEventEntity event) {
+    public void updateSchoolOfRecord(List<AssessmentStudentEntity> students, String schoolOfRecordID, AssessmentEventEntity event) {
         students.forEach(student -> {
-            student.setSchoolID(UUID.fromString(schoolOfRecordID));
-            if(vendorID != null) {
-                student.setVendorID(vendorID);
-            }
+            student.setSchoolOfRecordSchoolID(UUID.fromString(schoolOfRecordID));
         });
         assessmentStudentRepository.saveAll(students);
 

@@ -3,17 +3,18 @@ package ca.bc.gov.educ.assessment.api.schedulers;
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEventStatesEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEventStatesEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.SagaEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.SagaRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class PurgeOldSagaRecordsSchedulerTest extends BaseAssessmentAPITest {
 

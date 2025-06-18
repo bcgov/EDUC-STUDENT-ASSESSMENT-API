@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.assessment.api.filter;
 
-import ca.bc.gov.educ.assessment.api.filter.FilterOperation;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertArrayEquals;

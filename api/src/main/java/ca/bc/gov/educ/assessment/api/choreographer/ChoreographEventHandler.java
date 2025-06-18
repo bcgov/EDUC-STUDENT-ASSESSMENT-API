@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -45,7 +44,7 @@ public class ChoreographEventHandler {
                             final StudentForAssessmentUpdate update = JsonUtil.getJsonObjectFromString(StudentForAssessmentUpdate.class, event.getEventPayload());
                             List<AssessmentStudentEntity> students = assessmentStudentRepository.findByStudentID(UUID.fromString(update.getStudentID()));
                             if(!students.isEmpty()) {
-                                assessmentStudentService.updateSchoolOfRecord(students, update.getSchoolOfRecordID(), update.getVendorID(), event);
+                                assessmentStudentService.updateSchoolOfRecord(students, update.getSchoolOfRecordID(), event);
                             } else {
                                 log.info("Student does not exist in assessment-api :: {}", event.getEventId());
                             }

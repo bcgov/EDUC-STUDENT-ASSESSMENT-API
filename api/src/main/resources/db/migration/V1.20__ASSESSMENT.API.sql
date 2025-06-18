@@ -58,9 +58,9 @@ CREATE TABLE CONTEXT_CODE
     CONSTRAINT CONTEXT_CODE_PK PRIMARY KEY (CONTEXT_CODE)
 );
 
-CREATE TABLE CONCEPT_CODE
+CREATE TABLE CONCEPTS_CODE
 (
-    CONCEPT_CODE                VARCHAR(10)                         NOT NULL,
+    CONCEPTS_CODE                VARCHAR(10)                         NOT NULL,
     LABEL                       VARCHAR(255)                        NOT NULL,
     DESCRIPTION                 VARCHAR(255)                        NOT NULL,
     DISPLAY_ORDER               INTEGER DEFAULT 10                  NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE CONCEPT_CODE
     CREATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     UPDATE_USER                 VARCHAR(100)                        NOT NULL,
     UPDATE_DATE                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT CONCEPT_CODE_PK PRIMARY KEY (CONCEPT_CODE)
+    CONSTRAINT CONCEPTS_CODE_PK PRIMARY KEY (CONCEPTS_CODE)
 );
 
 CREATE TABLE ASSESSMENT_FORM
@@ -91,14 +91,14 @@ CREATE TABLE ASSESSMENT_QUESTION
 (
     ASSESSMENT_QUESTION_ID      UUID                                NOT NULL,
     ASSESSMENT_FORM_ID          UUID                                NOT NULL,
-    QUES_NUMBER                 INTEGER                             NOT NULL,
+    QUESTION_NUMBER                 INTEGER                             NOT NULL,
     ITEM_TYPE                   VARCHAR(12)                         NOT NULL,
     MARK_VALUE                  INTEGER                             NOT NULL,
     COGN_LEVEL_CODE             VARCHAR(10)                                  ,
     TASK_CODE                   VARCHAR(10)                                  ,
     CLAIM_CODE                  VARCHAR(10)                                  ,
     CONTEXT_CODE                VARCHAR(10)                                  ,
-    CONCEPT_CODE                VARCHAR(10)                                  ,
+    CONCEPTS_CODE                VARCHAR(10)                                  ,
     SCALE_FACTOR                NUMERIC                             NOT NULL,
     ASSMT_SECTION               VARCHAR(8)                          NOT NULL,
     CREATE_USER                 VARCHAR(100)                        NOT NULL,
@@ -116,8 +116,8 @@ CREATE TABLE ASSESSMENT_QUESTION
         REFERENCES CLAIM_CODE (CLAIM_CODE),
     CONSTRAINT FK_CONTEXT_CODE FOREIGN KEY (CONTEXT_CODE)
         REFERENCES CONTEXT_CODE (CONTEXT_CODE),
-    CONSTRAINT FK_CONCEPT_CODE FOREIGN KEY (CONCEPT_CODE)
-        REFERENCES CONCEPT_CODE (CONCEPT_CODE)
+    CONSTRAINT FK_CONCEPTS_CODE FOREIGN KEY (CONCEPTS_CODE)
+        REFERENCES CONCEPTS_CODE (CONCEPTS_CODE)
 );
 
 CREATE TABLE ASSESSMENT_QUESTION_RESPONSE_OPTION
@@ -220,7 +220,7 @@ VALUES
     ('C', 'Scientific', 'Scientific', TO_DATE('20250603', 'YYYYMMDD'), TO_DATE('99991231', 'YYYYMMDD'), 'ASSESSMENT-API', 'ASSESSMENT-API'),
     ('D', 'Societal', 'Societal', TO_DATE('20250603', 'YYYYMMDD'), TO_DATE('99991231', 'YYYYMMDD'), 'ASSESSMENT-API', 'ASSESSMENT-API');
 
-INSERT INTO CONCEPT_CODE (CONCEPT_CODE, LABEL, DESCRIPTION, EFFECTIVE_DATE, EXPIRY_DATE, CREATE_USER, UPDATE_USER)
+INSERT INTO CONCEPTS_CODE (CONCEPTS_CODE, LABEL, DESCRIPTION, EFFECTIVE_DATE, EXPIRY_DATE, CREATE_USER, UPDATE_USER)
 VALUES
     ('D', 'Data and Probability', 'Data and Probability', TO_DATE('20250603', 'YYYYMMDD'), TO_DATE('99991231', 'YYYYMMDD'), 'ASSESSMENT-API', 'ASSESSMENT-API'),
     ('DF', 'Data and Probability/Financial Literacy', 'Data and Probability/Financial Literacy', TO_DATE('20250603', 'YYYYMMDD'), TO_DATE('99991231', 'YYYYMMDD'), 'ASSESSMENT-API', 'ASSESSMENT-API'),

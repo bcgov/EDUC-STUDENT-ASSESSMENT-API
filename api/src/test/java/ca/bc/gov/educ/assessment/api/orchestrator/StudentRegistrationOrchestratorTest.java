@@ -8,9 +8,9 @@ import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
@@ -107,7 +107,7 @@ class StudentRegistrationOrchestratorTest extends BaseAssessmentAPITest {
         final var invocations = mockingDetails(this.messagePublisher).getInvocations().size();
 
         var school = this.createMockSchool();
-        school.setSchoolId(sagaData.getSchoolID());
+        school.setSchoolId(sagaData.getSchoolOfRecordSchoolID());
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
         var studentAPIStudent = this.createMockStudentAPIStudent();

@@ -26,15 +26,6 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolID(UUID sessionID, UUID schoolID);
 
     @Query(value="""
-    SELECT stud FROM AssessmentStudentEntity stud WHERE stud.assessmentStudentID
-    NOT IN (SELECT saga.assessmentStudentID FROM AssessmentSagaEntity saga WHERE saga.status != 'COMPLETED'
-    AND saga.assessmentStudentID IS NOT NULL)
-    AND stud.assessmentStudentStatusCode = 'LOADED'
-    order by stud.createDate
-    LIMIT :numberOfStudentsToPublish""")
-    List<AssessmentStudentEntity> findTopLoadedStudentForPublishing(String numberOfStudentsToPublish);
-
-    @Query(value="""
     select count(*) from AssessmentEntity as a, AssessmentStudentEntity as stud
     where a.assessmentID = stud.assessmentEntity.assessmentID
     and a.assessmentTypeCode in (:assessmentCodes)
