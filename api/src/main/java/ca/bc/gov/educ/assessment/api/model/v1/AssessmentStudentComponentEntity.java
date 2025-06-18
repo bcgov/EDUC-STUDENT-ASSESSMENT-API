@@ -46,7 +46,7 @@ public class AssessmentStudentComponentEntity {
     private String componentSource;
 
     @Column(name = "CHOICE_PATH")
-    private String ChoicePath;
+    private String choicePath;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;

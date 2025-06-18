@@ -55,7 +55,7 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
 
     private String assessmentFormID;
 
-    private String adaptedAssessmentIndicator;
+    private String adaptedAssessmentCode;
 
     private String irtScore;
 

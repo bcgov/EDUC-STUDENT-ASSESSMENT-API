@@ -78,8 +78,8 @@ public class AssessmentStudentHistoryEntity {
     @Column(name = "NUMBER_OF_ATTEMPTS", length = 1)
     private Integer numberOfAttempts;
 
-    @Column(name = "ADAPTED_ASSESSMENT_INDICATOR", length = 1)
-    private String adaptedAssessmentIndicator;
+    @Column(name = "ADAPTED_ASSESSMENT_CODE", length = 10)
+    private String adaptedAssessmentCode;
 
     @Column(name = "IRT_SCORE", length = 7)
     private String irtScore;
