@@ -20,12 +20,12 @@ import java.time.LocalDateTime;
 @Builder
 @DynamicUpdate
 @Entity
-@Table(name = "CONCEPT_CODE")
+@Table(name = "CONCEPTS_CODE")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ConceptCodeEntity {
 
     @Id
-    @Column(name = "CONCEPT_CODE", unique = true, length = 3)
+    @Column(name = "CONCEPTS_CODE", unique = true, length = 3)
     private String conceptCode;
 
     @Column(name = "LABEL", length = 30)
