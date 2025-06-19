@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @Slf4j
 public class FileUploadController implements FileUploadEndpoint {
@@ -17,8 +19,8 @@ public class FileUploadController implements FileUploadEndpoint {
     }
 
     @Override
-    public ResponseEntity<Void> processAssessmentKeysFile(AssessmentKeyFileUpload fileUpload, String session) {
-        assessmentKeysProcessor.processAssessmentKeys(fileUpload, session);
+    public ResponseEntity<Void> processAssessmentKeysFile(AssessmentKeyFileUpload fileUpload, UUID sessionID) {
+        assessmentKeysProcessor.processAssessmentKeys(fileUpload, sessionID);
         return ResponseEntity.noContent().build();
     }
 }

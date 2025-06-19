@@ -47,20 +47,19 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
 
-        assessmentTypeCodeRepository.saveAll(List.of(createMockAssessmentTypeCodeEntity("LTE10"), createMockAssessmentTypeCodeEntity("LTF12")));
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTE10"));
         var session = createMockSessionEntity();
         session.setCourseMonth("01");
         session.setCourseYear("2025");
         session.setSchoolYear("2024/2025");
         var savedSession = assessmentSessionRepository.save(session);
-        assessmentRepository.saveAll(List.of(createMockAssessmentEntity(savedSession, "LTE10"), createMockAssessmentEntity(savedSession, "LTF12")));
+        assessmentRepository.save(createMockAssessmentEntity(savedSession, "LTE10"));
     }
 
     @Test
     void testProcessAssessmentKeysFile_givenTxtFile_WithInvalidIncomingSession_ShouldReturnBadRequest() throws Exception {
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTE10.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
-        var session="202401";
 
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
@@ -68,7 +67,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
-        this.mockMvc.perform(post( BASE_URL + "/" + session + "/key-file")
+        this.mockMvc.perform(post( BASE_URL + "/" + UUID.randomUUID() + "/key-file")
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
@@ -80,7 +79,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     void testProcessAssessmentKeysFile_givenTxtFile_WithInvalidInvalidItemType_ShouldReturnBadRequest() throws Exception {
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTE10_InvalidItemType.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
-        var session="202501";
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
 
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
@@ -88,7 +87,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileName("TRAX_202501_LTE10_InvalidItemType.txt")
                 .build();
 
-        this.mockMvc.perform(post( BASE_URL + "/" + session + "/key-file")
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
                         .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
@@ -100,7 +99,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     void testProcessAssessmentKeysFile_givenTxtFile_WithInvalidFileSession_ShouldReturnBadRequest() throws Exception {
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTE10_InvalidSession.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
-        var session="202501";
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
 
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
@@ -108,7 +107,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
-        this.mockMvc.perform(post( BASE_URL + "/" + session + "/key-file")
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
                         .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
@@ -120,7 +119,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     void testProcessAssessmentKeysFile_givenTxtFile_WithInvalidAssessmentCode_ShouldReturnBadRequest() throws Exception {
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTE10_InvalidAssessmentCode.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
-        var session="202501";
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
 
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
@@ -128,7 +127,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
-        this.mockMvc.perform(post( BASE_URL + "/" + session + "/key-file")
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
                         .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
@@ -140,7 +139,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     void testProcessAssessmentKeysFile_givenTxtFile_WithMalformedRow_ShouldReturnOK() throws Exception {
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTE10_MalformedRow.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
-        var session="202501";
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
 
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
@@ -148,7 +147,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
-        this.mockMvc.perform(post( BASE_URL + "/" + session + "/key-file")
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
@@ -159,7 +158,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     void testProcessAssessmentKeysFile_givenTxtFile_ShouldReturnOK() throws Exception {
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTE10.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
-        var session="202501";
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
 
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
@@ -167,7 +166,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
-        this.mockMvc.perform(post( BASE_URL + "/" + session + "/key-file")
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
                         .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
@@ -176,9 +175,12 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testProcessAssessmentKeysFile_givenTxtFile_WithOpenEndedQues_ShouldReturnOK() throws Exception {
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTF12"));
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+        assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTF12"));
+
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTF12.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
-        var session="202501";
 
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
@@ -186,7 +188,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
-        this.mockMvc.perform(post( BASE_URL + "/" + session + "/key-file")
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
