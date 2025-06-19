@@ -14,14 +14,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.UUID;
+
 @RequestMapping(URL.BASE_URL)
 public interface FileUploadEndpoint {
-    @PostMapping("/{session}/key-file")
+    @PostMapping("/{sessionID}/key-file")
     @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_KEYS')")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "CREATED"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     @Tag(name = "Endpoint to upload assessment keys and convert to json structure.", description = "Endpoint to upload a GRAD file and convert to json structure")
     @Schema(name = "FileUpload", implementation = AssessmentKeyFileUpload.class)
-    ResponseEntity<Void> processAssessmentKeysFile(@Validated @RequestBody AssessmentKeyFileUpload fileUpload, @PathVariable(name = "session") String session);
+    ResponseEntity<Void> processAssessmentKeysFile(@Validated @RequestBody AssessmentKeyFileUpload fileUpload, @PathVariable(name = "sessionID") UUID sessionID);
 
 
 }

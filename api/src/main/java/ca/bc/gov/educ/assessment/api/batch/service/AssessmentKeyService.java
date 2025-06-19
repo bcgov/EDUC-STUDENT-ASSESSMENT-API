@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -68,14 +69,11 @@ public class AssessmentKeyService {
     public static final String LOAD_FAIL = "LOADFAIL";
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void populateBatchFileAndLoadData(String guid, DataSet ds, String incomingSession) throws FileUnProcessableException {
+    public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID) throws FileUnProcessableException {
         val batchFile = new AssessmentKeyFile();
 
-        var courseYear = incomingSession.substring(0, 4);
-        var courseMonth = incomingSession.substring(4);
-
         AssessmentSessionEntity validSession =
-                assessmentSessionRepository.findByCourseYearAndCourseMonth(courseYear, courseMonth)
+                assessmentSessionRepository.findById(sessionID)
                         .orElseThrow(() -> new FileUnProcessableException(FileError.INVALID_INCOMING_REQUEST_SESSION, guid, LOAD_FAIL));
         populateAssessmentKeyFile(ds, batchFile, validSession, guid);
         processLoadedRecordsInBatchFile(guid, batchFile, validSession);
