@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.io.FileInputStream;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.URL.BASE_URL;
@@ -47,15 +48,13 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
 
-        var assessmentTypeCodeEntity = createMockAssessmentTypeCodeEntity("LTE10");
-        assessmentTypeCodeRepository.save(assessmentTypeCodeEntity);
+        assessmentTypeCodeRepository.saveAll(List.of(createMockAssessmentTypeCodeEntity("LTE10"), createMockAssessmentTypeCodeEntity("LTF12")));
         var session = createMockSessionEntity();
         session.setCourseMonth("01");
         session.setCourseYear("2025");
         session.setSchoolYear("2024/2025");
         var savedSession = assessmentSessionRepository.save(session);
-        var assessment = createMockAssessmentEntity(savedSession, "LTE10");
-        assessmentRepository.save(assessment);
+        assessmentRepository.saveAll(List.of(createMockAssessmentEntity(savedSession, "LTE10"), createMockAssessmentEntity(savedSession, "LTF12")));
     }
 
     @Test
@@ -174,5 +173,24 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
                         .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testProcessAssessmentKeysFile_givenTxtFile_WithOpenEndedQues_ShouldReturnOK() throws Exception {
+        final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTF12.txt");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+        var session="202501";
+
+        var file = AssessmentKeyFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ABC")
+                .fileName("TRAX_202501_LTE10.txt")
+                .build();
+
+        this.mockMvc.perform(post( BASE_URL + "/" + session + "/key-file")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .content(JsonUtil.getJsonStringFromObject(file))
+                .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
     }
 }

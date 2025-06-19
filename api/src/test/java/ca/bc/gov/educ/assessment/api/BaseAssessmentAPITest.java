@@ -43,9 +43,18 @@ public abstract class BaseAssessmentAPITest {
 
   @BeforeEach
   public void before() {
-    claimCodeRepository.saveAll(List.of(createClaimCode("C"), createClaimCode("W")));
-    cognitiveLevelCodeRepository.saveAll(List.of(createCognitiveCode("7"), createCognitiveCode("8")));
-    conceptsCodeRepository.saveAll(List.of(createConceptsCode("WRB"), createConceptsCode("WRA"), createConceptsCode("GO")));
+    claimCodeRepository.saveAll(List.of(createClaimCode("C"), createClaimCode("W"), createClaimCode("O")));
+    cognitiveLevelCodeRepository.saveAll(List.of(createCognitiveCode("7"), createCognitiveCode("8"), createCognitiveCode("9")));
+    var conceptsList = List.of(createConceptsCode("WRB"),
+            createConceptsCode("WRA"),
+            createConceptsCode("GO"),
+            createConceptsCode("WRS"),
+            createConceptsCode("WRD"),
+            createConceptsCode("WRF"),
+            createConceptsCode("O1D"),
+            createConceptsCode("O1F")
+            );
+    conceptsCodeRepository.saveAll(conceptsList);
     contextCodeRepository.save(createContextCode("1"));
     taskCodeRepository.save(createTaskCode("A"));
   }
