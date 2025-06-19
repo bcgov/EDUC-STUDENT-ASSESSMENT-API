@@ -51,7 +51,7 @@ public class AssessmentKeysProcessor {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processAssessmentKeys(AssessmentKeyFileUpload fileUpload, String session) {
+    public void processAssessmentKeys(AssessmentKeyFileUpload fileUpload, UUID sessionID) {
         val stopwatch = Stopwatch.createStarted();
         final var guid = UUID.randomUUID().toString();
         Optional<Reader> batchFileReaderOptional = Optional.empty();
@@ -68,11 +68,11 @@ public class AssessmentKeysProcessor {
                     .parse();
 
             fileValidator.validateFileHasCorrectExtension(guid, fileUpload);
-            assessmentKeyService.populateBatchFileAndLoadData(guid, ds, session);
+            assessmentKeyService.populateBatchFileAndLoadData(guid, ds, sessionID);
         } catch (final FileUnProcessableException fileUnProcessableException) {
             log.error("File could not be processed exception :: {}", fileUnProcessableException);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();
-            var validationError = ValidationUtil.createFieldError(ASSESSMENT_KEY_UPLOAD, session, fileUnProcessableException.getReason());
+            var validationError = ValidationUtil.createFieldError(ASSESSMENT_KEY_UPLOAD, sessionID, fileUnProcessableException.getReason());
             List<FieldError> fieldErrorList = new ArrayList<>();
             fieldErrorList.add(validationError);
             error.addValidationErrors(fieldErrorList);
@@ -80,7 +80,7 @@ public class AssessmentKeysProcessor {
         } catch (final Exception e) {
             log.error("Exception while processing the file with guid :: {} :: Exception :: {}", guid, e);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();
-            var validationError = ValidationUtil.createFieldError(ASSESSMENT_KEY_UPLOAD, session , FileError.GENERIC_ERROR_MESSAGE.getMessage());
+            var validationError = ValidationUtil.createFieldError(ASSESSMENT_KEY_UPLOAD, sessionID , FileError.GENERIC_ERROR_MESSAGE.getMessage());
             List<FieldError> fieldErrorList = new ArrayList<>();
             fieldErrorList.add(validationError);
             error.addValidationErrors(fieldErrorList);

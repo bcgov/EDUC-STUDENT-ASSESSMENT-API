@@ -40,6 +40,8 @@ public abstract class AssessmentKeysBatchFileDecorator implements AssessmentKeys
         entity.setQuestionValue(StringUtils.isNotBlank(details.getMark()) ? new BigDecimal(details.getMark()) : null);
         entity.setIrtIncrement(BigDecimal.ZERO);
         entity.setPreloadAnswer(StringMapper.trimAndUppercase(details.getAnswer()));
+        var scale = StringMapper.trimAndUppercase(details.getScaleFactor());
+        entity.setScaleFactor(StringUtils.isNotBlank(scale) ? (int) (Float.parseFloat(scale) * 100) : 0);
         entity.setIrt(0);
         return entity;
     }
