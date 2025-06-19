@@ -23,7 +23,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionID(UUID sessionID);
 
-    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolID(UUID sessionID, UUID schoolID);
+    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolOfRecordSchoolID(UUID sessionID, UUID schoolOfRecordSchoolID);
 
     @Query(value="""
     select count(*) from AssessmentEntity as a, AssessmentStudentEntity as stud
