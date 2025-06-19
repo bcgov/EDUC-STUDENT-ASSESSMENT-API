@@ -5,11 +5,13 @@ import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.URL;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentFormRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentApproval;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -37,11 +39,14 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
 
     @Autowired
     AssessmentTypeCodeRepository assessmentTypeCodeRepository;
+    @Autowired
+    private AssessmentFormRepository assessmentFormRepository;
 
     private static final AssessmentMapper mapper = AssessmentMapper.mapper;
 
-    @AfterEach
-    public void after() {
+    @BeforeEach
+    void setUp() {
+        assessmentFormRepository.deleteAll();
         this.assessmentRepository.deleteAll();
         this.assessmentSessionRepository.deleteAll();
         this.assessmentTypeCodeRepository.deleteAll();

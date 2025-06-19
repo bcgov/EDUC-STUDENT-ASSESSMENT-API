@@ -13,6 +13,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -50,8 +51,8 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
 
     private static final AssessmentMapper mapper = AssessmentMapper.mapper;
 
-    @AfterEach
-    public void after() {
+    @BeforeEach
+    void setUp() {
         assessmentFormRepository.deleteAll();
         this.assessmentRepository.deleteAll();
         this.assessmentSessionRepository.deleteAll();
