@@ -58,7 +58,7 @@ public class XAMFileService {
                 padRight("", 2) + // FINAL_LETTER_GRADE (BLANK)
                 padRight("Y", 1) + // E-EXAM FLAG - Always Y according to spec
                 padRight(student.getProvincialSpecialCaseCode(), 1) + // PROV_SPEC_CASE
-                padRight(student.getLocalCourseID(), 20) + // LOCAL_CRSE_ID
+                padRight(student.getLocalAssessmentID(), 20) + // LOCAL_CRSE_ID
                 padRight("A", 1) + // CRSE_STATUS - Always A according to spec
                 padRight(student.getSurname(), 25) + // STUD_SURNAME
                 padRight("", 2) + // NUM_CREDITS (BLANK)
