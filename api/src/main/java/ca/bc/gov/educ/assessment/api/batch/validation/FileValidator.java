@@ -4,15 +4,10 @@ import ca.bc.gov.educ.assessment.api.batch.exception.FileError;
 import ca.bc.gov.educ.assessment.api.batch.exception.FileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
-import ca.bc.gov.educ.assessment.api.rest.RestUtils;
-import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.flatpack.DataError;
 import net.sf.flatpack.DataSet;
-import net.sf.flatpack.Record;
-import net.sf.flatpack.StreamingDataSet;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 

@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.assessment.api.controller.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentTypeCodeEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentFormRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
