@@ -42,6 +42,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        assessmentFormRepository.deleteAll();
         assessmentTypeCodeRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();

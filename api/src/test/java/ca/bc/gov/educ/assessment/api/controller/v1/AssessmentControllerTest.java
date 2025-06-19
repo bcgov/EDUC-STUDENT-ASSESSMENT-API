@@ -7,6 +7,7 @@ import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentFormRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
@@ -44,10 +45,14 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
     @Autowired
     AssessmentTypeCodeRepository assessmentTypeCodeRepository;
 
+    @Autowired
+    private AssessmentFormRepository assessmentFormRepository;
+
     private static final AssessmentMapper mapper = AssessmentMapper.mapper;
 
     @AfterEach
     public void after() {
+        assessmentFormRepository.deleteAll();
         this.assessmentRepository.deleteAll();
         this.assessmentSessionRepository.deleteAll();
         this.assessmentTypeCodeRepository.deleteAll();
