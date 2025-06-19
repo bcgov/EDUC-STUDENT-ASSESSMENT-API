@@ -53,39 +53,20 @@ public enum FileError {
    */
   INVALID_ROW_LENGTH("$?"),
 
-  DUPLICATE_PEN_IN_DEM_FILE("The same PEN $? is appearing more than once in the DEM file on $? $?."),
-
-  BLANK_PEN_IN_DEM_FILE("The PEN field is blank for one or more records in the DEM file on $? $?."),
-
-  BLANK_PEN_IN_XAM_FILE("The PEN field is blank for one or more records in the XAM file on $? $?."),
-
-  BLANK_PEN_IN_CRS_FILE("The PEN field is blank for one or more records in the CRS file on $? $?."),
-
-  INCORRECT_COURSE_DATE_IN_CRS_FILE("The course session year/month is invalid in the CRS file on line $?."),
-  FILE_NOT_ALLOWED("File type not allowed."),
-  EMPTY_EXCEL_NOT_ALLOWED("The file does not contain any records."),
-  COURSE_FILE_SESSION_ERROR(".CRS file must have at least 1 record with a current or future course session."),
-  INVALID_SCHOOL_FOR_UPLOAD("This school is not eligible for graduation records and achievement data collection."),
-  /**
-   * School is opening.
-   */
-  SCHOOL_IS_OPENING("Invalid school provided - school is not yet open."),
-  INVALID_SCHOOL_DATES("Invalid school dates - this was not expected."),
-  SCHOOL_OUTSIDE_OF_DISTRICT("The school is not in your district and cannot be uploaded."),
-  MISSING_MINCODE("The school has been closed for more than 3 months or is not Transcript Eligible. The data cannot be uploaded."),
-  FILE_ENCRYPTED("File is password protected."),
-  BLANK_PEN_IN_EXCEL("The PEN field cannot be blank. Review the data on line $?."),
-  PEN_LENGTH_IN_EXCEL("Submitted PENs cannot be more than 10 digits. Review the data on line $?."),
-  LEGAL_SURNAME_IN_EXCEL("Legal Surnames cannot be longer than 25 characters. Review the data on line $?."),
-  LEGAL_FIRST_NAME_IN_EXCEL("Legal Given Names cannot be longer than 25 characters. Review the data on line $?."),
-  LEGAL_MIDDLE_NAME_IN_EXCEL("Legal Middle Names cannot be longer than 25 characters. Review the data on line $?."),
-  COURSE_IN_EXCEL("Course code and level cannot be longer than 8 characters. Review the data on line $?."),
-  FINAL_SCH_PERCENT_EXCEL("Final School Percent cannot be more than 3 digits. Review the data on line $?."),
-  FINAL_LETTER_GRADE_EXCEL("Final Letter Grade cannot be more than 2 characters. Review the data on line $?."),
-  NO_OF_CREDITS_EXCEL("Number of Credits cannot be more than 1 digit. Review the data on line $?."),
-  BIRTHDATE_FORMAT_EXCEL("Birthdate must be in the format YYYYMMDD. Review the data on line $?."),
-  SESSION_DATE_FORMAT_EXCEL("Can only report courses in the $? or $? sessions. Review the data on line $?."),
-  GENERIC_ERROR_MESSAGE("Unexpected failure during file processing.");
+  INVALID_INCOMING_REQUEST_SESSION("Invalid assessment session."),
+  INVALID_ASSESSMENT_KEY_SESSION("Invalid assessment session on line $?."),
+  INVALID_ASSESSMENT_TYPE("Invalid assessment type on line $?."),
+  INVALID_ASSESSMENT_CODE("Invalid assessment."),
+  BLANK_ASSESSMENT_CODE("Assessment code cannot be blank."),
+  BLANK_FORM_CODE("Form code cannot be blank."),
+  GENERIC_ERROR_MESSAGE("Unexpected failure during file processing."),
+  INVALID_ITEM_TYPE("Invalid item type on line $?."),
+  INVALID_TASK_CODE("Invalid task code on line $?."),
+  INVALID_CLAIM_CODE("Invalid claim code on line $?."),
+  INVALID_COGNITIVE_LEVEL_CODE("Invalid cognitive level code on line $?."),
+  INVALID_CONCEPT_CODE("Invalid concept code on line $?."),
+  INVALID_CONTEXT_CODE("Invalid context code on line $?."),
+  ;
 
   /**
    * The Message.

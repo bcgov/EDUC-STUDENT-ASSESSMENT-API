@@ -2,9 +2,14 @@ package ca.bc.gov.educ.assessment.api.batch.mapper;
 
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyDetails;
 import ca.bc.gov.educ.assessment.api.mappers.StringMapper;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentComponentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentFormEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+
+import java.math.BigDecimal;
 
 @Slf4j
 public abstract class AssessmentKeysBatchFileDecorator implements AssessmentKeysBatchFileMapper {
@@ -14,29 +19,28 @@ public abstract class AssessmentKeysBatchFileDecorator implements AssessmentKeys
         this.delegate = delegate;
     }
 
+    @Override
+    public AssessmentFormEntity toFormEntity(String formCode, AssessmentEntity assessmentEntity) {
+        final var entity = this.delegate.toFormEntity(formCode, assessmentEntity);
+        entity.setAssessmentEntity(assessmentEntity);
+        entity.setFormCode(formCode);
+        return entity;
+    }
 
     @Override
-    public AssessmentQuestionEntity toKeyEntity(AssessmentKeyDetails details) {
-        final var entity = this.delegate.toKeyEntity(details);
-        //formId
-        entity.setQuestionNumber(StringUtils.isNotBlank(details.getQuestionNumber()) ? Integer.parseInt(details.getQuestionNumber()) : null); // add thePK/FK relationship
-//        entity.setItemType(details.getItemType());
-
+    public AssessmentQuestionEntity toQuestionEntity(AssessmentKeyDetails details, AssessmentComponentEntity componentEntity) {
+        final var entity = this.delegate.toQuestionEntity(details, componentEntity);
+        entity.setAssessmentComponentEntity(componentEntity);
         entity.setCognitiveLevelCode(StringMapper.trimAndUppercase(details.getCognLevel()));
         entity.setTaskCode(StringMapper.trimAndUppercase(details.getTaskCode()));
         entity.setClaimCode(StringMapper.trimAndUppercase(details.getClaimCode()));
         entity.setContextCode(StringMapper.trimAndUppercase(details.getContextCode()));
         entity.setConceptCode(StringMapper.trimAndUppercase(details.getConceptsCode()));
         entity.setAssessmentSection(StringMapper.trimAndUppercase(details.getAssessmentSection()));
-//        entity.setMcOeFlag(StringMapper.trimAndUppercase());
-//        entity.setItemNumber(StringMapper.trimAndUppercase());
-//        entity.setQuestionValue(StringMapper.trimAndUppercase());
-//        entity.setMaxQuestionValue(StringMapper.trimAndUppercase(details));
-//        entity.setMasterQuestionNumber(StringMapper.trimAndUppercase(studentDetails.getCity()));
-//        entity.setIrtIncrement(StringMapper.trimAndUppercase());
+        entity.setQuestionValue(StringUtils.isNotBlank(details.getMark()) ? new BigDecimal(details.getMark()) : null);
+        entity.setIrtIncrement(BigDecimal.ZERO);
         entity.setPreloadAnswer(StringMapper.trimAndUppercase(details.getAnswer()));
-        entity.setIrt(StringUtils.isNotBlank(details.getIrt()) ? Integer.parseInt(details.getIrt()) : null);
-        //mark, topicType, topicType, questionOrigin, item
+        entity.setIrt(0);
         return entity;
     }
 
