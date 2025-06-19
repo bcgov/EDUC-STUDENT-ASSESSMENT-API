@@ -19,6 +19,6 @@ public class FileUploadController implements FileUploadEndpoint {
     @Override
     public ResponseEntity<Void> processAssessmentKeysFile(AssessmentKeyFileUpload fileUpload, String session) {
         assessmentKeysProcessor.processAssessmentKeys(fileUpload, session);
-        return null;
+        return ResponseEntity.noContent().build();
     }
 }

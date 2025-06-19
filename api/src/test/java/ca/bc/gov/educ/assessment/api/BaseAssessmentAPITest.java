@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,26 +30,72 @@ import java.util.*;
 @AutoConfigureMockMvc
 public abstract class BaseAssessmentAPITest {
 
+  @Autowired
+  private ClaimCodeRepository claimCodeRepository;
+  @Autowired
+  private CognitiveLevelCodeRepository cognitiveLevelCodeRepository;
+  @Autowired
+  private ConceptsCodeRepository conceptsCodeRepository;
+  @Autowired
+  private ContextCodeRepository contextCodeRepository;
+  @Autowired
+  private TaskCodeRepository taskCodeRepository;
+
   @BeforeEach
   public void before() {
-
+    claimCodeRepository.saveAll(List.of(createClaimCode("C"), createClaimCode("W"), createClaimCode("O")));
+    cognitiveLevelCodeRepository.saveAll(List.of(createCognitiveCode("7"), createCognitiveCode("8"), createCognitiveCode("9")));
+    var conceptsList = List.of(createConceptsCode("WRB"),
+            createConceptsCode("WRA"),
+            createConceptsCode("GO"),
+            createConceptsCode("WRS"),
+            createConceptsCode("WRD"),
+            createConceptsCode("WRF"),
+            createConceptsCode("O1D"),
+            createConceptsCode("O1F")
+            );
+    conceptsCodeRepository.saveAll(conceptsList);
+    contextCodeRepository.save(createContextCode("1"));
+    taskCodeRepository.save(createTaskCode("A"));
   }
 
   @AfterEach
   public void resetState() {
-
+    claimCodeRepository.deleteAll();
+    cognitiveLevelCodeRepository.deleteAll();
+    conceptsCodeRepository.deleteAll();
+    contextCodeRepository.deleteAll();
+    taskCodeRepository.deleteAll();
   }
 
-  public AssessmentSession createMockSession() {
-    LocalDateTime currentDate = LocalDateTime.now();
-    return AssessmentSession.builder()
-            .sessionID(UUID.randomUUID().toString())
-            .schoolYear(String.valueOf(currentDate.getYear()))
-            .courseYear(Integer.toString(currentDate.getYear()))
-            .courseMonth(Integer.toString(currentDate.getMonthValue()))
-            .activeFromDate(currentDate.minusMonths(2).toString())
-            .activeUntilDate(currentDate.plusMonths(2).toString())
-            .build();
+  public ClaimCodeEntity createClaimCode(String code) {
+    return ClaimCodeEntity.builder().claimCode(code).description(code)
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
+  }
+
+  public ConceptCodeEntity createConceptsCode(String code) {
+    return ConceptCodeEntity.builder().conceptCode(code).description(code)
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
+  }
+
+  public ContextCodeEntity createContextCode(String code) {
+    return ContextCodeEntity.builder().contextCode(code).description(code)
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
+  }
+
+  public TaskCodeEntity createTaskCode(String code) {
+    return TaskCodeEntity.builder().taskCode(code).description(code)
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
+  }
+
+  public CognitiveLevelCodeEntity createCognitiveCode(String code) {
+    return CognitiveLevelCodeEntity.builder().cognitiveLevelCode(code).description(code)
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
   }
 
   public AssessmentSessionEntity createMockSessionEntity() {

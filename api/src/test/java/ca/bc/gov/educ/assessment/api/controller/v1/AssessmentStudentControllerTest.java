@@ -10,6 +10,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentFormRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
@@ -19,6 +20,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.SearchCriteria;
 import ca.bc.gov.educ.assessment.api.struct.v1.ValueType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -53,11 +55,14 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
 
   @Autowired
   AssessmentRepository assessmentRepository;
+  @Autowired
+  private AssessmentFormRepository assessmentFormRepository;
 
   private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
 
-  @AfterEach
-  public void after() {
+  @BeforeEach
+  void setUp() {
+    assessmentFormRepository.deleteAll();
     this.studentRepository.deleteAll();
     this.assessmentRepository.deleteAll();
     this.assessmentSessionRepository.deleteAll();

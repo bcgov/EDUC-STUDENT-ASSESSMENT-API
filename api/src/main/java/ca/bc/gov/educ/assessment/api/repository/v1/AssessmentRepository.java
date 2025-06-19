@@ -14,4 +14,6 @@ public interface AssessmentRepository extends JpaRepository<AssessmentEntity, UU
 
     @Query("SELECT a FROM AssessmentEntity a WHERE a.assessmentSessionEntity.sessionID = :sessionID")
     Optional<List<AssessmentEntity>> findBySessionID(UUID sessionID);
+
+    Optional<AssessmentEntity> findByAssessmentSessionEntity_SessionIDAndAssessmentTypeCode(UUID sessionID, String assessmentTypeCode);
 }
