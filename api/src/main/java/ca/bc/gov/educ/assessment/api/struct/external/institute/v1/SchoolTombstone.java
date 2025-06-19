@@ -68,6 +68,9 @@ public class SchoolTombstone extends BaseRequest implements Serializable {
   @NotNull(message = "schoolReportingRequirementCode cannot be null")
   private String schoolReportingRequirementCode;
 
+  @Size(max = 10)
+  private String vendorSourceSystemCode;
+
   private String openedDate;
 
   private String closedDate;

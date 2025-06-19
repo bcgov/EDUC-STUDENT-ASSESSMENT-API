@@ -115,12 +115,16 @@ public class XAMFileService {
     /**
      * for orchestration:
      * Generates and uploads XAM files for all schools for the given session.
+     * Only schools with vendor source system code MYED
      */
     public void generateAndUploadXamFiles(UUID sessionID) {
         List<SchoolTombstone> schools = restUtils.getAllSchoolTombstones();
+        List<SchoolTombstone> myEdSchools = schools.stream()
+                .filter(school -> "MYED".equalsIgnoreCase(school.getVendorSourceSystemCode()))
+                .toList();
         // todo only eligible schools
-        log.info("Starting generation and upload of XAM files for {} schools, session {}", schools.size(), sessionID);
-        for (SchoolTombstone school : schools) {
+        log.info("Starting generation and upload of XAM files for {} MYED schools, session {}", myEdSchools.size(), sessionID);
+        for (SchoolTombstone school : myEdSchools) {
             log.info("Generating XAM file for school: {}", school.getMincode());
             String filePath = generateXamFileAndReturnPath(sessionID, school);
             log.info("Uploading XAM file for school: {}", school.getMincode());

@@ -191,7 +191,8 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
 
         AssessmentStudentEntity student = createMockStudentEntity(assessment);
-        student.setSchoolID(UUID.fromString(school.getSchoolId()));
+        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
         studentRepository.save(student);
 
         var resultActions = this.mockMvc.perform(
