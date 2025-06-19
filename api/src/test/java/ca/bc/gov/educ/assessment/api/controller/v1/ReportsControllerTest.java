@@ -65,10 +65,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-    }
-
-    @AfterEach
-    public void after() {
         assessmentFormRepository.deleteAll();
         this.studentRepository.deleteAll();
         this.assessmentRepository.deleteAll();
