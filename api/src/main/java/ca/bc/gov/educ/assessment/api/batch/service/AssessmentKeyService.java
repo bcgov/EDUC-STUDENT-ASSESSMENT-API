@@ -146,7 +146,7 @@ public class AssessmentKeyService {
     }
 
     private AssessmentComponentEntity createMultiChoiceComponent(AssessmentFormEntity assessmentFormEntity, List<AssessmentKeyDetails> multiChoice) {
-        AssessmentComponentEntity multiComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, "M", multiChoice.size(), 0, 0);
+        AssessmentComponentEntity multiComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, "MUL_CHOICE", multiChoice.size(), 0, 0);
 
         multiChoice.forEach(ques -> {
             final var quesEntity = mapper.toQuestionEntity(ques, multiComponentEntity);
@@ -192,7 +192,7 @@ public class AssessmentKeyService {
         return  AssessmentComponentEntity
                 .builder()
                 .assessmentFormEntity(assessmentFormEntity)
-                .componentTypeCode(type.equalsIgnoreCase("ER") || type.equalsIgnoreCase("EO") ? "O" : type)
+                .componentTypeCode(type.equalsIgnoreCase("ER") || type.equalsIgnoreCase("EO") ? "OPEN_ENDED" : type)
                 .componentSubTypeCode(type.equalsIgnoreCase("EO") ? "ORAL" : "NONE")
                 .questionCount(quesCount)
                 .numOmits(numOmits)
