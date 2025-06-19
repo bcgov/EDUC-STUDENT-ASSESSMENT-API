@@ -198,7 +198,6 @@ public class AssessmentKeyService {
                 .numOmits(numOmits)
 //              .oeItemCount()
                 .oeMarkCount(markCount)
-                .printMaterialFlag(type.equalsIgnoreCase("ER") ? "Y": "N")
                 .createDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
                 .createUser(assessmentFormEntity.getCreateUser())
