@@ -7,6 +7,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -30,22 +32,22 @@ public class AssessmentComponentEntity {
     AssessmentFormEntity assessmentFormEntity;
 
     @Column(name="COMPONENT_TYPE_CODE", nullable = false)
-    private Integer componentTypeCode;
+    private String componentTypeCode;
 
     @Column(name = "COMPONENT_SUB_TYPE_CODE", nullable = false)
     private String componentSubTypeCode;
 
     @Column(name = "QUESTION_COUNT")
-    private String questionCount;
+    private Integer questionCount;
 
     @Column(name = "NUM_OMITS")
-    private String numOmits;
+    private Integer numOmits;
 
     @Column(name = "OE_ITEM_CNT")
-    private String oeItemCount;
+    private Integer oeItemCount;
 
     @Column(name = "OE_MARK_COUNT")
-    private String oeMarkCount;
+    private Integer oeMarkCount;
 
     @Column(name = "PRINT_MATERIALS_FLAG")
     private String printMaterialFlag;
@@ -63,4 +65,16 @@ public class AssessmentComponentEntity {
     @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "assessmentComponentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = AssessmentQuestionEntity.class)
+    Set<AssessmentQuestionEntity> assessmentQuestionEntities;
+
+    public Set<AssessmentQuestionEntity> getAssessmentQuestionEntities() {
+        if (this.assessmentQuestionEntities == null) {
+            this.assessmentQuestionEntities = new HashSet<>();
+        }
+        return this.assessmentQuestionEntities;
+    }
 }

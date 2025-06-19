@@ -2,6 +2,8 @@ package ca.bc.gov.educ.assessment.api.batch.validation;
 
 import ca.bc.gov.educ.assessment.api.batch.exception.FileError;
 import ca.bc.gov.educ.assessment.api.batch.exception.FileUnProcessableException;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
@@ -9,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.flatpack.DataError;
 import net.sf.flatpack.DataSet;
 import net.sf.flatpack.Record;
+import net.sf.flatpack.StreamingDataSet;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -20,12 +23,12 @@ import java.util.Optional;
 @Slf4j
 public class FileValidator {
     public static final String TOO_LONG = "TOO LONG";
-    public static final String MINCODE = "mincode";
     public static final String LOAD_FAIL = "LOADFAIL";
-    private final RestUtils restUtils;
+    public static final String LENGTH = "256";
+    private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
 
-    public FileValidator(RestUtils restUtils) {
-        this.restUtils = restUtils;
+    public FileValidator(AssessmentTypeCodeRepository assessmentTypeCodeRepository) {
+        this.assessmentTypeCodeRepository = assessmentTypeCodeRepository;
     }
 
     public byte[] getUploadedFileBytes(@NonNull final String guid, final AssessmentKeyFileUpload fileUpload) throws FileUnProcessableException {
@@ -35,8 +38,8 @@ public class FileValidator {
         }
         return bytes;
     }
-    public void validateFileForFormatAndLength(@NonNull final String guid, @NonNull final DataSet ds, @NonNull final String lengthError) throws FileUnProcessableException {
-        this.processDataSetForRowLengthErrors(guid, ds, lengthError);
+    public void validateFileForFormatAndLength(@NonNull final String guid, @NonNull final DataSet ds) throws FileUnProcessableException {
+        this.processDataSetForRowLengthErrors(guid, ds, LENGTH);
     }
     private static boolean isMalformedRowError(DataError error, String lengthError) {
         String description = error.getErrorDesc();
@@ -86,7 +89,7 @@ public class FileValidator {
         return "Line " + (error.getLineNo()) + " is missing characters.";
     }
 
-    public void validateFileHasCorrectExtension(@NonNull final String guid, final AssessmentKeyFileUpload fileUpload, String allowedExtension) throws FileUnProcessableException {
+    public void validateFileHasCorrectExtension(@NonNull final String guid, final AssessmentKeyFileUpload fileUpload) throws FileUnProcessableException {
         String fileName = fileUpload.getFileName();
         int lastIndex = fileName.lastIndexOf('.');
 
@@ -96,55 +99,21 @@ public class FileValidator {
 
         String extension = fileName.substring(lastIndex);
 
-        if (!extension.equalsIgnoreCase(allowedExtension)) {
+        if (!extension.equalsIgnoreCase(".txt")) {
             throw new FileUnProcessableException(FileError.INVALID_FILE_EXTENSION, guid, LOAD_FAIL);
         }
     }
 
-    public void validateMincode(@NonNull final String guid, final String schoolID, String fileMincode) throws FileUnProcessableException {
-        String schoolMincode = getMincode(guid, schoolID);
-        log.debug("Checking valid mincode for school ID {} :: and file mincode is listed: {} :: fetched mincode is: {}", schoolID, fileMincode, schoolMincode);
-        if (StringUtils.isBlank(schoolMincode) || StringUtils.isBlank(fileMincode) || !fileMincode.equals(schoolMincode)) {
-            throw new FileUnProcessableException(FileError.MINCODE_MISMATCH, guid,LOAD_FAIL,schoolMincode);
+    public void validateSessionAndAssessmentCode(String fileSession, AssessmentSessionEntity validSession, String fileAssessmentCode, String guid, long index) throws FileUnProcessableException {
+        var courseYear = fileSession.substring(0, 4);
+        var courseMonth = fileSession.substring(4);
+
+        if(!courseYear.equals(validSession.getCourseYear()) ||  !courseMonth.equals(validSession.getCourseMonth())){
+            throw new FileUnProcessableException(FileError.INVALID_ASSESSMENT_KEY_SESSION, guid, String.valueOf(index + 1));
         }
-    }
-    public String getMincode(@NonNull final String guid,final String schoolID) throws FileUnProcessableException {
-        Optional<SchoolTombstone> schoolOptional = restUtils.getSchoolBySchoolID(schoolID);
-        SchoolTombstone school = schoolOptional.orElseThrow(() -> new FileUnProcessableException(FileError.INVALID_SCHOOL, guid, LOAD_FAIL, schoolID));
-        return school.getMincode();
+
+        assessmentTypeCodeRepository.findByAssessmentTypeCode(fileAssessmentCode)
+                .orElseThrow(() -> new FileUnProcessableException(FileError.INVALID_ASSESSMENT_TYPE, guid, String.valueOf(index + 1)));
     }
 
-    public SchoolTombstone getSchoolFromFileMincodeField(final String guid, final DataSet ds) throws FileUnProcessableException {
-        var mincode = getSchoolMincode(guid, ds);
-        var school = getSchoolUsingMincode(mincode);
-        return school.orElseThrow(() -> new FileUnProcessableException(FileError.INVALID_SCHOOL, guid, LOAD_FAIL, mincode));
-    }
-
-    public SchoolTombstone getSchoolFromFileName(final String guid, String fileName) throws FileUnProcessableException {
-        String mincode = fileName.split("\\.")[0];
-        var school = getSchoolUsingMincode(mincode);
-        return school.orElseThrow(() -> new FileUnProcessableException(FileError.INVALID_FILENAME, guid, LOAD_FAIL));
-    }
-
-    public String getSchoolMincode(final String guid, @NonNull final DataSet ds) throws FileUnProcessableException{
-        ds.goTop();
-        ds.next();
-
-        Optional<Record> firstRow = ds.getRecord();
-        String mincode = firstRow.map(row -> row.getString(MINCODE)).orElse(null);
-
-        if(StringUtils.isBlank(mincode)){
-            throw new FileUnProcessableException(FileError.MISSING_MINCODE, guid, LOAD_FAIL);
-        }
-        ds.goTop();
-        return mincode;
-    }
-
-    public Optional<SchoolTombstone> getSchoolUsingMincode(final String mincode) {
-        return restUtils.getSchoolByMincode(mincode);
-    }
-
-    public Optional<SchoolTombstone> getSchool(final String schoolID) {
-        return restUtils.getSchoolBySchoolID(schoolID);
-    }
 }
