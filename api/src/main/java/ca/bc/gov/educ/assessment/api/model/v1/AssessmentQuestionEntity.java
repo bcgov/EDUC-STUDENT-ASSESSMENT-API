@@ -72,6 +72,9 @@ public class AssessmentQuestionEntity {
     @Column(name = "IRT")
     private Integer irt;
 
+    @Column(name = "SCALE_FACTOR")
+    private Integer scaleFactor;
+
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
 
