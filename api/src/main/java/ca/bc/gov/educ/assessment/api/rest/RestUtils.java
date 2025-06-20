@@ -296,6 +296,14 @@ public class RestUtils {
     return Optional.ofNullable(this.schoolMincodeMap.get(mincode));
   }
 
+  public List<SchoolTombstone> getAllSchoolTombstones() {
+    if (this.schoolMincodeMap.isEmpty()) {
+      log.info("School mincode map is empty reloading schools");
+      this.populateSchoolMincodeMap();
+    }
+    return new ArrayList<>(this.schoolMap.values());
+  }
+
   public Optional<District> getDistrictByDistrictID(final String districtID) {
     if (this.districtMap.isEmpty()) {
       log.info("District map is empty reloading schools");

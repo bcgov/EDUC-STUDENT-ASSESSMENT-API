@@ -1,0 +1,170 @@
+package ca.bc.gov.educ.assessment.api.service.v1;
+
+import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
+import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+class XAMFileServiceTest extends BaseAssessmentAPITest {
+
+    private XAMFileService xamFileService;
+    private AssessmentSessionRepository sessionRepository;
+    private AssessmentStudentRepository studentRepository;
+    private RestUtils restUtils;
+
+    @BeforeEach
+    void setUp() {
+        sessionRepository = mock(AssessmentSessionRepository.class);
+        studentRepository = mock(AssessmentStudentRepository.class);
+        restUtils = mock(RestUtils.class);
+        xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils));
+    }
+
+    @AfterEach
+    void tearDown() {
+        sessionRepository.deleteAll();
+        studentRepository.deleteAll();
+    }
+
+    @Test
+    void testGenerateXamFile_success() throws Exception {
+        UUID sessionId = UUID.randomUUID();
+        AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
+        when(sessionEntity.getCourseYear()).thenReturn("2023");
+        when(sessionEntity.getCourseMonth()).thenReturn("09");
+        when(sessionRepository.findById(eq(sessionId))).thenReturn(Optional.of(sessionEntity));
+
+        AssessmentStudentEntity student = mock(AssessmentStudentEntity.class);
+        when(student.getLocalID()).thenReturn("LID123");
+        when(student.getPen()).thenReturn("PEN123456");
+        when(student.getProficiencyScore()).thenReturn(5);
+        when(student.getProvincialSpecialCaseCode()).thenReturn("N");
+        when(student.getLocalAssessmentID()).thenReturn("LOCALASSMT");
+        when(student.getSurname()).thenReturn("Doe");
+
+        AssessmentEntity assessment = mock(AssessmentEntity.class);
+        when(assessment.getAssessmentTypeCode()).thenReturn("TYPE");
+        when(assessment.getAssessmentSessionEntity()).thenReturn(sessionEntity);
+        when(student.getAssessmentEntity()).thenReturn(assessment);
+
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionId), any()))
+                .thenReturn(List.of(student));
+
+        SchoolTombstone school = mock(SchoolTombstone.class);
+        when(school.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+        when(school.getMincode()).thenReturn("MINCODE1");
+        when(school.getVendorSourceSystemCode()).thenReturn("MYED");
+
+        File file = xamFileService.generateXamFile(sessionId, school);
+        assertTrue(file.exists());
+        String content = Files.readString(file.toPath());
+        assertTrue(content.contains("Doe"));
+        file.delete();
+    }
+
+    @Test
+    void testGenerateXamReport_success() {
+        UUID sessionId = UUID.randomUUID();
+        AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
+        when(sessionEntity.getCourseYear()).thenReturn("2023");
+        when(sessionEntity.getCourseMonth()).thenReturn("09");
+        when(sessionRepository.findById(eq(sessionId))).thenReturn(Optional.of(sessionEntity));
+
+        AssessmentStudentEntity student = mock(AssessmentStudentEntity.class);
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionId), any()))
+                .thenReturn(List.of(student));
+
+        SchoolTombstone school = mock(SchoolTombstone.class);
+        when(school.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+        when(school.getMincode()).thenReturn("MINCODE2");
+        when(school.getVendorSourceSystemCode()).thenReturn("MYED");
+
+        DownloadableReportResponse response = xamFileService.generateXamReport(sessionId, school);
+        assertNotNull(response);
+        assertFalse(response.getDocumentData().isEmpty());
+        assertTrue(response.getReportType().contains("MINCODE2"));
+    }
+
+    @Test
+    void testGenerateXamFile_sessionNotFound() {
+        UUID sessionId = UUID.randomUUID();
+        when(sessionRepository.findById(eq(sessionId))).thenReturn(Optional.empty());
+
+        SchoolTombstone school = mock(SchoolTombstone.class);
+        when(school.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+        when(school.getMincode()).thenReturn("MINCODE3");
+        when(school.getVendorSourceSystemCode()).thenReturn("MYED");
+
+        Exception ex = assertThrows(EntityNotFoundException.class, () -> {
+            xamFileService.generateXamFile(sessionId, school);
+        });
+    }
+
+    @Test
+    void testUploadToS3_success() throws Exception {
+        File dummyFile = new File("dummy.txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(dummyFile))) {
+            writer.write("test");
+        }
+        assertDoesNotThrow(() -> xamFileService.uploadToS3(dummyFile, "dummyKey.txt"));
+        dummyFile.delete();
+    }
+
+    @Test
+    void testGenerateAndUploadXamFiles() throws Exception {
+        UUID sessionId = UUID.randomUUID();
+        AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
+        when(sessionEntity.getCourseYear()).thenReturn("2023");
+        when(sessionEntity.getCourseMonth()).thenReturn("09");
+        when(sessionRepository.findById(eq(sessionId))).thenReturn(Optional.of(sessionEntity));
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionId), any()))
+                .thenReturn(List.of());
+
+        SchoolTombstone myEdSchool = mock(SchoolTombstone.class);
+        when(myEdSchool.getVendorSourceSystemCode()).thenReturn("MYED");
+        when(myEdSchool.getMincode()).thenReturn("MINCODE4");
+        when(myEdSchool.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+        when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(myEdSchool));
+
+        doNothing().when(xamFileService).uploadToS3(any(), any());
+        xamFileService.generateAndUploadXamFiles(sessionId);
+    }
+
+    @Test
+    void testUploadFilePathToS3() throws Exception {
+        File dummyFile = new File("dummy2.txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(dummyFile))) {
+            writer.write("test");
+        }
+        SchoolTombstone school = mock(SchoolTombstone.class);
+        when(school.getMincode()).thenReturn("MINCODE5");
+        when(school.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+
+        doNothing().when(xamFileService).uploadToS3(any(), any());
+        xamFileService.uploadFilePathToS3(dummyFile.getAbsolutePath(), UUID.randomUUID(), school);
+        verify(xamFileService, atLeastOnce()).uploadToS3(any(), any());
+        dummyFile.delete();
+    }
+}
