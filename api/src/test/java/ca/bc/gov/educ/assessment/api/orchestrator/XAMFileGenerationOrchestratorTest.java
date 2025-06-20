@@ -11,7 +11,9 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
+import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
+import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
@@ -26,11 +28,14 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -118,5 +123,32 @@ class XAMFileGenerationOrchestratorTest extends BaseAssessmentAPITest {
         AssessmentSagaEntity newSaga = sagaService.findByAssessmentStudentIDAndSagaNameAndStatusNot(newSessionID, SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.IN_PROGRESS.toString()).orElse(null);
         assertThat(newSaga).isNotNull();
         assertEquals(newSessionID, newSaga.getAssessmentStudentID());
+    }
+
+    @SneakyThrows
+    @Test
+    void testGenerateXamFilesAndUpload_invalidPayload_directCall() {
+        String invalidPayload = "not-a-valid-uuid";
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.GENERATE_XAM_FILES_AND_UPLOAD)
+                .eventOutcome(EventOutcome.XAM_FILES_GENERATED_AND_UPLOADED)
+                .eventPayload(invalidPayload)
+                .build();
+
+        AssessmentStudentRepository dummyStudentRepo = Mockito.mock(AssessmentStudentRepository.class);
+        AssessmentSessionRepository dummySessionRepo = Mockito.mock(AssessmentSessionRepository.class);
+        RestUtils dummyRestUtils = Mockito.mock(RestUtils.class);
+        XAMFileService dummyService = new XAMFileService(dummyStudentRepo, dummySessionRepo, dummyRestUtils);
+        XAMFileService spyService = Mockito.spy(dummyService);
+        ReflectionTestUtils.setField(xamFileGenerationOrchestrator, "xamFileService", spyService);
+
+        Method method = XAMFileGenerationOrchestrator.class
+                .getDeclaredMethod("generateXAMFilesAndUpload", Event.class, AssessmentSagaEntity.class, String.class);
+        method.setAccessible(true);
+        Exception thrown = assertThrows(Exception.class, () -> {
+            method.invoke(xamFileGenerationOrchestrator, event, saga, invalidPayload);
+        });
+        assertThat(thrown.getCause()).isInstanceOf(IllegalArgumentException.class);
     }
 }
