@@ -31,7 +31,7 @@ public class XAMFileService {
     }
 
     public File generateXamFile(UUID sessionID, SchoolTombstone school) {
-        List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolOfRecordSchoolID(sessionID, UUID.fromString(school.getSchoolId()));
+        List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(sessionID, UUID.fromString(school.getSchoolId()));
 
         StringBuilder sb = new StringBuilder();
 
