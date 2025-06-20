@@ -66,6 +66,20 @@ public enum FileError {
   INVALID_COGNITIVE_LEVEL_CODE("Invalid cognitive level code on line $?."),
   INVALID_CONCEPT_CODE("Invalid concept code on line $?."),
   INVALID_CONTEXT_CODE("Invalid context code on line $?."),
+  SESSION_LENGTH_ERROR("Assessment session must not be longer than 6 on line $?."),
+  ASSMT_CODE_LENGTH_ERROR("Assessment code must not be longer than 5 on line $?."),
+  FORM_CODE_LENGTH_ERROR("Form code must not be longer than 1 on line $?."),
+  QUES_NUM_LENGTH_ERROR("Question number must not be longer than 2 on line $?."),
+  ITEM_TYPE_LENGTH_ERROR("Item type must not be longer than 12 on line $?."),
+  ANSWER_LENGTH_ERROR("Answer must not be longer than 150 on line $?."),
+  MARK_LENGTH_ERROR("Mark value must not be longer than 2 on line $?."),
+  COGN_LEVEL_LENGTH_ERROR("Cognitive level code must not be longer than 4 on line $?."),
+  TASK_CODE_LENGTH_ERROR("Task Code must not be longer than 2 on line $?."),
+  CLAIM_CODE_LENGTH_ERROR("Claim code must not be longer than 3 on line $?."),
+  CONTEXT_CODE_LENGTH_ERROR("Context code must not be longer than 1 on line $?."),
+  CONCEPTS_CODE_LENGTH_ERROR("Concept code must not be longer than 3 on line $?."),
+  SCALE_FACTOR_LENGTH_ERROR("Scale factor must not be longer than 8 on line $?."),
+  ASSMT_SECTION_LENGTH_ERROR("Assessment section must not be longer than 8 on line $?."),
   ;
 
   /**
