@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.val;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -221,6 +220,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         this.mockMvc.perform(
                 get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + randomSchoolId + "/download")
                         .with(mockAuthority))
-                .andDo(print()).andExpect(status().isBadRequest());
+                .andDo(print()).andExpect(status().isNotFound());
     }
 }

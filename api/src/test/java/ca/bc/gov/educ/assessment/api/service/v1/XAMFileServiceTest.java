@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
-import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
+import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
@@ -117,10 +117,9 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(school.getMincode()).thenReturn("MINCODE3");
         when(school.getVendorSourceSystemCode()).thenReturn("MYED");
 
-        Exception ex = assertThrows(StudentAssessmentAPIRuntimeException.class, () -> {
+        Exception ex = assertThrows(EntityNotFoundException.class, () -> {
             xamFileService.generateXamFile(sessionId, school);
         });
-        assertTrue(ex.getMessage().contains("Assessment session not found"));
     }
 
     @Test
