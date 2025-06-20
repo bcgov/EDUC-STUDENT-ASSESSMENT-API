@@ -1,9 +1,13 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
+import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +16,9 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,17 +26,32 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class XAMFileService {
     private final AssessmentStudentRepository assessmentStudentRepository;
+    private AssessmentSessionRepository assessmentSessionRepository;
     private RestUtils restUtils;
 //    @Value("${s3.bucket.name}")
 //    private String bucketName;
 
     @Autowired
-    public XAMFileService(AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils) {
+    public XAMFileService(AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, RestUtils restUtils) {
         this.assessmentStudentRepository = assessmentStudentRepository;
+        this.assessmentSessionRepository = assessmentSessionRepository;
         this.restUtils = restUtils;
     }
 
-    public File generateXamFile(UUID sessionID, SchoolTombstone school) {
+    /**
+     * Generic method to generate XAM content and return either a File or DownloadableReportResponse
+     * @param sessionID the session ID
+     * @param school the school tombstone
+     * @param asFile whether to return a File (true) or DownloadableReportResponse (false)
+     * @return T - either File or DownloadableReportResponse
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T generateXamContent(UUID sessionID, SchoolTombstone school, boolean asFile) {
+        Optional<AssessmentSessionEntity> assessmentSession = assessmentSessionRepository.findById(sessionID);
+        if (assessmentSession.isEmpty()) {
+            log.error("Assessment session not found for ID: {}", sessionID);
+            throw new StudentAssessmentAPIRuntimeException("Assessment session not found for ID: " + sessionID);
+        }
         List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(sessionID, UUID.fromString(school.getSchoolId()));
 
         StringBuilder sb = new StringBuilder();
@@ -67,17 +88,38 @@ public class XAMFileService {
                 "\n";
             sb.append(record);
         }
+        String fileName = school.getMincode() + "_" + assessmentSession.get().getCourseYear() + assessmentSession.get().getCourseMonth() + ".xam";
+        String content = sb.toString();
 
-        String fileName = school.getMincode() + "_" + sessionID + ".xam";
-        File file = new File("./" + fileName);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(sb.toString());
-        } catch (Exception e) {
-            log.error("Failed to write XAM file", e);
-            throw new RuntimeException("Failed to write XAM file", e);
+        if (asFile) {
+            File file = new File("./" + fileName);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(content);
+                return (T) file;
+            } catch (Exception e) {
+                log.error("Failed to write XAM file", e);
+                throw new RuntimeException("Failed to write XAM file", e);
+            }
+        } else {
+            DownloadableReportResponse response = new DownloadableReportResponse();
+            response.setReportType(fileName);
+            response.setDocumentData(Base64.getEncoder().encodeToString(content.getBytes()));
+            return (T) response;
         }
+    }
 
-        return file;
+    /**
+     * Returns a File for the XAM content (used by orchestrator)
+     */
+    public File generateXamFile(UUID sessionID, SchoolTombstone school) {
+        return generateXamContent(sessionID, school, true);
+    }
+
+    /**
+     * Returns a DownloadableReportResponse for the XAM content (used by controller)
+     */
+    public DownloadableReportResponse generateXamReport(UUID sessionID, SchoolTombstone school) {
+        return generateXamContent(sessionID, school, false);
     }
 
     public void uploadToS3(File file, String key) {
@@ -129,6 +171,7 @@ public class XAMFileService {
             String filePath = generateXamFileAndReturnPath(sessionID, school);
             log.info("Uploading XAM file for school: {}", school.getMincode());
             uploadFilePathToS3(filePath, sessionID, school);
+            // todo delete the files after they are uploaded
         }
         log.info("Completed processing XAM files for session {}", sessionID);
     }

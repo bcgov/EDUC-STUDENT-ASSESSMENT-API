@@ -57,15 +57,12 @@ public class ReportsController implements ReportsEndoint {
             throw new InvalidPayloadException(error);
         }
         SchoolTombstone schoolTombstone = schoolTombstoneOptional.get();
-        File xamFile = this.xamFileService.generateXamFile(sessionID, schoolTombstone);
+        
         try {
-            byte[] fileData = Files.readAllBytes(xamFile.toPath());
-            DownloadableReportResponse response = new DownloadableReportResponse();
-            response.setReportType(xamFile.getName());
-            response.setDocumentData(Base64.getEncoder().encodeToString(fileData));
-            return response;
+            return this.xamFileService.generateXamReport(sessionID, schoolTombstone);
         } catch (Exception ex) {
-            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Error reading generated file.").status(BAD_REQUEST).build();
+            log.error("Error generating XAM report", ex);
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Error generating report.").status(BAD_REQUEST).build();
             throw new InvalidPayloadException(error);
         }
     }
