@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
-import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
+import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -47,11 +46,7 @@ public class XAMFileService {
      */
     @SuppressWarnings("unchecked")
     private <T> T generateXamContent(UUID sessionID, SchoolTombstone school, boolean asFile) {
-        Optional<AssessmentSessionEntity> assessmentSession = assessmentSessionRepository.findById(sessionID);
-        if (assessmentSession.isEmpty()) {
-            log.error("Assessment session not found for ID: {}", sessionID);
-            throw new StudentAssessmentAPIRuntimeException("Assessment session not found for ID: " + sessionID);
-        }
+        var assessmentSession = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
         List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(sessionID, UUID.fromString(school.getSchoolId()));
 
         StringBuilder sb = new StringBuilder();
@@ -59,7 +54,7 @@ public class XAMFileService {
         for (AssessmentStudentEntity student : students) {
             String record =
                 padRight("E07", 3) + // TX_ID
-                padRight("", 1) + // VENDOR_ID - TODO being added to assessment student entity
+                padRight(school.getVendorSourceSystemCode(), 1) + // VENDOR_ID
                 padRight("", 1) + // VERI_FLAG (BLANK)
                 padRight("", 5) + // FILLER1 (BLANK)
                 padRight(school.getMincode(), 8) + // MINCODE
@@ -88,7 +83,7 @@ public class XAMFileService {
                 "\n";
             sb.append(record);
         }
-        String fileName = school.getMincode() + "_" + assessmentSession.get().getCourseYear() + assessmentSession.get().getCourseMonth() + ".xam";
+        String fileName = school.getMincode() + "_" + assessmentSession.getCourseYear() + assessmentSession.getCourseMonth() + ".xam";
         String content = sb.toString();
 
         if (asFile) {

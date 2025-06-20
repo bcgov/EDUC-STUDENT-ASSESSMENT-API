@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.controller.v1;
 
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndoint;
+import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
@@ -14,12 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
-import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.Base64;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -51,13 +49,8 @@ public class ReportsController implements ReportsEndoint {
 
     @Override
     public DownloadableReportResponse getDownloadableReportForSchool(UUID sessionID, UUID schoolID) {
-        Optional<SchoolTombstone> schoolTombstoneOptional = this.restUtils.getSchoolBySchoolID(schoolID.toString());
-        if (schoolTombstoneOptional.isEmpty()) {
-            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("School not found.").status(BAD_REQUEST).build();
-            throw new InvalidPayloadException(error);
-        }
-        SchoolTombstone schoolTombstone = schoolTombstoneOptional.get();
-        
+        var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class));
+
         try {
             return this.xamFileService.generateXamReport(sessionID, schoolTombstone);
         } catch (Exception ex) {
