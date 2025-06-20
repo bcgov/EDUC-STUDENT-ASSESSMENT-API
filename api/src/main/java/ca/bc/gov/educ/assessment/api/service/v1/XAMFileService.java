@@ -83,7 +83,7 @@ public class XAMFileService {
                 "\n";
             sb.append(record);
         }
-        String fileName = school.getMincode() + "_" + assessmentSession.getCourseYear() + assessmentSession.getCourseMonth() + ".xam";
+        String fileName = school.getMincode() + "-" + assessmentSession.getCourseYear() + assessmentSession.getCourseMonth() + "-Results" + ".xam";
         String content = sb.toString();
 
         if (asFile) {
