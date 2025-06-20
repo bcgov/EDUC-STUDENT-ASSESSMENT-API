@@ -146,7 +146,7 @@ public class AssessmentKeyService {
     }
 
     private AssessmentComponentEntity createMultiChoiceComponent(AssessmentFormEntity assessmentFormEntity, List<AssessmentKeyDetails> multiChoice) {
-        AssessmentComponentEntity multiComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, "M", multiChoice.size(), 0, 0);
+        AssessmentComponentEntity multiComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, "MUL_CHOICE", multiChoice.size(), multiChoice.size(), 0);
 
         multiChoice.forEach(ques -> {
             final var quesEntity = mapper.toQuestionEntity(ques, multiComponentEntity);
@@ -169,6 +169,7 @@ public class AssessmentKeyService {
 
             var choiceInt = choiceQues.orElse(0);
 
+            //need to update logic
             var nonchoiceQues = questionGroup.stream().map(AssessmentKeyDetails::getItemType).filter(v -> v.contains("-C1-")).toList();
             markCount.set(choiceInt + nonchoiceQues.size());
         });
@@ -192,7 +193,7 @@ public class AssessmentKeyService {
         return  AssessmentComponentEntity
                 .builder()
                 .assessmentFormEntity(assessmentFormEntity)
-                .componentTypeCode(type.equalsIgnoreCase("ER") || type.equalsIgnoreCase("EO") ? "O" : type)
+                .componentTypeCode(type.equalsIgnoreCase("ER") || type.equalsIgnoreCase("EO") ? "OPEN_ENDED" : type)
                 .componentSubTypeCode(type.equalsIgnoreCase("EO") ? "ORAL" : "NONE")
                 .questionCount(quesCount)
                 .numOmits(numOmits)
@@ -223,13 +224,16 @@ public class AssessmentKeyService {
         var marker = itemType[3].toCharArray();
 
         keyEntity.setQuestionNumber(StringUtils.isNotBlank(String.valueOf(question[1])) ? Integer.parseInt(String.valueOf(question[1])) : null);
-        keyEntity.setMaxQuestionValue(new BigDecimal(value.getMark()).multiply(new BigDecimal(value.getScaleFactor())).multiply(new BigDecimal(marker[1])));
+        keyEntity.setMaxQuestionValue(new BigDecimal(value.getMark()).multiply(new BigDecimal(value.getScaleFactor())).multiply(new BigDecimal(String.valueOf(marker[1]))));
 
         if(choiceType.equalsIgnoreCase("C0")) {
             keyEntity.setMasterQuestionNumber(StringUtils.isNotBlank(String.valueOf(question[1])) ? Integer.parseInt(String.valueOf(question[1])) : null);
         } else {
             var sublistWithMatchedItemType = quesGroup.stream().filter(subList -> subList.stream().anyMatch(v -> v.getItemType().equalsIgnoreCase(value.getItemType()))).toList();
-            var lowestQues = sublistWithMatchedItemType.getFirst().stream().map(AssessmentKeyDetails::getQuestionNumber).mapToInt(Integer::parseInt).min();
+            var lowestQues = sublistWithMatchedItemType.getFirst().stream().map(AssessmentKeyDetails::getItemType).map(v -> {
+                var typeSplit = v.split("-")[1].toCharArray();
+                return String.valueOf(typeSplit[1]);
+            }).mapToInt(Integer::parseInt).min();
             keyEntity.setMasterQuestionNumber(lowestQues.getAsInt());
         }
     }
@@ -244,56 +248,108 @@ public class AssessmentKeyService {
     }
 
     private AssessmentKeyDetails getAssessmentKeyDetailRecordFromFile(final DataSet ds, final String guid, final long index) throws FileUnProcessableException {
+        final var assmtSession = StringUtils.trim(ds.getString(ASSMT_SESSION.getName()));
+        if (StringUtils.isBlank(assmtSession) || assmtSession.length() > 6) {
+            throw new FileUnProcessableException(SESSION_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var assmtCode = StringMapper.trimAndUppercase(ds.getString(ASSMT_CODE.getName()));
+        if (StringUtils.isBlank(assmtCode) || assmtCode.length() > 5) {
+            throw new FileUnProcessableException(ASSMT_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var formCode = StringMapper.trimAndUppercase(ds.getString(FORM_CODE.getName()));
+        if (StringUtils.isBlank(formCode) || formCode.length() > 1) {
+            throw new FileUnProcessableException(FORM_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var quesNumber = StringUtils.trim(ds.getString(QUES_NUMBER.getName()));
+        if (StringUtils.isBlank(quesNumber) || quesNumber.length() > 2) {
+            throw new FileUnProcessableException(QUES_NUM_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
         final var itemType = StringMapper.trimAndUppercase(ds.getString(ITEM_TYPE.getName()));
         Pattern pattern = Pattern.compile("^E[R|O]-Q(\\d|\\d{2})-C(\\d)-M(\\d)$");
         if (StringUtils.isBlank(itemType) || (!itemType.equalsIgnoreCase("UNKNOWN") && !pattern.matcher(itemType).matches())) {
             throw new FileUnProcessableException(INVALID_ITEM_TYPE, guid, String.valueOf(index + 1));
+        } else if(itemType.length() > 12) {
+            throw new FileUnProcessableException(ITEM_TYPE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var answer = StringMapper.trimAndUppercase(ds.getString(MC_ANSWER150.getName()));
+        if (StringUtils.isNotBlank(answer) && answer.length() > 150) {
+            throw new FileUnProcessableException(ANSWER_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var mark = StringUtils.trim(ds.getString(MARK_VALUE.getName()));
+        if (StringUtils.isBlank(mark) || mark.length() > 2) {
+            throw new FileUnProcessableException(MARK_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var cognLevel = StringMapper.trimAndUppercase(ds.getString(COGN_LEVEL.getName()));
         if(StringUtils.isNotBlank(cognLevel) && codeTableService.getAllCognitiveLevelCodes().stream().noneMatch(code -> code.getCognitiveLevelCode().equalsIgnoreCase(cognLevel))) {
             throw new FileUnProcessableException(INVALID_COGNITIVE_LEVEL_CODE, guid, String.valueOf(index + 1));
+        } else if(cognLevel.length() > 4) {
+            throw new FileUnProcessableException(COGN_LEVEL_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var taskCode = StringMapper.trimAndUppercase(ds.getString(TASK_CODE.getName()));
         if(StringUtils.isNotBlank(taskCode) && codeTableService.getAllTaskCodes().stream().noneMatch(code -> code.getTaskCode().equalsIgnoreCase(taskCode))) {
             throw new FileUnProcessableException(INVALID_TASK_CODE, guid, String.valueOf(index + 1));
+        } else if(StringUtils.isNotBlank(cognLevel) && taskCode.length() > 2) {
+            throw new FileUnProcessableException(TASK_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var claimCode = StringMapper.trimAndUppercase(ds.getString(CLAIM_CODE.getName()));
         if(StringUtils.isNotBlank(claimCode) && codeTableService.getAllClaimCodes().stream().noneMatch(code -> code.getClaimCode().equalsIgnoreCase(claimCode))) {
             throw new FileUnProcessableException(INVALID_CLAIM_CODE, guid, String.valueOf(index + 1));
+        } else if(StringUtils.isNotBlank(claimCode) && claimCode.length() > 3) {
+            throw new FileUnProcessableException(CLAIM_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var contextCode = StringMapper.trimAndUppercase(ds.getString(CONTEXT_CODE.getName()));
         if(StringUtils.isNotBlank(contextCode) && codeTableService.getAllContextCodes().stream().noneMatch(code -> code.getContextCode().equalsIgnoreCase(contextCode))) {
             throw new FileUnProcessableException(INVALID_CONTEXT_CODE, guid, String.valueOf(index + 1));
+        } else if(StringUtils.isNotBlank(contextCode) && contextCode.length() > 1) {
+            throw new FileUnProcessableException(CONTEXT_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var conceptsCode = StringMapper.trimAndUppercase(ds.getString(CONCEPTS_CODE.getName()));
         if(StringUtils.isNotBlank(conceptsCode) && codeTableService.getAllConceptCodes().stream().noneMatch(code -> code.getConceptCode().equalsIgnoreCase(conceptsCode))) {
             throw new FileUnProcessableException(INVALID_CONCEPT_CODE, guid, String.valueOf(index + 1));
+        } else if(StringUtils.isNotBlank(conceptsCode) && conceptsCode.length() > 3) {
+            throw new FileUnProcessableException(CONTEXT_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var scale = StringMapper.trimAndUppercase(ds.getString(SCALE_FACTOR.getName()));
+        if (StringUtils.isBlank(scale) || scale.length() > 8) {
+            throw new FileUnProcessableException(SCALE_FACTOR_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var assmtSection = StringMapper.trimAndUppercase(ds.getString(ASSMT_SECTION.getName()));
+        if (StringUtils.isNotBlank(assmtSection) && assmtSection.length() > 8) {
+            throw new FileUnProcessableException(ASSMT_SECTION_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         return AssessmentKeyDetails.builder()
-                .assessmentSession(ds.getString(ASSMT_SESSION.getName()))
-                .assessmentCode(ds.getString(ASSMT_CODE.getName()))
-                .formCode(ds.getString(FORM_CODE.getName()))
-                .questionNumber(ds.getString(QUES_NUMBER.getName()))
-                .itemType(StringMapper.trimAndUppercase(ds.getString(ITEM_TYPE.getName())))
-                .answer(StringMapper.trimAndUppercase(ds.getString(MC_ANSWER150.getName())))
-                .mark(StringMapper.trimAndUppercase(ds.getString(MARK_VALUE.getName())))
-                .cognLevel(StringMapper.trimAndUppercase(ds.getString(COGN_LEVEL.getName())))
-                .taskCode(StringMapper.trimAndUppercase(ds.getString(TASK_CODE.getName())))
-                .claimCode(StringMapper.trimAndUppercase(ds.getString(CLAIM_CODE.getName())))
-                .contextCode(StringMapper.trimAndUppercase(ds.getString(CONTEXT_CODE.getName())))
-                .conceptsCode(StringMapper.trimAndUppercase(ds.getString(CONCEPTS_CODE.getName())))
+                .assessmentSession(assmtSession)
+                .assessmentCode(assmtCode)
+                .formCode(formCode)
+                .questionNumber(quesNumber)
+                .itemType(itemType)
+                .answer(answer)
+                .mark(mark)
+                .cognLevel(cognLevel)
+                .taskCode(taskCode)
+                .claimCode(claimCode)
+                .contextCode(contextCode)
+                .conceptsCode(conceptsCode)
                 .topicType(StringMapper.trimAndUppercase(ds.getString(TOPIC_TYPE.getName())))
-                .scaleFactor(StringMapper.trimAndUppercase(ds.getString(SCALE_FACTOR.getName())))
+                .scaleFactor(scale)
                 .questionOrigin(StringMapper.trimAndUppercase(ds.getString(QUES_ORIGIN.getName())))
                 .item(StringMapper.trimAndUppercase(ds.getString(ITEM.getName())))
                 .irt(StringMapper.trimAndUppercase(ds.getString(IRT_COLUMN.getName())))
-                .assessmentSection(StringMapper.trimAndUppercase(ds.getString(ASSMT_SECTION.getName())))
+                .assessmentSection(assmtSection)
                 .build();
     }
 }
