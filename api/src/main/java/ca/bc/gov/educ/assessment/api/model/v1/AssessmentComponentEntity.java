@@ -7,9 +7,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -49,9 +47,6 @@ public class AssessmentComponentEntity {
     @Column(name = "OE_MARK_COUNT")
     private Integer oeMarkCount;
 
-    @Column(name = "PRINT_MATERIALS_FLAG")
-    private String printMaterialFlag;
-
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
 
@@ -69,11 +64,11 @@ public class AssessmentComponentEntity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "assessmentComponentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = AssessmentQuestionEntity.class)
-    Set<AssessmentQuestionEntity> assessmentQuestionEntities;
+    List<AssessmentQuestionEntity> assessmentQuestionEntities;
 
-    public Set<AssessmentQuestionEntity> getAssessmentQuestionEntities() {
+    public List<AssessmentQuestionEntity> getAssessmentQuestionEntities() {
         if (this.assessmentQuestionEntities == null) {
-            this.assessmentQuestionEntities = new HashSet<>();
+            this.assessmentQuestionEntities = new ArrayList<>();
         }
         return this.assessmentQuestionEntities;
     }
