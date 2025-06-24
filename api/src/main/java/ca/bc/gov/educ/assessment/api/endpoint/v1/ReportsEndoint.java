@@ -16,13 +16,13 @@ import java.util.UUID;
 public interface ReportsEndoint {
 
     @GetMapping("/{sessionID}/{type}/download")
-    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORTS')")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     DownloadableReportResponse getDownloadableReport(@PathVariable UUID sessionID, @PathVariable(name = "type") String type);
 
     @GetMapping("/{sessionID}/school/{schoolID}/{type}/download")
-    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORTS')")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     DownloadableReportResponse getDownloadableReportForSchool(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @PathVariable(name = "type") String type);
