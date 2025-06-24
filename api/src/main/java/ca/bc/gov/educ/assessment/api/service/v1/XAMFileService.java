@@ -80,6 +80,7 @@ public class XAMFileService {
                 padRight("", 2) + // NUM_CREDITS (BLANK)
                 padRight("", 1) + // CRSE_TYPE (BLANK)
                 padRight("", 1) + // TO_WRITE_FLAG (BLANK)
+                padRight("", 8) + // EXAM_MINCODE (BLANK)
                 "\n";
             sb.append(record);
         }
@@ -113,8 +114,9 @@ public class XAMFileService {
     /**
      * Returns a DownloadableReportResponse for the XAM content (used by controller)
      */
-    public DownloadableReportResponse generateXamReport(UUID sessionID, SchoolTombstone school) {
-        return generateXamContent(sessionID, school, false);
+    public DownloadableReportResponse generateXamReport(UUID sessionID, UUID schoolID) {
+        var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class));
+        return generateXamContent(sessionID, schoolTombstone, false);
     }
 
     public void uploadToS3(File file, String key) {

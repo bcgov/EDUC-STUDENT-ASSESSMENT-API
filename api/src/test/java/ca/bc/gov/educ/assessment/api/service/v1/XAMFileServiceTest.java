@@ -101,7 +101,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(school.getMincode()).thenReturn("MINCODE2");
         when(school.getVendorSourceSystemCode()).thenReturn("MYED");
 
-        DownloadableReportResponse response = xamFileService.generateXamReport(sessionId, school);
+        DownloadableReportResponse response = xamFileService.generateXamReport(sessionId, UUID.fromString(school.getSchoolId()));
         assertNotNull(response);
         assertFalse(response.getDocumentData().isEmpty());
         assertTrue(response.getReportType().contains("MINCODE2"));
@@ -133,7 +133,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGenerateAndUploadXamFiles() throws Exception {
+    void testGenerateAndUploadXamFiles() {
         UUID sessionId = UUID.randomUUID();
         AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
         when(sessionEntity.getCourseYear()).thenReturn("2023");
