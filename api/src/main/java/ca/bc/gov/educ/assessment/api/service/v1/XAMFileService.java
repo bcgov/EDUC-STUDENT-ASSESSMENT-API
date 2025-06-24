@@ -52,8 +52,8 @@ public class XAMFileService {
         StringBuilder sb = new StringBuilder();
 
         for (AssessmentStudentEntity student : students) {
-            var EXAM_SCHOOL = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
-            var EXAM_MINCODE = EXAM_SCHOOL.map(SchoolTombstone::getMincode).orElse("");
+            var examSchool = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
+            var examMincode = examSchool.map(SchoolTombstone::getMincode).orElse("");
             String record =
                 padRight("E07", 3) + // TX_ID
                 padRight(school.getVendorSourceSystemCode(), 1) + // VENDOR_ID
@@ -82,7 +82,7 @@ public class XAMFileService {
                 padRight("", 2) + // NUM_CREDITS (BLANK)
                 padRight("", 1) + // CRSE_TYPE (BLANK)
                 padRight("", 1) + // TO_WRITE_FLAG (BLANK)
-                padRight(EXAM_MINCODE, 8) + // EXAM_MINCODE
+                padRight(examMincode, 8) + // EXAM_MINCODE
                 "\n";
             sb.append(record);
         }

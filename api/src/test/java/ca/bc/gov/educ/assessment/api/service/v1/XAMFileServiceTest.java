@@ -86,7 +86,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGenerateXamReport_succes2() {
+    void testGenerateXamReport_success() {
         UUID sessionId = UUID.randomUUID();
         UUID schoolId = UUID.randomUUID();
         UUID examSchoolId = UUID.randomUUID();
@@ -110,11 +110,11 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(student.getPen()).thenReturn("123456789");
 
 
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionId), eq(schoolId)))
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(sessionId, schoolId))
                 .thenReturn(List.of(student));
 
-        when(restUtils.getSchoolBySchoolID(eq(schoolId.toString()))).thenReturn(Optional.of(mainSchool));
-        when(restUtils.getSchoolBySchoolID(eq(examSchoolId.toString()))).thenReturn(Optional.of(examSchool));
+        when(restUtils.getSchoolBySchoolID(schoolId.toString())).thenReturn(Optional.of(mainSchool));
+        when(restUtils.getSchoolBySchoolID(examSchoolId.toString())).thenReturn(Optional.of(examSchool));
 
         DownloadableReportResponse response = xamFileService.generateXamReport(sessionId, schoolId);
 
