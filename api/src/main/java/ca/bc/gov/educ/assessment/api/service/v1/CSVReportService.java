@@ -1,10 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 
-import ca.bc.gov.educ.assessment.api.constants.v1.reports.AllStudentRegistrationsHeader;
-import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
-import ca.bc.gov.educ.assessment.api.constants.v1.reports.NumberOfAttemptsHeader;
-import ca.bc.gov.educ.assessment.api.constants.v1.reports.PenMergesHeader;
+import ca.bc.gov.educ.assessment.api.constants.v1.reports.*;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
@@ -153,6 +150,37 @@ public class CSVReportService {
         }
     }
 
+    public DownloadableReportResponse generateSessionResultsBySchoolReport(UUID sessionID, UUID schoolID) {
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
+        var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, "schoolID", schoolID.toString()));
+
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolOfRecordSchoolID(sessionID, schoolID);
+        List<String> headers = Arrays.stream(SessionResultsHeader.values()).map(SessionResultsHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            for (AssessmentStudentEntity result : results) {
+                Optional<SchoolTombstone> assessmentCenter = (result.getAssessmentCenterSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString()) : Optional.empty();
+                List<String> csvRowData = prepareResultsDataForCsv(result, session, schoolTombstone, assessmentCenter);
+                csvPrinter.printRecord(csvRowData);
+            }
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType("%s-%s%s-Results.csv".formatted(schoolTombstone.getMincode(), session.getCourseYear(), session.getCourseMonth()));
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
     private List<String> prepareNumberOfAttemptsDataForCsv(AssessmentStudentEntity student) {
         return new ArrayList<>(Arrays.asList(
                 student.getAssessmentEntity().getAssessmentTypeCode(),
@@ -169,6 +197,21 @@ public class CSVReportService {
                 student.getSurname(),
                 assessmentCenter.isPresent() ? assessmentCenter.get().getMincode() : "",
                 student.getAssessmentEntity().getAssessmentTypeCode()
+        ));
+    }
+
+    private List<String> prepareResultsDataForCsv(AssessmentStudentEntity student, AssessmentSessionEntity assessmentSession, SchoolTombstone school, Optional<SchoolTombstone> assessmentCenter) {
+        return new ArrayList<>(Arrays.asList(
+                "%s%s".formatted(assessmentSession.getCourseYear(), assessmentSession.getCourseMonth()),
+                school.getMincode(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getPen(),
+                student.getLocalID(),
+                student.getSurname(),
+                student.getGivenName(),
+                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
+                student.getProvincialSpecialCaseCode(),
+                assessmentCenter.isPresent() ? assessmentCenter.get().getMincode() : ""
         ));
     }
 

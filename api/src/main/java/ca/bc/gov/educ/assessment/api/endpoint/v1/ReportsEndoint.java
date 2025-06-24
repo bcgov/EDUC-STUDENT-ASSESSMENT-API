@@ -21,9 +21,9 @@ public interface ReportsEndoint {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     DownloadableReportResponse getDownloadableReport(@PathVariable UUID sessionID, @PathVariable(name = "type") String type);
 
-    @GetMapping("/{sessionID}/school/{schoolID}/download")
+    @GetMapping("/{sessionID}/school/{schoolID}/{type}/download")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORTS')")
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    DownloadableReportResponse getDownloadableReportForSchool(@PathVariable UUID sessionID, @PathVariable UUID schoolID);
+    DownloadableReportResponse getDownloadableReportForSchool(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @PathVariable(name = "type") String type);
 }

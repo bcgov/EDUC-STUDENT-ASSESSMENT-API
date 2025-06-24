@@ -9,7 +9,9 @@ import java.util.Optional;
 public enum AssessmentReportTypeCode {
     ALL_SESSION_REGISTRATIONS("ALL_SESSION_REGISTRATIONS"),
     ATTEMPTS("ATTEMPTS"),
-    PEN_MERGES("PEN_MERGES");
+    PEN_MERGES("PEN_MERGES"),
+    XAM_FILE("XAM_FILE"),
+    SESSION_RESULTS("SESSION_RESULTS");
     private final String code;
     AssessmentReportTypeCode(String code) { this.code = code; }
 
