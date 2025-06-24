@@ -18,6 +18,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -85,26 +86,44 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGenerateXamReport_success() {
+    void testGenerateXamReport_succes2() {
         UUID sessionId = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+        UUID examSchoolId = UUID.randomUUID();
+
+        SchoolTombstone mainSchool = new SchoolTombstone();
+        mainSchool.setSchoolId(schoolId.toString());
+        mainSchool.setMincode("123456");
+        mainSchool.setVendorSourceSystemCode("MYED");
+
+        SchoolTombstone examSchool = new SchoolTombstone();
+        examSchool.setSchoolId(examSchoolId.toString());
+        examSchool.setMincode("987654");
+
         AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
         when(sessionEntity.getCourseYear()).thenReturn("2023");
         when(sessionEntity.getCourseMonth()).thenReturn("09");
         when(sessionRepository.findById(eq(sessionId))).thenReturn(Optional.of(sessionEntity));
 
         AssessmentStudentEntity student = mock(AssessmentStudentEntity.class);
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionId), any()))
+        when(student.getAssessmentCenterSchoolID()).thenReturn(examSchoolId);
+        when(student.getPen()).thenReturn("123456789");
+
+
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionId), eq(schoolId)))
                 .thenReturn(List.of(student));
 
-        SchoolTombstone school = mock(SchoolTombstone.class);
-        when(school.getSchoolId()).thenReturn(UUID.randomUUID().toString());
-        when(school.getMincode()).thenReturn("MINCODE2");
-        when(school.getVendorSourceSystemCode()).thenReturn("MYED");
+        when(restUtils.getSchoolBySchoolID(eq(schoolId.toString()))).thenReturn(Optional.of(mainSchool));
+        when(restUtils.getSchoolBySchoolID(eq(examSchoolId.toString()))).thenReturn(Optional.of(examSchool));
 
-        DownloadableReportResponse response = xamFileService.generateXamReport(sessionId, UUID.fromString(school.getSchoolId()));
+        DownloadableReportResponse response = xamFileService.generateXamReport(sessionId, schoolId);
+
         assertNotNull(response);
         assertFalse(response.getDocumentData().isEmpty());
-        assertTrue(response.getReportType().contains("MINCODE2"));
+        assertTrue(response.getReportType().contains("123456-202309-Results.xam"));
+
+        String decodedContent = new String(Base64.getDecoder().decode(response.getDocumentData()));
+        assertTrue(decodedContent.contains("987654"));
     }
 
     @Test

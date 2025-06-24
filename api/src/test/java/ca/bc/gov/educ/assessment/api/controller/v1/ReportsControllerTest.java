@@ -220,6 +220,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         this.mockMvc.perform(
                 get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + randomSchoolId + "/download")
                         .with(mockAuthority))
-                .andDo(print()).andExpect(status().isNotFound());
+                .andDo(print()).andExpect(status().isBadRequest());
     }
 }
