@@ -243,7 +243,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetDownloadableReportForSchool_SchoolNotFound_ShouldReturnBadRequest() throws Exception {
+    void testGetDownloadableReportForSchool_SchoolNotFound_ShouldReturnNotFound() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -258,6 +258,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         this.mockMvc.perform(
                 get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + randomSchoolId + "/download")
                         .with(mockAuthority))
-                .andDo(print()).andExpect(status().isBadRequest());
+                .andDo(print()).andExpect(status().isNotFound());
     }
 }
