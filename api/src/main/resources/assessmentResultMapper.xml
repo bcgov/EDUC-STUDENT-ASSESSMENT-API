@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<!DOCTYPE PZMAP SYSTEM	"flatpack.dtd" >
+<PZMAP>
+    <COLUMN name="txID" length="3" />
+    <COLUMN name="examType" length="5" />
+    <COLUMN name="componentType" length="1" />
+    <COLUMN name="sequenceNumber" length="8" />
+    <COLUMN name="csid" length="11" />
+    <COLUMN name="assessmentCode" length="5" />
+    <COLUMN name="courseLevel" length="3" />
+    <COLUMN name="assessmentSession" length="6" />
+    <COLUMN name="mincode" length="8" />
+    <COLUMN name="pen" length="9" />
+    <COLUMN name="dateOfBirth" length="8" />
+    <COLUMN name="newStudentFlag" length="1" />
+    <COLUMN name="participation" length="1" />
+    <COLUMN name="formCode" length="1" />
+    <COLUMN name="formCode2" length="1" />
+    <COLUMN name="pageLink" length="6" />
+    <COLUMN name="openEndedMarks" length="152" />
+    <COLUMN name="multiChoiceMarks" length="240"/>
+    <COLUMN name="choicePath" length="1" />
+    <COLUMN name="specialCaseCode" length="1" />
+    <COLUMN name="proficiencyScore" length="1" />
+    <COLUMN name="irtScore" length="7" />
+    <COLUMN name="adaptedAssessmentIndicator" length="1" />
+    <COLUMN name="markingSession" length="6" />
+</PZMAP>

@@ -7,7 +7,7 @@ import lombok.Getter;
  *
  * @author OM
  */
-public enum FileError {
+public enum KeyFileError {
   /**
    * Upload file did not contain any content.
    */
@@ -93,7 +93,7 @@ public enum FileError {
    *
    * @param message the message
    */
-  FileError(final String message) {
+  KeyFileError(final String message) {
     this.message = message;
   }
 }
