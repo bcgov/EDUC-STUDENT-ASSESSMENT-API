@@ -35,13 +35,14 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CSVReportService {
     private static final String SCHOOL_ID = "schoolID";
+    private static final String SESSION_ID = "sessionID";
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final StudentMergeService studentMergeService;
     private final RestUtils restUtils;
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
-        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
         List<String> headers = Arrays.stream(AllStudentRegistrationsHeader.values()).map(AllStudentRegistrationsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
@@ -80,7 +81,7 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateNumberOfAttemptsReport(UUID sessionID) {
-        assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
+        assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
         List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values()).map(NumberOfAttemptsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
@@ -151,8 +152,8 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateSessionResultsBySchoolReport(UUID sessionID, UUID schoolID) {
-        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
-        var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, "schoolID", schoolID.toString()));
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+        var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, schoolID.toString()));
 
         List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolOfRecordSchoolID(sessionID, schoolID);
         List<String> headers = Arrays.stream(SessionResultsHeader.values()).map(SessionResultsHeader::getCode).toList();
