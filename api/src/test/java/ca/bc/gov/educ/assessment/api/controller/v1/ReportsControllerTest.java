@@ -72,7 +72,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testGetMinistryReport_WithWrongType_ShouldReturnBadRequest() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORTS";
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
         this.mockMvc.perform(get(URL.BASE_URL_REPORT + "/" + UUID.randomUUID() + "/testing").with(mockAuthority))
                 .andDo(print()).andExpect(status().isNotFound());
@@ -80,7 +80,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testGetMinistryReport_ValidType_ShouldReturnReportData() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORTS";
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
         var school = this.createMockSchool();
@@ -114,7 +114,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testGetMinistryReport_ValidTypeAttempts_ShouldReturnReportData() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORTS";
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
         var school = this.createMockSchool();
@@ -148,7 +148,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testGetMinistryReport_PenMerges_ShouldReturnReportData() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORTS";
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -176,7 +176,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testGetDownloadableReportForSchool_ShouldReturnXamFile() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORTS";
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
         var school = this.createMockSchool();
@@ -206,7 +206,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testGetDownloadableReportForSchool_SchoolNotFound_ShouldReturnBadRequest() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORTS";
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.empty());
