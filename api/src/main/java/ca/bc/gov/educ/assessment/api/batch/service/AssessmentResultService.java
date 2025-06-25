@@ -81,7 +81,7 @@ public class AssessmentResultService {
 
         var assessmentEntity = assessmentRepository.findByAssessmentSessionEntity_SessionIDAndAssessmentTypeCode(validSession.getSessionID(), typeCode)
                 .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
-        
+
         for(val studentResult : batchFile.getAssessmentResultData()) {
             Student studentApiStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
             if(studentApiStudent != null) {
@@ -268,12 +268,12 @@ public class AssessmentResultService {
         }
 
         final var openEndedMarks = StringMapper.trimAndUppercase(ds.getString(OPEN_ENDED_MARKS.getName()));
-        if(StringUtils.isNotBlank(openEndedMarks) && !pattern.matcher(openEndedMarks).matches()) {
+        if(StringUtils.isNotBlank(openEndedMarks) && (!pattern.matcher(openEndedMarks).matches() || openEndedMarks.length() % 4 != 0)) {
             throw new ResultsFileUnProcessableException(INVALID_OPEN_ENDED_MARKS, guid, openEndedMarks);
         }
 
         final var multiChoiceMarks = StringMapper.trimAndUppercase(ds.getString(MUL_CHOICE_MARKS.getName()));
-        if(StringUtils.isNotBlank(multiChoiceMarks) && !pattern.matcher(multiChoiceMarks).matches()) {
+        if(StringUtils.isNotBlank(multiChoiceMarks) && (!pattern.matcher(multiChoiceMarks).matches() || multiChoiceMarks.length() % 4 != 0)) {
             throw new ResultsFileUnProcessableException(INVALID_SELECTED_CHOICE_MARKS, guid, multiChoiceMarks);
         }
 

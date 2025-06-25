@@ -2,6 +2,7 @@ package ca.bc.gov.educ.assessment.api.batch.processor;
 
 import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
 import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
+import ca.bc.gov.educ.assessment.api.batch.exception.ResultsFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.batch.service.AssessmentResultService;
 import ca.bc.gov.educ.assessment.api.batch.validation.ResultsFileValidator;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
@@ -48,10 +49,10 @@ public class AssessmentResultsProcessor {
             final DataSet ds = DefaultParserFactory.getInstance().newFixedLengthParser(mapperReader, batchFileReaderOptional.get()).setStoreRawDataToDataError(true).setStoreRawDataToDataSet(true).setNullEmptyStrings(true).parse();
 
             assessmentResultService.populateBatchFileAndLoadData(correlationID, ds, assessmentSessionID, fileUpload);
-        } catch (final KeyFileUnProcessableException keyFileUnProcessableException) {
-            log.error("File could not be processed exception :: {}", keyFileUnProcessableException);
+        } catch (final ResultsFileUnProcessableException resultsFileUnProcessableException) {
+            log.error("File could not be processed exception :: {}", resultsFileUnProcessableException);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();
-            var validationError = ValidationUtil.createFieldError(ASSESSMENT_RESULT_UPLOAD, assessmentSessionID, keyFileUnProcessableException.getReason());
+            var validationError = ValidationUtil.createFieldError(ASSESSMENT_RESULT_UPLOAD, assessmentSessionID, resultsFileUnProcessableException.getReason());
             List<FieldError> fieldErrorList = new ArrayList<>();
             fieldErrorList.add(validationError);
             error.addValidationErrors(fieldErrorList);
