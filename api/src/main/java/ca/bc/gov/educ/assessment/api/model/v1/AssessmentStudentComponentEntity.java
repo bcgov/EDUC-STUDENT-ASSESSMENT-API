@@ -1,19 +1,14 @@
 package ca.bc.gov.educ.assessment.api.model.v1;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -30,14 +25,14 @@ public class AssessmentStudentComponentEntity {
     @Column(name = "ASSESSMENT_STUDENT_COMPONENT_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
     private UUID assessmentStudentComponentID;
 
-    @Column(name = "ASSESSMENT_STUDENT_ID", updatable = false)
-    UUID assessmentStudentID;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false, targetEntity = AssessmentStudentEntity.class)
+    @JoinColumn(name = "ASSESSMENT_STUDENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_ID", updatable = false)
+    AssessmentStudentEntity assessmentStudentEntity;
 
-    @Column(name="COMPONENT_TYPE_CODE", nullable = false)
-    private Integer componentTypeCode;
-
-    @Column(name = "COMPONENT_SUB_TYPE_CODE")
-    private String componentSubTypeCode;
+    @Column(name = "ASSESSMENT_COMPONENT_ID", updatable = false)
+    UUID assessmentComponentID;
 
     @Column(name = "COMPONENT_TOTAL")
     private BigDecimal componentTotal;
@@ -62,4 +57,8 @@ public class AssessmentStudentComponentEntity {
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "assessmentStudentComponentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = AssessmentStudentAnswerEntity.class)
+    Set<AssessmentStudentAnswerEntity> assessmentStudentAnswerEntities;
 }

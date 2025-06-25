@@ -30,7 +30,7 @@ public class FileUploadController implements FileUploadEndpoint {
 
     @Override
     public ResponseEntity<Void> processAssessmentResultsFile(AssessmentResultFileUpload fileUpload, String session) {
-        assessmentResultsProcessor.processAssessmentResults(fileUpload, session);
+        assessmentResultsProcessor.processAssessmentResults(fileUpload, UUID.fromString(session));
         return null;
     }
 }

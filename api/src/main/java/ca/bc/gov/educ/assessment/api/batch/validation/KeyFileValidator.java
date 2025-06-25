@@ -2,8 +2,6 @@ package ca.bc.gov.educ.assessment.api.batch.validation;
 
 import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
 import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
-import ca.bc.gov.educ.assessment.api.batch.exception.ResultFileError;
-import ca.bc.gov.educ.assessment.api.batch.exception.ResultsFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
@@ -101,12 +99,12 @@ public class KeyFileValidator {
         }
     }
 
-    public void validateSessionAndAssessmentCode(String fileSession, AssessmentSessionEntity validSession, String fileAssessmentCode, String guid, long index) throws ResultsFileUnProcessableException {
+    public void validateSessionAndAssessmentCode(String fileSession, AssessmentSessionEntity validSession, String fileAssessmentCode, String guid, long index) throws KeyFileUnProcessableException {
         var courseYear = fileSession.substring(0, 4);
         var courseMonth = fileSession.substring(4);
 
         if(!courseYear.equals(validSession.getCourseYear()) ||  !courseMonth.equals(validSession.getCourseMonth())){
-            throw new ResultsFileUnProcessableException(ResultFileError.INVALID_ASSESSMENT_SESSION, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_KEY_SESSION, guid, String.valueOf(index + 1));
         }
 
         assessmentTypeCodeRepository.findByAssessmentTypeCode(fileAssessmentCode)

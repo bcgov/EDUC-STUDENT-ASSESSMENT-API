@@ -1,29 +1,27 @@
 package ca.bc.gov.educ.assessment.api.batch.service;
 
-import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
-import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.batch.exception.ResultsFileUnProcessableException;
-import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyDetails;
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentResultDetails;
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentResultFile;
-import ca.bc.gov.educ.assessment.api.batch.validation.KeyFileValidator;
+import ca.bc.gov.educ.assessment.api.constants.v1.ComponentSubTypeCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.LegacyComponentTypeCodes;
 import ca.bc.gov.educ.assessment.api.mappers.StringMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentFormRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
+import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import ca.bc.gov.educ.assessment.api.util.PenUtil;
+import ca.bc.gov.educ.assessment.api.util.TransformUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.sf.flatpack.DataSet;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,18 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentResultsBatchFile.*;
 import static ca.bc.gov.educ.assessment.api.batch.exception.ResultFileError.*;
-import static ca.bc.gov.educ.assessment.api.batch.mapper.AssessmentKeysBatchFileMapper.mapper;
 
 @Service
 @Slf4j
@@ -50,10 +41,13 @@ import static ca.bc.gov.educ.assessment.api.batch.mapper.AssessmentKeysBatchFile
 public class AssessmentResultService {
 
     private final AssessmentSessionRepository assessmentSessionRepository;
+    private final AssessmentComponentRepository assessmentComponentRepository;
+    private final AssessmentQuestionRepository assessmentQuestionRepository;
+    private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
     private final AssessmentFormRepository assessmentFormRepository;
     private final AssessmentRepository assessmentRepository;
-    private final KeyFileValidator keyFileValidator;
+    private final AssessmentStudentService assessmentStudentService;
     private final CodeTableService codeTableService;
     private final String[] validChoicePaths = {"I", "E"};
     private final String answerRegex = "^(\\d*\\.?\\d+|\\.\\d+)$";
@@ -63,14 +57,14 @@ public class AssessmentResultService {
     private final RestUtils restUtils;
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID) throws ResultsFileUnProcessableException {
+    public void populateBatchFileAndLoadData(String correlationID, DataSet ds, UUID sessionID, AssessmentResultFileUpload fileUpload) throws ResultsFileUnProcessableException {
         val batchFile = new AssessmentResultFile();
 
         AssessmentSessionEntity validSession =
                 assessmentSessionRepository.findById(sessionID)
-                        .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_INCOMING_REQUEST_SESSION, guid, LOAD_FAIL));
-        populateAssessmentResultsFile(ds, batchFile, validSession, guid);
-        processLoadedRecordsInBatchFile(guid, batchFile, validSession);
+                        .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_INCOMING_REQUEST_SESSION, correlationID, LOAD_FAIL));
+        populateAssessmentResultsFile(ds, batchFile, validSession, correlationID);
+        processLoadedRecordsInBatchFile(correlationID, batchFile, validSession, fileUpload);
     }
 
     private void populateAssessmentResultsFile(final DataSet ds, final AssessmentResultFile batchFile, AssessmentSessionEntity validSession, final String guid) throws ResultsFileUnProcessableException {
@@ -81,161 +75,127 @@ public class AssessmentResultService {
         }
     }
 
-    private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentResultFile batchFile, AssessmentSessionEntity validSession) throws ResultsFileUnProcessableException {
+    private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentResultFile batchFile, AssessmentSessionEntity validSession, AssessmentResultFileUpload fileUpload) throws ResultsFileUnProcessableException {
         var typeCode = batchFile.getAssessmentResultData().getFirst().getAssessmentCode();
         assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
 
         var assessmentEntity = assessmentRepository.findByAssessmentSessionEntity_SessionIDAndAssessmentTypeCode(validSession.getSessionID(), typeCode)
                 .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
+        
+        for(val studentResult : batchFile.getAssessmentResultData()) {
+            Student studentApiStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
+            if(studentApiStudent != null) {
+                AssessmentStudentEntity assessmentStudent;
+                var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
+                var formEntity = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(assessmentEntity.getAssessmentID(), studentResult.getFormCode()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_FORM_CODE, guid, LOAD_FAIL));;
+                var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID()));
 
-        Map<String, List<AssessmentResultDetails>> groupedData = batchFile.getAssessmentResultData().stream().collect(Collectors.groupingBy(AssessmentResultDetails::getFormCode));
+                if (existingStudentRegistrationOpt.isPresent()) {
+                    assessmentStudent = existingStudentRegistrationOpt.get();
+                    assessmentStudent.setIrtScore(studentResult.getIrtScore());
+                    assessmentStudent.setAssessmentFormID(formEntity.getAssessmentFormID());
+                    assessmentStudent.setProficiencyScore(Integer.parseInt(studentResult.getProficiencyScore()));
+                    assessmentStudent.setProvincialSpecialCaseCode(studentResult.getSpecialCaseCode());
+                    assessmentStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
+                    assessmentStudent.setMarkingSession(studentResult.getMarkingSession());
+                    assessmentStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : assessmentStudent.getSchoolOfRecordSchoolID());
+                    assessmentStudent.setUpdateDate(LocalDateTime.now());
+                    assessmentStudent.setUpdateUser(fileUpload.getUpdateUser());
+                } else {
+                    assessmentStudent = new AssessmentStudentEntity();
+                    assessmentStudent.setAssessmentEntity(assessmentEntity);
+                    assessmentStudent.setAssessmentFormID(formEntity.getAssessmentFormID());
+//                    assessmentStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : studentResult.getMincode());
+//                    assessmentStudent.setAssessmentCenterSchoolID();
+//                    assessmentStudent.setSchoolOfRecordSchoolID();
+                    assessmentStudent.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
+                    assessmentStudent.setGivenName(studentApiStudent.getLegalFirstName());
+                    assessmentStudent.setSurname(studentApiStudent.getLegalLastName());
+                    assessmentStudent.setPen(studentApiStudent.getPen());
+                    assessmentStudent.setLocalID(studentApiStudent.getLocalID());
+//                    assessmentStudent.setLocalAssessmentID();
+                    assessmentStudent.setIsElectronicAssessment(true);
+                    assessmentStudent.setProficiencyScore(Integer.parseInt(studentResult.getProficiencyScore()));
+                    assessmentStudent.setProvincialSpecialCaseCode(studentResult.getSpecialCaseCode());
+                    assessmentStudent.setNumberOfAttempts(Integer.parseInt(assessmentStudentService.getNumberOfAttempts(assessmentEntity.getAssessmentID().toString(), UUID.fromString(studentApiStudent.getStudentID()))));
+                    assessmentStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
+                    assessmentStudent.setIrtScore(studentResult.getIrtScore());
+                    assessmentStudent.setMarkingSession(studentResult.getMarkingSession());
+//                    assessmentStudent.setRawScore();
+//                    assessmentStudent.setMcTotal();
+//                    assessmentStudent.setOeTotal();
+                    assessmentStudent.setCreateUser(fileUpload.getCreateUser());
+                    assessmentStudent.setCreateDate(LocalDateTime.now());
+                    assessmentStudent.setUpdateUser(fileUpload.getUpdateUser());
+                    assessmentStudent.setUpdateDate(LocalDateTime.now());
+                }
 
-        for(val entry : groupedData.entrySet()) {
-            AssessmentFormEntity formEntity = mapper.toFormEntity(entry.getKey(), assessmentEntity);
-            var multiChoice = entry.getValue().stream().filter(value -> value.getItemType().equalsIgnoreCase("UNKNOWN")).toList();
-            var openEndedWritten = entry.getValue().stream().filter(value -> {
-                var itemType = value.getItemType().split("-");
-                return itemType[0].equalsIgnoreCase("ER");
-            }).toList();
-
-            var openEndedOral = entry.getValue().stream().filter(value -> {
-                var itemType = value.getItemType().split("-");
-                return itemType[0].equalsIgnoreCase("EO");
-            }).toList();
-
-            if(!multiChoice.isEmpty()) {
-                formEntity.getAssessmentComponentEntities().add(createMultiChoiceComponent(formEntity, multiChoice));
+                switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
+                    case MUL_CHOICE -> addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+                    case OPEN_ENDED -> addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+                    case ORAL -> addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
+                    case BOTH -> {
+                        addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+                        addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+                    }
+                }
+                assessmentStudentRepository.save(assessmentStudent);
             }
-
-            if(!openEndedWritten.isEmpty()) {
-                formEntity.getAssessmentComponentEntities().add(createOpenEndedComponent(formEntity, openEndedWritten, "ER"));
-            }
-
-            if(!openEndedOral.isEmpty()) {
-                formEntity.getAssessmentComponentEntities().add(createOpenEndedComponent(formEntity, openEndedOral, "EO"));
-            }
-            craftStudentSetAndMarkInitialLoadComplete(formEntity);
        }
     }
 
-    @Retryable(retryFor = {Exception.class}, backoff = @Backoff(multiplier = 3, delay = 2000))
-    public void craftStudentSetAndMarkInitialLoadComplete(@NonNull final AssessmentFormEntity assessmentFormEntity) {
-      var formEntity = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(assessmentFormEntity.getAssessmentEntity().getAssessmentID(), assessmentFormEntity.getFormCode());
-      if(formEntity.isPresent()) {
-          var existingFormEntity = formEntity.get();
-          assessmentFormEntity.getAssessmentComponentEntities().forEach(comp -> comp.setAssessmentFormEntity(existingFormEntity));
-          var updatedComponents = assessmentFormEntity.getAssessmentComponentEntities().stream().toList();
+    private void addStudentComponent(AssessmentFormEntity formEntity, AssessmentStudentEntity assessmentStudent, AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType) {
+        var studentComponent = new AssessmentStudentComponentEntity();
+        studentComponent.setAssessmentStudentEntity(assessmentStudent);
+        var component = assessmentComponentRepository.findByAssessmentFormEntity_AssessmentFormIDAndComponentTypeCodeAndComponentSubTypeCode(formEntity.getAssessmentFormID(), componentType.getCode(), componentSubType.getCode());
+        studentComponent.setAssessmentComponentID(component.get().getAssessmentComponentID());
+//                        multChoiceComponent.setComponentTotal();
+//                        multChoiceComponent.setComponentSource();
+        studentComponent.setChoicePath(studentResult.getChoicePath());
+        studentComponent.setCreateUser(fileUpload.getCreateUser());
+        studentComponent.setCreateDate(LocalDateTime.now());
+        studentComponent.setUpdateUser(fileUpload.getUpdateUser());
+        studentComponent.setUpdateDate(LocalDateTime.now());
 
-          existingFormEntity.setUpdateUser(assessmentFormEntity.getUpdateUser());
-          existingFormEntity.setUpdateDate(LocalDateTime.now());
-          existingFormEntity.getAssessmentComponentEntities().clear();
-          existingFormEntity.getAssessmentComponentEntities().addAll(updatedComponents);
-          assessmentFormRepository.save(assessmentFormEntity);
-      } else {
-          assessmentFormRepository.save(assessmentFormEntity);
-      }
-    }
-
-    private AssessmentComponentEntity createMultiChoiceComponent(AssessmentFormEntity assessmentFormEntity, List<AssessmentKeyDetails> multiChoice) {
-        AssessmentComponentEntity multiComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, "MUL_CHOICE", multiChoice.size(), multiChoice.size(), 0);
-
-        multiChoice.forEach(ques -> {
-            final var quesEntity = mapper.toQuestionEntity(ques, multiComponentEntity);
-            setMultiChoiceQuestionEntityColumns(quesEntity, multiChoice, ques);
-            multiComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
-        });
-        return multiComponentEntity;
-    }
-
-    private AssessmentComponentEntity createOpenEndedComponent(AssessmentFormEntity assessmentFormEntity, List<AssessmentKeyDetails> openEnded, final String type) {
-        List<List<AssessmentKeyDetails>> questionGroups = createQuestionGroups(openEnded);
-
-        AtomicInteger markCount = new AtomicInteger();
-        questionGroups.forEach(questionGroup -> {
-            var choiceQues = questionGroup.stream().map(AssessmentKeyDetails::getItemType).filter(v -> v.contains("-C0-")).map(x -> {
-                var splits = x.split("-");
-                var marker = splits[3].toCharArray();
-                return Integer.parseInt(String.valueOf(marker[1]));
-            }).reduce(Integer::sum);
-
-            var choiceInt = choiceQues.orElse(0);
-
-            //need to update logic
-            var nonchoiceQues = questionGroup.stream().map(AssessmentKeyDetails::getItemType).filter(v -> v.contains("-C1-")).toList();
-            markCount.set(choiceInt + nonchoiceQues.size());
-        });
-        AssessmentComponentEntity openEndedComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, type, openEnded.size(), openEnded.size(), markCount.get());
-
-        openEnded.forEach(ques -> {
-            final var quesEntity = mapper.toQuestionEntity(ques, openEndedComponentEntity);
-            setOpenEndedWrittenQuestionEntityColumns(quesEntity, ques, questionGroups);
-            var itemType = ques.getItemType().split("-");
-            var marker = itemType[3].toCharArray();
-            var index = Integer.parseInt(String.valueOf(marker[1]));
-            while (index > 0) {
-                openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
-                index--;
+        if(componentType == ComponentTypeCodes.MUL_CHOICE) {
+            var multiChoiceMarks = TransformUtil.splitStringEveryNChars(studentResult.getMultiChoiceMarks(), 4);
+            int questionCounter = 1;
+            int itemCounter = 1;
+            for(var multiChoiceMark: multiChoiceMarks){
+                var answer = new AssessmentStudentAnswerEntity();
+                answer.setAssessmentStudentComponentEntity(studentComponent);
+                var question = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumberAndItemNumber(component.get().getAssessmentComponentID(), questionCounter++, itemCounter++);
+                answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
+                answer.setMcAssessmentResponseSorted(multiChoiceMark);
+                answer.setMcAssessmentResponseUnsorted(multiChoiceMark);
+                answer.setScore(new BigDecimal(multiChoiceMark.substring(1)));
+                answer.setCreateUser(fileUpload.getCreateUser());
+                answer.setCreateDate(LocalDateTime.now());
+                answer.setUpdateUser(fileUpload.getUpdateUser());
+                answer.setUpdateDate(LocalDateTime.now());
+                studentComponent.getAssessmentStudentAnswerEntities().add(answer);
             }
-        });
-        return openEndedComponentEntity;
-    }
-
-    private AssessmentComponentEntity createAssessmentComponentEntity(final AssessmentFormEntity assessmentFormEntity, final String type, int quesCount, int numOmits, int markCount) {
-        return  AssessmentStudentComponentEntity
-                .builder()
-                .assessmentFormEntity(assessmentFormEntity)
-                .componentTypeCode(type.equalsIgnoreCase("ER") || type.equalsIgnoreCase("EO") ? "OPEN_ENDED" : type)
-                .componentSubTypeCode(type.equalsIgnoreCase("EO") ? "ORAL" : "NONE")
-                .questionCount(quesCount)
-                .numOmits(numOmits)
-//              .oeItemCount()
-                .oeMarkCount(markCount)
-                .createDate(LocalDateTime.now())
-                .updateDate(LocalDateTime.now())
-                .createUser(assessmentFormEntity.getCreateUser())
-                .updateUser(assessmentFormEntity.getUpdateUser())
-                .build();
-    }
-
-    private void setMultiChoiceQuestionEntityColumns(AssessmentQuestionEntity keyEntity, List<AssessmentKeyDetails> multiChoiceQuesGroup, AssessmentKeyDetails value) {
-        //item number
-        keyEntity.setQuestionNumber(StringUtils.isNotBlank(value.getQuestionNumber()) ? Integer.parseInt(value.getQuestionNumber()) : null);
-        keyEntity.setMaxQuestionValue(StringUtils.isNotBlank(value.getMark()) && StringUtils.isNotBlank(value.getScaleFactor())
-                ? new BigDecimal(value.getMark()).multiply(new BigDecimal(value.getScaleFactor()))
-                : BigDecimal.ZERO);
-        var lowestQues = multiChoiceQuesGroup.stream().map(AssessmentKeyDetails::getQuestionNumber).mapToInt(Integer::parseInt).min();
-        keyEntity.setMasterQuestionNumber(lowestQues.getAsInt());
-    }
-
-    private void setOpenEndedWrittenQuestionEntityColumns(AssessmentQuestionEntity keyEntity, AssessmentKeyDetails value, List<List<AssessmentKeyDetails>> quesGroup) {
-        //item number
-        var itemType = value.getItemType().split("-");
-        var question = itemType[1].toCharArray();
-        var choiceType = itemType[2];
-        var marker = itemType[3].toCharArray();
-
-        keyEntity.setQuestionNumber(StringUtils.isNotBlank(String.valueOf(question[1])) ? Integer.parseInt(String.valueOf(question[1])) : null);
-        keyEntity.setMaxQuestionValue(new BigDecimal(value.getMark()).multiply(new BigDecimal(value.getScaleFactor())).multiply(new BigDecimal(String.valueOf(marker[1]))));
-
-        if(choiceType.equalsIgnoreCase("C0")) {
-            keyEntity.setMasterQuestionNumber(StringUtils.isNotBlank(String.valueOf(question[1])) ? Integer.parseInt(String.valueOf(question[1])) : null);
-        } else {
-            var sublistWithMatchedItemType = quesGroup.stream().filter(subList -> subList.stream().anyMatch(v -> v.getItemType().equalsIgnoreCase(value.getItemType()))).toList();
-            var lowestQues = sublistWithMatchedItemType.getFirst().stream().map(AssessmentKeyDetails::getItemType).map(v -> {
-                var typeSplit = v.split("-")[1].toCharArray();
-                return String.valueOf(typeSplit[1]);
-            }).mapToInt(Integer::parseInt).min();
-            keyEntity.setMasterQuestionNumber(lowestQues.getAsInt());
+        }else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
+            var openEndedMarks = TransformUtil.splitStringEveryNChars(studentResult.getOpenEndedMarks(), 4);
+            int questionCounter = 1;
+            int itemCounter = 1;
+            for(var openEndedMark: openEndedMarks){
+                var answer = new AssessmentStudentAnswerEntity();
+                answer.setAssessmentStudentComponentEntity(studentComponent);
+                var question = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumberAndItemNumber(component.get().getAssessmentComponentID(), questionCounter++, itemCounter++);
+                answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
+//                answer.setMcAssessmentResponseSorted(openEndedMark);
+//                answer.setMcAssessmentResponseUnsorted(openEndedMark);
+                answer.setScore(new BigDecimal(openEndedMark.substring(1)));
+                answer.setCreateUser(fileUpload.getCreateUser());
+                answer.setCreateDate(LocalDateTime.now());
+                answer.setUpdateUser(fileUpload.getUpdateUser());
+                answer.setUpdateDate(LocalDateTime.now());
+                studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+            }
         }
-    }
 
-    private List<List<AssessmentKeyDetails>> createQuestionGroups(List<AssessmentKeyDetails> questions) {
-        var indexList = IntStream.range(0, questions.size()).filter(v -> questions.get(v).getItemType().contains("-C1-")).boxed().toList();
-
-        return IntStream.range(0, indexList.size())
-                .mapToObj(j -> j == indexList.size() - 1 ? questions.subList(indexList.get(j), questions.size())
-                        : questions.subList(indexList.get(j), indexList.get(j + 1)))
-                .toList();
+        assessmentStudent.getAssessmentStudentComponentEntities().add(studentComponent);
     }
 
     private AssessmentResultDetails getAssessmentResultDetailRecordFromFile(final DataSet ds, final String guid, final long index) throws ResultsFileUnProcessableException {
@@ -245,7 +205,7 @@ public class AssessmentResultService {
         }
 
         final var componentType = StringMapper.trimAndUppercase(ds.getString(COMPONENT_TYPE.getName()));
-        if(StringUtils.isNotBlank(componentType) && codeTableService.getAllComponentTypeCodes().stream().noneMatch(code -> code.getComponentTypeCode().equalsIgnoreCase(componentType))) {
+        if(StringUtils.isNotBlank(componentType) && LegacyComponentTypeCodes.findByValue(componentType).isPresent()) {
             throw new ResultsFileUnProcessableException(INVALID_COMPONENT_TYPE_CODE, guid, componentType);
         }
 

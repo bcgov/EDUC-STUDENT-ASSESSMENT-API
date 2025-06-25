@@ -1,14 +1,8 @@
 package ca.bc.gov.educ.assessment.api.model.v1;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -30,29 +24,23 @@ public class AssessmentStudentAnswerEntity {
     @Column(name = "ASSESSMENT_STUDENT_ANSWER_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
     private UUID assessmentStudentAnswerID;
 
-    @Column(name = "ASSESSMENT_STUDENT_ID", updatable = false)
-    UUID assessmentStudentID;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false, targetEntity = AssessmentStudentComponentEntity.class)
+    @JoinColumn(name = "ASSESSMENT_STUDENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_COMPONENT_ID", updatable = false)
+    AssessmentStudentComponentEntity assessmentStudentComponentEntity;
 
     @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
     UUID assessmentQuestionID;
 
-    @Column(name = "MC_ASSESSMENT_RESPONSE")
-    private String mcAssessmentResponse;
+    @Column(name = "MC_ASSESSMENT_RESPONSE_UNSORTED")
+    private String mcAssessmentResponseUnsorted;
 
-    @Column(name = "MC_SCORE")
-    private BigDecimal mcScore;
+    @Column(name = "MC_ASSESSMENT_RESPONSE_SORTED")
+    private String mcAssessmentResponseSorted;
 
-    @Column(name = "NUM_OMITS")
-    private Integer numOmits;
-
-    @Column(name = "COMPONENT_TOTAL")
-    private BigDecimal componentTotal;
-
-    @Column(name = "COMPONENT_SOURCE")
-    private String componentSource;
-
-    @Column(name = "SR_CHOICE_PATH")
-    private String srChoicePath;
+    @Column(name = "SCORE")
+    private BigDecimal score;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
