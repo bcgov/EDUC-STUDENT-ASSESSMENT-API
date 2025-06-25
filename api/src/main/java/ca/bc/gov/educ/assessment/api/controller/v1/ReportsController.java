@@ -6,6 +6,7 @@ import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.service.v1.CSVReportService;
+import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class ReportsController implements ReportsEndoint {
 
     private final CSVReportService ministryReportsService;
+    private final XAMFileService xamFileService;
 
     @Override
     public DownloadableReportResponse getDownloadableReport(UUID sessionID, String type) {
@@ -41,5 +43,14 @@ public class ReportsController implements ReportsEndoint {
         };
     }
 
-
+    @Override
+    public DownloadableReportResponse getDownloadableReportForSchool(UUID sessionID, UUID schoolID) {
+        try {
+            return this.xamFileService.generateXamReport(sessionID, schoolID);
+        } catch (Exception ex) {
+            log.error("Error generating XAM report", ex);
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Error generating report.").status(BAD_REQUEST).build();
+            throw new InvalidPayloadException(error);
+        }
+    }
 }
