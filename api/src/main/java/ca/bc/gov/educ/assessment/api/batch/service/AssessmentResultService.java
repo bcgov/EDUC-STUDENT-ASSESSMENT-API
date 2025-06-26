@@ -217,7 +217,7 @@ public class AssessmentResultService {
         }
     }
 
-    private AssessmentResultDetails getAssessmentResultDetailRecordFromFile(final DataSet ds, final String guid, final long index) throws ResultsFileUnProcessableException {
+    private AssessmentResultDetails getAssessmentResultDetailRecordFromFile(final DataSet ds, final String guid) throws ResultsFileUnProcessableException {
         final var txID = StringMapper.trimAndUppercase(ds.getString(TX_ID.getName()));
         if (StringUtils.isBlank(txID) || !txID.equalsIgnoreCase("A01")) {
             throw new ResultsFileUnProcessableException(INVALID_TXID, guid, txID);
