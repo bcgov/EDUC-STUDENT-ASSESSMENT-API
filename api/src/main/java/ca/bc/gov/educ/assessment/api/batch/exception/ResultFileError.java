@@ -9,6 +9,9 @@ import lombok.Getter;
  */
 public enum ResultFileError {
 
+  INVALID_ROW_LENGTH("$?"),
+  EMPTY_FILE("The results file contains no records."),
+
   INVALID_INCOMING_REQUEST_SESSION("Invalid assessment session."),
 
   INVALID_TXID("Invalid transaction ID (TX_ID), value must be A01."),
@@ -21,12 +24,14 @@ public enum ResultFileError {
   INVALID_MARKING_SESSION("Invalid marking session on line $?."),
   INVALID_OPEN_ENDED_MARKS("Invalid open ended marks string on line $?."),
   INVALID_SELECTED_CHOICE_MARKS("Invalid selected choice marks string on line $?."),
-  INVALID_MINCODE_ASSESSMENT_CENTER("Invalid assessment center on line $?."),
+  INVALID_MINCODE("Invalid school ministry code on line $?."),
   INVALID_PROFICIENCY_SCORE("Invalid proficiency score on line $?."),
   INVALID_IRT_SCORE("Invalid IRT score on line $?."),
   INVALID_CHOICE_PATH("Invalid choice path on line $?."),
   INVALID_PEN("Invalid personal education number (PEN) on line $?."),
-  INVALID_FORM_CODE("Invalid form code provided on line $?.");
+  INVALID_FORM_CODE("Invalid form code provided on line $?."),
+  INVALID_COMPONENT("Could not find valid component key on line $?."),
+  INVALID_QUESTION("Could not find valid question key on line $?.");
 
   /**
    * The Message.

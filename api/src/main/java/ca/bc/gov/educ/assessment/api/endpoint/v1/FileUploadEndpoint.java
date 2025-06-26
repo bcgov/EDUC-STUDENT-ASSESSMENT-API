@@ -26,7 +26,7 @@ public interface FileUploadEndpoint {
     @Schema(name = "FileUpload", implementation = AssessmentKeyFileUpload.class)
     ResponseEntity<Void> processAssessmentKeysFile(@Validated @RequestBody AssessmentKeyFileUpload fileUpload, @PathVariable(name = "sessionID") UUID sessionID);
 
-    @PostMapping("/{session}/file/results")
+    @PostMapping("/{session}/results-file")
     @PreAuthorize("hasAuthority('SCOPE_WRITE_GRAD_COLLECTION')")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "CREATED"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     @Tag(name = "Endpoint to upload assessment keys and convert to json structure.", description = "Endpoint to upload a GRAD file and convert to json structure")

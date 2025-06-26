@@ -64,9 +64,6 @@ public class AssessmentStudentEntity {
   @Column(name = "LOCAL_ASSESSMENT_ID", length = 20)
   private String localAssessmentID;
 
-  @Column(name = "IS_ELECTRONIC_ASSESSMENT", length = 1)
-  private Boolean isElectronicAssessment;
-
   @Column(name = "PROFICIENCY_SCORE", length = 1)
   private Integer proficiencyScore;
 
@@ -84,15 +81,6 @@ public class AssessmentStudentEntity {
 
   @Column(name = "MARKING_SESSION", length = 6)
   private String markingSession;
-
-  @Column(name = "RAW_SCORE")
-  private BigDecimal rawScore;
-
-  @Column(name = "MC_TOTAL")
-  private BigDecimal mcTotal;
-
-  @Column(name = "OE_TOTAL")
-  private BigDecimal oeTotal;
 
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;

@@ -366,14 +366,14 @@ public class RestUtils {
   }
 
   @Retryable(retryFor = {Exception.class}, noRetryFor = {SagaRuntimeException.class}, backoff = @Backoff(multiplier = 2, delay = 2000))
-  public Student getStudentByPEN(UUID correlationID, String assignedPEN) {
+  public Optional<Student> getStudentByPEN(UUID correlationID, String assignedPEN) {
     try {
       final TypeReference<Student> refPenMatchResult = new TypeReference<>() {
       };
       Object event = Event.builder().sagaId(correlationID).eventType(EventType.GET_STUDENT).eventPayload(assignedPEN).build();
       val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.STUDENT_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
       if (responseMessage != null) {
-        return objectMapper.readValue(responseMessage.getData(), refPenMatchResult);
+        return Optional.ofNullable(objectMapper.readValue(responseMessage.getData(), refPenMatchResult));
       } else {
         throw new StudentAssessmentAPIRuntimeException(NATS_TIMEOUT + correlationID);
       }

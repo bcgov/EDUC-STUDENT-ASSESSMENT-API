@@ -48,6 +48,7 @@ public class AssessmentResultsProcessor {
             batchFileReaderOptional = Optional.of(new InputStreamReader(byteArrayOutputStream));
             final DataSet ds = DefaultParserFactory.getInstance().newFixedLengthParser(mapperReader, batchFileReaderOptional.get()).setStoreRawDataToDataError(true).setStoreRawDataToDataSet(true).setNullEmptyStrings(true).parse();
 
+            resultsFileValidator.validateFileForFormatAndLength(correlationID, ds, "SHOULD BE 486");
             assessmentResultService.populateBatchFileAndLoadData(correlationID, ds, assessmentSessionID, fileUpload);
         } catch (final ResultsFileUnProcessableException resultsFileUnProcessableException) {
             log.error("File could not be processed exception :: {}", resultsFileUnProcessableException);

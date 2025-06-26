@@ -21,6 +21,4 @@ public class AssessmentResultFileUpload extends BaseRequest implements Serializa
     @NotNull(message = "fileContents cannot be null")
     @ToString.Exclude
     String fileContents;
-    @NotNull(message = "fileType cannot be null")
-    String fileType;
 }

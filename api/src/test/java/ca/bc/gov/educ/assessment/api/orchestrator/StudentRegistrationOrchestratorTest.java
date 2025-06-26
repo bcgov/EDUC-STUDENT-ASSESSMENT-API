@@ -114,7 +114,7 @@ class StudentRegistrationOrchestratorTest extends BaseAssessmentAPITest {
         studentAPIStudent.setPen(sagaData.getPen());
         studentAPIStudent.setLegalFirstName(sagaData.getGivenName());
         studentAPIStudent.setLegalLastName(sagaData.getSurname());
-        when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
+        when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
 
         assessmentStudentService.createStudentWithoutValidation(mapper.toModel(sagaData));
 

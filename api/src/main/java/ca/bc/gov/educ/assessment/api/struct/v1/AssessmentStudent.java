@@ -67,19 +67,11 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
 
     private String numberOfAttempts;
 
-    private String rawScore;
-
     @Size(max = 20)
     private String localAssessmentID;
-
-    private String isElectronicAssessment;
 
     private String markingSession;
 
     private String courseStatusCode;
-
-    private String mcTotal;
-
-    private String oeTotal;
 
 }

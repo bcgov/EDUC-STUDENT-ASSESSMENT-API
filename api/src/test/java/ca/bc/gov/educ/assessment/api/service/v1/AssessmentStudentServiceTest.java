@@ -124,7 +124,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     studentAPIStudent.setPen(assessmentStudentEntity.getPen());
     studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
     studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurname());
-    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
 
     //when creating an assessment student
     var pair = assessmentStudentService.createStudent(assessmentStudentEntity);
@@ -157,7 +157,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     studentAPIStudent.setPen(assessmentStudentEntity.getPen());
     studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
     studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurname());
-    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
 
     var pair = assessmentStudentService.createStudent(studentEntity);
     AssessmentStudent assessmentStudent = pair.getLeft();
@@ -218,7 +218,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     studentAPIStudent.setPen(assessmentStudentEntity.getPen());
     studentAPIStudent.setLegalFirstName("Bugs");
     studentAPIStudent.setLegalLastName("Bunny");
-    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(studentAPIStudent);
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
 
     var pair = assessmentStudentService.createStudent(assessmentStudentEntity);
     AssessmentStudent student = pair.getLeft();

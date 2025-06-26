@@ -2,6 +2,8 @@ package ca.bc.gov.educ.assessment.api.batch.validation;
 
 import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
 import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
+import ca.bc.gov.educ.assessment.api.batch.exception.ResultFileError;
+import ca.bc.gov.educ.assessment.api.batch.exception.ResultsFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.flatpack.DataError;
@@ -19,15 +21,15 @@ public class ResultsFileValidator {
     public static final String LOAD_FAIL = "LOADFAIL";
     public static final String MINCODE = "mincode";
 
-    public byte[] getUploadedFileBytes(@NonNull final String guid, final AssessmentResultFileUpload fileUpload) throws KeyFileUnProcessableException {
+    public byte[] getUploadedFileBytes(@NonNull final String guid, final AssessmentResultFileUpload fileUpload) throws ResultsFileUnProcessableException {
         byte[] bytes = Base64.getDecoder().decode(fileUpload.getFileContents());
         if (bytes.length == 0) {
-            throw new KeyFileUnProcessableException(KeyFileError.EMPTY_FILE, guid, LOAD_FAIL);
+            throw new ResultsFileUnProcessableException(ResultFileError.EMPTY_FILE, guid, LOAD_FAIL);
         }
         return bytes;
     }
 
-    public void validateFileForFormatAndLength(@NonNull final String guid, @NonNull final DataSet ds, @NonNull final String lengthError) throws KeyFileUnProcessableException {
+    public void validateFileForFormatAndLength(@NonNull final String guid, @NonNull final DataSet ds, @NonNull final String lengthError) throws ResultsFileUnProcessableException {
         this.processDataSetForRowLengthErrors(guid, ds, lengthError);
     }
 
@@ -43,7 +45,7 @@ public class ResultsFileValidator {
         return "The uploaded file contains a malformed row that could not be identified.";
     }
 
-    public void processDataSetForRowLengthErrors(@NonNull final String guid, @NonNull final DataSet ds, @NonNull final String lengthError) throws KeyFileUnProcessableException {
+    public void processDataSetForRowLengthErrors(@NonNull final String guid, @NonNull final DataSet ds, @NonNull final String lengthError) throws ResultsFileUnProcessableException {
         Optional<DataError> maybeError = ds
                 .getErrors()
                 .stream()
@@ -54,10 +56,9 @@ public class ResultsFileValidator {
         if (maybeError.isPresent() && ds.getRowCount() != maybeError.get().getLineNo()) {
             DataError error = maybeError.get();
             String message = this.getMalformedRowMessage(error.getErrorDesc(), error, lengthError);
-            throw new KeyFileUnProcessableException(
-                    KeyFileError.INVALID_ROW_LENGTH,
+            throw new ResultsFileUnProcessableException(
+                    ResultFileError.INVALID_ROW_LENGTH,
                     guid,
-                    LOAD_FAIL,
                     message
             );
         }

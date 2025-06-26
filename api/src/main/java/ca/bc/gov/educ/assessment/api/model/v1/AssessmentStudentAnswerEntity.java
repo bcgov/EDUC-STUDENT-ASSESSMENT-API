@@ -33,12 +33,6 @@ public class AssessmentStudentAnswerEntity {
     @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
     UUID assessmentQuestionID;
 
-    @Column(name = "MC_ASSESSMENT_RESPONSE_UNSORTED")
-    private String mcAssessmentResponseUnsorted;
-
-    @Column(name = "MC_ASSESSMENT_RESPONSE_SORTED")
-    private String mcAssessmentResponseSorted;
-
     @Column(name = "SCORE")
     private BigDecimal score;
 

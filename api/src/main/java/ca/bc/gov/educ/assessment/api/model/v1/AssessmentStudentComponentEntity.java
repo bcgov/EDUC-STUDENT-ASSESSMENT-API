@@ -34,12 +34,6 @@ public class AssessmentStudentComponentEntity {
     @Column(name = "ASSESSMENT_COMPONENT_ID", updatable = false)
     UUID assessmentComponentID;
 
-    @Column(name = "COMPONENT_TOTAL")
-    private BigDecimal componentTotal;
-
-    @Column(name = "COMPONENT_SOURCE")
-    private String componentSource;
-
     @Column(name = "CHOICE_PATH")
     private String choicePath;
 

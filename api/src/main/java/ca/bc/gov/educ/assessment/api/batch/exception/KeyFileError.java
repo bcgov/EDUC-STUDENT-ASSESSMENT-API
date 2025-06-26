@@ -11,7 +11,7 @@ public enum KeyFileError {
   /**
    * Upload file did not contain any content.
    */
-  EMPTY_FILE("The DEM data file contains no records."),
+  EMPTY_FILE("The key file contains no records."),
   NO_HEADING("Heading row is missing."),
   BLANK_CELL_IN_HEADING_ROW("Heading row has a blank cell at column $?."),
   MISSING_MANDATORY_HEADER("Missing required header $?."),

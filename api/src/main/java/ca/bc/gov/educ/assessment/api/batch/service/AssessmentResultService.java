@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -50,13 +51,14 @@ public class AssessmentResultService {
     private final AssessmentStudentService assessmentStudentService;
     private final CodeTableService codeTableService;
     private final String[] validChoicePaths = {"I", "E"};
+    private final String[] validSpecialCaseCodes = {"A", "Q", "X"};
     private final String answerRegex = "^(\\d*\\.?\\d+|\\.\\d+)$";
     private final Pattern pattern = Pattern.compile(answerRegex);
 
     public static final String LOAD_FAIL = "LOADFAIL";
     private final RestUtils restUtils;
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void populateBatchFileAndLoadData(String correlationID, DataSet ds, UUID sessionID, AssessmentResultFileUpload fileUpload) throws ResultsFileUnProcessableException {
         val batchFile = new AssessmentResultFile();
 
@@ -75,100 +77,90 @@ public class AssessmentResultService {
         }
     }
 
-    private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentResultFile batchFile, AssessmentSessionEntity validSession, AssessmentResultFileUpload fileUpload) throws ResultsFileUnProcessableException {
+    private void processLoadedRecordsInBatchFile(@NonNull final String correlationID, @NonNull final AssessmentResultFile batchFile, AssessmentSessionEntity validSession, AssessmentResultFileUpload fileUpload) throws ResultsFileUnProcessableException {
         var typeCode = batchFile.getAssessmentResultData().getFirst().getAssessmentCode();
-        assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
+        assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, correlationID, LOAD_FAIL));
 
         var assessmentEntity = assessmentRepository.findByAssessmentSessionEntity_SessionIDAndAssessmentTypeCode(validSession.getSessionID(), typeCode)
-                .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
+                .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, correlationID, LOAD_FAIL));
 
         for(val studentResult : batchFile.getAssessmentResultData()) {
-            Student studentApiStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
-            if(studentApiStudent != null) {
-                AssessmentStudentEntity assessmentStudent;
-                var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
-                var formEntity = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(assessmentEntity.getAssessmentID(), studentResult.getFormCode()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_FORM_CODE, guid, LOAD_FAIL));;
-                var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID()));
+            Student studentApiStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_PEN, correlationID, LOAD_FAIL));
+            AssessmentStudentEntity assessmentStudent;
+            var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
+            var formEntity = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(assessmentEntity.getAssessmentID(), studentResult.getFormCode()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL));
+            var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID()));
 
-                if (existingStudentRegistrationOpt.isPresent()) {
-                    assessmentStudent = existingStudentRegistrationOpt.get();
-                    assessmentStudent.setIrtScore(studentResult.getIrtScore());
-                    assessmentStudent.setAssessmentFormID(formEntity.getAssessmentFormID());
-                    assessmentStudent.setProficiencyScore(Integer.parseInt(studentResult.getProficiencyScore()));
-                    assessmentStudent.setProvincialSpecialCaseCode(studentResult.getSpecialCaseCode());
-                    assessmentStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
-                    assessmentStudent.setMarkingSession(studentResult.getMarkingSession());
-                    assessmentStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : assessmentStudent.getSchoolOfRecordSchoolID());
-                    assessmentStudent.setUpdateDate(LocalDateTime.now());
-                    assessmentStudent.setUpdateUser(fileUpload.getUpdateUser());
-                } else {
-                    assessmentStudent = new AssessmentStudentEntity();
-                    assessmentStudent.setAssessmentEntity(assessmentEntity);
-                    assessmentStudent.setAssessmentFormID(formEntity.getAssessmentFormID());
-//                    assessmentStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : studentResult.getMincode());
-//                    assessmentStudent.setAssessmentCenterSchoolID();
-//                    assessmentStudent.setSchoolOfRecordSchoolID();
-                    assessmentStudent.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
-                    assessmentStudent.setGivenName(studentApiStudent.getLegalFirstName());
-                    assessmentStudent.setSurname(studentApiStudent.getLegalLastName());
-                    assessmentStudent.setPen(studentApiStudent.getPen());
-                    assessmentStudent.setLocalID(studentApiStudent.getLocalID());
-//                    assessmentStudent.setLocalAssessmentID();
-                    assessmentStudent.setIsElectronicAssessment(true);
-                    assessmentStudent.setProficiencyScore(Integer.parseInt(studentResult.getProficiencyScore()));
-                    assessmentStudent.setProvincialSpecialCaseCode(studentResult.getSpecialCaseCode());
-                    assessmentStudent.setNumberOfAttempts(Integer.parseInt(assessmentStudentService.getNumberOfAttempts(assessmentEntity.getAssessmentID().toString(), UUID.fromString(studentApiStudent.getStudentID()))));
-                    assessmentStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
-                    assessmentStudent.setIrtScore(studentResult.getIrtScore());
-                    assessmentStudent.setMarkingSession(studentResult.getMarkingSession());
-//                    assessmentStudent.setRawScore();
-//                    assessmentStudent.setMcTotal();
-//                    assessmentStudent.setOeTotal();
-                    assessmentStudent.setCreateUser(fileUpload.getCreateUser());
-                    assessmentStudent.setCreateDate(LocalDateTime.now());
-                    assessmentStudent.setUpdateUser(fileUpload.getUpdateUser());
-                    assessmentStudent.setUpdateDate(LocalDateTime.now());
-                }
+            if (existingStudentRegistrationOpt.isPresent()) {
+                assessmentStudent = existingStudentRegistrationOpt.get();
+                assessmentStudent.setIrtScore(studentResult.getIrtScore());
+                assessmentStudent.setAssessmentFormID(formEntity.getAssessmentFormID());
+                assessmentStudent.setProficiencyScore(Integer.parseInt(studentResult.getProficiencyScore()));
+                assessmentStudent.setProvincialSpecialCaseCode(studentResult.getSpecialCaseCode());
+                assessmentStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
+                assessmentStudent.setMarkingSession(studentResult.getMarkingSession());
+                assessmentStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : assessmentStudent.getSchoolOfRecordSchoolID());
+                assessmentStudent.setUpdateDate(LocalDateTime.now());
+                assessmentStudent.setUpdateUser(fileUpload.getUpdateUser());
+            } else {
+                assessmentStudent = new AssessmentStudentEntity();
+                var school = restUtils.getSchoolByMincode(studentResult.getMincode()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_MINCODE, correlationID, LOAD_FAIL));
 
-                switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
-                    case MUL_CHOICE -> addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-                    case OPEN_ENDED -> addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-                    case ORAL -> addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
-                    case BOTH -> {
-                        addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-                        addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-                    }
-                }
-                assessmentStudentRepository.save(assessmentStudent);
+                assessmentStudent.setAssessmentEntity(assessmentEntity);
+                assessmentStudent.setAssessmentFormID(formEntity.getAssessmentFormID());
+                assessmentStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.getSchoolId()));
+                assessmentStudent.setSchoolOfRecordSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.getSchoolId()));
+                assessmentStudent.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
+                assessmentStudent.setGivenName(studentApiStudent.getLegalFirstName());
+                assessmentStudent.setSurname(studentApiStudent.getLegalLastName());
+                assessmentStudent.setPen(studentApiStudent.getPen());
+                assessmentStudent.setLocalID(studentApiStudent.getLocalID());
+                assessmentStudent.setProficiencyScore(Integer.parseInt(studentResult.getProficiencyScore()));
+                assessmentStudent.setProvincialSpecialCaseCode(studentResult.getSpecialCaseCode());
+                assessmentStudent.setNumberOfAttempts(Integer.parseInt(assessmentStudentService.getNumberOfAttempts(assessmentEntity.getAssessmentID().toString(), UUID.fromString(studentApiStudent.getStudentID()))));
+                assessmentStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
+                assessmentStudent.setIrtScore(studentResult.getIrtScore());
+                assessmentStudent.setMarkingSession(studentResult.getMarkingSession());
+                assessmentStudent.setCreateUser(fileUpload.getCreateUser());
+                assessmentStudent.setCreateDate(LocalDateTime.now());
+                assessmentStudent.setUpdateUser(fileUpload.getUpdateUser());
+                assessmentStudent.setUpdateDate(LocalDateTime.now());
             }
+
+            switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
+                case MUL_CHOICE -> addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, correlationID);
+                case OPEN_ENDED -> addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, correlationID);
+                case ORAL -> addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL, correlationID);
+                case BOTH -> {
+                    addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, correlationID);
+                    addStudentComponent(formEntity, assessmentStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, correlationID);
+                }
+            }
+            assessmentStudentRepository.save(assessmentStudent);
        }
     }
 
-    private void addStudentComponent(AssessmentFormEntity formEntity, AssessmentStudentEntity assessmentStudent, AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType) {
+    private void addStudentComponent(AssessmentFormEntity formEntity, AssessmentStudentEntity assessmentStudent, AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, String correlationID) throws ResultsFileUnProcessableException {
         var studentComponent = new AssessmentStudentComponentEntity();
         studentComponent.setAssessmentStudentEntity(assessmentStudent);
-        var component = assessmentComponentRepository.findByAssessmentFormEntity_AssessmentFormIDAndComponentTypeCodeAndComponentSubTypeCode(formEntity.getAssessmentFormID(), componentType.getCode(), componentSubType.getCode());
-        studentComponent.setAssessmentComponentID(component.get().getAssessmentComponentID());
-//                        multChoiceComponent.setComponentTotal();
-//                        multChoiceComponent.setComponentSource();
-        studentComponent.setChoicePath(studentResult.getChoicePath());
+        var component = assessmentComponentRepository.findByAssessmentFormEntity_AssessmentFormIDAndComponentTypeCodeAndComponentSubTypeCode(formEntity.getAssessmentFormID(), componentType.getCode(), componentSubType.getCode()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_COMPONENT, correlationID, LOAD_FAIL));
+        studentComponent.setAssessmentComponentID(component.getAssessmentComponentID());
         studentComponent.setCreateUser(fileUpload.getCreateUser());
         studentComponent.setCreateDate(LocalDateTime.now());
         studentComponent.setUpdateUser(fileUpload.getUpdateUser());
         studentComponent.setUpdateDate(LocalDateTime.now());
 
         if(componentType == ComponentTypeCodes.MUL_CHOICE) {
+            studentComponent.setChoicePath(studentResult.getChoicePath());
             var multiChoiceMarks = TransformUtil.splitStringEveryNChars(studentResult.getMultiChoiceMarks(), 4);
             int questionCounter = 1;
             int itemCounter = 1;
             for(var multiChoiceMark: multiChoiceMarks){
                 var answer = new AssessmentStudentAnswerEntity();
                 answer.setAssessmentStudentComponentEntity(studentComponent);
-                var question = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumberAndItemNumber(component.get().getAssessmentComponentID(), questionCounter++, itemCounter++);
-                answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
-                answer.setMcAssessmentResponseSorted(multiChoiceMark);
-                answer.setMcAssessmentResponseUnsorted(multiChoiceMark);
-                answer.setScore(new BigDecimal(multiChoiceMark.substring(1)));
+                var question = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumberAndItemNumber(component.getAssessmentComponentID(), questionCounter++, itemCounter++).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_QUESTION, correlationID, LOAD_FAIL));
+                answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
+                answer.setScore(new BigDecimal(multiChoiceMark));
                 answer.setCreateUser(fileUpload.getCreateUser());
                 answer.setCreateDate(LocalDateTime.now());
                 answer.setUpdateUser(fileUpload.getUpdateUser());
@@ -179,38 +171,65 @@ public class AssessmentResultService {
             var openEndedMarks = TransformUtil.splitStringEveryNChars(studentResult.getOpenEndedMarks(), 4);
             int questionCounter = 1;
             int itemCounter = 1;
+            int answerForChoiceCounter = 0;
+            int choiceQuestionNumber = 0;
             for(var openEndedMark: openEndedMarks){
-                var answer = new AssessmentStudentAnswerEntity();
-                answer.setAssessmentStudentComponentEntity(studentComponent);
-                var question = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumberAndItemNumber(component.get().getAssessmentComponentID(), questionCounter++, itemCounter++);
-                answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
-//                answer.setMcAssessmentResponseSorted(openEndedMark);
-//                answer.setMcAssessmentResponseUnsorted(openEndedMark);
-                answer.setScore(new BigDecimal(openEndedMark.substring(1)));
-                answer.setCreateUser(fileUpload.getCreateUser());
-                answer.setCreateDate(LocalDateTime.now());
-                answer.setUpdateUser(fileUpload.getUpdateUser());
-                answer.setUpdateDate(LocalDateTime.now());
-                studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+                Optional<AssessmentQuestionEntity> question;
+                question = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumberAndItemNumber(component.getAssessmentComponentID(), answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++, itemCounter++);
+
+                if(answerForChoiceCounter != 0) {
+                    answerForChoiceCounter--;
+                }
+
+                if(question.isEmpty()){
+                    //It's a choice!
+                    //Value in 4 chars is the question number
+                    var questionNumber = getQuestionNumberFromString(openEndedMark, correlationID);
+                    //Pull the number of rows that have this question number in this component
+                    var choiceQuestions = assessmentQuestionRepository.countAllByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumber(component.getAssessmentComponentID(), questionNumber);
+                    //Based on number of rows returned, we know how many answers are coming
+                    //Item numbers are sequential, while skipping the choice records
+                    answerForChoiceCounter = choiceQuestions;
+                    choiceQuestionNumber = questionNumber;
+                }else {
+                    var answer = new AssessmentStudentAnswerEntity();
+                    answer.setAssessmentStudentComponentEntity(studentComponent);
+                    answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
+                    answer.setScore(new BigDecimal(openEndedMark));
+                    answer.setCreateUser(fileUpload.getCreateUser());
+                    answer.setCreateDate(LocalDateTime.now());
+                    answer.setUpdateUser(fileUpload.getUpdateUser());
+                    answer.setUpdateDate(LocalDateTime.now());
+                    studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+                }
             }
         }
 
         assessmentStudent.getAssessmentStudentComponentEntities().add(studentComponent);
     }
 
+    private int getQuestionNumberFromString(String s, String correlationID) throws ResultsFileUnProcessableException {
+        try {
+            double dValue = Double.parseDouble(s);
+            return (int) Math.round(dValue);
+        }catch(NumberFormatException e){
+            throw new ResultsFileUnProcessableException(INVALID_MINCODE, correlationID, LOAD_FAIL);
+        }
+    }
+
     private AssessmentResultDetails getAssessmentResultDetailRecordFromFile(final DataSet ds, final String guid, final long index) throws ResultsFileUnProcessableException {
         final var txID = StringMapper.trimAndUppercase(ds.getString(TX_ID.getName()));
-        if (StringUtils.isBlank(txID) || !txID.equalsIgnoreCase("")) {
+        if (StringUtils.isBlank(txID) || !txID.equalsIgnoreCase("A01")) {
             throw new ResultsFileUnProcessableException(INVALID_TXID, guid, txID);
         }
 
         final var componentType = StringMapper.trimAndUppercase(ds.getString(COMPONENT_TYPE.getName()));
-        if(StringUtils.isNotBlank(componentType) && LegacyComponentTypeCodes.findByValue(componentType).isPresent()) {
+        if(StringUtils.isNotBlank(componentType) && LegacyComponentTypeCodes.findByValue(componentType).isEmpty()) {
             throw new ResultsFileUnProcessableException(INVALID_COMPONENT_TYPE_CODE, guid, componentType);
         }
 
         final var specialCaseCode = StringMapper.trimAndUppercase(ds.getString(SPECIAL_CASE_CODE.getName()));
-        if(StringUtils.isNotBlank(specialCaseCode) && codeTableService.getAllProvincialSpecialCaseCodes().stream().noneMatch(code -> code.getProvincialSpecialCaseCode().equalsIgnoreCase(specialCaseCode))) {
+        if(StringUtils.isNotBlank(specialCaseCode) && Arrays.stream(validSpecialCaseCodes).noneMatch(specialCaseCode::equalsIgnoreCase)) {
             throw new ResultsFileUnProcessableException(INVALID_SPECIAL_CASE_CODE, guid, specialCaseCode);
         }
 
@@ -231,7 +250,7 @@ public class AssessmentResultService {
 
         final var mincode = StringMapper.trimAndUppercase(ds.getString(MINCODE.getName()));
         if(StringUtils.isNotBlank(mincode) && restUtils.getSchoolByMincode(mincode).isEmpty() ) {
-            throw new ResultsFileUnProcessableException(INVALID_MINCODE_ASSESSMENT_CENTER, guid, mincode);
+            throw new ResultsFileUnProcessableException(INVALID_MINCODE, guid, mincode);
         }
 
         final var proficiencyScore = StringMapper.trimAndUppercase(ds.getString(PROFICIENCY_SCORE.getName()));
@@ -240,8 +259,12 @@ public class AssessmentResultService {
         }
 
         final var irtScore = StringMapper.trimAndUppercase(ds.getString(IRT_SCORE.getName()));
-        if(StringUtils.isNotBlank(irtScore) && !StringUtils.isNumeric(irtScore) ) {
-            throw new ResultsFileUnProcessableException(INVALID_IRT_SCORE, guid, irtScore);
+        if(StringUtils.isNotBlank(irtScore)) {
+            try {
+                Double.parseDouble(irtScore);
+            } catch (NumberFormatException e) {
+                throw new ResultsFileUnProcessableException(INVALID_IRT_SCORE, guid, irtScore);
+            }
         }
 
         final var choicePath = StringMapper.trimAndUppercase(ds.getString(CHOICE_PATH.getName()));

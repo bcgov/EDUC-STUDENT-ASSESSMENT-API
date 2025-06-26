@@ -23,8 +23,6 @@ public class CodeTableService {
     private final CognitiveLevelCodeRepository cognitiveLevelCodeRepository;
     private final ConceptsCodeRepository conceptsCodeRepository;
     private final ContextCodeRepository contextCodeRepository;
-    private final ComponentSubTypeCodeRepository componentSubTypeCodeRepository;
-    private final ComponentTypeCodeRepository componentTypeCodeRepository;
     private final TaskCodeRepository taskCodeRepository;
 
     @Cacheable("assessmentTypeCodes")
@@ -32,7 +30,7 @@ public class CodeTableService {
         return assessmentTypeCodeRepository.findAll();
     }
 
-    @Scheduled(fixedRate = ONE_DAY)
+    @Scheduled(fixedRate = ONE_DAY, initialDelayString = "${timing.initialDelay}")
     @Cacheable("assessmentSessions")
     public List<AssessmentSessionEntity> getAllAssessmentSessionCodes() {
         return assessmentSessionRepository.findAll();
@@ -56,16 +54,6 @@ public class CodeTableService {
     @Cacheable("cognitiveLevelCodes")
     public List<CognitiveLevelCodeEntity> getAllCognitiveLevelCodes() {
         return cognitiveLevelCodeRepository.findAll();
-    }
-
-    @Cacheable("componentTypeCodes")
-    public List<ComponentTypeCodeEntity> getAllComponentTypeCodes() {
-        return componentTypeCodeRepository.findAll();
-    }
-
-    @Cacheable("componentSubTypeCodes")
-    public List<ComponentSubTypeCodeEntity> getAllComponentSubTypeCodes() {
-        return componentSubTypeCodeRepository.findAll();
     }
 
     @Cacheable("conceptCodes")
