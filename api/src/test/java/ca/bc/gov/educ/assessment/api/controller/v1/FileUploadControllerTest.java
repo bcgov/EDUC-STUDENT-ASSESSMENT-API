@@ -91,14 +91,14 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testProcessAssessmentResultsFile_givenTxtFile_WithInvalidIncomingSession_ShouldReturnBadRequest() throws Exception {
-        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.txt");
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.TXT");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
 
         var file = AssessmentResultFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
                 .updateUser("ABC")
-                .fileName("202406_RESULTS_LTE10.txt")
+                .fileName("202406_RESULTS_LTE10.TXT")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + UUID.randomUUID() + "/results-file")
@@ -248,7 +248,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
         assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
 
-        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.txt");
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.TXT");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
 
         var school = this.createMockSchool();
@@ -261,7 +261,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileContents(fileContents)
                 .createUser("ABC")
                 .updateUser("ABC")
-                .fileName("202406_RESULTS_LTP10.txt")
+                .fileName("202406_RESULTS_LTP10.TXT")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
