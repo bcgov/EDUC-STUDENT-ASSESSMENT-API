@@ -1,11 +1,10 @@
 package ca.bc.gov.educ.assessment.api.controller.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentFormRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
@@ -24,6 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.URL.BASE_URL;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -44,7 +44,11 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     @Autowired
     private AssessmentRepository assessmentRepository;
     @Autowired
+    private AssessmentQuestionRepository assessmentQuestionRepository;
+    @Autowired
     private RestUtils restUtils;
+    @Autowired
+    private AssessmentComponentRepository assessmentComponentRepository;
 
     @BeforeEach
     void setUp() {
@@ -224,21 +228,37 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testProcessAssessmentResulsFile_givenTxtFile_WithOpenEndedQues_ShouldReturnOK() throws Exception {
-        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTE10"));
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTP10"));
         var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
-        assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTE10"));
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTP10"));
 
-        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTE10.txt");
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+        
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
 
         var school = this.createMockSchool();
         when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
+        var student = this.createMockStudentAPIStudent();
+        when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
+        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(createMockGradStudentAPIRecord());
         
         var file = AssessmentResultFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
                 .updateUser("ABC")
-                .fileName("202406_RESULTS_LTE10.txt")
+                .fileName("202406_RESULTS_LTP10.txt")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")

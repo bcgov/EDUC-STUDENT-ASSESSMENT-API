@@ -52,8 +52,7 @@ public class AssessmentResultService {
     private final CodeTableService codeTableService;
     private final String[] validChoicePaths = {"I", "E"};
     private final String[] validSpecialCaseCodes = {"A", "Q", "X"};
-    private final String answerRegex = "^(\\d*\\.?\\d+|\\.\\d+)$";
-    private final Pattern pattern = Pattern.compile(answerRegex);
+    private final Pattern pattern = Pattern.compile("^[0-9.]*$");
 
     public static final String LOAD_FAIL = "LOADFAIL";
     private final RestUtils restUtils;

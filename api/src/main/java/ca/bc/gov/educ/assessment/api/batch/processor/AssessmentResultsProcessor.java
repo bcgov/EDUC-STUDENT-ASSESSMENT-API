@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.assessment.api.batch.processor;
 
 import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
-import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.batch.exception.ResultsFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.batch.service.AssessmentResultService;
 import ca.bc.gov.educ.assessment.api.batch.validation.ResultsFileValidator;

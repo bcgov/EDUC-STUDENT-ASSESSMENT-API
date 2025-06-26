@@ -8,6 +8,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -55,4 +56,12 @@ public class AssessmentStudentComponentEntity {
     @ToString.Exclude
     @OneToMany(mappedBy = "assessmentStudentComponentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = AssessmentStudentAnswerEntity.class)
     Set<AssessmentStudentAnswerEntity> assessmentStudentAnswerEntities;
+
+    public Set<AssessmentStudentAnswerEntity> getAssessmentStudentAnswerEntities() {
+        if (this.assessmentStudentAnswerEntities == null) {
+            this.assessmentStudentAnswerEntities = new HashSet<>();
+        }
+        return this.assessmentStudentAnswerEntities;
+    }
+
 }

@@ -9,6 +9,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -101,4 +102,10 @@ public class AssessmentStudentEntity {
   @OneToMany(mappedBy = "assessmentStudentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = AssessmentStudentComponentEntity.class)
   Set<AssessmentStudentComponentEntity> assessmentStudentComponentEntities;
 
+  public Set<AssessmentStudentComponentEntity> getAssessmentStudentComponentEntities() {
+    if (this.assessmentStudentComponentEntities == null) {
+      this.assessmentStudentComponentEntities = new HashSet<>();
+    }
+    return this.assessmentStudentComponentEntities;
+  }
 }
