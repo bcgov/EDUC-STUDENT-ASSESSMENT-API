@@ -187,10 +187,9 @@ public class AssessmentResultService {
                     //Value in 4 chars is the question number
                     var questionNumber = getQuestionNumberFromString(openEndedMark, correlationID);
                     //Pull the number of rows that have this question number in this component
-                    var choiceQuestions = assessmentQuestionRepository.countAllByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumber(component.getAssessmentComponentID(), questionNumber);
+                    answerForChoiceCounter = assessmentQuestionRepository.countAllByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumber(component.getAssessmentComponentID(), questionNumber);
                     //Based on number of rows returned, we know how many answers are coming
                     //Item numbers are sequential, while skipping the choice records
-                    answerForChoiceCounter = choiceQuestions;
                     choiceQuestionNumber = questionNumber;
                 }else {
                     var answer = new StagedAssessmentStudentAnswerEntity();
