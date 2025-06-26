@@ -52,7 +52,8 @@ class XAMFileGenerationOrchestratorTest extends BaseAssessmentAPITest {
 
     @Autowired
     private MessagePublisher messagePublisher;
-
+    @Autowired
+    StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
     @Autowired
     AssessmentSessionRepository assessmentSessionRepository;
     @Autowired
@@ -76,6 +77,7 @@ class XAMFileGenerationOrchestratorTest extends BaseAssessmentAPITest {
     public void after() {
         sagaEventRepository.deleteAll();
         sagaRepository.deleteAll();
+        stagedAssessmentStudentRepository.deleteAll();
         assessmentStudentRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
         assessmentRepository.deleteAll();

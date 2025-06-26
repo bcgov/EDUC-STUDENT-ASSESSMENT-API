@@ -6,10 +6,7 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentHistoryRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
@@ -55,12 +52,16 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
   @Autowired
   RestUtils restUtils;
-
+  
+  @Autowired
+  StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+  
   @Autowired
   AssessmentStudentService assessmentStudentService;
 
   @AfterEach
   public void after() {
+    stagedAssessmentStudentRepository.deleteAll();
     this.assessmentStudentRepository.deleteAll();
     this.assessmentStudentHistoryRepository.deleteAll();
     this.assessmentRepository.deleteAll();

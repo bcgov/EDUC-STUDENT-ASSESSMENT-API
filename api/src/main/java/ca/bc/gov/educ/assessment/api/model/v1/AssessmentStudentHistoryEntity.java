@@ -84,6 +84,15 @@ public class AssessmentStudentHistoryEntity {
     @Column(name = "MARKING_SESSION", length = 6)
     private String markingSession;
 
+    @Column(name = "RAW_SCORE")
+    private BigDecimal rawScore;
+
+    @Column(name = "MC_TOTAL")
+    private BigDecimal mcTotal;
+
+    @Column(name = "OE_TOTAL")
+    private BigDecimal oeTotal;
+
     @Column(name = "CREATE_USER", updatable = false , length = 100)
     private String createUser;
 

@@ -45,11 +45,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     @Autowired
     EventTaskSchedulerAsyncService eventTaskSchedulerAsyncService;
     @Autowired
-    SagaService sagaService;
-    @Autowired
     AssessmentStudentService assessmentStudentService;
-    @Autowired
-    AssessmentService assessmentService;
     @Autowired
     EventHandlerService eventHandlerServiceUnderTest;
     @Autowired

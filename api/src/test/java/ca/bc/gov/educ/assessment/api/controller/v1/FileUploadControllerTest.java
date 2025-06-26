@@ -46,6 +46,8 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     @Autowired
     private AssessmentQuestionRepository assessmentQuestionRepository;
     @Autowired
+    StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+    @Autowired
     private RestUtils restUtils;
     @Autowired
     private AssessmentComponentRepository assessmentComponentRepository;
@@ -53,6 +55,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        stagedAssessmentStudentRepository.deleteAll();
         assessmentFormRepository.deleteAll();
         assessmentTypeCodeRepository.deleteAll();
         assessmentRepository.deleteAll();
@@ -88,7 +91,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
 
     @Test
     void testProcessAssessmentResultsFile_givenTxtFile_WithInvalidIncomingSession_ShouldReturnBadRequest() throws Exception {
-        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTE10.txt");
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
 
         var file = AssessmentResultFileUpload.builder()

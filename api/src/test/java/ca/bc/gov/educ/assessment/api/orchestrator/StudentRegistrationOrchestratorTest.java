@@ -59,6 +59,8 @@ class StudentRegistrationOrchestratorTest extends BaseAssessmentAPITest {
     @Autowired
     AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
     @Autowired
+    StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+    @Autowired
     SagaRepository sagaRepository;
     @Autowired
     SagaEventRepository sagaEventRepository;
@@ -82,6 +84,7 @@ class StudentRegistrationOrchestratorTest extends BaseAssessmentAPITest {
     public void after() {
         sagaEventRepository.deleteAll();
         sagaRepository.deleteAll();
+        stagedAssessmentStudentRepository.deleteAll();
         assessmentStudentRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
         assessmentRepository.deleteAll();

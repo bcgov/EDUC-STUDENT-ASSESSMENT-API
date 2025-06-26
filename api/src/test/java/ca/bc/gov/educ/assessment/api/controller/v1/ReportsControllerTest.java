@@ -8,10 +8,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCo
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentFormRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
@@ -59,11 +56,14 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     @Autowired
     private RestUtils restUtils;
     @Autowired
+    StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+    @Autowired
     private AssessmentFormRepository assessmentFormRepository;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        stagedAssessmentStudentRepository.deleteAll();
         assessmentFormRepository.deleteAll();
         this.studentRepository.deleteAll();
         this.assessmentRepository.deleteAll();
