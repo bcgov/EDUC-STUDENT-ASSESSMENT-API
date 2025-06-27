@@ -2,11 +2,13 @@ package ca.bc.gov.educ.assessment.api.rest;
 
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.TopicsEnum;
+import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.SagaRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.struct.Event;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge;
@@ -27,6 +29,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +45,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class RestUtils {
   public static final String NATS_TIMEOUT = "Either NATS timed out or the response is null , correlationID :: ";
   private static final String CONTENT_TYPE = "Content-Type";
+  private static final String EXCEPTION = "exception";
+  public static final String NO_RESPONSE_RECEIVED_WITHIN_TIMEOUT_FOR_CORRELATION_ID = "No response received within timeout for correlation ID ";
   private final Map<String, IndependentAuthority> authorityMap = new ConcurrentHashMap<>();
   private final Map<String, SchoolTombstone> schoolMap = new ConcurrentHashMap<>();
   private final Map<String, SchoolTombstone> schoolMincodeMap = new ConcurrentHashMap<>();
@@ -361,14 +366,14 @@ public class RestUtils {
   }
 
   @Retryable(retryFor = {Exception.class}, noRetryFor = {SagaRuntimeException.class}, backoff = @Backoff(multiplier = 2, delay = 2000))
-  public Student getStudentByPEN(UUID correlationID, String assignedPEN) {
+  public Optional<Student> getStudentByPEN(UUID correlationID, String assignedPEN) {
     try {
       final TypeReference<Student> refPenMatchResult = new TypeReference<>() {
       };
       Object event = Event.builder().sagaId(correlationID).eventType(EventType.GET_STUDENT).eventPayload(assignedPEN).build();
       val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.STUDENT_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
       if (responseMessage != null) {
-        return objectMapper.readValue(responseMessage.getData(), refPenMatchResult);
+        return Optional.ofNullable(objectMapper.readValue(responseMessage.getData(), refPenMatchResult));
       } else {
         throw new StudentAssessmentAPIRuntimeException(NATS_TIMEOUT + correlationID);
       }
@@ -398,6 +403,44 @@ public class RestUtils {
       log.error("Error occurred calling GET STUDENTS service :: " + ex.getMessage());
       Thread.currentThread().interrupt();
       throw new StudentAssessmentAPIRuntimeException(ex.getMessage());
+    }
+  }
+
+  @Retryable(retryFor = {Exception.class}, noRetryFor = {SagaRuntimeException.class, EntityNotFoundException.class}, backoff = @Backoff(multiplier = 2, delay = 2000))
+  public GradStudentRecord getGradStudentRecordByStudentID(UUID correlationID, UUID studentID) {
+    try {
+      final TypeReference<GradStudentRecord> refGradStudentRecordResult = new TypeReference<>() {
+      };
+      Object event = Event.builder().sagaId(correlationID).eventType(EventType.GET_GRAD_STUDENT_RECORD).eventPayload(studentID.toString()).build();
+      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.GRAD_STUDENT_API_FETCH_GRAD_STUDENT_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
+      if (responseMessage != null) {
+        String responseData = new String(responseMessage.getData(), StandardCharsets.UTF_8);
+
+        Map<String, String> response = objectMapper.readValue(responseData, new TypeReference<>() {});
+
+        log.debug("getGradStudentRecordByStudentID response{}", response.toString());
+
+        if ("not found".equals(response.get(EXCEPTION))) {
+          log.debug("A not found error occurred while fetching GradStudentRecord for Student ID {}", studentID);
+          throw new EntityNotFoundException(GradStudentRecord.class);
+        } else if ("error".equals(response.get(EXCEPTION))) {
+          log.error("An exception error occurred while fetching GradStudentRecord for Student ID {}", studentID);
+          throw new StudentAssessmentAPIRuntimeException("Error occurred while processing the request for correlation ID " + correlationID);
+        }
+
+        log.debug("Success fetching GradStudentRecord for Student ID {}", studentID);
+        return objectMapper.readValue(responseData, refGradStudentRecordResult);
+      } else {
+        throw new StudentAssessmentAPIRuntimeException(NO_RESPONSE_RECEIVED_WITHIN_TIMEOUT_FOR_CORRELATION_ID + correlationID);
+      }
+
+    } catch (EntityNotFoundException ex) {
+      log.debug("Entity Not Found occurred calling GET GRAD STUDENT RECORD service :: {}", ex.getMessage());
+      throw ex;
+    } catch (final Exception ex) {
+      log.error("Error occurred calling GET GRAD STUDENT RECORD service :: {}", ex.getMessage());
+      Thread.currentThread().interrupt();
+      throw new StudentAssessmentAPIRuntimeException(NATS_TIMEOUT + correlationID);
     }
   }
 }

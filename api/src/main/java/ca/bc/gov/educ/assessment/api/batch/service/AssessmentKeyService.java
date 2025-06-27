@@ -1,10 +1,10 @@
 package ca.bc.gov.educ.assessment.api.batch.service;
 
-import ca.bc.gov.educ.assessment.api.batch.exception.FileError;
-import ca.bc.gov.educ.assessment.api.batch.exception.FileUnProcessableException;
+import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
+import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyDetails;
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyFile;
-import ca.bc.gov.educ.assessment.api.batch.validation.FileValidator;
+import ca.bc.gov.educ.assessment.api.batch.validation.KeyFileValidator;
 import ca.bc.gov.educ.assessment.api.mappers.StringMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.sf.flatpack.DataSet;
-import net.sf.flatpack.Record;
-import net.sf.flatpack.StreamingDataSet;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -24,11 +22,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -51,7 +47,8 @@ import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchF
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.SCALE_FACTOR;
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.TASK_CODE;
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.TOPIC_TYPE;
-import static ca.bc.gov.educ.assessment.api.batch.exception.FileError.*;
+import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentResultsBatchFile.ASSESSMENT_SESSION;
+import static ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError.*;
 import static ca.bc.gov.educ.assessment.api.batch.mapper.AssessmentKeysBatchFileMapper.mapper;
 
 @Service
@@ -63,39 +60,39 @@ public class AssessmentKeyService {
     private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
     private final AssessmentFormRepository assessmentFormRepository;
     private final AssessmentRepository assessmentRepository;
-    private final FileValidator fileValidator;
+    private final KeyFileValidator keyFileValidator;
     private final CodeTableService codeTableService;
 
     public static final String LOAD_FAIL = "LOADFAIL";
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID) throws FileUnProcessableException {
+    public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID) throws KeyFileUnProcessableException {
         val batchFile = new AssessmentKeyFile();
 
         AssessmentSessionEntity validSession =
                 assessmentSessionRepository.findById(sessionID)
-                        .orElseThrow(() -> new FileUnProcessableException(FileError.INVALID_INCOMING_REQUEST_SESSION, guid, LOAD_FAIL));
+                        .orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_INCOMING_REQUEST_SESSION, guid, LOAD_FAIL));
         populateAssessmentKeyFile(ds, batchFile, validSession, guid);
         processLoadedRecordsInBatchFile(guid, batchFile, validSession);
     }
 
-    private void populateAssessmentKeyFile(final DataSet ds, final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession, final String guid) throws FileUnProcessableException {
+    private void populateAssessmentKeyFile(final DataSet ds, final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession, final String guid) throws KeyFileUnProcessableException {
         long index = 0;
         while (ds.next()) {
             var fileSession = ds.getString(ASSMT_SESSION.getName());
             var fileAssessmentCode = ds.getString(ASSMT_CODE.getName());
-            fileValidator.validateSessionAndAssessmentCode(fileSession, validSession, fileAssessmentCode, guid, index);
+            keyFileValidator.validateSessionAndAssessmentCode(fileSession, validSession, fileAssessmentCode, guid, index);
             batchFile.getAssessmentKeyData().add(getAssessmentKeyDetailRecordFromFile(ds, guid, index));
             index++;
         }
     }
 
-    private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession) throws FileUnProcessableException {
+    private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession) throws KeyFileUnProcessableException {
         var typeCode = batchFile.getAssessmentKeyData().getFirst().getAssessmentCode();
-        assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new FileUnProcessableException(FileError.INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
+        assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
 
         var assessmentEntity = assessmentRepository.findByAssessmentSessionEntity_SessionIDAndAssessmentTypeCode(validSession.getSessionID(), typeCode)
-                .orElseThrow(() -> new FileUnProcessableException(FileError.INVALID_ASSESSMENT_CODE, guid, LOAD_FAIL));
+                .orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_CODE, guid, LOAD_FAIL));
 
         Map<String, List<AssessmentKeyDetails>> groupedData = batchFile.getAssessmentKeyData().stream().collect(Collectors.groupingBy(AssessmentKeyDetails::getFormCode));
 
@@ -247,88 +244,88 @@ public class AssessmentKeyService {
                 .toList();
     }
 
-    private AssessmentKeyDetails getAssessmentKeyDetailRecordFromFile(final DataSet ds, final String guid, final long index) throws FileUnProcessableException {
+    private AssessmentKeyDetails getAssessmentKeyDetailRecordFromFile(final DataSet ds, final String guid, final long index) throws KeyFileUnProcessableException {
         final var assmtSession = StringUtils.trim(ds.getString(ASSMT_SESSION.getName()));
         if (StringUtils.isBlank(assmtSession) || assmtSession.length() > 6) {
-            throw new FileUnProcessableException(SESSION_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(SESSION_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var assmtCode = StringMapper.trimAndUppercase(ds.getString(ASSMT_CODE.getName()));
         if (StringUtils.isBlank(assmtCode) || assmtCode.length() > 5) {
-            throw new FileUnProcessableException(ASSMT_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(ASSMT_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var formCode = StringMapper.trimAndUppercase(ds.getString(FORM_CODE.getName()));
         if (StringUtils.isBlank(formCode) || formCode.length() > 1) {
-            throw new FileUnProcessableException(FORM_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(FORM_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var quesNumber = StringUtils.trim(ds.getString(QUES_NUMBER.getName()));
         if (StringUtils.isBlank(quesNumber) || quesNumber.length() > 2) {
-            throw new FileUnProcessableException(QUES_NUM_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(QUES_NUM_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var itemType = StringMapper.trimAndUppercase(ds.getString(ITEM_TYPE.getName()));
         Pattern pattern = Pattern.compile("^E[R|O]-Q(\\d|\\d{2})-C(\\d)-M(\\d)$");
         if (StringUtils.isBlank(itemType) || (!itemType.equalsIgnoreCase("UNKNOWN") && !pattern.matcher(itemType).matches())) {
-            throw new FileUnProcessableException(INVALID_ITEM_TYPE, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(INVALID_ITEM_TYPE, guid, String.valueOf(index + 1));
         } else if(itemType.length() > 12) {
-            throw new FileUnProcessableException(ITEM_TYPE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(ITEM_TYPE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var answer = StringMapper.trimAndUppercase(ds.getString(MC_ANSWER150.getName()));
         if (StringUtils.isNotBlank(answer) && answer.length() > 150) {
-            throw new FileUnProcessableException(ANSWER_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(ANSWER_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var mark = StringUtils.trim(ds.getString(MARK_VALUE.getName()));
         if (StringUtils.isBlank(mark) || mark.length() > 2) {
-            throw new FileUnProcessableException(MARK_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(MARK_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var cognLevel = StringMapper.trimAndUppercase(ds.getString(COGN_LEVEL.getName()));
         if(StringUtils.isNotBlank(cognLevel) && codeTableService.getAllCognitiveLevelCodes().stream().noneMatch(code -> code.getCognitiveLevelCode().equalsIgnoreCase(cognLevel))) {
-            throw new FileUnProcessableException(INVALID_COGNITIVE_LEVEL_CODE, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(INVALID_COGNITIVE_LEVEL_CODE, guid, String.valueOf(index + 1));
         } else if(cognLevel.length() > 4) {
-            throw new FileUnProcessableException(COGN_LEVEL_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(COGN_LEVEL_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var taskCode = StringMapper.trimAndUppercase(ds.getString(TASK_CODE.getName()));
         if(StringUtils.isNotBlank(taskCode) && codeTableService.getAllTaskCodes().stream().noneMatch(code -> code.getTaskCode().equalsIgnoreCase(taskCode))) {
-            throw new FileUnProcessableException(INVALID_TASK_CODE, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(INVALID_TASK_CODE, guid, String.valueOf(index + 1));
         } else if(StringUtils.isNotBlank(cognLevel) && taskCode.length() > 2) {
-            throw new FileUnProcessableException(TASK_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(TASK_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var claimCode = StringMapper.trimAndUppercase(ds.getString(CLAIM_CODE.getName()));
         if(StringUtils.isNotBlank(claimCode) && codeTableService.getAllClaimCodes().stream().noneMatch(code -> code.getClaimCode().equalsIgnoreCase(claimCode))) {
-            throw new FileUnProcessableException(INVALID_CLAIM_CODE, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(INVALID_CLAIM_CODE, guid, String.valueOf(index + 1));
         } else if(StringUtils.isNotBlank(claimCode) && claimCode.length() > 3) {
-            throw new FileUnProcessableException(CLAIM_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(CLAIM_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var contextCode = StringMapper.trimAndUppercase(ds.getString(CONTEXT_CODE.getName()));
         if(StringUtils.isNotBlank(contextCode) && codeTableService.getAllContextCodes().stream().noneMatch(code -> code.getContextCode().equalsIgnoreCase(contextCode))) {
-            throw new FileUnProcessableException(INVALID_CONTEXT_CODE, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(INVALID_CONTEXT_CODE, guid, String.valueOf(index + 1));
         } else if(StringUtils.isNotBlank(contextCode) && contextCode.length() > 1) {
-            throw new FileUnProcessableException(CONTEXT_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(CONTEXT_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var conceptsCode = StringMapper.trimAndUppercase(ds.getString(CONCEPTS_CODE.getName()));
         if(StringUtils.isNotBlank(conceptsCode) && codeTableService.getAllConceptCodes().stream().noneMatch(code -> code.getConceptCode().equalsIgnoreCase(conceptsCode))) {
-            throw new FileUnProcessableException(INVALID_CONCEPT_CODE, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(INVALID_CONCEPT_CODE, guid, String.valueOf(index + 1));
         } else if(StringUtils.isNotBlank(conceptsCode) && conceptsCode.length() > 3) {
-            throw new FileUnProcessableException(CONTEXT_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(CONTEXT_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var scale = StringMapper.trimAndUppercase(ds.getString(SCALE_FACTOR.getName()));
         if (StringUtils.isBlank(scale) || scale.length() > 8) {
-            throw new FileUnProcessableException(SCALE_FACTOR_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(SCALE_FACTOR_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         final var assmtSection = StringMapper.trimAndUppercase(ds.getString(ASSMT_SECTION.getName()));
         if (StringUtils.isNotBlank(assmtSection) && assmtSection.length() > 8) {
-            throw new FileUnProcessableException(ASSMT_SECTION_LENGTH_ERROR, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(ASSMT_SECTION_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         return AssessmentKeyDetails.builder()

@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
@@ -126,6 +127,39 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
+  public AssessmentFormEntity createMockAssessmentFormEntity(AssessmentEntity assessmentEntity, String formCode) {
+    return AssessmentFormEntity.builder()
+            .assessmentEntity(assessmentEntity)
+            .formCode(formCode)
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
+  public AssessmentComponentEntity createMockAssessmentComponentEntity(AssessmentFormEntity assessmentFormEntity, String componentTypeCode, String componentSubTypeCode) {
+    return AssessmentComponentEntity.builder()
+            .assessmentFormEntity(assessmentFormEntity)
+            .componentSubTypeCode(componentSubTypeCode)
+            .componentTypeCode(componentTypeCode)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
+  public AssessmentQuestionEntity createMockAssessmentQuestionEntity(AssessmentComponentEntity assessmentComponentEntity, Integer questionNumber, Integer itemNumber) {
+    return AssessmentQuestionEntity.builder()
+            .assessmentComponentEntity(assessmentComponentEntity)
+            .itemNumber(itemNumber)
+            .questionNumber(questionNumber)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
   public List<AssessmentSessionCriteriaEntity> createMockAssessmentSessionCriteriaEntities() {
     List<AssessmentSessionCriteriaEntity> sessionCriteriaEntities = new ArrayList<>();
 
@@ -221,6 +255,16 @@ public abstract class BaseAssessmentAPITest {
             .localID("123")
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .build();
+  }
+
+  public GradStudentRecord createMockGradStudentAPIRecord() {
+    return GradStudentRecord.builder()
+            .schoolOfRecordId(UUID.randomUUID().toString())
+            .schoolAtGradId(UUID.randomUUID().toString())
+            .studentStatusCode("CUR")
+            .programCompletionDate("2023-06-30T00:00:00+01:00")
+            .graduated("true")
             .build();
   }
 

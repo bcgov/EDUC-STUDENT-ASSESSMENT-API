@@ -6,7 +6,6 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,8 +17,8 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT_STUDENT_COMPONENT")
-public class AssessmentStudentComponentEntity {
+@Table(name = "STAGED_ASSESSMENT_STUDENT_COMPONENT")
+public class StagedAssessmentStudentComponentEntity {
 
     @Id
     @UuidGenerator
@@ -28,9 +27,9 @@ public class AssessmentStudentComponentEntity {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentStudentEntity.class)
+    @ManyToOne(optional = false, targetEntity = StagedAssessmentStudentEntity.class)
     @JoinColumn(name = "ASSESSMENT_STUDENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_ID", updatable = false)
-    AssessmentStudentEntity assessmentStudentEntity;
+    StagedAssessmentStudentEntity stagedAssessmentStudentEntity;
 
     @Column(name = "ASSESSMENT_COMPONENT_ID", updatable = false)
     UUID assessmentComponentID;
@@ -54,14 +53,14 @@ public class AssessmentStudentComponentEntity {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "assessmentStudentComponentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = AssessmentStudentAnswerEntity.class)
-    Set<AssessmentStudentAnswerEntity> assessmentStudentAnswerEntities;
+    @OneToMany(mappedBy = "stagedAssessmentStudentComponentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = StagedAssessmentStudentAnswerEntity.class)
+    Set<StagedAssessmentStudentAnswerEntity> stagedAssessmentStudentAnswerEntities;
 
-    public Set<AssessmentStudentAnswerEntity> getAssessmentStudentAnswerEntities() {
-        if (this.assessmentStudentAnswerEntities == null) {
-            this.assessmentStudentAnswerEntities = new HashSet<>();
+    public Set<StagedAssessmentStudentAnswerEntity> getStagedAssessmentStudentAnswerEntities() {
+        if (this.stagedAssessmentStudentAnswerEntities == null) {
+            this.stagedAssessmentStudentAnswerEntities = new HashSet<>();
         }
-        return this.assessmentStudentAnswerEntities;
+        return this.stagedAssessmentStudentAnswerEntities;
     }
 
 }

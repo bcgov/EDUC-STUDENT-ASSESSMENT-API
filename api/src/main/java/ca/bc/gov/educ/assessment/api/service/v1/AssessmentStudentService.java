@@ -128,13 +128,14 @@ public class AssessmentStudentService {
 
         UUID studentCorrelationID = UUID.randomUUID();
         log.info("Retrieving student record for PEN ::{} with correlationID :: {}", assessmentStudentEntity.getPen(), studentCorrelationID);
-        Student studentApiStudent = restUtils.getStudentByPEN(studentCorrelationID, assessmentStudentEntity.getPen());
+        Student studentApiStudent = restUtils.getStudentByPEN(studentCorrelationID, assessmentStudentEntity.getPen()).orElseThrow(() ->
+                new EntityNotFoundException(Student.class, "Student", assessmentStudentEntity.getPen()));
 
         List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, studentApiStudent);
 
         if (validationIssues.isEmpty()) {
             if (currentAssessmentStudentEntity != null) {
-                BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "districtID", "schoolID", "studentID", "givenName", "surName", "pen", "localID", "isElectronicExam", "courseStatusCode", "createUser", "createDate");
+                BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "districtID", "schoolID", "studentID", "givenName", "surName", "pen", "localID", "courseStatusCode", "createUser", "createDate");
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
                 currentAssessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), currentAssessmentStudentEntity.getStudentID())));
                 return mapper.toStructure(createAssessmentStudentWithHistory(currentAssessmentStudentEntity));

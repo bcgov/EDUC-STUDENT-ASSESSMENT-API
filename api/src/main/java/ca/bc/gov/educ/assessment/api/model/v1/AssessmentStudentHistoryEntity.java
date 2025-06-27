@@ -66,9 +66,6 @@ public class AssessmentStudentHistoryEntity {
     @Column(name = "LOCAL_ASSESSMENT_ID", length = 20)
     private String localAssessmentID;
 
-    @Column(name = "IS_ELECTRONIC_ASSESSMENT", length = 1)
-    private Boolean isElectronicAssessment;
-
     @Column(name = "PROFICIENCY_SCORE", length = 1)
     private Integer proficiencyScore;
 

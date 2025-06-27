@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.assessment.api.batch.validation;
 
-import ca.bc.gov.educ.assessment.api.batch.exception.FileError;
-import ca.bc.gov.educ.assessment.api.batch.exception.FileUnProcessableException;
+import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
+import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
@@ -16,24 +16,24 @@ import java.util.Optional;
 
 @Component
 @Slf4j
-public class FileValidator {
+public class KeyFileValidator {
     public static final String TOO_LONG = "TOO LONG";
     public static final String LOAD_FAIL = "LOADFAIL";
     public static final String LENGTH = "256";
     private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
 
-    public FileValidator(AssessmentTypeCodeRepository assessmentTypeCodeRepository) {
+    public KeyFileValidator(AssessmentTypeCodeRepository assessmentTypeCodeRepository) {
         this.assessmentTypeCodeRepository = assessmentTypeCodeRepository;
     }
 
-    public byte[] getUploadedFileBytes(@NonNull final String guid, final AssessmentKeyFileUpload fileUpload) throws FileUnProcessableException {
+    public byte[] getUploadedFileBytes(@NonNull final String guid, final AssessmentKeyFileUpload fileUpload) throws KeyFileUnProcessableException {
         byte[] bytes = Base64.getDecoder().decode(fileUpload.getFileContents());
         if (bytes.length == 0) {
-            throw new FileUnProcessableException(FileError.EMPTY_FILE, guid, LOAD_FAIL);
+            throw new KeyFileUnProcessableException(KeyFileError.EMPTY_FILE, guid, LOAD_FAIL);
         }
         return bytes;
     }
-    public void validateFileForFormatAndLength(@NonNull final String guid, @NonNull final DataSet ds) throws FileUnProcessableException {
+    public void validateFileForFormatAndLength(@NonNull final String guid, @NonNull final DataSet ds) throws KeyFileUnProcessableException {
         this.processDataSetForRowLengthErrors(guid, ds, LENGTH);
     }
     private static boolean isMalformedRowError(DataError error, String lengthError) {
@@ -47,7 +47,7 @@ public class FileValidator {
         return "The uploaded file contains a malformed row that could not be identified.";
     }
 
-    public void processDataSetForRowLengthErrors(@NonNull final String guid, @NonNull final DataSet ds, @NonNull final String lengthError) throws FileUnProcessableException {
+    public void processDataSetForRowLengthErrors(@NonNull final String guid, @NonNull final DataSet ds, @NonNull final String lengthError) throws KeyFileUnProcessableException {
         Optional<DataError> maybeError = ds
                 .getErrors()
                 .stream()
@@ -58,8 +58,8 @@ public class FileValidator {
         if (maybeError.isPresent() && ds.getRowCount() != maybeError.get().getLineNo()) {
             DataError error = maybeError.get();
             String message = this.getMalformedRowMessage(error.getErrorDesc(), error, lengthError);
-            throw new FileUnProcessableException(
-                    FileError.INVALID_ROW_LENGTH,
+            throw new KeyFileUnProcessableException(
+                    KeyFileError.INVALID_ROW_LENGTH,
                     guid,
                     LOAD_FAIL,
                     message
@@ -84,31 +84,31 @@ public class FileValidator {
         return "Line " + (error.getLineNo()) + " is missing characters.";
     }
 
-    public void validateFileHasCorrectExtension(@NonNull final String guid, final AssessmentKeyFileUpload fileUpload) throws FileUnProcessableException {
+    public void validateFileHasCorrectExtension(@NonNull final String guid, final AssessmentKeyFileUpload fileUpload) throws KeyFileUnProcessableException {
         String fileName = fileUpload.getFileName();
         int lastIndex = fileName.lastIndexOf('.');
 
         if(lastIndex == -1){
-            throw new FileUnProcessableException(FileError.NO_FILE_EXTENSION, guid, LOAD_FAIL);
+            throw new KeyFileUnProcessableException(KeyFileError.NO_FILE_EXTENSION, guid, LOAD_FAIL);
         }
 
         String extension = fileName.substring(lastIndex);
 
         if (!extension.equalsIgnoreCase(".txt")) {
-            throw new FileUnProcessableException(FileError.INVALID_FILE_EXTENSION, guid, LOAD_FAIL);
+            throw new KeyFileUnProcessableException(KeyFileError.INVALID_FILE_EXTENSION, guid, LOAD_FAIL);
         }
     }
 
-    public void validateSessionAndAssessmentCode(String fileSession, AssessmentSessionEntity validSession, String fileAssessmentCode, String guid, long index) throws FileUnProcessableException {
+    public void validateSessionAndAssessmentCode(String fileSession, AssessmentSessionEntity validSession, String fileAssessmentCode, String guid, long index) throws KeyFileUnProcessableException {
         var courseYear = fileSession.substring(0, 4);
         var courseMonth = fileSession.substring(4);
 
         if(!courseYear.equals(validSession.getCourseYear()) ||  !courseMonth.equals(validSession.getCourseMonth())){
-            throw new FileUnProcessableException(FileError.INVALID_ASSESSMENT_KEY_SESSION, guid, String.valueOf(index + 1));
+            throw new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_KEY_SESSION, guid, String.valueOf(index + 1));
         }
 
         assessmentTypeCodeRepository.findByAssessmentTypeCode(fileAssessmentCode)
-                .orElseThrow(() -> new FileUnProcessableException(FileError.INVALID_ASSESSMENT_TYPE, guid, String.valueOf(index + 1)));
+                .orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_TYPE, guid, String.valueOf(index + 1)));
     }
 
 }

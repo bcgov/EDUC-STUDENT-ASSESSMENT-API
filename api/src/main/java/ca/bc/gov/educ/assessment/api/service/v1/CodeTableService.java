@@ -4,17 +4,21 @@ import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import static javax.management.timer.Timer.ONE_DAY;
 
 @Service
 @AllArgsConstructor
 public class CodeTableService {
 
+    private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
     private final ProvincialSpecialCaseCodeRepository provincialSpecialCaseCodeRepository;
-
+    private final AdaptedAssessmentIndicatorCodeRepository adaptedAssessmentIndicatorCodeRepository;
     private final ClaimCodeRepository claimCodeRepository;
     private final CognitiveLevelCodeRepository cognitiveLevelCodeRepository;
     private final ConceptsCodeRepository conceptsCodeRepository;
@@ -24,6 +28,17 @@ public class CodeTableService {
     @Cacheable("assessmentTypeCodes")
     public List<AssessmentTypeCodeEntity> getAllAssessmentTypeCodes() {
         return assessmentTypeCodeRepository.findAll();
+    }
+
+    @Scheduled(fixedRate = ONE_DAY, initialDelayString = "${timing.initialDelay}")
+    @Cacheable("assessmentSessions")
+    public List<AssessmentSessionEntity> getAllAssessmentSessionCodes() {
+        return assessmentSessionRepository.findAll();
+    }
+
+    @Cacheable("adaptedAssessmentIndicatorCodes")
+    public List<AdaptedAssessmentIndicatorCodeEntity> getAdaptedAssessmentIndicatorCodes() {
+        return adaptedAssessmentIndicatorCodeRepository.findAll();
     }
 
     @Cacheable("provincialSpecialCaseCodes")

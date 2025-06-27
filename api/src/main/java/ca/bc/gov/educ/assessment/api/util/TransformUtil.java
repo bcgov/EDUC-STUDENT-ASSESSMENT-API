@@ -79,4 +79,16 @@ public class TransformUtil {
       }
     }
   }
+
+  public static List<String> splitStringEveryNChars(String text, int n) {
+    List<String> result = new ArrayList<>();
+    int length = text.length();
+
+    for (int i = 0; i < length; i += n) {
+      // Calculate the end index for the substring, ensuring it doesn't exceed string length
+      int endIndex = Math.min(length, i + n);
+      result.add(text.substring(i, endIndex));
+    }
+    return result;
+  }
 }

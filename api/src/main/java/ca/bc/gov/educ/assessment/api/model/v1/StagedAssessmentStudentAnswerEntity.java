@@ -16,8 +16,8 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT_STUDENT_ANSWER")
-public class AssessmentStudentAnswerEntity {
+@Table(name = "STAGED_ASSESSMENT_STUDENT_ANSWER")
+public class StagedAssessmentStudentAnswerEntity {
 
     @Id
     @UuidGenerator
@@ -26,9 +26,9 @@ public class AssessmentStudentAnswerEntity {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentStudentComponentEntity.class)
+    @ManyToOne(optional = false, targetEntity = StagedAssessmentStudentComponentEntity.class)
     @JoinColumn(name = "ASSESSMENT_STUDENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_COMPONENT_ID", updatable = false)
-    AssessmentStudentComponentEntity assessmentStudentComponentEntity;
+    StagedAssessmentStudentComponentEntity stagedAssessmentStudentComponentEntity;
 
     @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
     UUID assessmentQuestionID;

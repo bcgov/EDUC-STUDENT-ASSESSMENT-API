@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.mappers.v1;
 import ca.bc.gov.educ.assessment.api.mappers.LocalDateTimeMapper;
 import ca.bc.gov.educ.assessment.api.mappers.UUIDMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.util.TransformUtil;
 import org.mapstruct.AfterMapping;
@@ -23,7 +24,9 @@ public interface AssessmentStudentMapper {
     @Mapping(target = "assessmentCenterSchoolID", source = "assessmentCenterSchoolID")
     @Mapping(target = "givenName", source = "givenName")
     AssessmentStudentEntity toModel(AssessmentStudent assessmentStudent);
-
+    
+    StagedAssessmentStudentEntity toStagingStudent(AssessmentStudentEntity entity);
+    
     @AfterMapping
     default void transformToUpperCase(AssessmentStudentEntity assessmentStudentEntity, @MappingTarget AssessmentStudent.AssessmentStudentBuilder assessmentStudent) {
         TransformUtil.uppercaseFields(assessmentStudentEntity);

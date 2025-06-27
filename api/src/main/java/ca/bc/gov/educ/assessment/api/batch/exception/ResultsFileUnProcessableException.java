@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
  * The type File un processable exception.
  */
 @Slf4j
-public class FileUnProcessableException extends Exception {
+public class ResultsFileUnProcessableException extends Exception {
 
   /**
    * The constant GUID_IS.
@@ -18,7 +18,7 @@ public class FileUnProcessableException extends Exception {
    * The File error.
    */
   @Getter
-  private final FileError fileError;
+  private final ResultFileError resultFileError;
   /**
    * The Reason.
    */
@@ -28,14 +28,14 @@ public class FileUnProcessableException extends Exception {
   /**
    * Instantiates a new File un processable exception.
    *
-   * @param fileError                 the file error
+   * @param resultFileError                 the file error
    * @param guid                      the guid
    * @param messageArgs               the message args
    */
-  public FileUnProcessableException(final FileError fileError, final String guid, final String... messageArgs) {
-    super(fileError.getMessage() + GUID_IS + guid);
-    this.fileError = fileError;
-    var finalLogMessage = fileError.getMessage();
+  public ResultsFileUnProcessableException(final ResultFileError resultFileError, final String guid, final String... messageArgs) {
+    super(resultFileError.getMessage() + GUID_IS + guid);
+    this.resultFileError = resultFileError;
+    var finalLogMessage = resultFileError.getMessage();
     if (messageArgs != null) {
       finalLogMessage = getFormattedMessage(finalLogMessage, messageArgs);
     }

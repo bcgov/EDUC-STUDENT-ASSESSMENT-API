@@ -1,27 +1,18 @@
 package ca.bc.gov.educ.assessment.api.batch.processor;
 
-import ca.bc.gov.educ.assessment.api.batch.exception.FileError;
-import ca.bc.gov.educ.assessment.api.batch.exception.FileUnProcessableException;
+import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
+import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.batch.service.AssessmentKeyService;
-import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyDetails;
-import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyFile;
-import ca.bc.gov.educ.assessment.api.batch.validation.FileValidator;
+import ca.bc.gov.educ.assessment.api.batch.validation.KeyFileValidator;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
-import ca.bc.gov.educ.assessment.api.mappers.StringMapper;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import ca.bc.gov.educ.assessment.api.util.ValidationUtil;
 import com.google.common.base.Stopwatch;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.sf.flatpack.DataSet;
 import net.sf.flatpack.DefaultParserFactory;
-import net.sf.flatpack.StreamingDataSet;
-import net.sf.flatpack.brparse.BuffReaderParseFactory;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +23,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.*;
-import static ca.bc.gov.educ.assessment.api.batch.mapper.AssessmentKeysBatchFileMapper.mapper;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Component
@@ -42,22 +31,22 @@ public class AssessmentKeysProcessor {
 
     public static final String INVALID_PAYLOAD_MSG = "Payload contains invalid data.";
     public static final String ASSESSMENT_KEY_UPLOAD = "assessmentKeyUpload";
-    private final FileValidator fileValidator;
+    private final KeyFileValidator keyFileValidator;
     public final AssessmentKeyService assessmentKeyService;
 
-    public AssessmentKeysProcessor(FileValidator fileValidator, AssessmentKeyService assessmentKeyService) {
-        this.fileValidator = fileValidator;
+    public AssessmentKeysProcessor(KeyFileValidator keyFileValidator, AssessmentKeyService assessmentKeyService) {
+        this.keyFileValidator = keyFileValidator;
         this.assessmentKeyService = assessmentKeyService;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processAssessmentKeys(AssessmentKeyFileUpload fileUpload, UUID sessionID) {
+    public void processAssessmentKeys(AssessmentKeyFileUpload fileUpload, UUID assessmentSessionID) {
         val stopwatch = Stopwatch.createStarted();
         final var guid = UUID.randomUUID().toString();
         Optional<Reader> batchFileReaderOptional = Optional.empty();
         try {
             final Reader mapperReader = new FileReader(Objects.requireNonNull(this.getClass().getClassLoader().getResource("assessmentKeyMapper.xml")).getFile());
-            var byteArrayOutputStream = new ByteArrayInputStream(fileValidator.getUploadedFileBytes(guid, fileUpload));
+            var byteArrayOutputStream = new ByteArrayInputStream(keyFileValidator.getUploadedFileBytes(guid, fileUpload));
             batchFileReaderOptional = Optional.of(new InputStreamReader(byteArrayOutputStream));
             final DataSet ds = DefaultParserFactory.getInstance()
                     .newDelimitedParser(mapperReader, batchFileReaderOptional.get(), '\t', '"', false)
@@ -67,12 +56,12 @@ public class AssessmentKeysProcessor {
                     .setIgnoreExtraColumns(true)
                     .parse();
 
-            fileValidator.validateFileHasCorrectExtension(guid, fileUpload);
-            assessmentKeyService.populateBatchFileAndLoadData(guid, ds, sessionID);
-        } catch (final FileUnProcessableException fileUnProcessableException) {
-            log.error("File could not be processed exception :: {}", fileUnProcessableException);
+            keyFileValidator.validateFileHasCorrectExtension(guid, fileUpload);
+            assessmentKeyService.populateBatchFileAndLoadData(guid, ds, assessmentSessionID);
+        } catch (final KeyFileUnProcessableException keyFileUnProcessableException) {
+            log.error("File could not be processed exception :: {}", keyFileUnProcessableException);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();
-            var validationError = ValidationUtil.createFieldError(ASSESSMENT_KEY_UPLOAD, sessionID, fileUnProcessableException.getReason());
+            var validationError = ValidationUtil.createFieldError(ASSESSMENT_KEY_UPLOAD, assessmentSessionID, keyFileUnProcessableException.getReason());
             List<FieldError> fieldErrorList = new ArrayList<>();
             fieldErrorList.add(validationError);
             error.addValidationErrors(fieldErrorList);
@@ -80,7 +69,7 @@ public class AssessmentKeysProcessor {
         } catch (final Exception e) {
             log.error("Exception while processing the file with guid :: {} :: Exception :: {}", guid, e);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();
-            var validationError = ValidationUtil.createFieldError(ASSESSMENT_KEY_UPLOAD, sessionID , FileError.GENERIC_ERROR_MESSAGE.getMessage());
+            var validationError = ValidationUtil.createFieldError(ASSESSMENT_KEY_UPLOAD, assessmentSessionID , KeyFileError.GENERIC_ERROR_MESSAGE.getMessage());
             List<FieldError> fieldErrorList = new ArrayList<>();
             fieldErrorList.add(validationError);
             error.addValidationErrors(fieldErrorList);

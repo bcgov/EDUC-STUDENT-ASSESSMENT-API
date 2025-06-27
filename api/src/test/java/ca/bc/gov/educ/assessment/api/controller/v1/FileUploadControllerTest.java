@@ -1,11 +1,12 @@
 package ca.bc.gov.educ.assessment.api.controller.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentFormRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentTypeCodeRepository;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
+import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,9 +19,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.io.FileInputStream;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.URL.BASE_URL;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -38,10 +43,19 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     private AssessmentFormRepository assessmentFormRepository;
     @Autowired
     private AssessmentRepository assessmentRepository;
+    @Autowired
+    private AssessmentQuestionRepository assessmentQuestionRepository;
+    @Autowired
+    StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+    @Autowired
+    private RestUtils restUtils;
+    @Autowired
+    private AssessmentComponentRepository assessmentComponentRepository;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        stagedAssessmentStudentRepository.deleteAll();
         assessmentFormRepository.deleteAll();
         assessmentTypeCodeRepository.deleteAll();
         assessmentRepository.deleteAll();
@@ -72,6 +86,26 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
                 .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].message").value("Invalid assessment session."));
+    }
+
+    @Test
+    void testProcessAssessmentResultsFile_givenTxtFile_WithInvalidIncomingSession_ShouldReturnBadRequest() throws Exception {
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.TXT");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+
+        var file = AssessmentResultFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ABC")
+                .updateUser("ABC")
+                .fileName("202406_RESULTS_LTE10.TXT")
+                .build();
+
+        this.mockMvc.perform(post( BASE_URL + "/" + UUID.randomUUID() + "/results-file")
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_GRAD_COLLECTION")))
+                        .header("correlationID", UUID.randomUUID().toString())
+                        .content(JsonUtil.getJsonStringFromObject(file))
+                        .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.subErrors[0].message").value("Invalid assessment session."));
     }
 
@@ -193,5 +227,47 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
                 .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testProcessAssessmentResulsFile_givenTxtFile_WithOpenEndedQues_ShouldReturnOK() throws Exception {
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTP10"));
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTP10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+        
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.TXT");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
+        var student = this.createMockStudentAPIStudent();
+        when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
+        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(createMockGradStudentAPIRecord());
+        
+        var file = AssessmentResultFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ABC")
+                .updateUser("ABC")
+                .fileName("202406_RESULTS_LTP10.TXT")
+                .build();
+
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_GRAD_COLLECTION")))
+                        .header("correlationID", UUID.randomUUID().toString())
+                        .content(JsonUtil.getJsonStringFromObject(file))
+                        .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
     }
 }

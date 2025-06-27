@@ -19,9 +19,9 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT_STUDENT")
+@Table(name = "STAGED_ASSESSMENT_STUDENT")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AssessmentStudentEntity {
+public class StagedAssessmentStudentEntity {
 
   @Id
   @GeneratedValue(generator = "UUID")
@@ -108,13 +108,13 @@ public class AssessmentStudentEntity {
 
   @EqualsAndHashCode.Exclude
   @ToString.Exclude
-  @OneToMany(mappedBy = "assessmentStudentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = AssessmentStudentComponentEntity.class)
-  Set<AssessmentStudentComponentEntity> assessmentStudentComponentEntities;
+  @OneToMany(mappedBy = "stagedAssessmentStudentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = StagedAssessmentStudentComponentEntity.class)
+  Set<StagedAssessmentStudentComponentEntity> stagedAssessmentStudentComponentEntities;
 
-  public Set<AssessmentStudentComponentEntity> getAssessmentStudentComponentEntities() {
-    if (this.assessmentStudentComponentEntities == null) {
-      this.assessmentStudentComponentEntities = new HashSet<>();
+  public Set<StagedAssessmentStudentComponentEntity> getStagedAssessmentStudentComponentEntities() {
+    if (this.stagedAssessmentStudentComponentEntities == null) {
+      this.stagedAssessmentStudentComponentEntities = new HashSet<>();
     }
-    return this.assessmentStudentComponentEntities;
+    return this.stagedAssessmentStudentComponentEntities;
   }
 }
