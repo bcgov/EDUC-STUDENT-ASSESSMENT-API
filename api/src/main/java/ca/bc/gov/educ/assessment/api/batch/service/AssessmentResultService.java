@@ -66,14 +66,14 @@ public class AssessmentResultService {
         AssessmentSessionEntity validSession =
                 assessmentSessionRepository.findById(sessionID)
                         .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_INCOMING_REQUEST_SESSION, correlationID, LOAD_FAIL));
-        populateAssessmentResultsFile(ds, batchFile, validSession, correlationID);
+        populateAssessmentResultsFile(ds, batchFile, correlationID);
         processLoadedRecordsInBatchFile(correlationID, batchFile, validSession, fileUpload);
     }
 
-    private void populateAssessmentResultsFile(final DataSet ds, final AssessmentResultFile batchFile, AssessmentSessionEntity validSession, final String guid) throws ResultsFileUnProcessableException {
-        long index = 0;
+    private void populateAssessmentResultsFile(final DataSet ds, final AssessmentResultFile batchFile, final String guid) throws ResultsFileUnProcessableException {
+        int index = 0;
         while (ds.next()) {
-            batchFile.getAssessmentResultData().add(getAssessmentResultDetailRecordFromFile(ds, guid, index));
+            batchFile.getAssessmentResultData().add(getAssessmentResultDetailRecordFromFile(ds, guid, Integer.toString(index)));
             index++;
         }
     }
@@ -217,45 +217,45 @@ public class AssessmentResultService {
         }
     }
 
-    private AssessmentResultDetails getAssessmentResultDetailRecordFromFile(final DataSet ds, final String guid) throws ResultsFileUnProcessableException {
+    private AssessmentResultDetails getAssessmentResultDetailRecordFromFile(final DataSet ds, final String guid, final String lineNumber) throws ResultsFileUnProcessableException {
         final var txID = StringMapper.trimAndUppercase(ds.getString(TX_ID.getName()));
         if (StringUtils.isBlank(txID) || !txID.equalsIgnoreCase("A01")) {
-            throw new ResultsFileUnProcessableException(INVALID_TXID, guid, txID);
+            throw new ResultsFileUnProcessableException(INVALID_TXID, guid, lineNumber);
         }
 
         final var componentType = StringMapper.trimAndUppercase(ds.getString(COMPONENT_TYPE.getName()));
         if(StringUtils.isNotBlank(componentType) && LegacyComponentTypeCodes.findByValue(componentType).isEmpty()) {
-            throw new ResultsFileUnProcessableException(INVALID_COMPONENT_TYPE_CODE, guid, componentType);
+            throw new ResultsFileUnProcessableException(INVALID_COMPONENT_TYPE_CODE, guid, lineNumber);
         }
 
         final var specialCaseCode = StringMapper.trimAndUppercase(ds.getString(SPECIAL_CASE_CODE.getName()));
         if(StringUtils.isNotBlank(specialCaseCode) && Arrays.stream(validSpecialCaseCodes).noneMatch(specialCaseCode::equalsIgnoreCase)) {
-            throw new ResultsFileUnProcessableException(INVALID_SPECIAL_CASE_CODE, guid, specialCaseCode);
+            throw new ResultsFileUnProcessableException(INVALID_SPECIAL_CASE_CODE, guid, lineNumber);
         }
 
         final var adaptedAssessmentIndicator = StringMapper.trimAndUppercase(ds.getString(ADAPTED_ASSESSMENT_INDICATOR.getName()));
         if(StringUtils.isNotBlank(adaptedAssessmentIndicator) && codeTableService.getAdaptedAssessmentIndicatorCodes().stream().noneMatch(code -> code.getLegacyCode().equalsIgnoreCase(adaptedAssessmentIndicator))) {
-            throw new ResultsFileUnProcessableException(INVALID_ADAPTED_ASSESSMENT_CODE, guid, adaptedAssessmentIndicator);
+            throw new ResultsFileUnProcessableException(INVALID_ADAPTED_ASSESSMENT_CODE, guid, lineNumber);
         }
 
         final var assessmentCode = StringMapper.trimAndUppercase(ds.getString(ASSESSMENT_CODE.getName()));
         if(StringUtils.isNotBlank(assessmentCode) && codeTableService.getAllAssessmentTypeCodes().stream().noneMatch(code -> code.getAssessmentTypeCode().equalsIgnoreCase(assessmentCode))) {
-            throw new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, guid, assessmentCode);
+            throw new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, guid, lineNumber);
         }
 
         final var assessmentSession = StringMapper.trimAndUppercase(ds.getString(ASSESSMENT_SESSION.getName()));
         if(StringUtils.isNotBlank(assessmentSession) && codeTableService.getAllAssessmentSessionCodes().stream().noneMatch(code -> (code.getCourseYear() + code.getCourseMonth()).equalsIgnoreCase(assessmentSession))) {
-            throw new ResultsFileUnProcessableException(INVALID_ASSESSMENT_SESSION, guid, assessmentSession);
+            throw new ResultsFileUnProcessableException(INVALID_ASSESSMENT_SESSION, guid, lineNumber);
         }
 
         final var mincode = StringMapper.trimAndUppercase(ds.getString(MINCODE.getName()));
         if(StringUtils.isNotBlank(mincode) && restUtils.getSchoolByMincode(mincode).isEmpty() ) {
-            throw new ResultsFileUnProcessableException(INVALID_MINCODE, guid, mincode);
+            throw new ResultsFileUnProcessableException(INVALID_MINCODE, guid, lineNumber);
         }
 
         final var proficiencyScore = StringMapper.trimAndUppercase(ds.getString(PROFICIENCY_SCORE.getName()));
         if(StringUtils.isNotBlank(proficiencyScore) && !StringUtils.isNumeric(proficiencyScore) ) {
-            throw new ResultsFileUnProcessableException(INVALID_PROFICIENCY_SCORE, guid, proficiencyScore);
+            throw new ResultsFileUnProcessableException(INVALID_PROFICIENCY_SCORE, guid, lineNumber);
         }
 
         final var irtScore = StringMapper.trimAndUppercase(ds.getString(IRT_SCORE.getName()));
@@ -263,23 +263,23 @@ public class AssessmentResultService {
             try {
                 Double.parseDouble(irtScore);
             } catch (NumberFormatException e) {
-                throw new ResultsFileUnProcessableException(INVALID_IRT_SCORE, guid, irtScore);
+                throw new ResultsFileUnProcessableException(INVALID_IRT_SCORE, guid, lineNumber);
             }
         }
 
         final var choicePath = StringMapper.trimAndUppercase(ds.getString(CHOICE_PATH.getName()));
         if(StringUtils.isNotBlank(choicePath) && Arrays.stream(validChoicePaths).noneMatch(choicePath::equalsIgnoreCase)) {
-            throw new ResultsFileUnProcessableException(INVALID_CHOICE_PATH, guid, choicePath);
+            throw new ResultsFileUnProcessableException(INVALID_CHOICE_PATH, guid, lineNumber);
         }
 
         final var pen = StringMapper.trimAndUppercase(ds.getString(PEN.getName()));
         if (StringUtils.isNotEmpty(pen) && !PenUtil.validCheckDigit(pen)) {
-            throw new ResultsFileUnProcessableException(INVALID_PEN, guid, pen);
+            throw new ResultsFileUnProcessableException(INVALID_PEN, guid, lineNumber);
         }
 
         final var markingSession = StringMapper.trimAndUppercase(ds.getString(MARKING_SESSION.getName()));
         if(StringUtils.isNotBlank(markingSession) && codeTableService.getAllAssessmentSessionCodes().stream().noneMatch(code -> (code.getCourseYear() + code.getCourseMonth()).equalsIgnoreCase(markingSession))) {
-            throw new ResultsFileUnProcessableException(INVALID_MARKING_SESSION, guid, markingSession);
+            throw new ResultsFileUnProcessableException(INVALID_MARKING_SESSION, guid, lineNumber);
         }
 
         final var formCode = StringMapper.trimAndUppercase(ds.getString(FORM_CODE.getName()));
@@ -287,17 +287,17 @@ public class AssessmentResultService {
         var courseMonth = assessmentSession.substring(4);
 
         if (StringUtils.isNotEmpty(formCode) && assessmentFormRepository.findFormBySessionAndAssessmentType(courseYear, courseMonth, assessmentCode, formCode).isEmpty()) {
-            throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, guid, pen);
+            throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, guid, lineNumber);
         }
 
         final var openEndedMarks = StringMapper.trimAndUppercase(ds.getString(OPEN_ENDED_MARKS.getName()));
         if(StringUtils.isNotBlank(openEndedMarks) && (!pattern.matcher(openEndedMarks).matches() || openEndedMarks.length() % 4 != 0)) {
-            throw new ResultsFileUnProcessableException(INVALID_OPEN_ENDED_MARKS, guid, openEndedMarks);
+            throw new ResultsFileUnProcessableException(INVALID_OPEN_ENDED_MARKS, guid, lineNumber);
         }
 
         final var multiChoiceMarks = StringMapper.trimAndUppercase(ds.getString(MUL_CHOICE_MARKS.getName()));
         if(StringUtils.isNotBlank(multiChoiceMarks) && (!pattern.matcher(multiChoiceMarks).matches() || multiChoiceMarks.length() % 4 != 0)) {
-            throw new ResultsFileUnProcessableException(INVALID_SELECTED_CHOICE_MARKS, guid, multiChoiceMarks);
+            throw new ResultsFileUnProcessableException(INVALID_SELECTED_CHOICE_MARKS, guid, lineNumber);
         }
 
         return AssessmentResultDetails.builder()
