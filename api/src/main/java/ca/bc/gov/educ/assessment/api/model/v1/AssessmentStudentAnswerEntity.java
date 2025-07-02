@@ -29,9 +29,6 @@ public class AssessmentStudentAnswerEntity {
     @ManyToOne(optional = false, targetEntity = AssessmentStudentComponentEntity.class)
     @JoinColumn(name = "ASSESSMENT_STUDENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_COMPONENT_ID", updatable = false)
     AssessmentStudentComponentEntity assessmentStudentComponentEntity;
-
-    @Column(name = "ASSESSMENT_COMPONENT_ID", updatable = false)
-    UUID assessmentComponentID;
     
     @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
     UUID assessmentQuestionID;
