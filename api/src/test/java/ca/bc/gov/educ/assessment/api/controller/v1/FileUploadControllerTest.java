@@ -82,7 +82,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + UUID.randomUUID() + "/key-file")
-                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
                 .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest())
@@ -102,7 +102,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + UUID.randomUUID() + "/results-file")
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_GRAD_COLLECTION")))
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
                         .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest())
@@ -122,7 +122,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
                         .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest())
@@ -142,7 +142,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
                         .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest())
@@ -162,7 +162,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
                         .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest())
@@ -182,7 +182,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
-                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
                 .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
@@ -201,7 +201,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
                         .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
@@ -223,7 +223,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
-                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_KEYS")))
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
                 .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
@@ -265,7 +265,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_GRAD_COLLECTION")))
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
                         .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
