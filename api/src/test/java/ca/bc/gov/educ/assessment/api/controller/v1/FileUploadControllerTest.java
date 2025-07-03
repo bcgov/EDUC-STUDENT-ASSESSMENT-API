@@ -30,6 +30,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.*;
 
 class FileUploadControllerTest extends BaseAssessmentAPITest {
 
@@ -269,5 +270,95 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
                         .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testProcessAssessmentResultsFile_givenTxtFile_WithOpenEndedQues_EnhancedValidation() throws Exception {
+        // Setup test data - similar to original test but with additional validation setup
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTP10"));
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTP10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        // Setup multiple choice questions (28 questions)
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1; i < 29; i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+        
+        // Setup open-ended questions (4 questions)
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        // Store initial counts for comparison
+        long initialStagedStudentCount = stagedAssessmentStudentRepository.count();
+
+        // Read and encode test file
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.TXT");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+
+        // Mock external service responses
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
+        var student = this.createMockStudentAPIStudent();
+        when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
+        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(createMockGradStudentAPIRecord());
+        
+        // Prepare file upload request
+        var file = AssessmentResultFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ENHANCED_TEST_USER")
+                .updateUser("ENHANCED_TEST_USER")
+                .fileName("202406_RESULTS_LTP10.TXT")
+                .build();
+
+        String correlationId = UUID.randomUUID().toString();
+        
+        // Execute the file upload and capture the response
+        this.mockMvc.perform(post(BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                        .header("correlationID", correlationId)
+                        .content(JsonUtil.getJsonStringFromObject(file))
+                        .contentType(APPLICATION_JSON))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        // Enhanced validations - verify database state after processing
+        
+        // 1. Verify staged assessment students were created
+        long finalStagedStudentCount = stagedAssessmentStudentRepository.count();
+        assertTrue(finalStagedStudentCount > initialStagedStudentCount, 
+                "Should have created new staged assessment student records");
+
+        // 2. Verify staged students have correct metadata
+        var stagedStudents = stagedAssessmentStudentRepository.findAll();
+        assertFalse(stagedStudents.isEmpty(), "Should have staged student records");
+        
+        for (var stagedStudent : stagedStudents) {
+            // Verify audit fields are populated
+            assertNotNull(stagedStudent.getCreateDate(), "Create date should be set");
+            assertNotNull(stagedStudent.getUpdateDate(), "Update date should be set");
+            assertNotNull(stagedStudent.getCreateUser(), "Create user should be set");
+            assertNotNull(stagedStudent.getUpdateUser(), "Update user should be set");
+            
+            // Verify assessment reference
+            assertNotNull(stagedStudent.getAssessmentEntity(), "Assessment entity should be set");
+            assertEquals(savedAssessment.getAssessmentID(), stagedStudent.getAssessmentEntity().getAssessmentID(), 
+                    "Assessment ID should match");
+            
+            // Verify student has PEN
+            assertNotNull(stagedStudent.getPen(), "Student PEN should be set");
+            assertTrue(stagedStudent.getPen().length() >= 9, "PEN should be valid length");
+        }
+
+        // 3. Verify assessment form reference
+        for (var stagedStudent : stagedStudents) {
+            assertEquals(savedForm.getAssessmentFormID(), stagedStudent.getAssessmentFormID(),
+                    "Assessment form ID should match");
+        }
     }
 }
