@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api;
 
+import ca.bc.gov.educ.assessment.api.config.TestDataSourceConfig;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
@@ -8,7 +9,6 @@ import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentSession;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentGet;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ import java.util.*;
 @SpringBootTest(classes = {StudentAssessmentApiApplication.class})
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Import(TestDataSourceConfig.class)
 public abstract class BaseAssessmentAPITest {
 
   @Autowired
@@ -44,6 +46,7 @@ public abstract class BaseAssessmentAPITest {
 
   @BeforeEach
   public void before() {
+    // Setup test data - Flyway migrations will have already run during app startup
     claimCodeRepository.saveAll(List.of(createClaimCode("C"), createClaimCode("W"), createClaimCode("O")));
     cognitiveLevelCodeRepository.saveAll(List.of(createCognitiveCode("7"), createCognitiveCode("8"), createCognitiveCode("9")));
     var conceptsList = List.of(createConceptsCode("WRB"),
@@ -62,40 +65,35 @@ public abstract class BaseAssessmentAPITest {
 
   @AfterEach
   public void resetState() {
-    claimCodeRepository.deleteAll();
-    cognitiveLevelCodeRepository.deleteAll();
-    conceptsCodeRepository.deleteAll();
-    contextCodeRepository.deleteAll();
-    taskCodeRepository.deleteAll();
   }
 
   public ClaimCodeEntity createClaimCode(String code) {
     return ClaimCodeEntity.builder().claimCode(code).description(code)
-            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.now().plusYears(10)).displayOrder(1).label(code).createDate(LocalDateTime.now())
             .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
   }
 
   public ConceptCodeEntity createConceptsCode(String code) {
     return ConceptCodeEntity.builder().conceptCode(code).description(code)
-            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.now().plusYears(10)).displayOrder(1).label(code).createDate(LocalDateTime.now())
             .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
   }
 
   public ContextCodeEntity createContextCode(String code) {
     return ContextCodeEntity.builder().contextCode(code).description(code)
-            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.now().plusYears(10)).displayOrder(1).label(code).createDate(LocalDateTime.now())
             .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
   }
 
   public TaskCodeEntity createTaskCode(String code) {
     return TaskCodeEntity.builder().taskCode(code).description(code)
-            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.now().plusYears(10)).displayOrder(1).label(code).createDate(LocalDateTime.now())
             .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
   }
 
   public CognitiveLevelCodeEntity createCognitiveCode(String code) {
     return CognitiveLevelCodeEntity.builder().cognitiveLevelCode(code).description(code)
-            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.MAX).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.now().plusYears(10)).displayOrder(1).label(code).createDate(LocalDateTime.now())
             .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
   }
 
@@ -143,6 +141,8 @@ public abstract class BaseAssessmentAPITest {
             .assessmentFormEntity(assessmentFormEntity)
             .componentSubTypeCode(componentSubTypeCode)
             .componentTypeCode(componentTypeCode)
+            .questionCount(1)
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .updateDate(LocalDateTime.now())
@@ -154,6 +154,7 @@ public abstract class BaseAssessmentAPITest {
             .assessmentComponentEntity(assessmentComponentEntity)
             .itemNumber(itemNumber)
             .questionNumber(questionNumber)
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .updateDate(LocalDateTime.now())
@@ -200,7 +201,7 @@ public abstract class BaseAssessmentAPITest {
             .displayOrder(1)
             .effectiveDate(LocalDateTime.now().minusYears(10))
             .expiryDate(LocalDateTime.now().plusYears(10))
-            .language("EN")
+            .language("E")
             .createUser("TEST-USER")
             .createDate(LocalDateTime.now())
             .updateUser("TEST-USER")
@@ -208,7 +209,7 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
-  public Set<AssessmentCriteriaEntity> createMockAssessmentSessionTypeCodeCriteriaEntities(List<AssessmentSessionCriteriaEntity> sessionCriteriaEntities, AssessmentTypeCodeEntity assessmentTypeCodeEntity) {
+  public Set<AssessmentCriteriaEntity> createMockAssessmentSessionTypeCodeCriteriaEntities(List<AssessmentSessionCriteriaEntity> sessionCriteriaEntities, String assessmentTypeCode) {
     AssessmentSessionCriteriaEntity novSession = sessionCriteriaEntities.stream()
             .filter(entity -> entity.getSessionStart().getMonthValue() == 10)
             .findFirst()
@@ -219,7 +220,7 @@ public abstract class BaseAssessmentAPITest {
       AssessmentCriteriaEntity assessmentCriteriaEntity = AssessmentCriteriaEntity.builder()
             .assessmentCriteriaId(UUID.randomUUID())
             .assessmentSessionCriteriaEntity(novSession)
-            .assessmentTypeCodeEntity(assessmentTypeCodeEntity)
+            .assessmentTypeCode(assessmentTypeCode)
             .effectiveDate(LocalDateTime.now().minusYears(5))
             .expiryDate(LocalDateTime.of(2099, 12, 31, 0, 0))
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
@@ -253,6 +254,8 @@ public abstract class BaseAssessmentAPITest {
             .surname("TestLast")
             .pen("120164447")
             .localID("123")
+            .updateDate(LocalDateTime.now().toString())
+            .createDate(LocalDateTime.now().toString())
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .build();

@@ -74,4 +74,6 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
 
     private String courseStatusCode;
 
+    private String downloadDate;
+
 }

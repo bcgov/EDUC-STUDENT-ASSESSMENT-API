@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCo
 import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
+import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.CSVReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
@@ -23,11 +24,12 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @RequiredArgsConstructor
 public class ReportsController implements ReportsEndoint {
 
+    private final AssessmentStudentService assessmentStudentService;
     private final CSVReportService csvReportService;
     private final XAMFileService xamFileService;
 
     @Override
-    public DownloadableReportResponse getDownloadableReport(UUID sessionID, String type) {
+    public DownloadableReportResponse getDownloadableReport(UUID sessionID, String type, String updateUser) {
         Optional<AssessmentReportTypeCode> code = AssessmentReportTypeCode.findByValue(type);
 
         if(code.isEmpty()){
@@ -35,12 +37,18 @@ public class ReportsController implements ReportsEndoint {
             throw new InvalidPayloadException(error);
         }
 
-        return switch (code.get()) {
-            case ALL_SESSION_REGISTRATIONS -> csvReportService.generateSessionRegistrationsReport(sessionID);
-            case ATTEMPTS -> csvReportService.generateNumberOfAttemptsReport(sessionID);
-            case PEN_MERGES -> csvReportService.generatePenMergesReport();
-            default -> new DownloadableReportResponse();
-        };
+        switch (code.get()) {
+            case ALL_SESSION_REGISTRATIONS:
+                var registrations = csvReportService.generateSessionRegistrationsReport(sessionID);
+                assessmentStudentService.markAllStudentsInSessionAsDownloaded(sessionID, updateUser);
+                return registrations;
+            case ATTEMPTS:
+                return csvReportService.generateNumberOfAttemptsReport(sessionID);
+            case PEN_MERGES:
+                return csvReportService.generatePenMergesReport();
+            default:
+                return new DownloadableReportResponse();
+        }
     }
 
     @Override
