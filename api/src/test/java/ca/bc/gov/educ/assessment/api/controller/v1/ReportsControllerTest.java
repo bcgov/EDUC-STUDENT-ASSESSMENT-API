@@ -74,7 +74,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     void testGetMinistryReport_WithWrongType_ShouldReturnBadRequest() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-        this.mockMvc.perform(get(URL.BASE_URL_REPORT + "/" + UUID.randomUUID() + "/testing/download").with(mockAuthority))
+        this.mockMvc.perform(get(URL.BASE_URL_REPORT + "/" + UUID.randomUUID() + "/testing/download/JANE").with(mockAuthority))
                 .andDo(print()).andExpect(status().isBadRequest());
     }
 
@@ -102,7 +102,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentRepository.save(student3);
 
         var resultActions1 = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS.getCode() + "/download").with(mockAuthority))
+                        get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS.getCode() + "/download/JANE").with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk());
 
         val summary1 = objectMapper.readValue(resultActions1.andReturn().getResponse().getContentAsByteArray(), new TypeReference<DownloadableReportResponse>() {
@@ -136,7 +136,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentRepository.save(student3);
 
         var resultActions1 = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ATTEMPTS.getCode() + "/download").with(mockAuthority))
+                        get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ATTEMPTS.getCode() + "/download/JANE").with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk());
 
         val summary1 = objectMapper.readValue(resultActions1.andReturn().getResponse().getContentAsByteArray(), new TypeReference<DownloadableReportResponse>() {
@@ -165,7 +165,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .thenReturn(mockMergedStudents);
 
         var resultActions1 = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + UUID.randomUUID() + "/" + AssessmentReportTypeCode.PEN_MERGES.getCode() + "/download").with(mockAuthority))
+                        get(URL.BASE_URL_REPORT + "/" + UUID.randomUUID() + "/" + AssessmentReportTypeCode.PEN_MERGES.getCode() + "/download/JANE").with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk());
         val summary1 = objectMapper.readValue(resultActions1.andReturn().getResponse().getContentAsByteArray(), new TypeReference<DownloadableReportResponse>() {
         });

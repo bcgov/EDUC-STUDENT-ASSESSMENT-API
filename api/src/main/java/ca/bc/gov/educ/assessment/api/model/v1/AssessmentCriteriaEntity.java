@@ -29,11 +29,8 @@ public class AssessmentCriteriaEntity {
     @JoinColumn(name = "ASSESSMENT_SESSION_CRITERIA_ID", referencedColumnName = "ASSESSMENT_SESSION_CRITERIA_ID", updatable = false)
     private AssessmentSessionCriteriaEntity assessmentSessionCriteriaEntity;
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentTypeCodeEntity.class)
-    @JoinColumn(name = "ASSESSMENT_TYPE_CODE", referencedColumnName = "ASSESSMENT_TYPE_CODE", updatable = false)
-    private AssessmentTypeCodeEntity assessmentTypeCodeEntity;
+    @Column(name = "ASSESSMENT_TYPE_CODE", nullable = false, length = 10)
+    private String assessmentTypeCode;
 
     @Column(name = "EFFECTIVE_DATE", updatable = false)
     private LocalDateTime effectiveDate;

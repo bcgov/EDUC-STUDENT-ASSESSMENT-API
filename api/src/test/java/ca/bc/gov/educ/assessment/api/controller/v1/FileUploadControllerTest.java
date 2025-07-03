@@ -1,10 +1,8 @@
 package ca.bc.gov.educ.assessment.api.controller.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
-import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
@@ -18,11 +16,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.io.FileInputStream;
 import java.util.Base64;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.URL.BASE_URL;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -30,7 +28,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.junit.jupiter.api.Assertions.*;
 
 class FileUploadControllerTest extends BaseAssessmentAPITest {
 
@@ -58,11 +55,9 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         MockitoAnnotations.openMocks(this);
         stagedAssessmentStudentRepository.deleteAll();
         assessmentFormRepository.deleteAll();
-        assessmentTypeCodeRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
 
-        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTE10"));
         var session = createMockSessionEntity();
         session.setCourseMonth("01");
         session.setCourseYear("2025");

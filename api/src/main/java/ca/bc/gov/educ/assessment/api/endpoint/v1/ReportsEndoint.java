@@ -15,11 +15,11 @@ import java.util.UUID;
 @RequestMapping( URL.BASE_URL_REPORT)
 public interface ReportsEndoint {
 
-    @GetMapping("/{sessionID}/{type}/download")
+    @GetMapping("/{sessionID}/{type}/download/{updateUser}")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    DownloadableReportResponse getDownloadableReport(@PathVariable UUID sessionID, @PathVariable(name = "type") String type);
+    DownloadableReportResponse getDownloadableReport(@PathVariable UUID sessionID, @PathVariable(name = "type") String type,  @PathVariable(name = "updateUser") String updateUser);
 
     @GetMapping("/{sessionID}/school/{schoolID}/{type}/download")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")

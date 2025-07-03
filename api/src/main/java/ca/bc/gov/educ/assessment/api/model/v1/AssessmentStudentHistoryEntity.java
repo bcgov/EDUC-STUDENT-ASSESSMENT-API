@@ -93,6 +93,10 @@ public class AssessmentStudentHistoryEntity {
     @Column(name = "OE_TOTAL")
     private BigDecimal oeTotal;
 
+    @PastOrPresent
+    @Column(name = "DOWNLOAD_DATE", updatable = false)
+    private LocalDateTime downloadDate;
+
     @Column(name = "CREATE_USER", updatable = false , length = 100)
     private String createUser;
 

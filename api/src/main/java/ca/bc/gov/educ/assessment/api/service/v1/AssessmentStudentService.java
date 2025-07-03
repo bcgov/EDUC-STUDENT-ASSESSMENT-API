@@ -108,7 +108,14 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentStudentEntity createStudentWithoutValidation(AssessmentStudentEntity assessmentStudentEntity) {
-        return createAssessmentStudentWithHistory(assessmentStudentEntity);
+        return saveAssessmentStudentWithHistory(assessmentStudentEntity);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void markAllStudentsInSessionAsDownloaded(UUID assessmentSessionID, String updateUser) {
+        var currentDate = LocalDateTime.now();
+        assessmentStudentRepository.updateDownloadDataAllByAssessmentSessionAndNoExemption(assessmentSessionID, currentDate, updateUser, currentDate);
+        assessmentStudentHistoryRepository.insertHistoryForDownloadDateUpdate(assessmentSessionID, updateUser, currentDate);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -138,11 +145,11 @@ public class AssessmentStudentService {
                 BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "districtID", "schoolID", "studentID", "givenName", "surName", "pen", "localID", "courseStatusCode", "createUser", "createDate");
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
                 currentAssessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), currentAssessmentStudentEntity.getStudentID())));
-                return mapper.toStructure(createAssessmentStudentWithHistory(currentAssessmentStudentEntity));
+                return mapper.toStructure(saveAssessmentStudentWithHistory(currentAssessmentStudentEntity));
             } else {
                 assessmentStudentEntity.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
                 assessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), assessmentStudentEntity.getStudentID())));
-                return mapper.toStructure(createAssessmentStudentWithHistory(assessmentStudentEntity));
+                return mapper.toStructure(saveAssessmentStudentWithHistory(assessmentStudentEntity));
             }
         }
 
@@ -152,7 +159,7 @@ public class AssessmentStudentService {
         return studentWithValidationIssues;
     }
 
-    public AssessmentStudentEntity createAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
+    public AssessmentStudentEntity saveAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
         AssessmentStudentEntity savedEntity = assessmentStudentRepository.save(assessmentStudentEntity);
         assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
         return savedEntity;

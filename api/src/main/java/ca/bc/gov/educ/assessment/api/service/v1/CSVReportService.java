@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 
+import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.*;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
@@ -59,14 +60,16 @@ public class CSVReportService {
             csvPrinter.printRecord(headers);
 
             for (AssessmentStudentEntity result : results) {
-                var school = restUtils.getSchoolBySchoolID(result.getSchoolOfRecordSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, result.getSchoolOfRecordSchoolID().toString()));
+                if(StringUtils.isBlank(result.getProvincialSpecialCaseCode()) || result.getProvincialSpecialCaseCode().equals(ProvincialSpecialCaseCodes.EXEMPT.getCode())) {
+                    var school = restUtils.getSchoolBySchoolID(result.getSchoolOfRecordSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, result.getSchoolOfRecordSchoolID().toString()));
 
-                Optional<SchoolTombstone> assessmentCenter = Optional.empty();
-                if (result.getAssessmentCenterSchoolID() != null) {
-                    assessmentCenter = restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString());
+                    Optional<SchoolTombstone> assessmentCenter = Optional.empty();
+                    if (result.getAssessmentCenterSchoolID() != null) {
+                        assessmentCenter = restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString());
+                    }
+                    List<String> csvRowData = prepareRegistrationDataForCsv(result, school, assessmentCenter);
+                    csvPrinter.printRecord(csvRowData);    
                 }
-                List<String> csvRowData = prepareRegistrationDataForCsv(result, school, assessmentCenter);
-                csvPrinter.printRecord(csvRowData);
             }
             csvPrinter.flush();
 

@@ -101,6 +101,9 @@ public class AssessmentResultService {
                 stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
                 stagedStudent.setMarkingSession(studentResult.getMarkingSession());
                 stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : stagedStudent.getSchoolOfRecordSchoolID());
+//                stagedStudent.setMcTotal();
+//                stagedStudent.setOeTotal();
+//                stagedStudent.setRawScore();
                 stagedStudent.setUpdateDate(LocalDateTime.now());
                 stagedStudent.setUpdateUser(fileUpload.getUpdateUser());
             } else {
@@ -121,6 +124,9 @@ public class AssessmentResultService {
                 stagedStudent.setNumberOfAttempts(Integer.parseInt(assessmentStudentService.getNumberOfAttempts(assessmentEntity.getAssessmentID().toString(), UUID.fromString(studentApiStudent.getStudentID()))));
                 stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
                 stagedStudent.setIrtScore(studentResult.getIrtScore());
+//                stagedStudent.setMcTotal();
+//                stagedStudent.setOeTotal();
+//                stagedStudent.setRawScore();
                 stagedStudent.setMarkingSession(studentResult.getMarkingSession());
                 stagedStudent.setCreateUser(fileUpload.getCreateUser());
                 stagedStudent.setCreateDate(LocalDateTime.now());

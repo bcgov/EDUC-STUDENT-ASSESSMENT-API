@@ -161,7 +161,7 @@ public class SessionService {
         for (AssessmentCriteriaEntity assessmentType : sessionCriterion.getAssessmentCriteriaEntities()){
             if(assessmentType.getExpiryDate().isAfter(LocalDateTime.now()) && assessmentType.getEffectiveDate().isBefore(LocalDateTime.now())){
                 AssessmentEntity newAssessment = AssessmentEntity.builder()
-                        .assessmentTypeCode(assessmentType.getAssessmentTypeCodeEntity().getAssessmentTypeCode())
+                        .assessmentTypeCode(assessmentType.getAssessmentTypeCode())
                         .assessmentSessionEntity(session)
                         .createUser(ASSESSMENT_API)
                         .createDate(LocalDateTime.now())

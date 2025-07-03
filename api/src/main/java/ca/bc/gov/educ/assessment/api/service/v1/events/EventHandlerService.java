@@ -100,7 +100,7 @@ public class EventHandlerService {
             var attempts = assessmentStudentService.getNumberOfAttempts(createStudentEntity.getAssessmentEntity().getAssessmentID().toString(), createStudentEntity.getStudentID());
             createStudentEntity.setNumberOfAttempts(Integer.parseInt(attempts));
             log.debug("Writing student entity: " + createStudentEntity);
-            assessmentStudentService.createAssessmentStudentWithHistory(createStudentEntity);
+            assessmentStudentService.saveAssessmentStudentWithHistory(createStudentEntity);
             dataChangedForStudent = true;
         } else {
             log.info("Student already exists in assessment {} ", assessmentStudent);

@@ -11,9 +11,7 @@ import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
-import ca.bc.gov.educ.assessment.api.service.v1.AssessmentService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
-import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.service.v1.events.EventHandlerService;
 import ca.bc.gov.educ.assessment.api.service.v1.events.schedulers.EventTaskSchedulerAsyncService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
@@ -75,6 +73,14 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
 
     @BeforeEach
     public void setup() {
+        assessmentStudentRepository.deleteAll();
+        assessmentStudentHistoryRepository.deleteAll();
+        assessmentCriteriaRepository.deleteAll();
+        assessmentSessionCriteriaRepository.deleteAll();
+        assessmentRepository.deleteAll();
+        assessmentSessionRepository.deleteAll();
+        sagaEventRepository.deleteAll();
+        sagaRepository.deleteAll();
         closeable = MockitoAnnotations.openMocks(this);
     }
 
@@ -172,10 +178,10 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
 
         for (AssessmentSessionCriteriaEntity entity : savedAssessmentSessionCriteriaEntities) {
             AssessmentTypeCodeEntity savedAssessmentTypeCode = assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTF12"));
-            entity.setAssessmentCriteriaEntities(createMockAssessmentSessionTypeCodeCriteriaEntities(savedAssessmentSessionCriteriaEntities, savedAssessmentTypeCode));
+            entity.setAssessmentCriteriaEntities(createMockAssessmentSessionTypeCodeCriteriaEntities(savedAssessmentSessionCriteriaEntities, savedAssessmentTypeCode.getAssessmentTypeCode()));
             assessmentSessionCriteriaRepository.save(entity);
         }
-
+        
         eventTaskSchedulerAsyncService.createSessionsForSchoolYear();
 
         int currentMonth = LocalDate.now().getMonthValue();

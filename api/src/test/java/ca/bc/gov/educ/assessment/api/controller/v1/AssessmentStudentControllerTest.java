@@ -10,16 +10,12 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentFormRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.Search;
 import ca.bc.gov.educ.assessment.api.struct.v1.SearchCriteria;
 import ca.bc.gov.educ.assessment.api.struct.v1.ValueType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +50,9 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
   AssessmentSessionRepository assessmentSessionRepository;
 
   @Autowired
+  AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+
+  @Autowired
   AssessmentRepository assessmentRepository;
   @Autowired
   private AssessmentFormRepository assessmentFormRepository;
@@ -63,6 +62,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
   @BeforeEach
   void setUp() {
     assessmentFormRepository.deleteAll();
+    this.assessmentStudentHistoryRepository.deleteAll();
     this.studentRepository.deleteAll();
     this.assessmentRepository.deleteAll();
     this.assessmentSessionRepository.deleteAll();
@@ -154,6 +154,9 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
 
     AssessmentStudent student = createMockStudent();
     student.setPen("123456789");
+    student.setCreateDate(null);
+    student.setUpdateDate(null);
+    student.setUpdateUser(null);
 
     this.mockMvc.perform(
                     put(URL.BASE_URL_STUDENT + "/" + student.getAssessmentStudentID())
@@ -195,6 +198,9 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     AssessmentStudent student = createMockStudent();
+    student.setCreateDate(null);
+    student.setUpdateDate(null);
+    student.setUpdateUser(null);
 
     this.mockMvc.perform(
                     post(URL.BASE_URL_STUDENT)
@@ -214,6 +220,9 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     AssessmentStudent student = createMockStudent();
     student.setAssessmentStudentID(null);
     student.setAssessmentID(UUID.randomUUID().toString());
+    student.setCreateDate(null);
+    student.setUpdateDate(null);
+    student.setUpdateUser(null);
 
     this.mockMvc.perform(
                     post(URL.BASE_URL_STUDENT)
@@ -231,6 +240,8 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     AssessmentStudent student = createMockStudent();
+    student.setCreateDate(null);
+    student.setUpdateDate(null);
     student.setAssessmentStudentID(null);
     student.setCourseStatusCode("INVALID");
 
