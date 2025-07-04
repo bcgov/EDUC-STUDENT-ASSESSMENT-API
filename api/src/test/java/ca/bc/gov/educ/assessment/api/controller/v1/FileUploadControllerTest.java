@@ -287,7 +287,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
         var student = this.createMockStudentAPIStudent();
         when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
-        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(createMockGradStudentAPIRecord());
+        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(createMockGradStudentAPIRecord()));
         
         var file = AssessmentResultFileUpload.builder()
                 .fileContents(fileContents)
@@ -337,7 +337,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
         var student = this.createMockStudentAPIStudent();
         when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
-        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(createMockGradStudentAPIRecord());
+        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(createMockGradStudentAPIRecord()));
         
         // Prepare file upload request
         var file = AssessmentResultFileUpload.builder()

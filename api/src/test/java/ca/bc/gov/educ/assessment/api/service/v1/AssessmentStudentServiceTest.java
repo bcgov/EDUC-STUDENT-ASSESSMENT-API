@@ -134,7 +134,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setStudentID(UUID.randomUUID().toString());
     gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
     gradStudentRecord.setGraduated("Y");
-    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(gradStudentRecord);
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
     //when creating an assessment student
     var pair = assessmentStudentService.createStudent(assessmentStudentEntity);
@@ -176,7 +176,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setStudentID(UUID.randomUUID().toString());
     gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
     gradStudentRecord.setGraduated("Y");
-    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(gradStudentRecord);
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
     var pair = assessmentStudentService.createStudent(studentEntity);
     AssessmentStudent assessmentStudent = pair.getLeft();
@@ -244,7 +244,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setStudentID(UUID.randomUUID().toString());
     gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
     gradStudentRecord.setGraduated("Y");
-    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(gradStudentRecord);
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
     var pair = assessmentStudentService.createStudent(assessmentStudentEntity);
     AssessmentStudent student = pair.getLeft();
