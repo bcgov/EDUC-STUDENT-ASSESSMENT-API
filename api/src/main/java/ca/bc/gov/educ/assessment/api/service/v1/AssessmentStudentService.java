@@ -1,12 +1,9 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
-import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.constants.EventStatus;
-import ca.bc.gov.educ.assessment.api.constants.EventType;
-import ca.bc.gov.educ.assessment.api.constants.TopicsEnum;
-import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
+import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
@@ -14,13 +11,9 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentHistoryRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentRulesProcessor;
-import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
@@ -35,13 +28,15 @@ import com.nimbusds.jose.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.ASSESSMENT_STUDENT_UPDATED;
 import static ca.bc.gov.educ.assessment.api.constants.EventType.ASSESSMENT_STUDENT_UPDATE;
@@ -54,6 +49,7 @@ public class AssessmentStudentService {
 
     private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
     private final AssessmentStudentRepository assessmentStudentRepository;
+    private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
     private final AssessmentEventRepository assessmentEventRepository;
     private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
     private final AssessmentStudentHistoryService assessmentStudentHistoryService;
@@ -66,6 +62,10 @@ public class AssessmentStudentService {
         return assessmentStudentRepository.findById(assessmentStudentID).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudent.class, "assessmentStudentID", assessmentStudentID.toString())
         );
+    }
+
+    public List<UUID> getAllStudentIDsInSessionFromResultsStaging(UUID assessmentSessionID) {
+        return stagedAssessmentStudentRepository.findAllStagedStudentsInSession(assessmentSessionID);
     }
 
     public Optional<AssessmentStudentEntity> getStudentByAssessmentIDAndStudentID(UUID assessmentID, UUID studentID) {
@@ -92,10 +92,7 @@ public class AssessmentStudentService {
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentStudentEntity.getAssessmentEntity());
         var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity);
 
-        final AssessmentEventEntity event = EventUtil.createEvent(
-                student.getUpdateUser(), student.getUpdateUser(),
-                JsonUtil.getJsonStringFromObject(student),
-                ASSESSMENT_STUDENT_UPDATE, ASSESSMENT_STUDENT_UPDATED);
+        var event = generateStudentUpdatedEvent(student.getStudentID());
         assessmentEventRepository.save(event);
 
         return Pair.of(student, event);
@@ -120,10 +117,7 @@ public class AssessmentStudentService {
         );
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
         var student = processStudent(assessmentStudentEntity, null);
-        final AssessmentEventEntity event = EventUtil.createEvent(
-                student.getUpdateUser(), student.getUpdateUser(),
-                JsonUtil.getJsonStringFromObject(student),
-                ASSESSMENT_STUDENT_UPDATE, ASSESSMENT_STUDENT_UPDATED);
+        var event = generateStudentUpdatedEvent(student.getStudentID());
         assessmentEventRepository.save(event);
 
         return Pair.of(student, event);
@@ -173,33 +167,13 @@ public class AssessmentStudentService {
         return this.assessmentStudentRulesProcessor.processRules(studentRuleData);
     }
 
-    @Async("publisherExecutor")
-    public void prepareAndPublishStudentRegistration(final List<AssessmentStudentEntity> studentEntities) {
-        studentEntities.stream()
-                .forEach(el -> this.sendIndividualStudentAsMessageToTopic(mapper.toStructure(el)));
-    }
-
-    /**
-     * Send individual student as message to topic consumer.
-     */
-    private void sendIndividualStudentAsMessageToTopic(final AssessmentStudent assessmentStudent) {
-        final var eventPayload = JsonUtil.getJsonString(assessmentStudent);
-        if (eventPayload.isPresent()) {
-            final Event event = Event.builder().eventType(EventType.PUBLISH_STUDENT_REGISTRATION_EVENT).eventOutcome(EventOutcome.STUDENT_REGISTRATION_EVENT_READ).eventPayload(eventPayload.get()).build();
-            final var eventString = JsonUtil.getJsonString(event);
-            if (eventString.isPresent()) {
-                this.messagePublisher.dispatchMessage(TopicsEnum.PUBLISH_STUDENT_REGISTRATION_TOPIC.toString(), eventString.get().getBytes());
-            }
-        }
-    }
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<AssessmentEventEntity> deleteStudents(List<UUID> assessmentStudentIDs) throws JsonProcessingException {
         ArrayList<AssessmentEventEntity> events = new ArrayList<>();
         for (UUID assessmentStudentID : assessmentStudentIDs) {
             try {
                 AssessmentStudentEntity deletedStudent = performDeleteStudent(assessmentStudentID);
-                AssessmentEventEntity event = assessmentEventRepository.save(generateStudentDeletedEvent(deletedStudent));
+                AssessmentEventEntity event = assessmentEventRepository.save(generateStudentUpdatedEvent(deletedStudent.getStudentID().toString()));
                 events.add(event);
             } catch (EntityNotFoundException | InvalidPayloadException e) {
                 throw new InvalidPayloadException(ApiError.builder().timestamp(LocalDateTime.now()).message(e.getMessage()).status(CONFLICT).build());
@@ -211,7 +185,7 @@ public class AssessmentStudentService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentEventEntity deleteStudent(UUID assessmentStudentID) throws JsonProcessingException {
         AssessmentStudentEntity deletedStudent = performDeleteStudent(assessmentStudentID);
-        return assessmentEventRepository.save(generateStudentDeletedEvent(deletedStudent));
+        return assessmentEventRepository.save(generateStudentUpdatedEvent(deletedStudent.getStudentID().toString()));
     }
 
     private AssessmentStudentEntity performDeleteStudent(UUID assessmentStudentID) {
@@ -243,14 +217,18 @@ public class AssessmentStudentService {
         });
     }
 
-    private AssessmentEventEntity generateStudentDeletedEvent(AssessmentStudentEntity deletedStudent) throws JsonProcessingException {
-        return EventUtil.createEvent(
-                ApplicationProperties.STUDENT_ASSESSMENT_API,
-                ApplicationProperties.STUDENT_ASSESSMENT_API,
-                JsonUtil.getJsonStringFromObject(deletedStudent.getStudentID()),
-                ASSESSMENT_STUDENT_UPDATE,
-                ASSESSMENT_STUDENT_UPDATED
-        );
+    public AssessmentEventEntity generateStudentUpdatedEvent(String studentID) {
+        try {
+            return EventUtil.createEvent(
+                    ApplicationProperties.STUDENT_ASSESSMENT_API,
+                    ApplicationProperties.STUDENT_ASSESSMENT_API,
+                    JsonUtil.getJsonStringFromObject(studentID),
+                    ASSESSMENT_STUDENT_UPDATE,
+                    ASSESSMENT_STUDENT_UPDATED
+            );
+        } catch (JsonProcessingException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
     }
 
 }

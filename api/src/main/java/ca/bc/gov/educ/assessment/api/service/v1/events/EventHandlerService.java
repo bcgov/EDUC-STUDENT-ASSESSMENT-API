@@ -2,21 +2,17 @@ package ca.bc.gov.educ.assessment.api.service.v1.events;
 
 import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
-import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
-import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.NumeracyAssessmentCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.orchestrator.StudentRegistrationOrchestrator;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
-import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentDetailResponse;
@@ -74,8 +70,6 @@ public class EventHandlerService {
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentEventRepository assessmentEventRepository;
     private final AssessmentStudentService assessmentStudentService;
-    private final StudentRegistrationOrchestrator studentRegistrationOrchestrator;
-    private final SagaService sagaService;
     private final AssessmentService assessmentService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -188,22 +182,6 @@ public class EventHandlerService {
         val numberOfAttempts = assessmentStudentService.getNumberOfAttempts(student.getAssessmentID(), UUID.fromString(student.getStudentID()));
         response.setNumberOfAttempts(numberOfAttempts);
         return JsonUtil.getJsonBytesFromObject(response);
-    }
-
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void handlePublishStudentRegistrationEvent(final Event event) throws JsonProcessingException {
-        if (event.getEventOutcome() == EventOutcome.STUDENT_REGISTRATION_EVENT_READ) {
-            final AssessmentStudent sagaData = JsonUtil.getJsonObjectFromString(AssessmentStudent.class, event.getEventPayload());
-            final var sagaOptional = sagaService.findByAssessmentStudentIDAndSagaNameAndStatusNot(UUID.fromString(sagaData.getAssessmentStudentID()), SagaEnum.PUBLISH_STUDENT_REGISTRATION.toString(), SagaStatusEnum.COMPLETED.toString());
-            if (sagaOptional.isPresent()) { // possible duplicate message.
-                log.trace("Execution is not required for this message returning EVENT is :: {}", event);
-                return;
-            }
-            val saga = this.studentRegistrationOrchestrator.createSaga(event.getEventPayload(), sagaData.getUpdateUser(), UUID.fromString(sagaData.getAssessmentStudentID()));
-            log.debug("Starting student processing orchestrator :: {}", saga);
-            this.studentRegistrationOrchestrator.startSaga(saga);
-        }
     }
 
     private AssessmentEventEntity createEventRecord(Event event) {

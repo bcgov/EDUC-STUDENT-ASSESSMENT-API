@@ -42,10 +42,10 @@ import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class XAMFileGenerationOrchestratorTest extends BaseAssessmentAPITest {
+class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
 
     @Autowired
-    private XAMFileGenerationOrchestrator xamFileGenerationOrchestrator;
+    private SessionApprovalOrchestrator sessionApprovalOrchestrator;
 
     @Autowired
     private SagaService sagaService;
@@ -99,7 +99,27 @@ class XAMFileGenerationOrchestratorTest extends BaseAssessmentAPITest {
 
     @SneakyThrows
     @Test
-    void testOrchestratorHandlesEventAndDelegatesToService() {
+    void testOrchestratorHandlesEventAndDelegatesStep0ToService() {
+        String payload = sagaPayload;
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.INITIATED)
+                .eventOutcome(EventOutcome.INITIATE_SUCCESS)
+                .eventPayload(payload)
+                .build();
+
+        sessionApprovalOrchestrator.handleEvent(event);
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.GENERATE_XAM_FILES_AND_UPLOAD);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.XAM_FILES_GENERATED_AND_UPLOADED);
+    }
+    
+    @SneakyThrows
+    @Test
+    void testOrchestratorHandlesEventAndDelegatesStep1ToService() {
         String payload = sagaPayload;
         Event event = Event.builder()
                 .sagaId(saga.getSagaId())
@@ -108,9 +128,29 @@ class XAMFileGenerationOrchestratorTest extends BaseAssessmentAPITest {
                 .eventPayload(payload)
                 .build();
         
-        xamFileGenerationOrchestrator.handleEvent(event);
+        sessionApprovalOrchestrator.handleEvent(event);
 
-        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(xamFileGenerationOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.GRAD_STUDENT_API_NOTIFIED);
+    }
+
+    @SneakyThrows
+    @Test
+    void testOrchestratorHandlesEventAndDelegatesStep2ToService() {
+        String payload = sagaPayload;
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS)
+                .eventOutcome(EventOutcome.GRAD_STUDENT_API_NOTIFIED)
+                .eventPayload(payload)
+                .build();
+
+        sessionApprovalOrchestrator.handleEvent(event);
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
         assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.MARK_SAGA_COMPLETE);
@@ -121,7 +161,7 @@ class XAMFileGenerationOrchestratorTest extends BaseAssessmentAPITest {
     @Test
     void testStartXamFileGenerationSagaCreatesSagaRecord() {
         UUID newSessionID = UUID.randomUUID();
-        xamFileGenerationOrchestrator.startXamFileGenerationSaga(newSessionID);
+        sessionApprovalOrchestrator.startXamFileGenerationSaga(newSessionID);
         AssessmentSagaEntity newSaga = sagaService.findByAssessmentStudentIDAndSagaNameAndStatusNot(newSessionID, SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.IN_PROGRESS.toString()).orElse(null);
         assertThat(newSaga).isNotNull();
         assertEquals(newSessionID, newSaga.getAssessmentStudentID());
@@ -143,13 +183,13 @@ class XAMFileGenerationOrchestratorTest extends BaseAssessmentAPITest {
         RestUtils dummyRestUtils = Mockito.mock(RestUtils.class);
         XAMFileService dummyService = new XAMFileService(dummyStudentRepo, dummySessionRepo, dummyRestUtils);
         XAMFileService spyService = Mockito.spy(dummyService);
-        ReflectionTestUtils.setField(xamFileGenerationOrchestrator, "xamFileService", spyService);
+        ReflectionTestUtils.setField(sessionApprovalOrchestrator, "xamFileService", spyService);
 
-        Method method = XAMFileGenerationOrchestrator.class
+        Method method = SessionApprovalOrchestrator.class
                 .getDeclaredMethod("generateXAMFilesAndUpload", Event.class, AssessmentSagaEntity.class, String.class);
         method.setAccessible(true);
         Exception thrown = assertThrows(Exception.class, () -> {
-            method.invoke(xamFileGenerationOrchestrator, event, saga, invalidPayload);
+            method.invoke(sessionApprovalOrchestrator, event, saga, invalidPayload);
         });
         assertThat(thrown.getCause()).isInstanceOf(IllegalArgumentException.class);
     }
