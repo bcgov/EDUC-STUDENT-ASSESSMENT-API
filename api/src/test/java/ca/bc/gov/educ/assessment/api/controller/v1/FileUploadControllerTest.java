@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.controller.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
@@ -50,6 +51,8 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     @Autowired
     private AssessmentComponentRepository assessmentComponentRepository;
 
+    private AssessmentEntity savedAssessmentEntity;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -63,7 +66,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         session.setCourseYear("2025");
         session.setSchoolYear("2024/2025");
         var savedSession = assessmentSessionRepository.save(session);
-        assessmentRepository.save(createMockAssessmentEntity(savedSession, "LTE10"));
+        savedAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(savedSession, "LTE10"));
     }
 
     @Test
@@ -210,6 +213,39 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTF12"));
 
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTF12.txt");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+
+        var file = AssessmentKeyFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ABC")
+                .fileName("TRAX_202501_LTE10.txt")
+                .build();
+
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .content(JsonUtil.getJsonStringFromObject(file))
+                .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testProcessAssessmentKeysFile_givenTxtFile_ShouldReplaceExistingKeyFileIfExists() throws Exception {
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessmentEntity, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTE10.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
 
         var file = AssessmentKeyFileUpload.builder()
