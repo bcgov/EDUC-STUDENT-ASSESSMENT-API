@@ -90,7 +90,7 @@ public class AssessmentResultService {
             StagedAssessmentStudentEntity stagedStudent;
             var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
             var formEntity = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(assessmentEntity.getAssessmentID(), studentResult.getFormCode()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL));
-            var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID()));
+            var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID())).orElse(null);
 
             if (existingStudentRegistrationOpt.isPresent()) {
                 stagedStudent = AssessmentStudentMapper.mapper.toStagingStudent(existingStudentRegistrationOpt.get());

@@ -407,7 +407,7 @@ public class RestUtils {
   }
 
   @Retryable(retryFor = {Exception.class}, noRetryFor = {SagaRuntimeException.class, EntityNotFoundException.class}, backoff = @Backoff(multiplier = 2, delay = 2000))
-  public GradStudentRecord getGradStudentRecordByStudentID(UUID correlationID, UUID studentID) {
+  public Optional<GradStudentRecord> getGradStudentRecordByStudentID(UUID correlationID, UUID studentID) {
     try {
       final TypeReference<GradStudentRecord> refGradStudentRecordResult = new TypeReference<>() {
       };
@@ -421,15 +421,15 @@ public class RestUtils {
         log.debug("getGradStudentRecordByStudentID response{}", response.toString());
 
         if ("not found".equals(response.get(EXCEPTION))) {
-          log.debug("A not found error occurred while fetching GradStudentRecord for Student ID {}", studentID);
-          throw new EntityNotFoundException(GradStudentRecord.class);
+          log.debug("Grad student was not found while fetching GradStudentRecord for Student ID {}", studentID);
+          return Optional.empty();
         } else if ("error".equals(response.get(EXCEPTION))) {
           log.error("An exception error occurred while fetching GradStudentRecord for Student ID {}", studentID);
           throw new StudentAssessmentAPIRuntimeException("Error occurred while processing the request for correlation ID " + correlationID);
         }
 
         log.debug("Success fetching GradStudentRecord for Student ID {}", studentID);
-        return objectMapper.readValue(responseData, refGradStudentRecordResult);
+        return Optional.of(objectMapper.readValue(responseData, refGradStudentRecordResult));
       } else {
         throw new StudentAssessmentAPIRuntimeException(NO_RESPONSE_RECEIVED_WITHIN_TIMEOUT_FOR_CORRELATION_ID + correlationID);
       }

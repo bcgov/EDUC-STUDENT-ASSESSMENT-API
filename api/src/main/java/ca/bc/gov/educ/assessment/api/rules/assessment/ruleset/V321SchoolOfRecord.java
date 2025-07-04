@@ -56,7 +56,7 @@ public class V321SchoolOfRecord implements AssessmentValidationBaseRule {
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
         var gradStudentRecord = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentRuleData.getStudentApiStudent().getStudentID()));
-        if (gradStudentRecord == null || !gradStudentRecord.getSchoolOfRecordId().equalsIgnoreCase(student.getSchoolOfRecordSchoolID().toString())) {
+        if (gradStudentRecord.isEmpty() || !gradStudentRecord.get().getSchoolOfRecordId().equalsIgnoreCase(student.getSchoolOfRecordSchoolID().toString())) {
             var school = restUtils.getSchoolBySchoolID(student.getSchoolOfRecordSchoolID().toString());
             log.debug("V321:" + school.get().getDisplayName() + " is not currently the student's School of Record in GRAD so the registration cannot be added.");
             String message = school.get().getDisplayName() + " is not currently the student's School of Record in GRAD so the registration cannot be added.";
