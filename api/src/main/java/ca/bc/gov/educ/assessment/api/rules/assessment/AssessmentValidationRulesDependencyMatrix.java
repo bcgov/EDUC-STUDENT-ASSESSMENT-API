@@ -11,7 +11,8 @@ public enum AssessmentValidationRulesDependencyMatrix {
     ENTRY3("V304", new String[]{}),
     ENTRY4("V318", new String[]{}),
     ENTRY5("V319", new String[]{AssessmentStudentValidationIssueTypeCode.SCHOOL_INVALID.getCode()}),
-    ENTRY6("V320", new String[]{AssessmentStudentValidationIssueTypeCode.PEN_INVALID.getCode()});
+    ENTRY6("V320", new String[]{AssessmentStudentValidationIssueTypeCode.PEN_INVALID.getCode()}),
+    ENTRY7("V321", new String[]{AssessmentStudentValidationIssueTypeCode.PEN_INVALID.getCode()});
 
     @Getter
     private final String ruleID;
