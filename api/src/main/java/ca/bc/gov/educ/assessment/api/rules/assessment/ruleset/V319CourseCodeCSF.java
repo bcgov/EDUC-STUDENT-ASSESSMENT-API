@@ -47,7 +47,7 @@ public class V319CourseCodeCSF implements AssessmentValidationBaseRule {
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
         if (studentRuleData.getSchool().getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode()) && student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.LTF12.getCode())){
-            log.debug("V319: Student is in a Francophone school and cannot register for this assessment session for student with PEN :: {}", student.getPen());
+            log.debug("V319: Student is enrolled in a Programme Francophone school and cannot be registered for a French Immersion assessment :: {}", student.getPen());
             errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_CODE_CSF));
         }
 

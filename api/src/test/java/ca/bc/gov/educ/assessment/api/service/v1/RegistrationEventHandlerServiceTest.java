@@ -63,6 +63,7 @@ class RegistrationEventHandlerServiceTest extends BaseAssessmentAPITest {
         AssessmentStudent student1 = createMockStudent();
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
+        studentEntity1.getAssessmentEntity().setAssessmentTypeCode(AssessmentTypeCodes.LTF12.getCode());
         var pair = assessmentStudentService.createStudent(studentEntity1);
         AssessmentStudent assessmentStudent = pair.getLeft();
 
@@ -80,6 +81,7 @@ class RegistrationEventHandlerServiceTest extends BaseAssessmentAPITest {
         AssessmentStudent student1 = createMockStudent();
         student1.setAssessmentID(assessment.getAssessmentID().toString());
         AssessmentStudentEntity studentEntity1 = mapper.toModel(student1);
+        studentEntity1.getAssessmentEntity().setAssessmentTypeCode(AssessmentTypeCodes.LTF12.getCode());
         var pair = assessmentStudentService.createStudent(studentEntity1);
         AssessmentStudent assessmentStudent = pair.getLeft();
 

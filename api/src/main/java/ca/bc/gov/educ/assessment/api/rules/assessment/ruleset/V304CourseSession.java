@@ -1,10 +1,10 @@
 package ca.bc.gov.educ.assessment.api.rules.assessment.ruleset;
 
-import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationFieldCode;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentValidationBaseRule;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentRulesService;
+import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentRuleData;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +12,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,11 +28,11 @@ import java.util.List;
 public class V304CourseSession implements AssessmentValidationBaseRule {
 
     private final AssessmentRulesService assessmentRulesService;
-    private static final List<String> NUMERACY_ASSESSMENT_CODES = Arrays.asList(AssessmentTypeCodes.NMF.getCode(), AssessmentTypeCodes.NMF10.getCode(), AssessmentTypeCodes.NME10.getCode(), AssessmentTypeCodes.NME.getCode());
 
     public V304CourseSession(AssessmentRulesService assessmentRulesService) {
         this.assessmentRulesService = assessmentRulesService;
     }
+
 
     @Override
     public boolean shouldExecute(StudentRuleData studentRuleData, List<AssessmentStudentValidationIssue> validationErrorsMap) {
@@ -55,15 +53,13 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
         var student = studentRuleData.getAssessmentStudentEntity();
         log.debug("In executeValidation of V304 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
+        
+        boolean hasStudentAssessmentDuplicate = assessmentRulesService.hasStudentAssessmentDuplicate(student.getStudentID(), student.getAssessmentEntity().getAssessmentID(), student.getAssessmentStudentID());
 
-        List<String> assessmentCodes = NUMERACY_ASSESSMENT_CODES.contains(student.getAssessmentEntity().getAssessmentTypeCode()) ? NUMERACY_ASSESSMENT_CODES : Collections.singletonList(student.getAssessmentEntity().getAssessmentTypeCode());
-
-        boolean hasStudentAssessmentDuplicate = assessmentRulesService.hasStudentAssessmentDuplicate(student.getPen(), student.getAssessmentEntity().getAssessmentID(), student.getAssessmentStudentID());
-
-        boolean studentWritesExceeded = assessmentRulesService.studentAssessmentWritesExceeded(student.getPen(), assessmentCodes);
+        boolean studentWritesExceeded = assessmentRulesService.studentAssessmentWritesExceeded(student.getStudentID(), student.getAssessmentEntity().getAssessmentTypeCode());
 
         if (hasStudentAssessmentDuplicate) {
-            log.debug("V304: The assessment session is a duplicate of an existing {} assessment session for student PEN :: {}", student.getAssessmentEntity().getAssessmentTypeCode(), student.getPen());
+            log.debug("V304: The student has already been registered for this assessment in this session :: {}", student.getPen());
             errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_DUP));
         }else if (studentWritesExceeded) {
             log.debug("V304: Student has already reached the maximum number of writes for the {} Assessment for student PEN :: {}", student.getAssessmentEntity().getAssessmentTypeCode(), student.getPen());

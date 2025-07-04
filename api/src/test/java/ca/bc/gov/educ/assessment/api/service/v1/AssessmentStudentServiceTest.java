@@ -8,6 +8,7 @@ import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -120,12 +121,20 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
     AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
     assessmentStudentEntity.setAssessmentStudentID(null);
+    assessmentStudentEntity.setSchoolOfRecordSchoolID(schoolID);
+    assessmentStudentEntity.getAssessmentEntity().setAssessmentTypeCode(AssessmentTypeCodes.LTF12.getCode());
 
     var studentAPIStudent = this.createMockStudentAPIStudent();
     studentAPIStudent.setPen(assessmentStudentEntity.getPen());
     studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
     studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurname());
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
+
+    var gradStudentRecord = new GradStudentRecord();
+    gradStudentRecord.setStudentID(UUID.randomUUID().toString());
+    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradStudentRecord.setGraduated("Y");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(gradStudentRecord);
 
     //when creating an assessment student
     var pair = assessmentStudentService.createStudent(assessmentStudentEntity);
@@ -143,22 +152,31 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
 
-    AssessmentStudentEntity studentEntity= createMockStudentEntity(assessmentEntity);
-    studentEntity.setAssessmentStudentID(null);
-
     var school = this.createMockSchool();
     UUID schoolID = UUID.randomUUID();
     school.setSchoolId(String.valueOf(schoolID));
     when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+    
+    AssessmentStudentEntity studentEntity= createMockStudentEntity(assessmentEntity);
+    studentEntity.setSchoolOfRecordSchoolID(schoolID);
+    studentEntity.setAssessmentStudentID(null);
 
     AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
     assessmentStudentEntity.setAssessmentStudentID(null);
+    assessmentStudentEntity.setSchoolOfRecordSchoolID(schoolID);
+    assessmentStudentEntity.getAssessmentEntity().setAssessmentTypeCode(AssessmentTypeCodes.LTF12.getCode());
 
     var studentAPIStudent = this.createMockStudentAPIStudent();
     studentAPIStudent.setPen(assessmentStudentEntity.getPen());
     studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
     studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurname());
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
+
+    var gradStudentRecord = new GradStudentRecord();
+    gradStudentRecord.setStudentID(UUID.randomUUID().toString());
+    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradStudentRecord.setGraduated("Y");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(gradStudentRecord);
 
     var pair = assessmentStudentService.createStudent(studentEntity);
     AssessmentStudent assessmentStudent = pair.getLeft();
@@ -213,6 +231,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
     AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
+    assessmentStudentEntity.setSchoolOfRecordSchoolID(schoolID);
     assessmentStudentEntity.setAssessmentStudentID(null);
 
     var studentAPIStudent = this.createMockStudentAPIStudent();
@@ -220,6 +239,12 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     studentAPIStudent.setLegalFirstName("Bugs");
     studentAPIStudent.setLegalLastName("Bunny");
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
+
+    var gradStudentRecord = new GradStudentRecord();
+    gradStudentRecord.setStudentID(UUID.randomUUID().toString());
+    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradStudentRecord.setGraduated("Y");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(gradStudentRecord);
 
     var pair = assessmentStudentService.createStudent(assessmentStudentEntity);
     AssessmentStudent student = pair.getLeft();
