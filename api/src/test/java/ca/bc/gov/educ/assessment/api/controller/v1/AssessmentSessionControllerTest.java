@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -213,6 +214,23 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
+    void testGetActiveSessions_ShouldReturnOK() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+        var sess = createMockSessionEntity();
+        AssessmentSessionEntity session = assessmentSessionRepository.save(sess);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(session, "LTF12"));
+        assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        this.mockMvc.perform(get(URL.SESSIONS_URL + "/active").with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
 }
