@@ -51,8 +51,8 @@ public class V320ValidStudentInDEM implements AssessmentValidationBaseRule {
         if (!surnameMatches) {
             log.debug("V320: Student's surname does not match Student API record for PEN :: {}", student.getPen());
             String message = StringUtils.isBlank(student.getSurname())
-                    ? "SURNAME mismatch. School submitted a blank surname and the Ministry PEN system has: " + studentRuleData.getStudentApiStudent().getLegalLastName() + ". If the submitted SURNAME is correct, request a PEN update through <a href=\"https://educationdataexchange.gov.bc.ca/inbox\">EDX Secure Messaging </a>"
-                    : "SURNAME mismatch. School submitted: " + student.getSurname() + " and the Ministry PEN system has: " + studentRuleData.getStudentApiStudent().getLegalLastName()+ ". If the submitted SURNAME is correct, request a PEN update through <a href=\"https://educationdataexchange.gov.bc.ca/inbox\">EDX Secure Messaging </a>";
+                    ? "SURNAME mismatch. School submitted a blank surname and the Ministry PEN system has: " + studentRuleData.getStudentApiStudent().getLegalLastName() + ". If the submitted SURNAME is correct, request a PEN update through EDX Secure Messaging"
+                    : "SURNAME mismatch. School submitted: " + student.getSurname() + " and the Ministry PEN system has: " + studentRuleData.getStudentApiStudent().getLegalLastName()+ ". If the submitted SURNAME is correct, request a PEN update through EDX Secure Messaging";
             errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.SURNAME, AssessmentStudentValidationIssueTypeCode.SURNAME_MISMATCH, message));
         }
 
@@ -61,13 +61,13 @@ public class V320ValidStudentInDEM implements AssessmentValidationBaseRule {
             String message;
             if (StringUtils.isBlank(student.getGivenName())) {
                 message = "FIRST NAME mismatch. School submitted a blank FIRST NAME and the Ministry PEN system has: " + studentRuleData.getStudentApiStudent().getLegalFirstName()
-                        + ". If the submitted FIRST NAME is correct, request a PEN update through <a href=\"https://educationdataexchange.gov.bc.ca/inbox\">EDX Secure Messaging </a>";
+                        + ". If the submitted FIRST NAME is correct, request a PEN update through EDX Secure Messaging";
             } else if (StringUtils.isBlank(studentRuleData.getStudentApiStudent().getLegalFirstName())) {
                 message = "FIRST NAME mismatch. School submitted: " + student.getGivenName() + " but the Ministry PEN system is blank. "
-                        + "If the submitted FIRST NAME is correct, request a PEN update through <a href=\"https://educationdataexchange.gov.bc.ca/inbox\">EDX Secure Messaging </a>";
+                        + "If the submitted FIRST NAME is correct, request a PEN update through EDX Secure Messaging";
             } else {
                 message = "FIRST NAME mismatch. School submitted: " + student.getGivenName() + " and the Ministry PEN system has: " + studentRuleData.getStudentApiStudent().getLegalFirstName()
-                        + ". If the submitted FIRST NAME is correct, request a PEN update through <a href=\"https://educationdataexchange.gov.bc.ca/inbox\">EDX Secure Messaging </a>";
+                        + ". If the submitted FIRST NAME is correct, request a PEN update through EDX Secure Messaging";
             }
             errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.GIVEN_NAME, AssessmentStudentValidationIssueTypeCode.GIVEN_NAME_MISMATCH, message));
         }

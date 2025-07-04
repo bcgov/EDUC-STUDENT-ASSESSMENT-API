@@ -19,7 +19,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDInAndStudentID(List<UUID> assessmentIDs, UUID studentID);
 
-    Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndPen(UUID AssessmentID, String pen);
+    Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentIDAndAssessmentStudentIDIsNot(UUID AssessmentID, UUID studentID, UUID assessmentStudentID);
 
     @Modifying
     @Query(value="""
@@ -46,13 +46,4 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     and (stud.proficiencyScore is not null
     or stud.provincialSpecialCaseCode in ('X','Q'))""")
     int findNumberOfAttemptsForStudent(UUID studentID, List<String> assessmentCodes);
-
-    @Query(value="""
-    select count(*) from AssessmentEntity as a, AssessmentStudentEntity as stud
-    where a.assessmentID = stud.assessmentEntity.assessmentID
-    and a.assessmentTypeCode in (:assessmentCodes)
-    and stud.pen = :pen
-    and (stud.proficiencyScore is not null
-    or stud.provincialSpecialCaseCode in ('X','Q'))""")
-    int findNumberOfAttemptsForStudentPEN(String pen, List<String> assessmentCodes);
 }

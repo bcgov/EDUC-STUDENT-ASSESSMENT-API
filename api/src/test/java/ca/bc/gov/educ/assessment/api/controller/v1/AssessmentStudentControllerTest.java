@@ -11,6 +11,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
+import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.Search;
 import ca.bc.gov.educ.assessment.api.struct.v1.SearchCriteria;
@@ -31,6 +32,9 @@ import java.util.*;
 import static ca.bc.gov.educ.assessment.api.struct.v1.Condition.AND;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -54,6 +58,10 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
 
   @Autowired
   AssessmentRepository assessmentRepository;
+
+  @Autowired
+  RestUtils restUtils;
+  
   @Autowired
   private AssessmentFormRepository assessmentFormRepository;
 
@@ -175,7 +183,9 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
 
     AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
-    AssessmentStudentEntity assessmentStudentEntity = studentRepository.save(createMockStudentEntity(assessment));
+    var studentEntity1 = createMockStudentEntity(assessment);
+    studentEntity1.getAssessmentEntity().setAssessmentTypeCode(AssessmentTypeCodes.LTF12.getCode());
+    AssessmentStudentEntity assessmentStudentEntity = studentRepository.save(studentEntity1);
     AssessmentStudent student = mapper.toStructure(assessmentStudentEntity);
     student.setCreateDate(null);
     student.setUpdateDate(null);
@@ -269,6 +279,17 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     student.setUpdateDate(null);
     student.setUpdateUser(null);
 
+    var studentAPIStudent = this.createMockStudentAPIStudent();
+    studentAPIStudent.setPen(student.getPen());
+    studentAPIStudent.setLegalFirstName(student.getGivenName());
+    studentAPIStudent.setLegalLastName(student.getSurname());
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+    
     this.mockMvc.perform(
                     post(URL.BASE_URL_STUDENT)
                             .contentType(APPLICATION_JSON)

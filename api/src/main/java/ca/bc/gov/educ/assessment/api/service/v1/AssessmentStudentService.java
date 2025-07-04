@@ -26,6 +26,7 @@ import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentRuleData;
+import ca.bc.gov.educ.assessment.api.util.AssessmentUtil;
 import ca.bc.gov.educ.assessment.api.util.EventUtil;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import ca.bc.gov.educ.assessment.api.util.TransformUtil;
@@ -79,14 +80,7 @@ public class AssessmentStudentService {
         var assessment = assessmentRepository.findById(UUID.fromString(assessmentID)).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentID));
 
-        return Integer.toString(assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, getAssessmentTypeCodeList(assessment.getAssessmentTypeCode())));
-    }
-
-    private List<String> getAssessmentTypeCodeList(String assessmentTypeCode){
-        if(assessmentTypeCode.startsWith("NM")){
-            return Arrays.asList(AssessmentTypeCodes.NME.getCode(), AssessmentTypeCodes.NME10.getCode(), AssessmentTypeCodes.NMF.getCode(), AssessmentTypeCodes.NMF10.getCode());
-        }
-        return Arrays.asList(assessmentTypeCode);
+        return Integer.toString(assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, AssessmentUtil.getAssessmentTypeCodeList(assessment.getAssessmentTypeCode())));
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -95,6 +89,7 @@ public class AssessmentStudentService {
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
         );
 
+        assessmentStudentEntity.setAssessmentEntity(currentAssessmentStudentEntity.getAssessmentEntity());
         var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity);
 
         final AssessmentEventEntity event = EventUtil.createEvent(
@@ -120,6 +115,10 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity) throws JsonProcessingException {
+        AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
+                new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
+        );
+        assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
         var student = processStudent(assessmentStudentEntity, null);
         final AssessmentEventEntity event = EventUtil.createEvent(
                 student.getUpdateUser(), student.getUpdateUser(),
@@ -253,4 +252,5 @@ public class AssessmentStudentService {
                 ASSESSMENT_STUDENT_UPDATED
         );
     }
+
 }
