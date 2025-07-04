@@ -27,7 +27,7 @@ import java.util.UUID;
  */
 @Component
 @Slf4j
-@Order(101)
+@Order(301)
 public class V321SchoolOfRecord implements AssessmentValidationBaseRule {
     private final RestUtils restUtils;
 
@@ -55,7 +55,7 @@ public class V321SchoolOfRecord implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V321 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        var gradStudentRecord = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), student.getStudentID());
+        var gradStudentRecord = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentRuleData.getStudentApiStudent().getStudentID()));
         if (gradStudentRecord == null || !gradStudentRecord.getSchoolOfRecordId().equalsIgnoreCase(student.getSchoolOfRecordSchoolID().toString())) {
             var school = restUtils.getSchoolBySchoolID(student.getSchoolOfRecordSchoolID().toString());
             log.debug("V321:" + school.get().getDisplayName() + " is not currently the student's School of Record in GRAD so the registration cannot be added.");
