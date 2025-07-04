@@ -48,11 +48,11 @@ curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scope
   -H "Authorization: Bearer $TKN" \
   -d "{\"description\": \"Read Assessment report\",\"id\": \"READ_ASSESSMENT_REPORT\",\"name\": \"READ_ASSESSMENT_REPORT\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
 
-echo Writing scope WRITE_ASSESSMENT_KEYS
+echo Writing scope WRITE_ASSESSMENT_FILES
 curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TKN" \
-  -d "{\"description\": \"Write Assessment keys\",\"id\": \"WRITE_ASSESSMENT_KEYS\",\"name\": \"WRITE_ASSESSMENT_KEYS\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+  -d "{\"description\": \"Write Assessment files\",\"id\": \"WRITE_ASSESSMENT_FILES\",\"name\": \"WRITE_ASSESSMENT_FILES\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
 
 echo Writing scope WRITE_ASSESSMENT_STUDENT
 curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
