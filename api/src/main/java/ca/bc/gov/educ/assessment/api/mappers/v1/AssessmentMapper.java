@@ -8,7 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class})
+@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, AssessmentFormMapper.class})
 public interface AssessmentMapper {
 
     AssessmentMapper mapper = Mappers.getMapper(AssessmentMapper.class);

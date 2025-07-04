@@ -47,7 +47,6 @@ import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchF
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.SCALE_FACTOR;
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.TASK_CODE;
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.TOPIC_TYPE;
-import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentResultsBatchFile.ASSESSMENT_SESSION;
 import static ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError.*;
 import static ca.bc.gov.educ.assessment.api.batch.mapper.AssessmentKeysBatchFileMapper.mapper;
 
@@ -127,23 +126,12 @@ public class AssessmentKeyService {
     @Retryable(retryFor = {Exception.class}, backoff = @Backoff(multiplier = 3, delay = 2000))
     public void craftStudentSetAndMarkInitialLoadComplete(@NonNull final AssessmentFormEntity assessmentFormEntity) {
       var formEntity = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(assessmentFormEntity.getAssessmentEntity().getAssessmentID(), assessmentFormEntity.getFormCode());
-      if(formEntity.isPresent()) {
-          var existingFormEntity = formEntity.get();
-          assessmentFormEntity.getAssessmentComponentEntities().forEach(comp -> comp.setAssessmentFormEntity(existingFormEntity));
-          var updatedComponents = assessmentFormEntity.getAssessmentComponentEntities().stream().toList();
-
-          existingFormEntity.setUpdateUser(assessmentFormEntity.getUpdateUser());
-          existingFormEntity.setUpdateDate(LocalDateTime.now());
-          existingFormEntity.getAssessmentComponentEntities().clear();
-          existingFormEntity.getAssessmentComponentEntities().addAll(updatedComponents);
-          assessmentFormRepository.save(assessmentFormEntity);
-      } else {
-          assessmentFormRepository.save(assessmentFormEntity);
-      }
+      formEntity.ifPresent(assessmentFormRepository::delete);
+      assessmentFormRepository.save(assessmentFormEntity);
     }
 
     private AssessmentComponentEntity createMultiChoiceComponent(AssessmentFormEntity assessmentFormEntity, List<AssessmentKeyDetails> multiChoice) {
-        AssessmentComponentEntity multiComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, "MUL_CHOICE", multiChoice.size(), multiChoice.size(), 0);
+        AssessmentComponentEntity multiComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, "MUL_CHOICE", multiChoice.size(), multiChoice.size(), 0, 0);
 
         multiChoice.forEach(ques -> {
             final var quesEntity = mapper.toQuestionEntity(ques, multiComponentEntity);
@@ -157,20 +145,30 @@ public class AssessmentKeyService {
         List<List<AssessmentKeyDetails>> questionGroups = createQuestionGroups(openEnded);
 
         AtomicInteger markCount = new AtomicInteger();
+        AtomicInteger itemCount = new AtomicInteger();
+
+        var choiceQues = openEnded.stream().map(AssessmentKeyDetails::getItemType).filter(v -> v.contains("-C0-")).map(x -> {
+            var splits = x.split("-");
+            var marker = splits[3].toCharArray();
+            return Integer.parseInt(String.valueOf(marker[1]));
+        }).reduce(Integer::sum);
+
+        int choiceInt = choiceQues.orElse(0);
         questionGroups.forEach(questionGroup -> {
-            var choiceQues = questionGroup.stream().map(AssessmentKeyDetails::getItemType).filter(v -> v.contains("-C0-")).map(x -> {
-                var splits = x.split("-");
+            var nonChoiceInt = 0;
+            var nonChoiceItemCount = 0;
+            var nonchoiceQues = questionGroup.stream().map(AssessmentKeyDetails::getItemType).filter(v -> v.contains("-C1-")).findFirst();
+            if(nonchoiceQues.isPresent()) {
+                var splits = nonchoiceQues.get().split("-");
+                var choiceType = splits[2].toCharArray();
                 var marker = splits[3].toCharArray();
-                return Integer.parseInt(String.valueOf(marker[1]));
-            }).reduce(Integer::sum);
-
-            var choiceInt = choiceQues.orElse(0);
-
-            //need to update logic
-            var nonchoiceQues = questionGroup.stream().map(AssessmentKeyDetails::getItemType).filter(v -> v.contains("-C1-")).toList();
-            markCount.set(choiceInt + nonchoiceQues.size());
+                nonChoiceInt = Integer.parseInt(String.valueOf(marker[1]));
+                nonChoiceItemCount = nonChoiceInt + Integer.parseInt(String.valueOf(choiceType[1]));
+            }
+            markCount.set(choiceInt + nonChoiceInt);
+            itemCount.set(choiceInt + nonChoiceItemCount);
         });
-        AssessmentComponentEntity openEndedComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, type, openEnded.size(), openEnded.size(), markCount.get());
+        AssessmentComponentEntity openEndedComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, type, openEnded.size(), openEnded.size(), markCount.get(), itemCount.get());
 
         openEnded.forEach(ques -> {
             final var quesEntity = mapper.toQuestionEntity(ques, openEndedComponentEntity);
@@ -186,7 +184,7 @@ public class AssessmentKeyService {
         return openEndedComponentEntity;
     }
 
-    private AssessmentComponentEntity createAssessmentComponentEntity(final AssessmentFormEntity assessmentFormEntity, final String type, int quesCount, int numOmits, int markCount) {
+    private AssessmentComponentEntity createAssessmentComponentEntity(final AssessmentFormEntity assessmentFormEntity, final String type, int quesCount, int numOmits, int markCount, int itemCount) {
         return  AssessmentComponentEntity
                 .builder()
                 .assessmentFormEntity(assessmentFormEntity)
@@ -194,7 +192,7 @@ public class AssessmentKeyService {
                 .componentSubTypeCode(type.equalsIgnoreCase("EO") ? "ORAL" : "NONE")
                 .questionCount(quesCount)
                 .numOmits(numOmits)
-//              .oeItemCount()
+                .oeItemCount(itemCount)
                 .oeMarkCount(markCount)
                 .createDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
