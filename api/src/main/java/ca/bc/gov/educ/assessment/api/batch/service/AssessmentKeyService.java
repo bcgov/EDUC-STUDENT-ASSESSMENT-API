@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -51,7 +52,6 @@ import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchF
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.TOPIC_TYPE;
 import static ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError.*;
 import static ca.bc.gov.educ.assessment.api.batch.mapper.AssessmentKeysBatchFileMapper.mapper;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.PRECONDITION_REQUIRED;
 
 @Service
@@ -66,6 +66,8 @@ public class AssessmentKeyService {
     private final AssessmentRepository assessmentRepository;
     private final KeyFileValidator keyFileValidator;
     private final CodeTableService codeTableService;
+    private final String[] literacyCodes = {"LTE10", "LTP10", "LTE12", "LTF12", "LTP12"};
+    private final String[] allowedTaskCodes = {"A", "E", "I"};
 
     public static final String LOAD_FAIL = "LOADFAIL";
 
@@ -248,7 +250,6 @@ public class AssessmentKeyService {
     }
 
     private void setMultiChoiceQuestionEntityColumns(AssessmentQuestionEntity keyEntity, List<AssessmentKeyDetails> multiChoiceQuesGroup, AssessmentKeyDetails value) {
-        //item number
         keyEntity.setQuestionNumber(StringUtils.isNotBlank(value.getQuestionNumber()) ? Integer.parseInt(value.getQuestionNumber()) : null);
         keyEntity.setMaxQuestionValue(StringUtils.isNotBlank(value.getMark()) && StringUtils.isNotBlank(value.getScaleFactor())
                 ? new BigDecimal(value.getMark()).multiply(new BigDecimal(value.getScaleFactor()))
@@ -258,7 +259,6 @@ public class AssessmentKeyService {
     }
 
     private void setOpenEndedWrittenQuestionEntityColumns(AssessmentQuestionEntity keyEntity, AssessmentKeyDetails value, List<List<AssessmentKeyDetails>> quesGroup) {
-        //item number
         var itemType = value.getItemType().split("-");
         var question = itemType[1].toCharArray();
         var choiceType = itemType[2];
@@ -307,6 +307,8 @@ public class AssessmentKeyService {
         final var quesNumber = StringUtils.trim(ds.getString(QUES_NUMBER.getName()));
         if (StringUtils.isBlank(quesNumber) || quesNumber.length() > 2) {
             throw new KeyFileUnProcessableException(QUES_NUM_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        } else if (!StringUtils.isNumeric(quesNumber)) {
+            throw new KeyFileUnProcessableException(QUES_NUM_NOT_NUMERIC, guid, String.valueOf(index + 1));
         }
 
         final var itemType = StringMapper.trimAndUppercase(ds.getString(ITEM_TYPE.getName()));
@@ -325,6 +327,8 @@ public class AssessmentKeyService {
         final var mark = StringUtils.trim(ds.getString(MARK_VALUE.getName()));
         if (StringUtils.isBlank(mark) || mark.length() > 2) {
             throw new KeyFileUnProcessableException(MARK_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        } else if (!StringUtils.isNumeric(mark)) {
+            throw new KeyFileUnProcessableException(MARK_NOT_NUMERIC, guid, String.valueOf(index + 1));
         }
 
         final var cognLevel = StringMapper.trimAndUppercase(ds.getString(COGN_LEVEL.getName()));
@@ -337,8 +341,11 @@ public class AssessmentKeyService {
         final var taskCode = StringMapper.trimAndUppercase(ds.getString(TASK_CODE.getName()));
         if(StringUtils.isNotBlank(taskCode) && codeTableService.getAllTaskCodes().stream().noneMatch(code -> code.getTaskCode().equalsIgnoreCase(taskCode))) {
             throw new KeyFileUnProcessableException(INVALID_TASK_CODE, guid, String.valueOf(index + 1));
-        } else if(StringUtils.isNotBlank(cognLevel) && taskCode.length() > 2) {
+        } else if(StringUtils.isNotBlank(taskCode) && taskCode.length() > 2) {
             throw new KeyFileUnProcessableException(TASK_CODE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        } else if(Arrays.stream(literacyCodes).anyMatch(assmtCode::equalsIgnoreCase) && itemType.equalsIgnoreCase("UNKNOWN")
+            && StringUtils.isNotBlank(taskCode)&& Arrays.stream(allowedTaskCodes).noneMatch(taskCode::equalsIgnoreCase)) {
+            throw new KeyFileUnProcessableException(TASK_CODE_NOT_ALLOWED, guid, String.valueOf(index + 1));
         }
 
         final var claimCode = StringMapper.trimAndUppercase(ds.getString(CLAIM_CODE.getName()));
@@ -365,11 +372,35 @@ public class AssessmentKeyService {
         final var scale = StringMapper.trimAndUppercase(ds.getString(SCALE_FACTOR.getName()));
         if (StringUtils.isBlank(scale) || scale.length() > 8) {
             throw new KeyFileUnProcessableException(SCALE_FACTOR_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        } else if (!StringUtils.isNumeric(scale)) {
+            throw new KeyFileUnProcessableException(SCALE_FACTOR_NOT_NUMERIC, guid, String.valueOf(index + 1));
+        } else if (StringUtils.isNumeric(scale) && Double.parseDouble(scale) > -99.99 && Double.parseDouble(scale) < 99.99) {
+            throw new KeyFileUnProcessableException(SCALE_FACTOR_NOT_IN_RANGE, guid, String.valueOf(index + 1));
         }
 
         final var assmtSection = StringMapper.trimAndUppercase(ds.getString(ASSMT_SECTION.getName()));
         if (StringUtils.isNotBlank(assmtSection) && assmtSection.length() > 8) {
             throw new KeyFileUnProcessableException(ASSMT_SECTION_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var topicType = StringMapper.trimAndUppercase(ds.getString(TOPIC_TYPE.getName()));
+        if (StringUtils.isNotBlank(topicType) && topicType.length() > 1) {
+            throw new KeyFileUnProcessableException(TOPIC_TYPE_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var item = StringMapper.trimAndUppercase(ds.getString(ITEM.getName()));
+        if (StringUtils.isNotBlank(item) && topicType.length() > 4) {
+            throw new KeyFileUnProcessableException(ITEM_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var irtColumn = StringMapper.trimAndUppercase(ds.getString(IRT_COLUMN.getName()));
+        if (StringUtils.isNotBlank(irtColumn) && irtColumn.length() > 3) {
+            throw new KeyFileUnProcessableException(IRT_COLUMN_LENGTH_ERROR, guid, String.valueOf(index + 1));
+        }
+
+        final var quesOrigin = StringMapper.trimAndUppercase(ds.getString(QUES_ORIGIN.getName()));
+        if (StringUtils.isNotBlank(quesOrigin) && quesOrigin.length() > 160) {
+            throw new KeyFileUnProcessableException(QUES_ORIGIN_LENGTH_ERROR, guid, String.valueOf(index + 1));
         }
 
         return AssessmentKeyDetails.builder()
@@ -385,11 +416,11 @@ public class AssessmentKeyService {
                 .claimCode(claimCode)
                 .contextCode(contextCode)
                 .conceptsCode(conceptsCode)
-                .topicType(StringMapper.trimAndUppercase(ds.getString(TOPIC_TYPE.getName())))
+                .topicType(topicType)
                 .scaleFactor(scale)
-                .questionOrigin(StringMapper.trimAndUppercase(ds.getString(QUES_ORIGIN.getName())))
-                .item(StringMapper.trimAndUppercase(ds.getString(ITEM.getName())))
-                .irt(StringMapper.trimAndUppercase(ds.getString(IRT_COLUMN.getName())))
+                .questionOrigin(quesOrigin)
+                .item(item)
+                .irt(irtColumn)
                 .assessmentSection(assmtSection)
                 .build();
     }
