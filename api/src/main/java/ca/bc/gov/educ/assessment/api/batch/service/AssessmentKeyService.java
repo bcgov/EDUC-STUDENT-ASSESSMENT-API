@@ -107,8 +107,7 @@ public class AssessmentKeyService {
         }
 
         if("N".equalsIgnoreCase(replaceKeyFlag) && !assessmentEntity.getAssessmentForms().isEmpty()) {
-            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(typeCode).status(PRECONDITION_REQUIRED).build();
-            throw new ConfirmationRequiredException(error);
+            throw new ConfirmationRequiredException(ApiError.builder().timestamp(LocalDateTime.now()).message(typeCode).status(PRECONDITION_REQUIRED).build());
         }
 
         Map<String, List<AssessmentKeyDetails>> groupedData = batchFile.getAssessmentKeyData().stream().collect(Collectors.groupingBy(AssessmentKeyDetails::getFormCode));

@@ -259,7 +259,8 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
-                .contentType(APPLICATION_JSON)).andExpect(status().isPreconditionRequired());
+                .contentType(APPLICATION_JSON)).andExpect(status().isPreconditionRequired())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("LTE10"));;
     }
 
     @Test
