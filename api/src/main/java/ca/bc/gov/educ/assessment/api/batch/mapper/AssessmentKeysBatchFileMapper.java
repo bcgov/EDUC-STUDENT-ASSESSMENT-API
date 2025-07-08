@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentComponentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentFormEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,11 +19,11 @@ public interface AssessmentKeysBatchFileMapper {
     AssessmentKeysBatchFileMapper mapper = Mappers.getMapper(AssessmentKeysBatchFileMapper.class);
 
     @Mapping(target = "assessmentFormID", ignore = true)
-    @Mapping(target = "updateUser", constant = STUDENT_ASSESSMENT_API)
+    @Mapping(target = "updateUser", constant = "fileUpload.updateUser")
     @Mapping(target = "updateDate", expression = "java(java.time.LocalDateTime.now() )")
-    @Mapping(target = "createUser", constant = STUDENT_ASSESSMENT_API)
+    @Mapping(target = "createUser", constant = "fileUpload.createUser")
     @Mapping(target = "createDate",expression = "java(java.time.LocalDateTime.now() )")
-    AssessmentFormEntity toFormEntity(String formCode, AssessmentEntity assessmentEntity);
+    AssessmentFormEntity toFormEntity(String formCode, AssessmentEntity assessmentEntity, AssessmentKeyFileUpload fileUpload);
 
     @Mapping(target = "assessmentQuestionID", ignore = true)
     @Mapping(target = "itemNumber", ignore = true)

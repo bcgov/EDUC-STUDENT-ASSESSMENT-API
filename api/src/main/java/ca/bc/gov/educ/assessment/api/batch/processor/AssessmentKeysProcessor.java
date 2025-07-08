@@ -59,7 +59,7 @@ public class AssessmentKeysProcessor {
                     .parse();
 
             keyFileValidator.validateFileHasCorrectExtension(guid, fileUpload);
-            assessmentKeyService.populateBatchFileAndLoadData(guid, ds, assessmentSessionID, fileUpload.getReplaceKeyFlag());
+            assessmentKeyService.populateBatchFileAndLoadData(guid, ds, assessmentSessionID, fileUpload);
         } catch (final KeyFileUnProcessableException keyFileUnProcessableException) {
             log.error("File could not be processed exception :: {}", keyFileUnProcessableException);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();
