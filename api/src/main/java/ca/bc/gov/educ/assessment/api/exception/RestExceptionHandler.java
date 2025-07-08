@@ -113,10 +113,10 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   @ExceptionHandler(ConfirmationRequiredException.class)
-  protected ResponseEntity<Object> handleEntityNotFound(
+  protected ResponseEntity<Object> handleConfirmationRequired(
           ConfirmationRequiredException ex) {
     ApiError apiError = new ApiError(PRECONDITION_REQUIRED);
-    apiError.setMessage("Confirmation Required");
+    apiError.setMessage(ex.getMessage());
     log.info("{} ", apiError.getMessage(), ex);
     return buildResponseEntity(apiError);
   }
