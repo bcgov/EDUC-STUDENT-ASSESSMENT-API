@@ -51,6 +51,7 @@ import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchF
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.TOPIC_TYPE;
 import static ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError.*;
 import static ca.bc.gov.educ.assessment.api.batch.mapper.AssessmentKeysBatchFileMapper.mapper;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.PRECONDITION_REQUIRED;
 
 @Service
@@ -106,7 +107,8 @@ public class AssessmentKeyService {
         }
 
         if("N".equalsIgnoreCase(replaceKeyFlag) && !assessmentEntity.getAssessmentForms().isEmpty()) {
-            throw new ConfirmationRequiredException(new ApiError(PRECONDITION_REQUIRED));
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(typeCode).status(PRECONDITION_REQUIRED).build();
+            throw new ConfirmationRequiredException(error);
         }
 
         Map<String, List<AssessmentKeyDetails>> groupedData = batchFile.getAssessmentKeyData().stream().collect(Collectors.groupingBy(AssessmentKeyDetails::getFormCode));

@@ -70,7 +70,7 @@ public class AssessmentKeysProcessor {
             throw new InvalidPayloadException(error);
         } catch (final ConfirmationRequiredException e) {
             log.warn("Confirmation required while processing the file with guid :: {}", guid);
-            throw new ConfirmationRequiredException(new ApiError(PRECONDITION_REQUIRED));
+            throw new ConfirmationRequiredException(e.getError());
         } catch (final Exception e) {
             log.error("Exception while processing the file with guid :: {} :: Exception :: {}", guid, e);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();
