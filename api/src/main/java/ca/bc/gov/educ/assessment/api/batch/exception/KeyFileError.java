@@ -80,6 +80,7 @@ public enum KeyFileError {
   CONCEPTS_CODE_LENGTH_ERROR("Concept code must not be longer than 3 on line $?."),
   SCALE_FACTOR_LENGTH_ERROR("Scale factor must not be longer than 8 on line $?."),
   ASSMT_SECTION_LENGTH_ERROR("Assessment section must not be longer than 8 on line $?."),
+  ASSESSMENT_FORMS_HAVE_STUDENTS("Results have already been uploaded for $?, as such the key cannot be replaced. The results have to be removed before the key can be updated."),
   ;
 
   /**

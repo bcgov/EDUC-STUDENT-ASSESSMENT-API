@@ -229,6 +229,40 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
+    void testProcessAssessmentKeysFile_givenTxtFile_IfFileExists_ShouldReturnPreconditionRequired() throws Exception {
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessmentEntity, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTE10.txt");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+
+        var file = AssessmentKeyFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ABC")
+                .fileName("TRAX_202501_LTE10.txt")
+                .replaceKeyFlag("N")
+                .build();
+
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .content(JsonUtil.getJsonStringFromObject(file))
+                .contentType(APPLICATION_JSON)).andExpect(status().isPreconditionRequired());
+    }
+
+    @Test
     void testProcessAssessmentKeysFile_givenTxtFile_ShouldReplaceExistingKeyFileIfExists() throws Exception {
         var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
 
@@ -252,6 +286,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileContents(fileContents)
                 .createUser("ABC")
                 .fileName("TRAX_202501_LTE10.txt")
+                .replaceKeyFlag("Y")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")

@@ -5,6 +5,8 @@ import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableExcepti
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyDetails;
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyFile;
 import ca.bc.gov.educ.assessment.api.batch.validation.KeyFileValidator;
+import ca.bc.gov.educ.assessment.api.exception.ConfirmationRequiredException;
+import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.mappers.StringMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
@@ -49,6 +51,7 @@ import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchF
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentKeysBatchFile.TOPIC_TYPE;
 import static ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError.*;
 import static ca.bc.gov.educ.assessment.api.batch.mapper.AssessmentKeysBatchFileMapper.mapper;
+import static org.springframework.http.HttpStatus.PRECONDITION_REQUIRED;
 
 @Service
 @Slf4j
@@ -58,6 +61,7 @@ public class AssessmentKeyService {
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
     private final AssessmentFormRepository assessmentFormRepository;
+    private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentRepository assessmentRepository;
     private final KeyFileValidator keyFileValidator;
     private final CodeTableService codeTableService;
@@ -65,14 +69,14 @@ public class AssessmentKeyService {
     public static final String LOAD_FAIL = "LOADFAIL";
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID) throws KeyFileUnProcessableException {
+    public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID, String replaceKeyFlag) throws KeyFileUnProcessableException {
         val batchFile = new AssessmentKeyFile();
 
         AssessmentSessionEntity validSession =
                 assessmentSessionRepository.findById(sessionID)
                         .orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_INCOMING_REQUEST_SESSION, guid, LOAD_FAIL));
         populateAssessmentKeyFile(ds, batchFile, validSession, guid);
-        processLoadedRecordsInBatchFile(guid, batchFile, validSession);
+        processLoadedRecordsInBatchFile(guid, batchFile, validSession, replaceKeyFlag);
     }
 
     private void populateAssessmentKeyFile(final DataSet ds, final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession, final String guid) throws KeyFileUnProcessableException {
@@ -86,12 +90,24 @@ public class AssessmentKeyService {
         }
     }
 
-    private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession) throws KeyFileUnProcessableException {
+    private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession, String replaceKeyFlag) throws KeyFileUnProcessableException {
         var typeCode = batchFile.getAssessmentKeyData().getFirst().getAssessmentCode();
         assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
 
         var assessmentEntity = assessmentRepository.findByAssessmentSessionEntity_SessionIDAndAssessmentTypeCode(validSession.getSessionID(), typeCode)
                 .orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_CODE, guid, LOAD_FAIL));
+
+        if(!assessmentEntity.getAssessmentForms().isEmpty()) {
+            List<UUID> formIds = assessmentEntity.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
+            var results = assessmentStudentRepository.findByAssessmentFormIDIn(formIds);
+            if(!results.isEmpty()) {
+                throw new KeyFileUnProcessableException(KeyFileError.ASSESSMENT_FORMS_HAVE_STUDENTS, guid, typeCode);
+            }
+        }
+
+        if("N".equalsIgnoreCase(replaceKeyFlag) && !assessmentEntity.getAssessmentForms().isEmpty()) {
+            throw new ConfirmationRequiredException(new ApiError(PRECONDITION_REQUIRED));
+        }
 
         Map<String, List<AssessmentKeyDetails>> groupedData = batchFile.getAssessmentKeyData().stream().collect(Collectors.groupingBy(AssessmentKeyDetails::getFormCode));
 
@@ -119,14 +135,16 @@ public class AssessmentKeyService {
             if(!openEndedOral.isEmpty()) {
                 formEntity.getAssessmentComponentEntities().add(createOpenEndedComponent(formEntity, openEndedOral, "EO"));
             }
-            craftStudentSetAndMarkInitialLoadComplete(formEntity);
+            craftStudentSetAndMarkInitialLoadComplete(formEntity, replaceKeyFlag);
        }
     }
 
     @Retryable(retryFor = {Exception.class}, backoff = @Backoff(multiplier = 3, delay = 2000))
-    public void craftStudentSetAndMarkInitialLoadComplete(@NonNull final AssessmentFormEntity assessmentFormEntity) {
+    public void craftStudentSetAndMarkInitialLoadComplete(@NonNull final AssessmentFormEntity assessmentFormEntity, String replaceKeyFlag) {
       var formEntity = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(assessmentFormEntity.getAssessmentEntity().getAssessmentID(), assessmentFormEntity.getFormCode());
-      formEntity.ifPresent(assessmentFormRepository::delete);
+      if("Y".equalsIgnoreCase(replaceKeyFlag) && formEntity.isPresent()) {
+          assessmentFormRepository.delete(formEntity.get());
+      }
       assessmentFormRepository.save(assessmentFormEntity);
     }
 
@@ -171,17 +189,44 @@ public class AssessmentKeyService {
         AssessmentComponentEntity openEndedComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, type, openEnded.size(), openEnded.size(), markCount.get(), itemCount.get());
 
         openEnded.forEach(ques -> {
+            AtomicInteger itemNumberCounter = new AtomicInteger(1);
+            AtomicInteger repeatCounter = new AtomicInteger(0);
+
             final var quesEntity = mapper.toQuestionEntity(ques, openEndedComponentEntity);
             setOpenEndedWrittenQuestionEntityColumns(quesEntity, ques, questionGroups);
             var itemType = ques.getItemType().split("-");
             var marker = itemType[3].toCharArray();
             var index = Integer.parseInt(String.valueOf(marker[1]));
-            while (index > 0) {
+            for(int i = 0; i < index; i++) {
+                setItemNumber(quesEntity, index, i, itemType, itemNumberCounter, repeatCounter);
                 openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
-                index--;
             }
         });
         return openEndedComponentEntity;
+    }
+
+    private void setItemNumberAndIncrement(AssessmentQuestionEntity questionEntity, AtomicInteger itemNumberCounter) {
+        questionEntity.setItemNumber(itemNumberCounter.get());
+        itemNumberCounter.getAndIncrement();
+    }
+
+    private void setItemNumber(AssessmentQuestionEntity questionEntity, int index, int i, String[] itemType, AtomicInteger itemNumberCounter, AtomicInteger repeatCounter) {
+        var choiceType = itemType[2];
+
+        if(choiceType.contains("-C0-")) {
+            setItemNumberAndIncrement(questionEntity, itemNumberCounter);
+        } else if(choiceType.contains("-C1-")) {
+            if(i == 0) {
+                itemNumberCounter.getAndIncrement();
+            }
+            setItemNumberAndIncrement(questionEntity, itemNumberCounter);
+        } else {
+            if(i == 0) {
+                repeatCounter.set(itemNumberCounter.get() - index);
+            }
+            questionEntity.setItemNumber(repeatCounter.get());
+            repeatCounter.getAndIncrement();
+        }
     }
 
     private AssessmentComponentEntity createAssessmentComponentEntity(final AssessmentFormEntity assessmentFormEntity, final String type, int quesCount, int numOmits, int markCount, int itemCount) {

@@ -94,7 +94,7 @@ public class SessionService {
                 log.debug("Error starting XAM file generation saga for session {}: {}", session.getSessionID(), e.getMessage());
             }
         }
-
+        session.setActiveUntilDate(LocalDateTime.now());
         return assessmentSessionRepository.save(session);
     }
 

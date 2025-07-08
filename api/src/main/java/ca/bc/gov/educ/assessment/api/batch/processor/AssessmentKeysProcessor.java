@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
 import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.batch.service.AssessmentKeyService;
 import ca.bc.gov.educ.assessment.api.batch.validation.KeyFileValidator;
+import ca.bc.gov.educ.assessment.api.exception.ConfirmationRequiredException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
@@ -24,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.PRECONDITION_REQUIRED;
 
 @Component
 @Slf4j
@@ -57,7 +59,7 @@ public class AssessmentKeysProcessor {
                     .parse();
 
             keyFileValidator.validateFileHasCorrectExtension(guid, fileUpload);
-            assessmentKeyService.populateBatchFileAndLoadData(guid, ds, assessmentSessionID);
+            assessmentKeyService.populateBatchFileAndLoadData(guid, ds, assessmentSessionID, fileUpload.getReplaceKeyFlag());
         } catch (final KeyFileUnProcessableException keyFileUnProcessableException) {
             log.error("File could not be processed exception :: {}", keyFileUnProcessableException);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();
@@ -66,6 +68,9 @@ public class AssessmentKeysProcessor {
             fieldErrorList.add(validationError);
             error.addValidationErrors(fieldErrorList);
             throw new InvalidPayloadException(error);
+        } catch (final ConfirmationRequiredException e) {
+            log.warn("Confirmation required while processing the file with guid :: {}", guid);
+            throw new ConfirmationRequiredException(new ApiError(PRECONDITION_REQUIRED));
         } catch (final Exception e) {
             log.error("Exception while processing the file with guid :: {} :: Exception :: {}", guid, e);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();
