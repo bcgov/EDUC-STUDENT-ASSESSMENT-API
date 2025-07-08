@@ -6,6 +6,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentComponentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentFormEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,8 +21,8 @@ public abstract class AssessmentKeysBatchFileDecorator implements AssessmentKeys
     }
 
     @Override
-    public AssessmentFormEntity toFormEntity(String formCode, AssessmentEntity assessmentEntity) {
-        final var entity = this.delegate.toFormEntity(formCode, assessmentEntity);
+    public AssessmentFormEntity toFormEntity(String formCode, AssessmentEntity assessmentEntity, AssessmentKeyFileUpload fileUpload) {
+        final var entity = this.delegate.toFormEntity(formCode, assessmentEntity, fileUpload);
         entity.setAssessmentEntity(assessmentEntity);
         entity.setFormCode(formCode);
         return entity;

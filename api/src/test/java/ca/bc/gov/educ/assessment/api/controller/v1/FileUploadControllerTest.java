@@ -117,6 +117,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
+                .updateUser("ABC")
                 .fileName("TRAX_202501_LTE10_InvalidItemType.txt")
                 .build();
 
@@ -137,6 +138,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
+                .updateUser("ABC")
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
@@ -157,6 +159,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
+                .updateUser("ABC")
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
@@ -177,6 +180,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
+                .updateUser("ABC")
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
@@ -196,6 +200,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
+                .updateUser("ABC")
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
@@ -218,6 +223,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
+                .updateUser("ABC")
                 .fileName("TRAX_202501_LTE10.txt")
                 .build();
 

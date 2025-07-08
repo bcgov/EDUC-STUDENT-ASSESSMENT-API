@@ -11,12 +11,14 @@ import ca.bc.gov.educ.assessment.api.mappers.StringMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.sf.flatpack.DataSet;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -72,14 +74,14 @@ public class AssessmentKeyService {
     public static final String LOAD_FAIL = "LOADFAIL";
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID, String replaceKeyFlag) throws KeyFileUnProcessableException {
+    public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID, AssessmentKeyFileUpload fileUpload) throws KeyFileUnProcessableException {
         val batchFile = new AssessmentKeyFile();
 
         AssessmentSessionEntity validSession =
                 assessmentSessionRepository.findById(sessionID)
                         .orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_INCOMING_REQUEST_SESSION, guid, LOAD_FAIL));
         populateAssessmentKeyFile(ds, batchFile, validSession, guid);
-        processLoadedRecordsInBatchFile(guid, batchFile, validSession, replaceKeyFlag);
+        processLoadedRecordsInBatchFile(guid, batchFile, validSession, fileUpload);
     }
 
     private void populateAssessmentKeyFile(final DataSet ds, final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession, final String guid) throws KeyFileUnProcessableException {
@@ -93,7 +95,7 @@ public class AssessmentKeyService {
         }
     }
 
-    private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession, String replaceKeyFlag) throws KeyFileUnProcessableException {
+    private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession, AssessmentKeyFileUpload fileUpload) throws KeyFileUnProcessableException {
         var typeCode = batchFile.getAssessmentKeyData().getFirst().getAssessmentCode();
         assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
 
@@ -108,14 +110,14 @@ public class AssessmentKeyService {
             }
         }
 
-        if("N".equalsIgnoreCase(replaceKeyFlag) && !assessmentEntity.getAssessmentForms().isEmpty()) {
+        if("N".equalsIgnoreCase(fileUpload.getReplaceKeyFlag()) && !assessmentEntity.getAssessmentForms().isEmpty()) {
             throw new ConfirmationRequiredException(ApiError.builder().timestamp(LocalDateTime.now()).message(typeCode).status(PRECONDITION_REQUIRED).build());
         }
 
         Map<String, List<AssessmentKeyDetails>> groupedData = batchFile.getAssessmentKeyData().stream().collect(Collectors.groupingBy(AssessmentKeyDetails::getFormCode));
 
         for(val entry : groupedData.entrySet()) {
-            AssessmentFormEntity formEntity = mapper.toFormEntity(entry.getKey(), assessmentEntity);
+            AssessmentFormEntity formEntity = mapper.toFormEntity(entry.getKey(), assessmentEntity, fileUpload);
             var multiChoice = entry.getValue().stream().filter(value -> value.getItemType().equalsIgnoreCase("UNKNOWN")).toList();
             var openEndedWritten = entry.getValue().stream().filter(value -> {
                 var itemType = value.getItemType().split("-");
@@ -138,7 +140,7 @@ public class AssessmentKeyService {
             if(!openEndedOral.isEmpty()) {
                 formEntity.getAssessmentComponentEntities().add(createOpenEndedComponent(formEntity, openEndedOral, "EO"));
             }
-            craftStudentSetAndMarkInitialLoadComplete(formEntity, replaceKeyFlag);
+            craftStudentSetAndMarkInitialLoadComplete(formEntity, fileUpload.getReplaceKeyFlag());
        }
     }
 
@@ -372,9 +374,9 @@ public class AssessmentKeyService {
         final var scale = StringMapper.trimAndUppercase(ds.getString(SCALE_FACTOR.getName()));
         if (StringUtils.isBlank(scale) || scale.length() > 8) {
             throw new KeyFileUnProcessableException(SCALE_FACTOR_LENGTH_ERROR, guid, String.valueOf(index + 1));
-        } else if (!StringUtils.isNumeric(scale)) {
+        } else if (!NumberUtils.isParsable(scale)) {
             throw new KeyFileUnProcessableException(SCALE_FACTOR_NOT_NUMERIC, guid, String.valueOf(index + 1));
-        } else if (StringUtils.isNumeric(scale) && Double.parseDouble(scale) > -99.99 && Double.parseDouble(scale) < 99.99) {
+        } else if (Double.parseDouble(scale) < -99.99 && Double.parseDouble(scale) > 99.99) {
             throw new KeyFileUnProcessableException(SCALE_FACTOR_NOT_IN_RANGE, guid, String.valueOf(index + 1));
         }
 
