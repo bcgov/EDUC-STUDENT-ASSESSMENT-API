@@ -191,6 +191,17 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     student.setUpdateDate(null);
     student.setUpdateUser(null);
 
+    var studentAPIStudent = this.createMockStudentAPIStudent();
+    studentAPIStudent.setPen(student.getPen());
+    studentAPIStudent.setLegalFirstName(student.getGivenName());
+    studentAPIStudent.setLegalLastName(student.getSurname());
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
     this.mockMvc.perform(
                     put(URL.BASE_URL_STUDENT + "/" + student.getAssessmentStudentID())
                             .contentType(APPLICATION_JSON)
