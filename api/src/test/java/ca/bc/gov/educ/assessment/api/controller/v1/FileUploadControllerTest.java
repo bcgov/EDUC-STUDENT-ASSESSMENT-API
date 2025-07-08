@@ -260,7 +260,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
                 .contentType(APPLICATION_JSON)).andExpect(status().isPreconditionRequired())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("LTE10"));;
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("LTE10"));
     }
 
     @Test
