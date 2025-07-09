@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.UUID;
 
 @RequestMapping( URL.BASE_URL_REPORT)
-public interface ReportsEndoint {
+public interface ReportsEndpoint {
 
     @GetMapping("/{sessionID}/{type}/download/{updateUser}")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
