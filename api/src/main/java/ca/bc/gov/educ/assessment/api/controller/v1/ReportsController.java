@@ -2,9 +2,10 @@ package ca.bc.gov.educ.assessment.api.controller.v1;
 
 
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
-import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndoint;
+import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndpoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
+import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsInSessionReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.CSVReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
@@ -22,9 +23,10 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-public class ReportsController implements ReportsEndoint {
+public class ReportsController implements ReportsEndpoint {
 
     private final AssessmentStudentService assessmentStudentService;
+    private final SchoolStudentsInSessionReportService schoolStudentsInSessionReportService;
     private final CSVReportService csvReportService;
     private final XAMFileService xamFileService;
 
@@ -71,6 +73,8 @@ public class ReportsController implements ReportsEndoint {
                 }
             case SESSION_RESULTS:
                 return csvReportService.generateSessionResultsBySchoolReport(sessionID, schoolID);
+            case SCHOOL_STUDENTS_IN_SESSION:
+                return schoolStudentsInSessionReportService.generateSchoolStudentsInSessionReport(sessionID, schoolID);
             default:
                 return new DownloadableReportResponse();
         }

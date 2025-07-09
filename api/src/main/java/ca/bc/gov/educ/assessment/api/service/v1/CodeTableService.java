@@ -7,7 +7,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static javax.management.timer.Timer.ONE_DAY;
 
@@ -28,6 +31,11 @@ public class CodeTableService {
     @Cacheable("assessmentTypeCodes")
     public List<AssessmentTypeCodeEntity> getAllAssessmentTypeCodes() {
         return assessmentTypeCodeRepository.findAll();
+    }
+    
+    public Map<String, String> getAllAssessmentTypeCodesAsMap() {
+        var allCodes = getAllAssessmentTypeCodes();
+        return allCodes.stream().collect(Collectors.toMap(AssessmentTypeCodeEntity::getAssessmentTypeCode, AssessmentTypeCodeEntity::getDescription));
     }
 
     @Scheduled(fixedRate = ONE_DAY, initialDelayString = "${timing.initialDelay}")

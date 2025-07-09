@@ -8,6 +8,7 @@ import java.util.Optional;
 @Getter
 public enum AssessmentReportTypeCode {
     ALL_SESSION_REGISTRATIONS("ALL_SESSION_REGISTRATIONS"),
+    SCHOOL_STUDENTS_IN_SESSION("SCHOOL_STUDENTS_IN_SESSION"),
     ATTEMPTS("ATTEMPTS"),
     PEN_MERGES("PEN_MERGES"),
     XAM_FILE("XAM_FILE"),
