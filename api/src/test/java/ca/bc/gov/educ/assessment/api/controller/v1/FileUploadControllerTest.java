@@ -448,7 +448,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetAssessmentResultsUploadSummary_ShouldReturnOK() throws Exception {
+    void testGetAssessmentResultsUploadSummary_WhenResultsArePresent_ShouldReturnOK() throws Exception {
         var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
 
         var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessmentEntity, "A"));
@@ -469,6 +469,35 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
         studentEntity1.getAssessmentStudentComponentEntities().add(componentEntity1);
         studentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        studentRepository.save(studentEntity1);
+
+        var result = this.mockMvc.perform(get( BASE_URL + "/" + savedSession.get().getSessionID() + "/result-summary")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .contentType(APPLICATION_JSON)).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(result.andReturn().getResponse().getContentAsByteArray(), List.class);
+        assertThat(summary).isNotNull();
+    }
+
+    @Test
+    void testGetAssessmentResultsUploadSummary_WhenResultsAreNotLoaded_ShouldReturnOK() throws Exception {
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessmentEntity, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var studentEntity1 = createMockStudentEntity(savedAssessmentEntity);
         studentRepository.save(studentEntity1);
 
         var result = this.mockMvc.perform(get( BASE_URL + "/" + savedSession.get().getSessionID() + "/result-summary")
