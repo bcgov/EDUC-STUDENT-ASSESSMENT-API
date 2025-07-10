@@ -343,6 +343,19 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
+  public AssessmentStudentComponentEntity createMockAssessmentStudentComponentEntity(AssessmentStudentEntity assessmentStudentEntity, UUID assessmentComponentID) {
+    return AssessmentStudentComponentEntity.builder()
+            .assessmentStudentComponentID(UUID.randomUUID())
+            .assessmentStudentEntity(assessmentStudentEntity)
+            .assessmentComponentID(assessmentComponentID)
+            .choicePath("A")
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
 
   public SchoolTombstone createMockSchool() {
     final SchoolTombstone schoolTombstone = new SchoolTombstone();

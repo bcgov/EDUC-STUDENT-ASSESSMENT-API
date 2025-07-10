@@ -6,7 +6,12 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultsSummary;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.val;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,16 +22,20 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.io.FileInputStream;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.URL.BASE_URL;
+import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.SCHOOL_STUDENTS_IN_SESSION;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -50,12 +59,15 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     private RestUtils restUtils;
     @Autowired
     private AssessmentComponentRepository assessmentComponentRepository;
-
+    @Autowired
+    AssessmentStudentRepository studentRepository;
+    protected static final ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
     private AssessmentEntity savedAssessmentEntity;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        studentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         assessmentFormRepository.deleteAll();
         assessmentRepository.deleteAll();
@@ -433,5 +445,67 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
             assertEquals(savedForm.getAssessmentFormID(), stagedStudent.getAssessmentFormID(),
                     "Assessment form ID should match");
         }
+    }
+
+    @Test
+    void testGetAssessmentResultsUploadSummary_WhenResultsArePresent_ShouldReturnOK() throws Exception {
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessmentEntity, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var studentEntity1 = createMockStudentEntity(savedAssessmentEntity);
+        var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
+        componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        studentEntity1.getAssessmentStudentComponentEntities().add(componentEntity1);
+        studentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        studentRepository.save(studentEntity1);
+
+        var result = this.mockMvc.perform(get( BASE_URL + "/" + savedSession.get().getSessionID() + "/result-summary")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .contentType(APPLICATION_JSON)).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(result.andReturn().getResponse().getContentAsByteArray(), List.class);
+        assertThat(summary).isNotNull();
+    }
+
+    @Test
+    void testGetAssessmentResultsUploadSummary_WhenResultsAreNotLoaded_ShouldReturnOK() throws Exception {
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessmentEntity, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var studentEntity1 = createMockStudentEntity(savedAssessmentEntity);
+        studentRepository.save(studentEntity1);
+
+        var result = this.mockMvc.perform(get( BASE_URL + "/" + savedSession.get().getSessionID() + "/result-summary")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .contentType(APPLICATION_JSON)).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(result.andReturn().getResponse().getContentAsByteArray(), List.class);
+        assertThat(summary).isNotNull();
     }
 }
