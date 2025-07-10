@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,11 +48,7 @@ public class AssessmentSessionController implements AssessmentSessionEndpoint {
 
     @Override
     public List<AssessmentSession> getActiveSessions() {
-        var sessions = getSessionService().getActiveSessions();
-        if(sessions == null || sessions.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return sessions.stream().map(mapper::toStructure).collect(Collectors.toList());
+        return getSessionService().getActiveSessions().stream().map(mapper::toStructure).collect(Collectors.toList());
     }
 
     @Override

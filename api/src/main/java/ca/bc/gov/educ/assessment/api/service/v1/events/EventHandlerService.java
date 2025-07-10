@@ -123,11 +123,7 @@ public class EventHandlerService {
         var sessionStructs = new ArrayList<>();
         sessions.forEach(sessionStruct -> sessionStructs.add(sessionMapper.toStructure(sessionStruct)));
         if (isSynchronous) {
-            if (!sessions.isEmpty()) {
-                return JsonUtil.getJsonBytesFromObject(sessionStructs);
-            } else {
-                return new byte[0];
-            }
+            return JsonUtil.getJsonBytesFromObject(sessionStructs);
         }
 
         log.trace(EVENT_PAYLOAD, event);
