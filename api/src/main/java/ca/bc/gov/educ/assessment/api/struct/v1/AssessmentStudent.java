@@ -76,4 +76,5 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
 
     private String downloadDate;
 
+    private Boolean wroteFlag;
 }
