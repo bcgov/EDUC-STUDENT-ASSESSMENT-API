@@ -7,18 +7,14 @@ import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeExcept
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentRulesProcessor;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentValidationIssue;
-import ca.bc.gov.educ.assessment.api.struct.v1.StudentRuleData;
+import ca.bc.gov.educ.assessment.api.struct.v1.*;
 import ca.bc.gov.educ.assessment.api.util.AssessmentUtil;
 import ca.bc.gov.educ.assessment.api.util.EventUtil;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
@@ -33,10 +29,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.ASSESSMENT_STUDENT_UPDATED;
 import static ca.bc.gov.educ.assessment.api.constants.EventType.ASSESSMENT_STUDENT_UPDATE;
@@ -229,6 +222,32 @@ public class AssessmentStudentService {
         } catch (JsonProcessingException e) {
             throw new StudentAssessmentAPIRuntimeException(e);
         }
+    }
+
+
+    public List<AssessmentResultsSummary> getResultsUploadSummary(UUID sessionID) {
+        List<AssessmentEntity> assessments = assessmentRepository.findByAssessmentSessionEntity_SessionID(sessionID);
+        List<AssessmentResultsSummary> rowData = new ArrayList<>();
+        for (AssessmentEntity assessment : assessments) {
+            if(!assessment.getAssessmentForms().isEmpty()) {
+                AssessmentFormEntity form = assessment.getAssessmentForms().stream().findFirst().get();
+                Optional<AssessmentStudentEntity> student = assessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), form.getAssessmentFormID());
+                rowData.add(AssessmentResultsSummary
+                        .builder()
+                        .assessmentType(assessment.getAssessmentTypeCode())
+                        .uploadedBy(student.map(AssessmentStudentEntity::getCreateUser).orElse(null))
+                        .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
+                        .build());
+            } else {
+                rowData.add(AssessmentResultsSummary
+                        .builder()
+                        .assessmentType(assessment.getAssessmentTypeCode())
+                        .uploadedBy(null)
+                        .uploadDate(null)
+                        .build());
+            }
+        }
+        return rowData;
     }
 
 }
