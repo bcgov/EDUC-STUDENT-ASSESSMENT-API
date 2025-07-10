@@ -34,7 +34,7 @@ public interface FileUploadEndpoint {
     ResponseEntity<Void> processAssessmentResultsFile(@Validated @RequestBody AssessmentResultFileUpload fileUpload, @PathVariable(name = "session") String session);
 
     @GetMapping("/{sessionID}/result-summary")
-    @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_FILES')")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_SESSIONS')")
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     List<AssessmentResultsSummary> getAssessmentResultsUploadSummary(@PathVariable UUID sessionID);

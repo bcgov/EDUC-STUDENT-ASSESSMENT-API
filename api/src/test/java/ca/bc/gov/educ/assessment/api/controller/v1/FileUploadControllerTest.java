@@ -472,7 +472,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         studentRepository.save(studentEntity1);
 
         var result = this.mockMvc.perform(get( BASE_URL + "/" + savedSession.get().getSessionID() + "/result-summary")
-                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_ASSESSMENT_SESSIONS")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .contentType(APPLICATION_JSON)).andExpect(status().isOk());
 
@@ -501,7 +501,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         studentRepository.save(studentEntity1);
 
         var result = this.mockMvc.perform(get( BASE_URL + "/" + savedSession.get().getSessionID() + "/result-summary")
-                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_ASSESSMENT_SESSIONS")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .contentType(APPLICATION_JSON)).andExpect(status().isOk());
 
