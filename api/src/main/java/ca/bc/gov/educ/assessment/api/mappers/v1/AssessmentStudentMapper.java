@@ -7,12 +7,14 @@ import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.util.TransformUtil;
 import org.mapstruct.AfterMapping;
+import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class})
+@DecoratedWith(AssessmentStudentMapperDecorator.class)
 public interface AssessmentStudentMapper {
 
     AssessmentStudentMapper mapper = Mappers.getMapper(AssessmentStudentMapper.class);

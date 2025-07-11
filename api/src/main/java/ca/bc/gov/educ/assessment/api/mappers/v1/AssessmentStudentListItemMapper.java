@@ -4,11 +4,13 @@ import ca.bc.gov.educ.assessment.api.mappers.LocalDateTimeMapper;
 import ca.bc.gov.educ.assessment.api.mappers.UUIDMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentListItem;
+import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class})
+@DecoratedWith(AssessmentStudentListItemMapperDecorator.class)
 public interface AssessmentStudentListItemMapper {
 
     AssessmentStudentListItemMapper mapper = Mappers.getMapper(AssessmentStudentListItemMapper.class);
