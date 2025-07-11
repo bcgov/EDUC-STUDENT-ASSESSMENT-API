@@ -22,6 +22,7 @@ import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -58,7 +59,12 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   private void compileJasperReports(){
     try {
-      System.setProperty("net.sf.jasperreports.compiler.temp.dir", "/tmp");
+      System.setProperty("net.sf.jasperreports.compiler.temp.dir", System.getProperty("user.home") + "/jasper-temp");
+
+      File tempDir = new File(System.getProperty("user.home") + "/jasper-temp");
+      if (!tempDir.exists()) {
+        tempDir.mkdirs();
+      }
       InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
       log.info("Compiling Jasper reports");
       schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
