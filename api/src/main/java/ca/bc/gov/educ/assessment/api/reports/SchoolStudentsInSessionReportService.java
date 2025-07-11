@@ -58,7 +58,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   private void compileJasperReports(){
     try {
-      System.setProperty("java.io.tmpdir", "/tmp");
+      System.setProperty("net.sf.jasperreports.compiler.temp.dir", "/tmp");
       InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
       log.info("Compiling Jasper reports");
       schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
