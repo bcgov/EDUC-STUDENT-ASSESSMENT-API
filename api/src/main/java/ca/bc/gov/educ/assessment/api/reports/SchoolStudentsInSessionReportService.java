@@ -23,13 +23,20 @@ import net.sf.jasperreports.engine.JasperReport;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
 
-
+/**
+ * Service class for generating School Students in Session Report
+ */
 @Service
 @Slf4j
 public class SchoolStudentsInSessionReportService extends BaseReportGenerationService{
@@ -59,25 +66,28 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   private void compileJasperReports(){
     try {
+      // Set temp directory for JasperReports compilation
       System.setProperty("jasper.reports.compile.temp", System.getProperty("java.io.tmpdir"));
-      System.setProperty("net.sf.jasperreports.compiler.keep.java.file", "true");
-      System.setProperty("net.sf.jasperreports.compiler.debug", "true");
       
-      InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
-      log.info("Compiling Jasper reports");
-      schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
-      log.info("Jasper report compiled " + schoolStudentInSessionReport);
-    } catch (JRException e) {
-      log.error("Jasper report compile failed: " + e.getMessage());
-      // Print full stack trace
-      e.printStackTrace();
-
-      // Check for nested causes
-      Throwable cause = e.getCause();
-      while (cause != null) {
-        System.err.println("Caused by: " + cause.getMessage());
-        cause = cause.getCause();
+      // Work around Spring Boot nested JAR issues by copying JRXML to temp file
+      InputStream inputStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
+      if (inputStream == null) {
+        throw new StudentAssessmentAPIRuntimeException("Could not find JRXML file: /reports/schoolStudentsInSession.jrxml");
       }
+      
+      // Copy to temporary file to avoid Spring Boot nested JAR issues
+      Path tempJrxml = Files.createTempFile("schoolStudentsInSession", ".jrxml");
+      Files.copy(inputStream, tempJrxml, StandardCopyOption.REPLACE_EXISTING);
+      
+      log.info("Compiling Jasper reports from temp file: " + tempJrxml);
+      schoolStudentInSessionReport = JasperCompileManager.compileReport(tempJrxml.toString());
+      
+      // Clean up temp file
+      Files.deleteIfExists(tempJrxml);
+      
+      log.info("Jasper report compiled successfully: " + schoolStudentInSessionReport);
+    } catch (Exception e) {
+      log.error("JasperReports compilation failed: " + e.getMessage(), e);
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
   }
@@ -123,6 +133,4 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
     }
   }
-  
-  
 }
