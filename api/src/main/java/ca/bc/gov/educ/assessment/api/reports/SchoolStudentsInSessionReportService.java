@@ -28,7 +28,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
 
-
+/**
+ * Service class to generate School Students in Session Report
+ */
 @Service
 @Slf4j
 public class SchoolStudentsInSessionReportService extends BaseReportGenerationService{
@@ -58,6 +60,9 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   private void compileJasperReports(){
     try {
+      // Set temp directory for JasperReports compilation
+      System.setProperty("jasper.reports.compile.temp", System.getProperty("java.io.tmpdir"));
+      
       InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
       log.info("Compiling Jasper reports");
       schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
