@@ -68,6 +68,16 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
       schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
       log.info("Jasper report compiled " + schoolStudentInSessionReport);
     } catch (JRException e) {
+      log.error("Jasper report compile failed: " + e.getMessage());
+      // Print full stack trace
+      e.printStackTrace();
+
+      // Check for nested causes
+      Throwable cause = e.getCause();
+      while (cause != null) {
+        System.err.println("Caused by: " + cause.getMessage());
+        cause = cause.getCause();
+      }
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
   }
