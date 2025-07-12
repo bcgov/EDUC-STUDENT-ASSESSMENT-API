@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
-import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
