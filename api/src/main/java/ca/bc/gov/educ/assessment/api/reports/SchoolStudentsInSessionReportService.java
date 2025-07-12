@@ -25,10 +25,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -59,6 +56,8 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
   }
 
   private void compileJasperReports(){
+    Properties originalProps = System.getProperties();
+    Properties isolatedProps = new Properties();
     try {
       System.setProperty("jasper.reports.compile.temp", System.getProperty("java.io.tmpdir"));
 
@@ -66,6 +65,13 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
       InputStream jrxmlStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
       var jrxmlBytes = jrxmlStream.readAllBytes();
 
+
+      isolatedProps.putAll(originalProps);
+      isolatedProps.remove("java.class.path"); // Remove problematic classpath
+      isolatedProps.setProperty("net.sf.jasperreports.compiler.classpath", "");
+
+      System.setProperties(isolatedProps);
+      
       // Create ByteArrayInputStream
       var bais = new ByteArrayInputStream(jrxmlBytes);
       schoolStudentInSessionReport = JasperCompileManager.compileReport(bais);
@@ -82,6 +88,9 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
         cause = cause.getCause();
       }
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
+    }finally {
+      System.setProperties(originalProps);
+      jrxmlFile.delete();
     }
   }
 
