@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCo
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
@@ -16,10 +17,12 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.schoolStudent.SchoolStude
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,7 +32,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class SchoolStudentsInSessionReportService extends BaseReportGenerationService {
+public class SchoolStudentsInSessionReportService extends BaseReportGenerationService{
 
   private final AssessmentSessionRepository assessmentSessionRepository;
   private final AssessmentStudentRepository assessmentStudentRepository;
@@ -37,10 +40,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
   private final CodeTableService codeTableService;
   private JasperReport schoolStudentInSessionReport;
 
-  public SchoolStudentsInSessionReportService(AssessmentSessionRepository assessmentSessionRepository, 
-                                               AssessmentStudentRepository assessmentStudentRepository, 
-                                               RestUtils restUtils, 
-                                               CodeTableService codeTableService) {
+  public SchoolStudentsInSessionReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils, CodeTableService codeTableService) {
     super(restUtils);
     this.assessmentSessionRepository = assessmentSessionRepository;
     this.assessmentStudentRepository = assessmentStudentRepository;
@@ -50,28 +50,37 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   @PostConstruct
   public void init() {
-    this.loadPreCompiledReport();
+    ApplicationProperties.bgTask.execute(this::initialize);
   }
 
-  private void loadPreCompiledReport() {
+  private void initialize() {
+    this.compileJasperReports();
+  }
+
+  private void compileJasperReports(){
     try {
       System.setProperty("jasper.reports.compile.temp", System.getProperty("java.io.tmpdir"));
-      // Load pre-compiled report from resources
-      InputStream preCompiledStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jasper");
-      if (preCompiledStream == null) {
-        throw new StudentAssessmentAPIRuntimeException("Could not find pre-compiled report: /reports/schoolStudentsInSession.jasper");
+
+      InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
+      log.info("Compiling Jasper reports");
+      schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
+      log.info("Jasper report compiled " + schoolStudentInSessionReport);
+    } catch (JRException e) {
+      log.error("Jasper report compile failed: " + e.getMessage());
+      // Print full stack trace
+      e.printStackTrace();
+
+      // Check for nested causes
+      Throwable cause = e.getCause();
+      while (cause != null) {
+        System.err.println("Caused by: " + cause.getMessage());
+        cause = cause.getCause();
       }
-      
-      log.info("Loading pre-compiled Jasper report");
-      schoolStudentInSessionReport = (JasperReport) JRLoader.loadObject(preCompiledStream);
-      log.info("Pre-compiled Jasper report loaded successfully: " + schoolStudentInSessionReport);
-    } catch (Exception e) {
-      log.error("Failed to load pre-compiled report: " + e.getMessage(), e);
-      throw new StudentAssessmentAPIRuntimeException("Failed to load pre-compiled report: " + e.getMessage());
+      throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
   }
 
-  public DownloadableReportResponse generateSchoolStudentsInSessionReport(UUID assessmentSessionID, UUID schoolID) {
+  public DownloadableReportResponse generateSchoolStudentsInSessionReport(UUID assessmentSessionID, UUID schoolID){
     try {
       var assessmentTypes = codeTableService.getAllAssessmentTypeCodesAsMap();
       var students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(assessmentSessionID, schoolID);
@@ -95,7 +104,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
           studentGradAssessmentNode.setName(assessmentTypes.get(student.getAssessmentEntity().getAssessmentTypeCode()));
           studentGradAssessmentNode.setScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null);
           studentList.put(student.getStudentID(), studentNode);
-        } else {
+        }else{
           var loadedStudent = studentList.get(student.getStudentID());
           SchoolStudentGradAssessmentNode studentGradAssessmentNode = new SchoolStudentGradAssessmentNode();
           studentGradAssessmentNode.setName(assessmentTypes.get(student.getAssessmentEntity().getAssessmentTypeCode()));
@@ -108,8 +117,10 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
       return generateJasperReport(objectWriter.writeValueAsString(schoolStudentRootNode), schoolStudentInSessionReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_IN_SESSION.getCode());
     } catch (JsonProcessingException e) {
-      log.error("Exception occurred while writing PDF report for school students in session :: " + e.getMessage());
-      throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for school students in session :: " + e.getMessage());
+      log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
+      throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
     }
   }
+
+
 }
