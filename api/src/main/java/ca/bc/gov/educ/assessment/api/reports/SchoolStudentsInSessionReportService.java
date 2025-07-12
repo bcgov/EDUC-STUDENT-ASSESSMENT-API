@@ -30,10 +30,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
 
-
+/**
+ * Service class for generating School Students in Session Report
+ */
 @Service
 @Slf4j
-public class SchoolStudentsInSessionReportService extends BaseReportGenerationService{
+public class SchoolStudentsInSessionReportService extends BaseReportGenerationService {
 
   private final AssessmentSessionRepository assessmentSessionRepository;
   private final AssessmentStudentRepository assessmentStudentRepository;
@@ -60,31 +62,58 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   private void compileJasperReports(){
     try {
-      System.setProperty("jasper.reports.compile.temp", System.getProperty("java.io.tmpdir"));
-      System.setProperty("net.sf.jasperreports.compiler.class",
-              "net.sf.jasperreports.engine.design.JRGroovyCompiler");
-      System.setProperty("net.sf.jasperreports.compiler.classpath", "");
-      System.setProperty("net.sf.jasperreports.compiler.temp.dir", "/tmp");
+      // Create a completely isolated environment for compilation
+      Thread currentThread = Thread.currentThread();
+      ClassLoader originalClassLoader = currentThread.getContextClassLoader();
       
-      log.info("Compiling Jasper reports");
-      InputStream jrxmlStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
-      var jrxmlBytes = jrxmlStream.readAllBytes();
-
-      // Create ByteArrayInputStream
-      var bais = new ByteArrayInputStream(jrxmlBytes);
-      schoolStudentInSessionReport = JasperCompileManager.compileReport(bais);
-      log.info("Jasper report compiled " + schoolStudentInSessionReport);
-    } catch (JRException | IOException e) {
-      log.error("Jasper report compile failed: " + e.getMessage());
-      // Print full stack trace
-      e.printStackTrace();
-
-      // Check for nested causes
+      try {
+        // Use the system class loader to completely bypass Spring Boot's loader
+        currentThread.setContextClassLoader(ClassLoader.getSystemClassLoader());
+        
+        // Clear any Spring Boot related system properties that might interfere
+        System.clearProperty("java.nio.file.spi.DefaultFileSystemProvider");
+        System.clearProperty("java.class.path");
+        
+        // Set JasperReports properties to use a minimal environment
+        System.setProperty("jasper.reports.compile.temp", System.getProperty("java.io.tmpdir"));
+        System.setProperty("net.sf.jasperreports.compiler.class", "net.sf.jasperreports.engine.design.JRGroovyCompiler");
+        System.setProperty("net.sf.jasperreports.compiler.classpath", "");
+        System.setProperty("net.sf.jasperreports.compiler.temp.dir", "/tmp");
+        System.setProperty("jasper.reports.compile.keep.java.file", "false");
+        
+        log.info("Compiling Jasper reports in isolated environment");
+        
+        // Load the JRXML as bytes to avoid filesystem issues
+        InputStream jrxmlStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
+        if (jrxmlStream == null) {
+          throw new StudentAssessmentAPIRuntimeException("Could not find JRXML file");
+        }
+        
+        byte[] jrxmlBytes = jrxmlStream.readAllBytes();
+        
+        // Use ByteArrayInputStream to avoid any filesystem dependencies
+        ByteArrayInputStream bais = new ByteArrayInputStream(jrxmlBytes);
+        
+        // Compile the report
+        schoolStudentInSessionReport = JasperCompileManager.compileReport(bais);
+        
+        log.info("Jasper report compiled successfully: " + schoolStudentInSessionReport);
+        
+      } finally {
+        // Restore original class loader
+        currentThread.setContextClassLoader(originalClassLoader);
+      }
+      
+    } catch (Exception e) {
+      log.error("Jasper report compilation failed: " + e.getMessage(), e);
+      
+      // Print detailed error information
       Throwable cause = e.getCause();
       while (cause != null) {
-        System.err.println("Caused by: " + cause.getMessage());
+        log.error("Caused by: " + cause.getMessage());
         cause = cause.getCause();
       }
+      
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
   }
@@ -130,6 +159,4 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
     }
   }
-
-
 }
