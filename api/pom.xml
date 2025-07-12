@@ -264,6 +264,12 @@
       <artifactId>commons-io</artifactId>
       <version>2.16.1</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/com.pro-crafting.tools/jasperreports-maven-plugin -->
+    <dependency>
+      <groupId>com.pro-crafting.tools</groupId>
+      <artifactId>jasperreports-maven-plugin</artifactId>
+      <version>4.0.1</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-csv</artifactId>
@@ -314,7 +320,26 @@
       </plugins>
     </pluginManagement>
     <plugins>
-
+      <plugin>
+        <groupId>com.pro-crafting.tools</groupId>
+        <artifactId>jasperreports-maven-plugin</artifactId>
+        <version>4.0.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>jasper</goal>
+            </goals>
+            <phase>process-resources</phase>
+          </execution>
+        </executions>
+        <configuration>
+          <sourceDirectory>src/main/resources/reports</sourceDirectory>
+          <outputDirectory>target/classes/reports</outputDirectory>
+          <sourceFileExt>.jrxml</sourceFileExt>
+          <outputFileExt>.jasper</outputFileExt>
+          <compiler>net.sf.jasperreports.engine.design.JRJdtCompiler</compiler>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <repositories>
