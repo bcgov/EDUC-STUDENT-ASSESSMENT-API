@@ -17,22 +17,18 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.schoolStudent.SchoolStude
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
 
-/**
- * Service class for generating School Students in Session Report
- */
+
 @Service
 @Slf4j
 public class SchoolStudentsInSessionReportService extends BaseReportGenerationService{
@@ -62,47 +58,11 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   private void compileJasperReports(){
     try {
-      // Set temp directory for JasperReports compilation
-      System.setProperty("jasper.reports.compile.temp", System.getProperty("java.io.tmpdir"));
-      
-      // Disable Spring Boot nested JAR provider during compilation
-      String originalProvider = System.getProperty("java.nio.file.spi.DefaultFileSystemProvider");
-      System.setProperty("java.nio.file.spi.DefaultFileSystemProvider", "");
-      
-      // Isolate from Spring Boot loader by setting context classloader
-      ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
-      try {
-        // Use the system classloader instead of Spring Boot's nested loader
-        Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
-        
-        // Work around Spring Boot nested JAR issues by copying JRXML to temp file
-        InputStream inputStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
-        if (inputStream == null) {
-          throw new StudentAssessmentAPIRuntimeException("Could not find JRXML file: /reports/schoolStudentsInSession.jrxml");
-        }
-        
-        // Copy to temporary file to avoid Spring Boot nested JAR issues
-        Path tempJrxml = Files.createTempFile("schoolStudentsInSession", ".jrxml");
-        Files.copy(inputStream, tempJrxml, StandardCopyOption.REPLACE_EXISTING);
-        
-        log.info("Compiling Jasper reports from temp file: " + tempJrxml);
-        schoolStudentInSessionReport = JasperCompileManager.compileReport(tempJrxml.toString());
-        
-        // Clean up temp file
-        Files.deleteIfExists(tempJrxml);
-        
-        log.info("Jasper report compiled successfully: " + schoolStudentInSessionReport);
-      } finally {
-        // Restore original classloader and system properties
-        Thread.currentThread().setContextClassLoader(originalClassLoader);
-        if (originalProvider != null) {
-          System.setProperty("java.nio.file.spi.DefaultFileSystemProvider", originalProvider);
-        } else {
-          System.clearProperty("java.nio.file.spi.DefaultFileSystemProvider");
-        }
-      }
-    } catch (Exception e) {
-      log.error("JasperReports compilation failed: " + e.getMessage(), e);
+      InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
+      log.info("Compiling Jasper reports");
+      schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
+      log.info("Jasper report compiled " + schoolStudentInSessionReport);
+    } catch (JRException e) {
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
   }
@@ -148,4 +108,6 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
     }
   }
+  
+  
 }
