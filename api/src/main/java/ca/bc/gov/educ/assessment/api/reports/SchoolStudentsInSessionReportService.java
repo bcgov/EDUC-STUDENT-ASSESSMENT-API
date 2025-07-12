@@ -23,7 +23,10 @@ import net.sf.jasperreports.engine.JasperReport;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -61,11 +64,16 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
     try {
       System.setProperty("jasper.reports.compile.temp", System.getProperty("java.io.tmpdir"));
 
-      InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
       log.info("Compiling Jasper reports");
-      schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
+      InputStream jrxmlStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
+      File tempJrxml = File.createTempFile("report", ".jrxml");
+      tempJrxml.deleteOnExit();
+
+      Files.copy(jrxmlStream, tempJrxml.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+      schoolStudentInSessionReport = JasperCompileManager.compileReport(tempJrxml.getAbsolutePath());
       log.info("Jasper report compiled " + schoolStudentInSessionReport);
-    } catch (JRException e) {
+    } catch (JRException | IOException e) {
       log.error("Jasper report compile failed: " + e.getMessage());
       // Print full stack trace
       e.printStackTrace();
