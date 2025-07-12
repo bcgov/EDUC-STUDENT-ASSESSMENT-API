@@ -64,8 +64,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
       log.info("Compiling Jasper reports");
       InputStream jrxmlStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
       var jrxmlBytes = jrxmlStream.readAllBytes();
-
-
+      
       isolatedProps.putAll(originalProps);
       isolatedProps.remove("java.class.path"); // Remove problematic classpath
       isolatedProps.setProperty("net.sf.jasperreports.compiler.classpath", "");
@@ -90,7 +89,6 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }finally {
       System.setProperties(originalProps);
-      jrxmlFile.delete();
     }
   }
 
