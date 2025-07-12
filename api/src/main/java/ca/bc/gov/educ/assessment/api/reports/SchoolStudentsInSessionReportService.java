@@ -20,8 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
+import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,12 +68,11 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
       log.info("Compiling Jasper reports");
       InputStream jrxmlStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
-      File tempJrxml = File.createTempFile("report", ".jrxml");
-      tempJrxml.deleteOnExit();
+      var jrxmlBytes = IOUtils.toByteArray(jrxmlStream);
 
-      Files.copy(jrxmlStream, tempJrxml.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-      schoolStudentInSessionReport = JasperCompileManager.compileReport(tempJrxml.getAbsolutePath());
+      // Create ByteArrayInputStream
+      var bais = new ByteArrayInputStream(jrxmlBytes);
+      schoolStudentInSessionReport = JasperCompileManager.compileReport(bais);
       log.info("Jasper report compiled " + schoolStudentInSessionReport);
     } catch (JRException | IOException e) {
       log.error("Jasper report compile failed: " + e.getMessage());
