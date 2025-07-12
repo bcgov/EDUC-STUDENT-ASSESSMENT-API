@@ -60,7 +60,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   private void compileJasperReports(){
     try {
-      InputStream inputHeadcount = getClass().getResourceAsStream("/reports/ellHeadcounts.jrxml");
+      InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
       log.info("Compiling Jasper reports");
       schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
       log.info("Jasper report compiled " + schoolStudentInSessionReport);
