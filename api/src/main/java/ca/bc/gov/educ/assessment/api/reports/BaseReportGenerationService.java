@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.assessment.api.reports;
 
 
-import ca.bc.gov.educ.assessment.api.constants.v1.SchoolCategoryCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
@@ -15,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.json.query.JsonQueryExecuterFactory;
+import net.sf.jasperreports.engine.query.JsonQueryExecuterFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
