@@ -20,15 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
-import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -68,7 +64,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
       log.info("Compiling Jasper reports");
       InputStream jrxmlStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
-      var jrxmlBytes = IOUtils.toByteArray(jrxmlStream);
+      var jrxmlBytes = jrxmlStream.readAllBytes();
 
       // Create ByteArrayInputStream
       var bais = new ByteArrayInputStream(jrxmlBytes);
