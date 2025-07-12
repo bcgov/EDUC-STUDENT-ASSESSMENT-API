@@ -55,6 +55,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   private void loadPreCompiledReport() {
     try {
+      System.setProperty("jasper.reports.compile.temp", System.getProperty("java.io.tmpdir"));
       // Load pre-compiled report from resources
       InputStream preCompiledStream = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jasper");
       if (preCompiledStream == null) {
