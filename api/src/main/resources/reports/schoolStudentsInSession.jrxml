@@ -306,14 +306,17 @@
 									<text><![CDATA[Name (Last, First)]]></text>
 								</staticText>
 							</jr:columnHeader>
-							<jr:detailCell style="Table 2_TD" height="20">
+							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="185" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+										<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+										<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+										<property name="com.jaspersoft.studio.unit.spacingBefore" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
 										<font fontName="BCSans" size="8" isBold="false"/>
-										<paragraph leftIndent="5"/>
+										<paragraph firstLineIndent="0" leftIndent="5" spacingBefore="3"/>
 									</textElement>
 									<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 								</textField>
@@ -331,14 +334,14 @@
 									<text><![CDATA[PEN]]></text>
 								</staticText>
 							</jr:columnHeader>
-							<jr:detailCell style="Table 2_TD" height="20">
+							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="91" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
 										<font fontName="BCSans" size="8" isBold="false"/>
-										<paragraph leftIndent="5"/>
+										<paragraph leftIndent="5" spacingBefore="3"/>
 									</textElement>
 									<textFieldExpression><![CDATA[$F{pen}]]></textFieldExpression>
 								</textField>
@@ -356,14 +359,14 @@
 									<text><![CDATA[Local ID]]></text>
 								</staticText>
 							</jr:columnHeader>
-							<jr:detailCell style="Table 2_TD" height="20">
+							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="99" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
 										<font fontName="BCSans" size="8" isBold="false"/>
-										<paragraph leftIndent="5"/>
+										<paragraph leftIndent="5" spacingBefore="3"/>
 									</textElement>
 									<textFieldExpression><![CDATA[$F{localID}]]></textFieldExpression>
 								</textField>
