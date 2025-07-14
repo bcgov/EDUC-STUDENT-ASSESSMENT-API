@@ -269,6 +269,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
+                .updateUser("ABC")
                 .fileName("TRAX_202501_LTE10.txt")
                 .replaceKeyFlag("N")
                 .build();
@@ -304,6 +305,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         var file = AssessmentKeyFileUpload.builder()
                 .fileContents(fileContents)
                 .createUser("ABC")
+                .updateUser("ABC")
                 .fileName("TRAX_202501_LTE10.txt")
                 .replaceKeyFlag("Y")
                 .build();
@@ -313,6 +315,11 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
                 .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+
+        var savedForms = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(savedAssessmentEntity.getAssessmentID(), "A");
+        var comp = assessmentComponentRepository.findByAssessmentFormEntity_AssessmentFormIDAndComponentTypeCodeAndComponentSubTypeCode(savedForms.get().getAssessmentFormID(), "OPEN_ENDED", "NONE");
+        var question = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(comp.get().getAssessmentComponentID());
+        assertThat(question).hasSize(7);
     }
 
     @Test

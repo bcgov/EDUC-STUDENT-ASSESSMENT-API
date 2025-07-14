@@ -64,11 +64,11 @@ public class AssessmentComponentEntity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "assessmentComponentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = AssessmentQuestionEntity.class)
-    List<AssessmentQuestionEntity> assessmentQuestionEntities;
+    Set<AssessmentQuestionEntity> assessmentQuestionEntities;
 
-    public List<AssessmentQuestionEntity> getAssessmentQuestionEntities() {
+    public Set<AssessmentQuestionEntity> getAssessmentQuestionEntities() {
         if (this.assessmentQuestionEntities == null) {
-            this.assessmentQuestionEntities = new ArrayList<>();
+            this.assessmentQuestionEntities = new HashSet<>();
         }
         return this.assessmentQuestionEntities;
     }

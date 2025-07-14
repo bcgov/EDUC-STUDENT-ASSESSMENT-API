@@ -18,6 +18,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -126,6 +127,9 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
         Assessment assessment = mapper.toStructure(assessmentEntity);
         assessment.setCreateDate(null);
         assessment.setUpdateDate(null);
+        if (assessment.getAssessmentForms() == null) {
+            assessment.setAssessmentForms(new ArrayList<>());
+        }
 
         this.mockMvc.perform(
                         put(URL.ASSESSMENTS_URL + "/" + assessment.getAssessmentID())

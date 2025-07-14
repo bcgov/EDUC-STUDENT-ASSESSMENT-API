@@ -73,7 +73,7 @@ public class AssessmentResultService {
     private void populateAssessmentResultsFile(final DataSet ds, final AssessmentResultFile batchFile, final String guid) throws ResultsFileUnProcessableException {
         int index = 0;
         while (ds.next()) {
-            batchFile.getAssessmentResultData().add(getAssessmentResultDetailRecordFromFile(ds, guid, Integer.toString(index)));
+            batchFile.getAssessmentResultData().add(getAssessmentResultDetailRecordFromFile(ds, guid, Integer.toString(index + 1)));
             index++;
         }
     }
