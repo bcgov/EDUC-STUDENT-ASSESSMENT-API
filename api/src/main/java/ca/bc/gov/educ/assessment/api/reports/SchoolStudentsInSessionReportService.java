@@ -92,6 +92,8 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
           SchoolStudentGradAssessmentNode studentGradAssessmentNode = new SchoolStudentGradAssessmentNode();
           studentGradAssessmentNode.setName(assessmentTypes.get(student.getAssessmentEntity().getAssessmentTypeCode()));
           studentGradAssessmentNode.setScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null);
+          studentNode.setGradAssessments(new ArrayList<>());
+          studentNode.getGradAssessments().add(studentGradAssessmentNode);
           studentList.put(student.getStudentID(), studentNode);
         }else{
           var loadedStudent = studentList.get(student.getStudentID());
