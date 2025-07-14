@@ -37,7 +37,7 @@ public class AssessmentService {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentEntity.getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentEntity.getAssessmentID().toString())
         );
-        BeanUtils.copyProperties(assessmentEntity, currentAssessmentEntity, "assessmentEntity", "createUser", "createDate");
+        BeanUtils.copyProperties(assessmentEntity, currentAssessmentEntity, "assessmentForms","assessmentEntity", "createUser", "createDate");
         TransformUtil.uppercaseFields(currentAssessmentEntity);
         return assessmentRepository.save(assessmentEntity);
 

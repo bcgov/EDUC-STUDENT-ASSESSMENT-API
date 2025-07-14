@@ -27,10 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -66,6 +63,8 @@ public class AssessmentKeyService {
     private final AssessmentFormRepository assessmentFormRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentRepository assessmentRepository;
+    private final AssessmentQuestionRepository assessmentQuestionRepository;
+    private final AssessmentComponentRepository assessmentComponentRepository;
     private final KeyFileValidator keyFileValidator;
     private final CodeTableService codeTableService;
     private final String[] literacyCodes = {"LTE10", "LTP10", "LTE12", "LTF12", "LTP12"};
@@ -115,7 +114,7 @@ public class AssessmentKeyService {
         }
 
         Map<String, List<AssessmentKeyDetails>> groupedData = batchFile.getAssessmentKeyData().stream().collect(Collectors.groupingBy(AssessmentKeyDetails::getFormCode));
-
+        List<AssessmentFormEntity> formEntities = new ArrayList<>();
         for(val entry : groupedData.entrySet()) {
             AssessmentFormEntity formEntity = mapper.toFormEntity(entry.getKey(), assessmentEntity, fileUpload);
             var multiChoice = entry.getValue().stream().filter(value -> value.getItemType().equalsIgnoreCase("UNKNOWN")).toList();
@@ -140,17 +139,18 @@ public class AssessmentKeyService {
             if(!openEndedOral.isEmpty()) {
                 formEntity.getAssessmentComponentEntities().add(createOpenEndedComponent(formEntity, openEndedOral, "EO"));
             }
-            craftStudentSetAndMarkInitialLoadComplete(formEntity, fileUpload.getReplaceKeyFlag());
+            formEntities.add(formEntity);
        }
+        if("Y".equalsIgnoreCase(fileUpload.getReplaceKeyFlag())) {
+            assessmentEntity.getAssessmentForms().clear();
+            assessmentEntity.getAssessmentForms().addAll(formEntities);
+        }
+        craftStudentSetAndMarkInitialLoadComplete(assessmentEntity);
     }
 
     @Retryable(retryFor = {Exception.class}, backoff = @Backoff(multiplier = 3, delay = 2000))
-    public void craftStudentSetAndMarkInitialLoadComplete(@NonNull final AssessmentFormEntity assessmentFormEntity, String replaceKeyFlag) {
-      var formEntity = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(assessmentFormEntity.getAssessmentEntity().getAssessmentID(), assessmentFormEntity.getFormCode());
-      if("Y".equalsIgnoreCase(replaceKeyFlag) && formEntity.isPresent()) {
-          assessmentFormRepository.delete(formEntity.get());
-      }
-      assessmentFormRepository.save(assessmentFormEntity);
+    public void craftStudentSetAndMarkInitialLoadComplete(@NonNull final AssessmentEntity assessmentEntity) {
+        assessmentRepository.save(assessmentEntity);
     }
 
     private AssessmentComponentEntity createMultiChoiceComponent(AssessmentFormEntity assessmentFormEntity, List<AssessmentKeyDetails> multiChoice) {
@@ -191,18 +191,17 @@ public class AssessmentKeyService {
             markCount.set(choiceInt + nonChoiceInt);
             itemCount.set(choiceInt + nonChoiceItemCount);
         });
-        AssessmentComponentEntity openEndedComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, type, openEnded.size(), openEnded.size(), markCount.get(), itemCount.get());
+        AssessmentComponentEntity openEndedComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, type, openEnded.size(), 0, markCount.get(), itemCount.get());
 
         openEnded.forEach(ques -> {
             AtomicInteger itemNumberCounter = new AtomicInteger(1);
             AtomicInteger repeatCounter = new AtomicInteger(0);
-
-            final var quesEntity = mapper.toQuestionEntity(ques, openEndedComponentEntity);
-            setOpenEndedWrittenQuestionEntityColumns(quesEntity, ques, questionGroups);
             var itemType = ques.getItemType().split("-");
             var marker = itemType[3].toCharArray();
             var index = Integer.parseInt(String.valueOf(marker[1]));
             for(int i = 0; i < index; i++) {
+                final var quesEntity = mapper.toQuestionEntity(ques, openEndedComponentEntity);
+                setOpenEndedWrittenQuestionEntityColumns(quesEntity, ques, questionGroups);
                 setItemNumber(quesEntity, index, i, itemType, itemNumberCounter, repeatCounter);
                 openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
             }
@@ -218,9 +217,9 @@ public class AssessmentKeyService {
     private void setItemNumber(AssessmentQuestionEntity questionEntity, int index, int i, String[] itemType, AtomicInteger itemNumberCounter, AtomicInteger repeatCounter) {
         var choiceType = itemType[2];
 
-        if(choiceType.contains("-C0-")) {
+        if(choiceType.equalsIgnoreCase("C0")) {
             setItemNumberAndIncrement(questionEntity, itemNumberCounter);
-        } else if(choiceType.contains("-C1-")) {
+        } else if(choiceType.equalsIgnoreCase("C1")) {
             if(i == 0) {
                 itemNumberCounter.getAndIncrement();
             }
@@ -253,6 +252,7 @@ public class AssessmentKeyService {
 
     private void setMultiChoiceQuestionEntityColumns(AssessmentQuestionEntity keyEntity, List<AssessmentKeyDetails> multiChoiceQuesGroup, AssessmentKeyDetails value) {
         keyEntity.setQuestionNumber(StringUtils.isNotBlank(value.getQuestionNumber()) ? Integer.parseInt(value.getQuestionNumber()) : null);
+        keyEntity.setItemNumber(StringUtils.isNotBlank(value.getQuestionNumber()) ? Integer.parseInt(value.getQuestionNumber()) : null);
         keyEntity.setMaxQuestionValue(StringUtils.isNotBlank(value.getMark()) && StringUtils.isNotBlank(value.getScaleFactor())
                 ? new BigDecimal(value.getMark()).multiply(new BigDecimal(value.getScaleFactor()))
                 : BigDecimal.ZERO);

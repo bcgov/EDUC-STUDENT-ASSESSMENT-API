@@ -19,9 +19,9 @@ public interface AssessmentKeysBatchFileMapper {
     AssessmentKeysBatchFileMapper mapper = Mappers.getMapper(AssessmentKeysBatchFileMapper.class);
 
     @Mapping(target = "assessmentFormID", ignore = true)
-    @Mapping(target = "updateUser", constant = "fileUpload.updateUser")
+    @Mapping(target = "updateUser", source = "fileUpload.updateUser")
     @Mapping(target = "updateDate", expression = "java(java.time.LocalDateTime.now() )")
-    @Mapping(target = "createUser", constant = "fileUpload.createUser")
+    @Mapping(target = "createUser", source = "fileUpload.createUser")
     @Mapping(target = "createDate",expression = "java(java.time.LocalDateTime.now() )")
     AssessmentFormEntity toFormEntity(String formCode, AssessmentEntity assessmentEntity, AssessmentKeyFileUpload fileUpload);
 

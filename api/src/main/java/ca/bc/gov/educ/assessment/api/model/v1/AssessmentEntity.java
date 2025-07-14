@@ -7,6 +7,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -50,7 +51,14 @@ public class AssessmentEntity {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "assessmentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = AssessmentFormEntity.class)
+    @OneToMany(mappedBy = "assessmentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = AssessmentFormEntity.class)
     Set<AssessmentFormEntity> assessmentForms;
+
+    public Set<AssessmentFormEntity> getAssessmentForms() {
+        if (this.assessmentForms == null) {
+            this.assessmentForms = new HashSet<>();
+        }
+        return this.assessmentForms;
+    }
 
 }
