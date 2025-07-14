@@ -134,9 +134,9 @@
 		<queryString language="json">
 			<![CDATA[report]]>
 		</queryString>
-		<field name="collectionNameAndYear" class="java.lang.String">
-			<property name="net.sf.jasperreports.json.field.expression" value="collectionNameAndYear"/>
-			<fieldDescription><![CDATA[collectionNameAndYear]]></fieldDescription>
+		<field name="sessionDetail" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="sessionDetail"/>
+			<fieldDescription><![CDATA[sessionDetail]]></fieldDescription>
 		</field>
 		<field name="reportGeneratedDate" class="java.lang.String">
 			<property name="net.sf.jasperreports.json.field.expression" value="reportGeneratedDate"/>
@@ -198,10 +198,10 @@
 	<queryString language="JSON">
 		<![CDATA[report]]>
 	</queryString>
-	<field name="collectionNameAndYear" class="java.lang.String">
-		<property name="net.sf.jasperreports.json.field.expression" value="collectionNameAndYear"/>
-		<property name="net.sf.jasperreports.jsonql.field.expression" value="collectionNameAndYear"/>
-		<fieldDescription><![CDATA[collectionNameAndYear]]></fieldDescription>
+	<field name="sessionDetail" class="java.lang.String">
+		<property name="net.sf.jasperreports.json.field.expression" value="sessionDetail"/>
+		<property name="net.sf.jasperreports.jsonql.field.expression" value="sessionDetail"/>
+		<fieldDescription><![CDATA[sessionDetail]]></fieldDescription>
 	</field>
 	<field name="reportGeneratedDate" class="java.lang.String">
 		<property name="net.sf.jasperreports.json.field.expression" value="reportGeneratedDate"/>
@@ -242,7 +242,7 @@
 				<textElement>
 					<font fontName="BCSans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{collectionNameAndYear}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{sessionDetail}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="610" y="50" width="132" height="15" uuid="bd23ceca-07d5-4e6a-a266-8dda73c09239">
