@@ -92,6 +92,9 @@ public class StagedAssessmentStudentEntity {
   @Column(name = "MARKING_SESSION", length = 6)
   private String markingSession;
 
+  @Column(name = "IS_PRE_REGISTERED")
+  private Boolean isPreRegistered;
+
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;
 

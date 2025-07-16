@@ -193,9 +193,9 @@ public class AssessmentKeyService {
         });
         AssessmentComponentEntity openEndedComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, type, openEnded.size(), 0, markCount.get(), itemCount.get());
 
+        AtomicInteger itemNumberCounter = new AtomicInteger(1);
+        AtomicInteger repeatCounter = new AtomicInteger(0);
         openEnded.forEach(ques -> {
-            AtomicInteger itemNumberCounter = new AtomicInteger(1);
-            AtomicInteger repeatCounter = new AtomicInteger(0);
             var itemType = ques.getItemType().split("-");
             var marker = itemType[3].toCharArray();
             var index = Integer.parseInt(String.valueOf(marker[1]));
