@@ -62,6 +62,9 @@ public class AssessmentStudentEntity {
   @Column(name = "LOCAL_ID", length = 12)
   private String localID;
 
+  @Column(name = "GRADE_AT_REGISTRATION", length = 3)
+  private String gradeAtRegistration;
+
   @Column(name = "LOCAL_ASSESSMENT_ID", length = 20)
   private String localAssessmentID;
 
