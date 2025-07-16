@@ -19,5 +19,6 @@ public class GradStudentRecord {
     private String schoolAtGradId;
     private String studentStatusCode;
     private String graduated;
+    private String studentGrade;
 
 }

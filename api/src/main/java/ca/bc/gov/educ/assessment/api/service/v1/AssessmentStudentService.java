@@ -12,6 +12,7 @@ import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentRulesProcessor;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.*;
@@ -27,6 +28,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -83,7 +85,7 @@ public class AssessmentStudentService {
         );
 
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentStudentEntity.getAssessmentEntity());
-        var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity);
+        var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity, false);
 
         var event = generateStudentUpdatedEvent(student.getStudentID());
         assessmentEventRepository.save(event);
@@ -109,14 +111,14 @@ public class AssessmentStudentService {
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
-        var student = processStudent(assessmentStudentEntity, null);
+        var student = processStudent(assessmentStudentEntity, null, true);
         var event = generateStudentUpdatedEvent(student.getStudentID());
         assessmentEventRepository.save(event);
 
         return Pair.of(student, event);
     }
 
-    private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity) {
+    private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity, boolean newAssessmentStudentRegistration) {
         SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID().toString()).orElse(null);
 
         UUID studentCorrelationID = UUID.randomUUID();
@@ -125,6 +127,18 @@ public class AssessmentStudentService {
                 new EntityNotFoundException(Student.class, "Student", assessmentStudentEntity.getPen()));
 
         List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, studentApiStudent);
+
+        if (newAssessmentStudentRegistration) {
+            UUID gradStudentRecordCorrelationID = UUID.randomUUID();
+            log.info("Retrieving GRAD Student Record for student ID :: {} with correlationID :: {}", studentApiStudent.getStudentID(), gradStudentRecordCorrelationID);
+            Optional<GradStudentRecord> gradStudentRecord = restUtils.getGradStudentRecordByStudentID(gradStudentRecordCorrelationID, UUID.fromString(studentApiStudent.getStudentID()));
+            String gradeFromGrad = gradStudentRecord.map(GradStudentRecord::getStudentGrade).orElse(null);
+            String gradeAtRegistration = StringUtils.isEmpty(gradeFromGrad) ? studentApiStudent.getGradeCode() : gradeFromGrad;
+            assessmentStudentEntity.setGradeAtRegistration(gradeAtRegistration);
+            if (currentAssessmentStudentEntity != null) {
+                currentAssessmentStudentEntity.setGradeAtRegistration(gradeAtRegistration);
+            }
+        }
 
         if (validationIssues.isEmpty()) {
             if (currentAssessmentStudentEntity != null) {
