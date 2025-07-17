@@ -46,12 +46,4 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     int findNumberOfAttemptsForStudent(UUID studentID, List<String> assessmentCodes);
 
     List<AssessmentStudentEntity> findByAssessmentFormIDIn(List<UUID> assessmentFormIDs);
-
-    @Query("""
-        SELECT s FROM AssessmentStudentEntity s 
-        WHERE s.assessmentEntity.assessmentID = :assessmentID 
-        AND s.assessmentFormID = :assessmentFormID 
-        ORDER BY s.createDate DESC 
-        LIMIT 1 """)
-    Optional<AssessmentStudentEntity> findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(UUID assessmentID, UUID assessmentFormID);
 }

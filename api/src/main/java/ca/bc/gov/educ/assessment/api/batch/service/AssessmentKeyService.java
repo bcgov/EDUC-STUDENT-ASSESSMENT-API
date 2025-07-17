@@ -19,8 +19,6 @@ import lombok.val;
 import net.sf.flatpack.DataSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,11 +58,8 @@ public class AssessmentKeyService {
 
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
-    private final AssessmentFormRepository assessmentFormRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentRepository assessmentRepository;
-    private final AssessmentQuestionRepository assessmentQuestionRepository;
-    private final AssessmentComponentRepository assessmentComponentRepository;
     private final KeyFileValidator keyFileValidator;
     private final CodeTableService codeTableService;
     private final String[] literacyCodes = {"LTE10", "LTP10", "LTE12", "LTF12", "LTP12"};
@@ -72,7 +67,7 @@ public class AssessmentKeyService {
 
     public static final String LOAD_FAIL = "LOADFAIL";
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID, AssessmentKeyFileUpload fileUpload) throws KeyFileUnProcessableException {
         val batchFile = new AssessmentKeyFile();
 
@@ -141,15 +136,9 @@ public class AssessmentKeyService {
             }
             formEntities.add(formEntity);
        }
-        if("Y".equalsIgnoreCase(fileUpload.getReplaceKeyFlag())) {
-            assessmentEntity.getAssessmentForms().clear();
-            assessmentEntity.getAssessmentForms().addAll(formEntities);
-        }
-        craftStudentSetAndMarkInitialLoadComplete(assessmentEntity);
-    }
 
-    @Retryable(retryFor = {Exception.class}, backoff = @Backoff(multiplier = 3, delay = 2000))
-    public void craftStudentSetAndMarkInitialLoadComplete(@NonNull final AssessmentEntity assessmentEntity) {
+        assessmentEntity.getAssessmentForms().clear();
+        assessmentEntity.getAssessmentForms().addAll(formEntities);
         assessmentRepository.save(assessmentEntity);
     }
 

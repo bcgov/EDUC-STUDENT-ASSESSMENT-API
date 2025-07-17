@@ -6,6 +6,8 @@ import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentResultFile;
 import ca.bc.gov.educ.assessment.api.constants.v1.ComponentSubTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.LegacyComponentTypeCodes;
+import ca.bc.gov.educ.assessment.api.exception.ConfirmationRequiredException;
+import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.mappers.StringMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentResultsBatchFile.*;
 import static ca.bc.gov.educ.assessment.api.batch.exception.ResultFileError.*;
+import static org.springframework.http.HttpStatus.PRECONDITION_REQUIRED;
 
 @Service
 @Slf4j
@@ -88,6 +91,14 @@ public class AssessmentResultService {
         } else {
             throw new ResultsFileUnProcessableException(INVALID_KEY, correlationID, LOAD_FAIL);
         }
+
+        List<UUID> formIds = assessmentEntity.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
+        Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessmentEntity.getAssessmentID(), formIds);
+        if("N".equalsIgnoreCase(fileUpload.getReplaceResultsFlag()) && student.isPresent()) {
+            throw new ConfirmationRequiredException(ApiError.builder().timestamp(LocalDateTime.now()).message(typeCode).status(PRECONDITION_REQUIRED).build());
+        }
+        stagedAssessmentStudentRepository.deleteAllByAssessmentID(assessmentEntity.getAssessmentID());
+
         for(val studentResult : batchFile.getAssessmentResultData()) {
             Student studentApiStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_PEN, correlationID, LOAD_FAIL));
             StagedAssessmentStudentEntity stagedStudent;
