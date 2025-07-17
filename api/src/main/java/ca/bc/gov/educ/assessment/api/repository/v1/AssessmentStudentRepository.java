@@ -38,10 +38,9 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(UUID sessionID, UUID schoolAtWriteSchoolID);
 
     @Query(value="""
-    select count(*) from AssessmentEntity as a, AssessmentStudentEntity as stud
-    where a.assessmentID = stud.assessmentEntity.assessmentID
-    and a.assessmentTypeCode in (:assessmentCodes)
-    and stud.studentID = :studentID
+    select count(*) from AssessmentStudentEntity as stud
+    where stud.studentID = :studentID
+    and stud.assessmentEntity.assessmentTypeCode in (:assessmentCodes)
     and (stud.proficiencyScore is not null
     or stud.provincialSpecialCaseCode in ('X','Q'))""")
     int findNumberOfAttemptsForStudent(UUID studentID, List<String> assessmentCodes);

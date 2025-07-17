@@ -11,10 +11,10 @@ import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
-import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
+import ca.bc.gov.educ.assessment.api.util.AssessmentUtil;
 import ca.bc.gov.educ.assessment.api.util.PenUtil;
 import ca.bc.gov.educ.assessment.api.util.TransformUtil;
 import lombok.NonNull;
@@ -23,16 +23,17 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.sf.flatpack.DataSet;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.assessment.api.batch.constants.AssessmentResultsBatchFile.*;
 import static ca.bc.gov.educ.assessment.api.batch.exception.ResultFileError.*;
@@ -43,14 +44,10 @@ import static ca.bc.gov.educ.assessment.api.batch.exception.ResultFileError.*;
 public class AssessmentResultService {
 
     private final AssessmentSessionRepository assessmentSessionRepository;
-    private final AssessmentQuestionRepository assessmentQuestionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
-    private final AssessmentComponentRepository assessmentComponentRepository;
-    private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
     private final AssessmentFormRepository assessmentFormRepository;
     private final AssessmentRepository assessmentRepository;
-    private final AssessmentStudentService assessmentStudentService;
     private final CodeTableService codeTableService;
     private final String[] validChoicePaths = {"I", "E"};
     private final String[] validSpecialCaseCodes = {"A", "Q", "X"};
@@ -60,6 +57,7 @@ public class AssessmentResultService {
     private final RestUtils restUtils;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Async
     public void populateBatchFileAndLoadData(String correlationID, DataSet ds, UUID sessionID, AssessmentResultFileUpload fileUpload) throws ResultsFileUnProcessableException {
         val batchFile = new AssessmentResultFile();
 
@@ -80,18 +78,26 @@ public class AssessmentResultService {
 
     private void processLoadedRecordsInBatchFile(@NonNull final String correlationID, @NonNull final AssessmentResultFile batchFile, AssessmentSessionEntity validSession, AssessmentResultFileUpload fileUpload) throws ResultsFileUnProcessableException {
         var typeCode = batchFile.getAssessmentResultData().getFirst().getAssessmentCode();
-        assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, correlationID, LOAD_FAIL));
-
         var assessmentEntity = assessmentRepository.findByAssessmentSessionEntity_SessionIDAndAssessmentTypeCode(validSession.getSessionID(), typeCode)
                 .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, correlationID, LOAD_FAIL));
 
+        Map<String, AssessmentFormEntity> formMap;
+        if(!assessmentEntity.getAssessmentForms().isEmpty()) {
+            formMap = assessmentEntity.getAssessmentForms().stream()
+                    .collect(Collectors.toMap(AssessmentFormEntity::getFormCode, obj -> obj,(oldValue, newValue) -> newValue, HashMap::new));
+        } else {
+            throw new ResultsFileUnProcessableException(INVALID_KEY, correlationID, LOAD_FAIL);
+        }
         for(val studentResult : batchFile.getAssessmentResultData()) {
             Student studentApiStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_PEN, correlationID, LOAD_FAIL));
             StagedAssessmentStudentEntity stagedStudent;
             var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
-            var formEntity = assessmentFormRepository.findByAssessmentEntity_AssessmentIDAndFormCode(assessmentEntity.getAssessmentID(), studentResult.getFormCode()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL));
-            var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID())).orElse(null);
+            var formEntity = formMap.get(studentResult.getFormCode());
+            if(formEntity == null) {
+                throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
+            }
 
+            var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID())).orElse(null);
             if (existingStudentRegistrationOpt.isPresent()) {
                 stagedStudent = AssessmentStudentMapper.mapper.toStagingStudent(existingStudentRegistrationOpt.get());
                 stagedStudent.setIrtScore(studentResult.getIrtScore());
@@ -121,7 +127,7 @@ public class AssessmentResultService {
                 stagedStudent.setLocalID(studentApiStudent.getLocalID());
                 stagedStudent.setProficiencyScore(Integer.parseInt(studentResult.getProficiencyScore()));
                 stagedStudent.setProvincialSpecialCaseCode(studentResult.getSpecialCaseCode());
-                stagedStudent.setNumberOfAttempts(Integer.parseInt(assessmentStudentService.getNumberOfAttempts(assessmentEntity.getAssessmentID().toString(), UUID.fromString(studentApiStudent.getStudentID()))));
+                stagedStudent.setNumberOfAttempts(assessmentStudentRepository.findNumberOfAttemptsForStudent(UUID.fromString(studentApiStudent.getStudentID()), AssessmentUtil.getAssessmentTypeCodeList(assessmentEntity.getAssessmentTypeCode())));
                 stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
                 stagedStudent.setIrtScore(studentResult.getIrtScore());
 //                stagedStudent.setMcTotal();
@@ -143,6 +149,7 @@ public class AssessmentResultService {
                     addStudentComponent(formEntity, stagedStudent, studentResult, fileUpload, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, correlationID);
                 }
             }
+            stagedStudent.setIsPreRegistered(existingStudentRegistrationOpt.isPresent());
             stagedAssessmentStudentRepository.save(stagedStudent);
        }
     }
@@ -150,7 +157,9 @@ public class AssessmentResultService {
     private void addStudentComponent(AssessmentFormEntity formEntity, StagedAssessmentStudentEntity assessmentStudent, AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, String correlationID) throws ResultsFileUnProcessableException {
         var studentComponent = new StagedAssessmentStudentComponentEntity();
         studentComponent.setStagedAssessmentStudentEntity(assessmentStudent);
-        var component = assessmentComponentRepository.findByAssessmentFormEntity_AssessmentFormIDAndComponentTypeCodeAndComponentSubTypeCode(formEntity.getAssessmentFormID(), componentType.getCode(), componentSubType.getCode()).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_COMPONENT, correlationID, LOAD_FAIL));
+        var component = formEntity.getAssessmentComponentEntities().stream()
+                .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode()) && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
+                .findFirst().orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_COMPONENT, correlationID, LOAD_FAIL));
         studentComponent.setAssessmentComponentID(component.getAssessmentComponentID());
         studentComponent.setCreateUser(fileUpload.getCreateUser());
         studentComponent.setCreateDate(LocalDateTime.now());
@@ -160,12 +169,16 @@ public class AssessmentResultService {
         if(componentType == ComponentTypeCodes.MUL_CHOICE) {
             studentComponent.setChoicePath(studentResult.getChoicePath());
             var multiChoiceMarks = TransformUtil.splitStringEveryNChars(studentResult.getMultiChoiceMarks(), 4);
-            int questionCounter = 1;
-            int itemCounter = 1;
+            AtomicInteger questionCounter = new AtomicInteger(1);
+            AtomicInteger itemCounter = new AtomicInteger(1);
             for(var multiChoiceMark: multiChoiceMarks){
                 var answer = new StagedAssessmentStudentAnswerEntity();
                 answer.setStagedAssessmentStudentComponentEntity(studentComponent);
-                var question = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumberAndItemNumber(component.getAssessmentComponentID(), questionCounter++, itemCounter++).orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_QUESTION, correlationID, LOAD_FAIL));
+                var question = component.getAssessmentQuestionEntities().stream()
+                        .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
+                        .findFirst().orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_QUESTION, correlationID, LOAD_FAIL));
+                questionCounter.getAndIncrement();
+                itemCounter.getAndIncrement();
                 answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
                 answer.setScore(new BigDecimal(multiChoiceMark));
                 answer.setCreateUser(fileUpload.getCreateUser());
@@ -177,13 +190,17 @@ public class AssessmentResultService {
         }else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
             var openEndedMarks = TransformUtil.splitStringEveryNChars(studentResult.getOpenEndedMarks(), 4);
             int questionCounter = 1;
-            int itemCounter = 1;
+            AtomicInteger itemCounter = new AtomicInteger(1);
             int answerForChoiceCounter = 0;
             int choiceQuestionNumber = 0;
             for(var openEndedMark: openEndedMarks){
                 Optional<AssessmentQuestionEntity> question;
-                question = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumberAndItemNumber(component.getAssessmentComponentID(), answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++, itemCounter++);
+                var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
+                question = component.getAssessmentQuestionEntities().stream()
+                        .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
+                        .findFirst();
 
+                itemCounter.getAndIncrement();
                 if(answerForChoiceCounter != 0) {
                     answerForChoiceCounter--;
                 }
@@ -193,7 +210,9 @@ public class AssessmentResultService {
                     //Value in 4 chars is the question number
                     var questionNumber = getQuestionNumberFromString(openEndedMark, correlationID);
                     //Pull the number of rows that have this question number in this component
-                    answerForChoiceCounter = assessmentQuestionRepository.countAllByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumber(component.getAssessmentComponentID(), questionNumber);
+                    answerForChoiceCounter = component.getAssessmentQuestionEntities().stream()
+                            .filter(q -> q.getQuestionNumber().equals(questionNumber))
+                            .toList().size();
                     //Based on number of rows returned, we know how many answers are coming
                     //Item numbers are sequential, while skipping the choice records
                     choiceQuestionNumber = questionNumber;

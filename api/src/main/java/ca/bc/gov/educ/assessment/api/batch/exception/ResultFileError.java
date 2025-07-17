@@ -30,6 +30,7 @@ public enum ResultFileError {
   INVALID_CHOICE_PATH("Invalid choice path on line $?."),
   INVALID_PEN("Invalid personal education number (PEN) on line $?."),
   INVALID_FORM_CODE("Invalid form code provided on line $?."),
+  INVALID_KEY("Key does not exist for this assessment."),
   INVALID_COMPONENT("Could not find valid component key on line $?."),
   INVALID_QUESTION("Could not find valid question key on line $?.");
 
