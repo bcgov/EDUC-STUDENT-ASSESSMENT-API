@@ -268,6 +268,7 @@ public abstract class BaseAssessmentAPITest {
             .studentStatusCode("CUR")
             .programCompletionDate("2023-06-30T00:00:00+01:00")
             .graduated("true")
+            .studentGrade("10")
             .build();
   }
 
