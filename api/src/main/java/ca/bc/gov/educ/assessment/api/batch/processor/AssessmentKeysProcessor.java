@@ -41,7 +41,6 @@ public class AssessmentKeysProcessor {
         this.assessmentKeyService = assessmentKeyService;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processAssessmentKeys(AssessmentKeyFileUpload fileUpload, UUID assessmentSessionID) {
         val stopwatch = Stopwatch.createStarted();
         final var guid = UUID.randomUUID().toString();
