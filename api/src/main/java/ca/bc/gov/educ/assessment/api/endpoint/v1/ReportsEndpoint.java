@@ -27,7 +27,7 @@ public interface ReportsEndpoint {
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    DownloadableReportResponse getDownloadableReportForSchool(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @PathVariable(name = "type") String type, @RequestParam(name = "assessmentID", defaultValue = "") UUID assessmentID);
+    DownloadableReportResponse getDownloadableReportForSchool(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @PathVariable(name = "type") String type);
 
     @GetMapping("/{sessionID}/{type}")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")

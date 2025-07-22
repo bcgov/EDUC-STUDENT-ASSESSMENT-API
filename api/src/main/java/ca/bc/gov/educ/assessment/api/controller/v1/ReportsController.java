@@ -60,7 +60,7 @@ public class ReportsController implements ReportsEndpoint {
     }
 
     @Override
-    public DownloadableReportResponse getDownloadableReportForSchool(UUID sessionID, UUID schoolID, String type, UUID assessmentID) {
+    public DownloadableReportResponse getDownloadableReportForSchool(UUID sessionID, UUID schoolID, String type) {
         Optional<AssessmentReportTypeCode> code = AssessmentReportTypeCode.findByValue(type);
 
         if (code.isEmpty()) {
@@ -82,7 +82,7 @@ public class ReportsController implements ReportsEndpoint {
             case SCHOOL_STUDENTS_IN_SESSION:
                 return schoolStudentsInSessionReportService.generateSchoolStudentsInSessionReport(sessionID, schoolID);
             case SCHOOL_STUDENTS_BY_ASSESSMENT:
-                return schoolStudentsByAssessmentReportService.generateSchoolStudentsByAssessmentReport(assessmentID, schoolID);
+                return schoolStudentsByAssessmentReportService.generateSchoolStudentsByAssessmentReport(sessionID, schoolID);
             default:
                 return new DownloadableReportResponse();
         }

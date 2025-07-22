@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
@@ -26,9 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Service class for generating School Students by Assessment Report
@@ -41,16 +40,14 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
   private final AssessmentStudentRepository assessmentStudentRepository;
   private final RestUtils restUtils;
   private final CodeTableService codeTableService;
-  private final AssessmentRepository assessmentRepository;
   private JasperReport schoolStudentByAssessmentReport;
 
-  public SchoolStudentsByAssessmentReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils, CodeTableService codeTableService, AssessmentRepository assessmentRepository) {
+  public SchoolStudentsByAssessmentReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils, CodeTableService codeTableService) {
     super(restUtils);
     this.assessmentSessionRepository = assessmentSessionRepository;
     this.assessmentStudentRepository = assessmentStudentRepository;
     this.restUtils = restUtils;
     this.codeTableService = codeTableService;
-    this.assessmentRepository = assessmentRepository;
   }
 
   @PostConstruct
@@ -71,41 +68,56 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
     }
   }
 
-  public DownloadableReportResponse generateSchoolStudentsByAssessmentReport(UUID assessmentID, UUID schoolID){
+  public DownloadableReportResponse generateSchoolStudentsByAssessmentReport(UUID assessmentSessionID, UUID schoolID){
     try {
-      var assessment = assessmentRepository.findById(assessmentID).orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", assessmentID.toString()));
-      var students = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolID(assessmentID, schoolID);
-      var session = assessment.getAssessmentSessionEntity();
+      var students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(assessmentSessionID, schoolID);
+      var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
 
       SchoolStudentRootNode schoolStudentRootNode = new SchoolStudentRootNode();
-      SchoolStudentReportNode schoolStudentReportNode = new SchoolStudentReportNode();
-      schoolStudentReportNode.setStudents(new ArrayList<>());
-      schoolStudentRootNode.setReport(schoolStudentReportNode);
-      setReportTombstoneValues(schoolID, session, schoolStudentReportNode);
+      schoolStudentRootNode.setReports(new ArrayList<>());
 
-      var studentList = new ArrayList<SchoolStudentNode>();
-
-      students.forEach(student -> {
+      var studentsHash = organizeStudentsInEachAssessment(students);
+      studentsHash.forEach((assessmentType, studentList) -> {
+        SchoolStudentReportNode schoolStudentReportNode = new SchoolStudentReportNode();
+        setReportTombstoneValues(schoolID, session, schoolStudentReportNode, assessmentType);
+        schoolStudentReportNode.setStudents(new ArrayList<>());
+        studentList.forEach(student -> {
           var studentNode = new SchoolStudentNode();
           studentNode.setPen(student.getPen());
           studentNode.setLocalID(student.getGivenName());
           studentNode.setName(student.getSurname() + ", " + student.getGivenName());
           studentNode.setScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null);
-          studentList.add(studentNode);
+          schoolStudentReportNode.getStudents().add(studentNode);
+        });
+        schoolStudentReportNode.setStudents(schoolStudentReportNode.getStudents().stream().sorted(Comparator.comparing(SchoolStudentNode::getName)).toList());
+        schoolStudentRootNode.getReports().add(schoolStudentReportNode);
       });
-
-      schoolStudentReportNode.setStudents(studentList.stream().sorted(Comparator.comparing(SchoolStudentNode::getName)).toList());
-
+      
       return generateJasperReport(objectWriter.writeValueAsString(schoolStudentRootNode), schoolStudentByAssessmentReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_BY_ASSESSMENT.getCode());
     } catch (JsonProcessingException e) {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
     }
   }
+  
+  private HashMap<String, List<AssessmentStudentEntity>> organizeStudentsInEachAssessment(List<AssessmentStudentEntity> students) {
+    HashMap<String, List<AssessmentStudentEntity>> studentsHash = new HashMap<>();
+    
+    students.forEach(student -> {
+      if(studentsHash.containsKey(student.getAssessmentEntity().getAssessmentTypeCode())) {
+        studentsHash.get(student.getAssessmentEntity().getAssessmentTypeCode()).add(student);
+      }else{
+        studentsHash.put(student.getAssessmentEntity().getAssessmentTypeCode(), List.of(student));
+      }
+    });
+    
+    return studentsHash;
+  }
 
-  protected SchoolTombstone setReportTombstoneValues(UUID schoolID, AssessmentSessionEntity assessmentSession, SchoolStudentReportNode reportNode){
+  protected SchoolTombstone setReportTombstoneValues(UUID schoolID, AssessmentSessionEntity assessmentSession, SchoolStudentReportNode reportNode, String assessmentType){
     var school = validateAndReturnSchool(schoolID);
-
+    var assessmentTypes = codeTableService.getAllAssessmentTypeCodesAsMap();
+    
     if(school.getIndependentAuthorityId() != null) {
       var authority = validateAndReturnAuthority(school);
       reportNode.setDistrictNumberAndName(authority.getAuthorityNumber() + " - " + authority.getDisplayName());
@@ -117,6 +129,7 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
     reportNode.setReportGeneratedDate("Report Generated: " + LocalDate.now().format(formatter));
     reportNode.setSessionDetail(assessmentSession.getCourseYear() + "/" + assessmentSession.getCourseMonth() + " Session");
     reportNode.setSchoolMincodeAndName(school.getMincode() + " - " + school.getDisplayName());
+    reportNode.setAssessmentType(assessmentTypes.get(assessmentType));
 
     return school;
   }

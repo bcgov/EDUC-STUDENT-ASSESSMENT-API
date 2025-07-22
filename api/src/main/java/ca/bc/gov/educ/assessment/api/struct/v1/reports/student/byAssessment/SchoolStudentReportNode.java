@@ -23,6 +23,8 @@ public class SchoolStudentReportNode implements Serializable {
   private String districtNumberAndName;
 
   private String schoolMincodeAndName;
+  
+  private String assessmentType;
 
   private List<SchoolStudentNode> students;
 

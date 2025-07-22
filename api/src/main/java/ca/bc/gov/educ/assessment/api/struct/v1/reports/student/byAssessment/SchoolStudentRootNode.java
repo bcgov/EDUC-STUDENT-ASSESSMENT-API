@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,6 +16,6 @@ import java.io.Serializable;
 public class SchoolStudentRootNode implements Serializable {
   private static final long serialVersionUID = 6118916290604876032L;
 
-  private SchoolStudentReportNode report;
+  private List<SchoolStudentReportNode> reports;
 
 }
