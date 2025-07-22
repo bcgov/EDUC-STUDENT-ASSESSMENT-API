@@ -84,7 +84,7 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
         studentList.forEach(student -> {
           var studentNode = new SchoolStudentNode();
           studentNode.setPen(student.getPen());
-          studentNode.setLocalID(student.getGivenName());
+          studentNode.setLocalID(student.getLocalID());
           studentNode.setName(student.getSurname() + ", " + student.getGivenName());
           studentNode.setScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null);
           schoolStudentReportNode.getStudents().add(studentNode);
