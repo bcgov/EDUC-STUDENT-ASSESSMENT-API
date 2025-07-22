@@ -9,7 +9,7 @@ import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.IndependentAuthority;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.schoolStudent.SchoolStudentReportNode;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolStudentReportNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.extern.slf4j.Slf4j;
@@ -87,24 +87,7 @@ public abstract class BaseReportGenerationService {
 
     return school.get();
   }
-
-  protected SchoolTombstone setReportTombstoneValues(UUID schoolID, AssessmentSessionEntity assessmentSession, SchoolStudentReportNode reportNode){
-    var school = validateAndReturnSchool(schoolID);
-    
-    if(school.getIndependentAuthorityId() != null) {
-      var authority = validateAndReturnAuthority(school);
-      reportNode.setDistrictNumberAndName(authority.getAuthorityNumber() + " - " + authority.getDisplayName());
-    }else{
-      var district = validateAndReturnDistrict(school);
-      reportNode.setDistrictNumberAndName(district.getDistrictNumber() + " - " + district.getDisplayName());
-    }
-
-    reportNode.setReportGeneratedDate("Report Generated: " + LocalDate.now().format(formatter));
-    reportNode.setSessionDetail(assessmentSession.getCourseYear() + "/" + assessmentSession.getCourseMonth() + " Session");
-    reportNode.setSchoolMincodeAndName(school.getMincode() + " - " + school.getDisplayName());
-
-    return school;
-  }
+  
 
   protected Map<String, Object> getJasperParams(){
     Map<String, Object> params = new HashMap<>();

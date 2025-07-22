@@ -6,6 +6,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.SummaryReportTypeCode;
 import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndpoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
+import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsByAssessmentReportService;
 import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsInSessionReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.CSVReportService;
@@ -30,6 +31,7 @@ public class ReportsController implements ReportsEndpoint {
 
     private final AssessmentStudentService assessmentStudentService;
     private final SchoolStudentsInSessionReportService schoolStudentsInSessionReportService;
+    private final SchoolStudentsByAssessmentReportService schoolStudentsByAssessmentReportService;
     private final CSVReportService csvReportService;
     private final XAMFileService xamFileService;
     private final SummaryReportService summaryReportService;
@@ -58,7 +60,7 @@ public class ReportsController implements ReportsEndpoint {
     }
 
     @Override
-    public DownloadableReportResponse getDownloadableReportForSchool(UUID sessionID, UUID schoolID, String type) {
+    public DownloadableReportResponse getDownloadableReportForSchool(UUID sessionID, UUID schoolID, String type, UUID assessmentID) {
         Optional<AssessmentReportTypeCode> code = AssessmentReportTypeCode.findByValue(type);
 
         if (code.isEmpty()) {
@@ -79,6 +81,8 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generateSessionResultsBySchoolReport(sessionID, schoolID);
             case SCHOOL_STUDENTS_IN_SESSION:
                 return schoolStudentsInSessionReportService.generateSchoolStudentsInSessionReport(sessionID, schoolID);
+            case SCHOOL_STUDENTS_BY_ASSESSMENT:
+                return schoolStudentsByAssessmentReportService.generateSchoolStudentsByAssessmentReport(assessmentID, schoolID);
             default:
                 return new DownloadableReportResponse();
         }
