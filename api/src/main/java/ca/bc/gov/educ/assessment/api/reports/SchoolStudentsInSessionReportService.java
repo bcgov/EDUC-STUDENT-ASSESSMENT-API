@@ -87,7 +87,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
         if (!studentList.containsKey(student.getStudentID())) {
           var studentNode = new SchoolStudentNode();
           studentNode.setPen(student.getPen());
-          studentNode.setLocalID(student.getGivenName());
+          studentNode.setLocalID(student.getLocalID());
           studentNode.setName(student.getSurname() + ", " + student.getGivenName());
           SchoolStudentGradAssessmentNode studentGradAssessmentNode = new SchoolStudentGradAssessmentNode();
           studentGradAssessmentNode.setName(assessmentTypes.get(student.getAssessmentEntity().getAssessmentTypeCode()));
