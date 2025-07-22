@@ -226,13 +226,6 @@
 		<groupExpression><![CDATA[$F{reportId}]]></groupExpression>
 		<groupHeader>
 			<band height="292" splitType="Stretch">
-				<staticText>
-					<reportElement x="246" y="20" width="163" height="20" forecolor="#003366" uuid="8ef7f15d-0e1e-47ce-862d-01e8577c31eb"/>
-					<textElement>
-						<font fontName="BCSans"/>
-					</textElement>
-					<text><![CDATA[Session Results by Assessment -]]></text>
-				</staticText>
 				<textField>
 					<reportElement x="609" y="35" width="132" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -280,15 +273,6 @@
 					<reportElement x="-9" y="-17" width="100" height="44" uuid="c139017e-89b8-438d-b893-49e771231c44"/>
 					<imageExpression><![CDATA["bc_gov_logo.jpg"]]></imageExpression>
 				</image>
-				<textField>
-					<reportElement x="409" y="20" width="280" height="15" forecolor="#003366" uuid="17384ec0-65f4-4a20-84ff-e04a16e4e3ac">
-						<property name="com.jaspersoft.studio.unit.height" value="px"/>
-					</reportElement>
-					<textElement>
-						<font fontName="BCSans" size="10"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{assessmentType}]]></textFieldExpression>
-				</textField>
 				<componentElement>
 					<reportElement x="33" y="144" width="669" height="148" uuid="f4a9dd19-5486-48d6-b224-82292deeed42"/>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -491,6 +475,13 @@
 						<pen lineWidth="0.5"/>
 					</graphicElement>
 				</line>
+				<textField>
+					<reportElement x="236" y="20" width="333" height="20" forecolor="#003366" uuid="f1952c66-e7ae-453a-a01e-c08e09a4bdef"/>
+					<textElement>
+						<font fontName="BCSans"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Session Results by Assessment - " + $F{assessmentType}]]></textFieldExpression>
+				</textField>
 			</band>
 		</groupHeader>
 	</group>
