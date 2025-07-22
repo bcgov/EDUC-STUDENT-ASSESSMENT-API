@@ -107,7 +107,9 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
       if(studentsHash.containsKey(student.getAssessmentEntity().getAssessmentTypeCode())) {
         studentsHash.get(student.getAssessmentEntity().getAssessmentTypeCode()).add(student);
       }else{
-        studentsHash.put(student.getAssessmentEntity().getAssessmentTypeCode(), List.of(student));
+        List<AssessmentStudentEntity> studentList = new ArrayList<>();
+        studentList.add(student);
+        studentsHash.put(student.getAssessmentEntity().getAssessmentTypeCode(), studentList);
       }
     });
     
