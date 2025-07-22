@@ -1,4 +1,4 @@
-package ca.bc.gov.educ.assessment.api.struct.v1.reports.schoolStudent;
+package ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,10 +10,14 @@ import java.io.Serializable;
 @NoArgsConstructor
 @SuperBuilder
 @SuppressWarnings("squid:S1700")
-public class SchoolStudentGradAssessmentNode implements Serializable {
+public class SchoolStudentNode implements Serializable {
   private static final long serialVersionUID = 6118916290604876032L;
 
   private String name;
+
+  private String pen;
+
+  private String localID;
 
   private String score;
 }

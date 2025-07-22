@@ -2,7 +2,6 @@ package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
-import ca.bc.gov.educ.assessment.api.service.v1.external.IDownstreamSyncService;
 import com.nimbusds.jose.util.Pair;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,12 +25,8 @@ public class SessionApprovalOrchestrationService {
     @Getter(AccessLevel.PRIVATE)
     private final AssessmentEventRepository assessmentEventRepository;
 
-    @Getter(AccessLevel.PRIVATE)
-    private final IDownstreamSyncService downstreamSyncService;
-
-    public SessionApprovalOrchestrationService(AssessmentStudentService assessmentStudentService, IDownstreamSyncService downstreamSyncService, SagaService sagaService, AssessmentEventRepository assessmentEventRepository) {
+    public SessionApprovalOrchestrationService(AssessmentStudentService assessmentStudentService, SagaService sagaService, AssessmentEventRepository assessmentEventRepository) {
         this.assessmentStudentService = assessmentStudentService;
-        this.downstreamSyncService = downstreamSyncService;
         this.sagaService = sagaService;
         this.assessmentEventRepository = assessmentEventRepository;
     }

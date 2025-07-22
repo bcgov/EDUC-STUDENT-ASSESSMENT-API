@@ -1,4 +1,4 @@
-package ca.bc.gov.educ.assessment.api.struct.v1.reports.schoolStudent;
+package ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
