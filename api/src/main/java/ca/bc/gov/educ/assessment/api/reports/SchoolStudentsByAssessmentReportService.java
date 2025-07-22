@@ -130,6 +130,7 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
     reportNode.setSessionDetail(assessmentSession.getCourseYear() + "/" + assessmentSession.getCourseMonth() + " Session");
     reportNode.setSchoolMincodeAndName(school.getMincode() + " - " + school.getDisplayName());
     reportNode.setAssessmentType(assessmentTypes.get(assessmentType));
+    reportNode.setReportId(UUID.randomUUID().toString());
 
     return school;
   }

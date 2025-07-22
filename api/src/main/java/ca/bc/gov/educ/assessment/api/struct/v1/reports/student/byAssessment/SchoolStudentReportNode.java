@@ -16,6 +16,8 @@ import java.util.List;
 public class SchoolStudentReportNode implements Serializable {
   private static final long serialVersionUID = 6118916290604876032L;
 
+  private String reportId;
+  
   private String sessionDetail;
 
   private String reportGeneratedDate;
