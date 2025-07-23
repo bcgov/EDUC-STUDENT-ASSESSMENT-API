@@ -118,6 +118,12 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     UUID schoolID = UUID.randomUUID();
     school.setSchoolId(String.valueOf(schoolID));
     when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+    GradStudentRecord gradStudentRecord = this.createMockGradStudentAPIRecord();
+    gradStudentRecord.setStudentID(UUID.randomUUID().toString());
+    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradStudentRecord.setGraduated("Y");
+    gradStudentRecord.setStudentGrade("10");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
     AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
     assessmentStudentEntity.setAssessmentStudentID(null);
@@ -128,13 +134,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     studentAPIStudent.setPen(assessmentStudentEntity.getPen());
     studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
     studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurname());
+    studentAPIStudent.setGradeCode("11");
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
-
-    var gradStudentRecord = new GradStudentRecord();
-    gradStudentRecord.setStudentID(UUID.randomUUID().toString());
-    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
-    gradStudentRecord.setGraduated("Y");
-    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
     //when creating an assessment student
     var pair = assessmentStudentService.createStudent(assessmentStudentEntity);
@@ -142,8 +143,17 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
     //then assessment student is created
     assertNotNull(student);
+    assertThat(student.getGradeAtRegistration()).isEqualTo(gradStudentRecord.getStudentGrade());
+    assertThat(student.getGradeAtRegistration()).isNotEqualTo(studentAPIStudent.getGradeCode());
     assertNotNull(assessmentStudentRepository.findById(UUID.fromString(student.getStudentID())));
     assertThat(studentHistory).hasSize(1);
+
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.empty());
+    var pair2 = assessmentStudentService.createStudent(assessmentStudentEntity);
+    AssessmentStudent student2 = pair2.getLeft();
+    assertNotNull(student2);
+    assertThat(student2.getGradeAtRegistration()).isNotEqualTo(gradStudentRecord.getStudentGrade());
+    assertThat(student2.getGradeAtRegistration()).isEqualTo(studentAPIStudent.getGradeCode());
   }
 
   @Test
@@ -157,11 +167,12 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     school.setSchoolId(String.valueOf(schoolID));
     when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
     
-    AssessmentStudentEntity studentEntity= createMockStudentEntity(assessmentEntity);
+    AssessmentStudentEntity studentEntity = createMockStudentEntity(assessmentEntity);
     studentEntity.setSchoolOfRecordSchoolID(schoolID);
+    studentEntity.setGradeAtRegistration("12");
     studentEntity.setAssessmentStudentID(null);
 
-    AssessmentStudentEntity assessmentStudentEntity= createMockStudentEntity(assessmentEntity);
+    AssessmentStudentEntity assessmentStudentEntity = createMockStudentEntity(assessmentEntity);
     assessmentStudentEntity.setAssessmentStudentID(null);
     assessmentStudentEntity.setSchoolOfRecordSchoolID(schoolID);
     assessmentStudentEntity.getAssessmentEntity().setAssessmentTypeCode(AssessmentTypeCodes.LTF12.getCode());
@@ -170,12 +181,14 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     studentAPIStudent.setPen(assessmentStudentEntity.getPen());
     studentAPIStudent.setLegalFirstName(assessmentStudentEntity.getGivenName());
     studentAPIStudent.setLegalLastName(assessmentStudentEntity.getSurname());
+    studentAPIStudent.setGradeCode("11");
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
 
     var gradStudentRecord = new GradStudentRecord();
     gradStudentRecord.setStudentID(UUID.randomUUID().toString());
     gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
     gradStudentRecord.setGraduated("Y");
+    gradStudentRecord.setStudentGrade("10");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
     var pair = assessmentStudentService.createStudent(studentEntity);
@@ -190,6 +203,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     var updatedStudent = assessmentStudentRepository.findById(UUID.fromString(student.getAssessmentStudentID()));
     assertThat(updatedStudent).isPresent();
     assertThat(updatedStudent.get().getAssessmentEntity().getAssessmentTypeCode()).isEqualTo(AssessmentTypeCodes.LTP10.getCode());
+    assertThat(updatedStudent.get().getGradeAtRegistration()).isEqualTo(studentEntity.getGradeAtRegistration()); //gradeAtRegistration should not be updated.
     assertThat(studentHistory).hasSize(2);
   }
 

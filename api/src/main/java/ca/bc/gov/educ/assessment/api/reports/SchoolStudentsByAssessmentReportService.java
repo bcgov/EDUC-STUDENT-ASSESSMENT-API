@@ -3,18 +3,20 @@ package ca.bc.gov.educ.assessment.api.reports;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolStudentGradAssessmentNode;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolStudentNode;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolStudentReportNode;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolStudentRootNode;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentNode;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentReportNode;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentRootNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -25,25 +27,22 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 /**
- * Service class for generating School Students in Session Report
+ * Service class for generating School Students by Assessment Report
  */
 @Service
 @Slf4j
-public class SchoolStudentsInSessionReportService extends BaseReportGenerationService {
+public class SchoolStudentsByAssessmentReportService extends BaseReportGenerationService {
 
   private final AssessmentSessionRepository assessmentSessionRepository;
   private final AssessmentStudentRepository assessmentStudentRepository;
   private final RestUtils restUtils;
   private final CodeTableService codeTableService;
-  private JasperReport schoolStudentInSessionReport;
+  private JasperReport schoolStudentByAssessmentReport;
 
-  public SchoolStudentsInSessionReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils, CodeTableService codeTableService) {
+  public SchoolStudentsByAssessmentReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils, CodeTableService codeTableService) {
     super(restUtils);
     this.assessmentSessionRepository = assessmentSessionRepository;
     this.assessmentStudentRepository = assessmentStudentRepository;
@@ -62,60 +61,65 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   private void compileJasperReports(){
     try {
-      InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsInSession.jrxml");
-      schoolStudentInSessionReport = JasperCompileManager.compileReport(inputHeadcount);
+      InputStream inputHeadcount = getClass().getResourceAsStream("/reports/schoolStudentsByAssessment.jrxml");
+      schoolStudentByAssessmentReport = JasperCompileManager.compileReport(inputHeadcount);
     } catch (JRException e) {
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
   }
 
-  public DownloadableReportResponse generateSchoolStudentsInSessionReport(UUID assessmentSessionID, UUID schoolID){
+  public DownloadableReportResponse generateSchoolStudentsByAssessmentReport(UUID assessmentSessionID, UUID schoolID){
     try {
-      var assessmentTypes = codeTableService.getAllAssessmentTypeCodesAsMap();
       var students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(assessmentSessionID, schoolID);
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
 
       SchoolStudentRootNode schoolStudentRootNode = new SchoolStudentRootNode();
-      SchoolStudentReportNode schoolStudentReportNode = new SchoolStudentReportNode();
-      schoolStudentReportNode.setStudents(new ArrayList<>());
-      schoolStudentRootNode.setReport(schoolStudentReportNode);
-      setReportTombstoneValues(schoolID, session, schoolStudentReportNode);
+      schoolStudentRootNode.setReports(new ArrayList<>());
 
-      var studentList = new HashMap<UUID, SchoolStudentNode>();
-
-      students.forEach(student -> {
-        if (!studentList.containsKey(student.getStudentID())) {
+      var studentsHash = organizeStudentsInEachAssessment(students);
+      studentsHash.forEach((assessmentType, studentList) -> {
+        SchoolStudentReportNode schoolStudentReportNode = new SchoolStudentReportNode();
+        setReportTombstoneValues(schoolID, session, schoolStudentReportNode, assessmentType);
+        schoolStudentReportNode.setStudents(new ArrayList<>());
+        studentList.forEach(student -> {
           var studentNode = new SchoolStudentNode();
           studentNode.setPen(student.getPen());
           studentNode.setLocalID(student.getLocalID());
           studentNode.setName(student.getSurname() + ", " + student.getGivenName());
-          SchoolStudentGradAssessmentNode studentGradAssessmentNode = new SchoolStudentGradAssessmentNode();
-          studentGradAssessmentNode.setName(assessmentTypes.get(student.getAssessmentEntity().getAssessmentTypeCode()));
-          studentGradAssessmentNode.setScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null);
-          studentNode.setGradAssessments(new ArrayList<>());
-          studentNode.getGradAssessments().add(studentGradAssessmentNode);
-          studentList.put(student.getStudentID(), studentNode);
-        }else{
-          var loadedStudent = studentList.get(student.getStudentID());
-          SchoolStudentGradAssessmentNode studentGradAssessmentNode = new SchoolStudentGradAssessmentNode();
-          studentGradAssessmentNode.setName(assessmentTypes.get(student.getAssessmentEntity().getAssessmentTypeCode()));
-          studentGradAssessmentNode.setScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null);
-          loadedStudent.getGradAssessments().add(studentGradAssessmentNode);
-        }
+          studentNode.setScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null);
+          schoolStudentReportNode.getStudents().add(studentNode);
+        });
+        schoolStudentReportNode.setStudents(schoolStudentReportNode.getStudents().stream().sorted(Comparator.comparing(SchoolStudentNode::getName)).toList());
+        schoolStudentRootNode.getReports().add(schoolStudentReportNode);
       });
-
-      schoolStudentReportNode.setStudents(studentList.values().stream().sorted(Comparator.comparing(SchoolStudentNode::getName)).toList());
-
-      return generateJasperReport(objectWriter.writeValueAsString(schoolStudentRootNode), schoolStudentInSessionReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_IN_SESSION.getCode());
+      
+      return generateJasperReport(objectWriter.writeValueAsString(schoolStudentRootNode), schoolStudentByAssessmentReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_BY_ASSESSMENT.getCode());
     } catch (JsonProcessingException e) {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
     }
   }
+  
+  private HashMap<String, List<AssessmentStudentEntity>> organizeStudentsInEachAssessment(List<AssessmentStudentEntity> students) {
+    HashMap<String, List<AssessmentStudentEntity>> studentsHash = new HashMap<>();
+    
+    students.forEach(student -> {
+      if(studentsHash.containsKey(student.getAssessmentEntity().getAssessmentTypeCode())) {
+        studentsHash.get(student.getAssessmentEntity().getAssessmentTypeCode()).add(student);
+      }else{
+        List<AssessmentStudentEntity> studentList = new ArrayList<>();
+        studentList.add(student);
+        studentsHash.put(student.getAssessmentEntity().getAssessmentTypeCode(), studentList);
+      }
+    });
+    
+    return studentsHash;
+  }
 
-  protected SchoolTombstone setReportTombstoneValues(UUID schoolID, AssessmentSessionEntity assessmentSession, SchoolStudentReportNode reportNode){
+  protected SchoolTombstone setReportTombstoneValues(UUID schoolID, AssessmentSessionEntity assessmentSession, SchoolStudentReportNode reportNode, String assessmentType){
     var school = validateAndReturnSchool(schoolID);
-
+    var assessmentTypes = codeTableService.getAllAssessmentTypeCodesAsMap();
+    
     if(school.getIndependentAuthorityId() != null) {
       var authority = validateAndReturnAuthority(school);
       reportNode.setDistrictNumberAndName(authority.getAuthorityNumber() + " - " + authority.getDisplayName());
@@ -127,6 +131,8 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
     reportNode.setReportGeneratedDate("Report Generated: " + LocalDate.now().format(formatter));
     reportNode.setSessionDetail(assessmentSession.getCourseYear() + "/" + assessmentSession.getCourseMonth() + " Session");
     reportNode.setSchoolMincodeAndName(school.getMincode() + " - " + school.getDisplayName());
+    reportNode.setAssessmentType(assessmentTypes.get(assessmentType));
+    reportNode.setReportId(UUID.randomUUID().toString());
 
     return school;
   }

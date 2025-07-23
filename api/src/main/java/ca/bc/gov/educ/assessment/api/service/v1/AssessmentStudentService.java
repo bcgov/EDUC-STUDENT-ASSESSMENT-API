@@ -48,7 +48,6 @@ public class AssessmentStudentService {
     private final AssessmentEventRepository assessmentEventRepository;
     private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
     private final AssessmentStudentHistoryService assessmentStudentHistoryService;
-    private final MessagePublisher messagePublisher;
     private final AssessmentRepository assessmentRepository;
     private final AssessmentStudentRulesProcessor assessmentStudentRulesProcessor;
     private final RestUtils restUtils;
@@ -251,12 +250,12 @@ public class AssessmentStudentService {
         List<AssessmentResultsSummary> rowData = new ArrayList<>();
         for (AssessmentEntity assessment : assessments) {
             if(!assessment.getAssessmentForms().isEmpty()) {
-                AssessmentFormEntity form = assessment.getAssessmentForms().stream().findFirst().get();
-                Optional<AssessmentStudentEntity> student = assessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), form.getAssessmentFormID());
+                List<UUID> formIds = assessment.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
+                Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
                 rowData.add(AssessmentResultsSummary
                         .builder()
                         .assessmentType(assessment.getAssessmentTypeCode())
-                        .uploadedBy(student.map(AssessmentStudentEntity::getCreateUser).orElse(null))
+                        .uploadedBy(student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null))
                         .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
                         .build());
             } else {
