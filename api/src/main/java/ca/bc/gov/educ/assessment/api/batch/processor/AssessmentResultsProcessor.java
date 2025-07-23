@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
 import ca.bc.gov.educ.assessment.api.batch.exception.ResultsFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.batch.service.AssessmentResultService;
 import ca.bc.gov.educ.assessment.api.batch.validation.ResultsFileValidator;
+import ca.bc.gov.educ.assessment.api.exception.ConfirmationRequiredException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
@@ -57,6 +58,9 @@ public class AssessmentResultsProcessor {
             fieldErrorList.add(validationError);
             error.addValidationErrors(fieldErrorList);
             throw new InvalidPayloadException(error);
+        } catch (final ConfirmationRequiredException e) {
+            log.warn("Confirmation required while processing the file");
+            throw new ConfirmationRequiredException(e.getError());
         } catch (final Exception e) {
             log.error("Exception while processing the file with correlationID :: {} :: Exception :: {}", correlationID, e);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();

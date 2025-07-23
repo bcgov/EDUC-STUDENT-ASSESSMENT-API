@@ -91,7 +91,8 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<String> {
                 this.getSagaName(),
                 "system",
                 payload,
-                sessionID
+                sessionID,
+                null
         );
         this.startSaga(saga);
     }

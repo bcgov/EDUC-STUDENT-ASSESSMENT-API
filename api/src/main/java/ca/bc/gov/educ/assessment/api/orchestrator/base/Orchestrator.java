@@ -33,7 +33,7 @@ public interface Orchestrator {
    * @param userName  the user who created the saga
    * @return the saga
    */
-  AssessmentSagaEntity createSaga(String payload, String userName, UUID assessmentStudentID);
+  AssessmentSagaEntity createSaga(String payload, String userName, UUID assessmentStudentID, final UUID stagedStudentResultId);
 
   /**
    * Replay saga.

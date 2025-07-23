@@ -20,14 +20,17 @@ import java.util.UUID;
 @Repository
 public interface SagaRepository extends JpaRepository<AssessmentSagaEntity, UUID>, JpaSpecificationExecutor<AssessmentSagaEntity> {
 
-  long countAllByStatusIn(List<String> statuses);
+  List<AssessmentSagaEntity> findTop500ByStatusInOrderByCreateDate(List<String> statuses);
 
   Optional<AssessmentSagaEntity> findByAssessmentStudentIDAndSagaNameAndStatusNot(UUID assessmentStudentID, String sagaName, String status);
 
-  Optional<AssessmentSagaEntity> findByAssessmentStudentIDAndSagaName(UUID assessmentStudentID, String sagaName);
+  List<AssessmentSagaEntity> findByStagedStudentResultIDAndSagaNameAndStatusNot(UUID stagedStudentResultID, String sagaName, String status);
 
   @Transactional
   @Modifying
   @Query("delete from AssessmentSagaEntity where createDate <= :createDate")
   void deleteByCreateDateBefore(LocalDateTime createDate);
+
+  @Query(value = "SELECT s.SAGA_ID FROM ASSESSMENT_SAGA s WHERE s.STATUS in :cleanupStatus LIMIT :batchSize", nativeQuery = true)
+  List<UUID> findByStatusIn(List<String> cleanupStatus, int batchSize);
 }

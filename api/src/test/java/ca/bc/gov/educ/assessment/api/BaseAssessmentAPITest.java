@@ -1,6 +1,9 @@
 package ca.bc.gov.educ.assessment.api;
 
 import ca.bc.gov.educ.assessment.api.config.TestDataSourceConfig;
+import ca.bc.gov.educ.assessment.api.constants.EventType;
+import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
+import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
@@ -11,9 +14,12 @@ import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.Assessment;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentGet;
+import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
+import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -458,5 +464,19 @@ public abstract class BaseAssessmentAPITest {
     } else {
       return LocalDate.of(now.getYear(), Month.MAY, 1).atStartOfDay();
     }
+  }
+
+  @SneakyThrows
+  protected AssessmentSagaEntity createStudentResultMockSaga(final StudentResultSagaData studentResultSagaData) {
+    return AssessmentSagaEntity.builder()
+            .updateDate(LocalDateTime.now().minusMinutes(15))
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .createDate(LocalDateTime.now().minusMinutes(15))
+            .sagaName(SagaEnum.PROCESS_STUDENT_RESULT.toString())
+            .status(SagaStatusEnum.IN_PROGRESS.toString())
+            .sagaState(EventType.INITIATED.toString())
+            .payload(JsonUtil.getJsonStringFromObject(studentResultSagaData))
+            .build();
   }
 }

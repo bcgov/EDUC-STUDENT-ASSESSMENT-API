@@ -145,10 +145,11 @@ public class SagaService {
    * @return the saga
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public AssessmentSagaEntity createSagaRecordInDB(final String sagaName, final String userName, final String payload, final UUID assessmentStudentID) {
+  public AssessmentSagaEntity createSagaRecordInDB(final String sagaName, final String userName, final String payload, final UUID assessmentStudentID, final UUID stagedStudentResultId) {
     final var saga = AssessmentSagaEntity
       .builder()
       .assessmentStudentID(assessmentStudentID)
+      .stagedStudentResultID(stagedStudentResultId)
       .payload(payload)
       .sagaName(sagaName)
       .status(STARTED.toString())
@@ -196,5 +197,9 @@ public class SagaService {
    */
   public Optional<AssessmentSagaEntity> findByAssessmentStudentIDAndSagaNameAndStatusNot(final UUID assessmentStudentID, final String sagaName, final String status) {
     return this.getSagaRepository().findByAssessmentStudentIDAndSagaNameAndStatusNot(assessmentStudentID, sagaName, status);
+  }
+
+  public List<AssessmentSagaEntity> findByStagedStudentResultIDAndSagaNameAndStatusNot(final UUID stagedStudentResultID, final String sagaName, final String status) {
+    return this.getSagaRepository().findByStagedStudentResultIDAndSagaNameAndStatusNot(stagedStudentResultID, sagaName, status);
   }
 }

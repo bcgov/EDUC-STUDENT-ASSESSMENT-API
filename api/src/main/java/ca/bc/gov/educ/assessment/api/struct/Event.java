@@ -24,4 +24,5 @@ public class Event {
   private UUID sagaId;
   private String replyTo;
   private String eventPayload; // json string
+  private String stagedStudentResultID;
 }
