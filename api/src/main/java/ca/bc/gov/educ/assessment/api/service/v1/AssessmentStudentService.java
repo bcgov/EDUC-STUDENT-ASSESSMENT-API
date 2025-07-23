@@ -82,8 +82,15 @@ public class AssessmentStudentService {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
         );
+        if(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().equals(assessmentStudentEntity.getAssessmentEntity().getAssessmentID())) {
+            assessmentStudentEntity.setAssessmentEntity(currentAssessmentStudentEntity.getAssessmentEntity());
+        } else {
+            var updatedAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
+                new EntityNotFoundException(AssessmentEntity.class, "AssessmentEntity", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
+            );
+            assessmentStudentEntity.setAssessmentEntity(updatedAssessmentEntity);
+        }
 
-        assessmentStudentEntity.setAssessmentEntity(currentAssessmentStudentEntity.getAssessmentEntity());
         var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity, false);
 
         var event = generateStudentUpdatedEvent(student.getStudentID());

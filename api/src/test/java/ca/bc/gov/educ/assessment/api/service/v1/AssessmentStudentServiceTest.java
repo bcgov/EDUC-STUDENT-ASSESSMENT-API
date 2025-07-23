@@ -627,4 +627,135 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity fromDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(fromDatabase2).isNull();
   }
+
+  @Test
+  void testUpdateStudent_WhenAssessmentIDsMatch_ShouldUseCurrentAssessmentEntity() throws JsonProcessingException {
+    //given student exists in db with current assessment
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity currentAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    AssessmentStudentEntity currentStudentEntity = createMockStudentEntity(currentAssessmentEntity);
+    currentStudentEntity.setSchoolOfRecordSchoolID(schoolID);
+    currentStudentEntity.setAssessmentStudentID(null);
+
+    var studentAPIStudent = this.createMockStudentAPIStudent();
+    studentAPIStudent.setPen(currentStudentEntity.getPen());
+    studentAPIStudent.setLegalFirstName(currentStudentEntity.getGivenName());
+    studentAPIStudent.setLegalLastName(currentStudentEntity.getSurname());
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
+
+    var gradStudentRecord = new GradStudentRecord();
+    gradStudentRecord.setStudentID(UUID.randomUUID().toString());
+    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradStudentRecord.setGraduated("Y");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
+
+    var pair = assessmentStudentService.createStudent(currentStudentEntity);
+    AssessmentStudent createdStudent = pair.getLeft();
+
+    //when updating student with same assessment ID
+    AssessmentStudentEntity updateStudentEntity = mapper.toModel(createdStudent);
+    updateStudentEntity.getAssessmentEntity().setAssessmentID(currentAssessmentEntity.getAssessmentID());
+
+    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity);
+    AssessmentStudent updatedStudent = updatePair.getLeft();
+
+    //then current assessment entity should be used
+    assertNotNull(updatedStudent);
+    var savedStudent = assessmentStudentRepository.findById(UUID.fromString(updatedStudent.getAssessmentStudentID()));
+    assertThat(savedStudent).isPresent();
+    assertThat(savedStudent.get().getAssessmentEntity().getAssessmentID()).isEqualTo(currentAssessmentEntity.getAssessmentID());
+  }
+
+  @Test
+  void testUpdateStudent_WhenAssessmentIDsDifferAndAssessmentDNE_ShouldThrowException() throws JsonProcessingException {
+    //given student exists in db with current assessment
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity currentAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    AssessmentStudentEntity currentStudentEntity = createMockStudentEntity(currentAssessmentEntity);
+    currentStudentEntity.setSchoolOfRecordSchoolID(schoolID);
+    currentStudentEntity.setAssessmentStudentID(null);
+
+    var studentAPIStudent = this.createMockStudentAPIStudent();
+    studentAPIStudent.setPen(currentStudentEntity.getPen());
+    studentAPIStudent.setLegalFirstName(currentStudentEntity.getGivenName());
+    studentAPIStudent.setLegalLastName(currentStudentEntity.getSurname());
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
+
+    var gradStudentRecord = new GradStudentRecord();
+    gradStudentRecord.setStudentID(UUID.randomUUID().toString());
+    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradStudentRecord.setGraduated("Y");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
+
+    var pair = assessmentStudentService.createStudent(currentStudentEntity);
+    AssessmentStudent createdStudent = pair.getLeft();
+
+    //when updating student with different assessment ID
+    AssessmentStudentEntity updateStudentEntity = mapper.toModel(createdStudent);
+    UUID newAssessmentId = UUID.randomUUID();
+    updateStudentEntity.getAssessmentEntity().setAssessmentID(newAssessmentId);
+
+    //then should throw exception for non-existent assessment
+    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(updateStudentEntity));
+  }
+
+  @Test
+  void testUpdateStudent_WhenNewAssessmentExists_ShouldUseNewAssessmentEntity() throws JsonProcessingException {
+    //given student exists in db with current assessment
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity currentAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    //and new assessment exists
+    AssessmentEntity newAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    AssessmentStudentEntity currentStudentEntity = createMockStudentEntity(currentAssessmentEntity);
+    currentStudentEntity.setSchoolOfRecordSchoolID(schoolID);
+    currentStudentEntity.setAssessmentStudentID(null);
+
+    var studentAPIStudent = this.createMockStudentAPIStudent();
+    studentAPIStudent.setPen(currentStudentEntity.getPen());
+    studentAPIStudent.setLegalFirstName(currentStudentEntity.getGivenName());
+    studentAPIStudent.setLegalLastName(currentStudentEntity.getSurname());
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
+
+    var gradStudentRecord = new GradStudentRecord();
+    gradStudentRecord.setStudentID(UUID.randomUUID().toString());
+    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradStudentRecord.setGraduated("Y");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
+
+    var pair = assessmentStudentService.createStudent(currentStudentEntity);
+    AssessmentStudent createdStudent = pair.getLeft();
+
+    //when updating student with new assessment ID
+    AssessmentStudentEntity updateStudentEntity = mapper.toModel(createdStudent);
+    updateStudentEntity.getAssessmentEntity().setAssessmentID(newAssessmentEntity.getAssessmentID());
+
+    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity);
+    AssessmentStudent updatedStudent = updatePair.getLeft();
+
+    //then new assessment entity should be used
+    assertNotNull(updatedStudent);
+    var savedStudent = assessmentStudentRepository.findById(UUID.fromString(updatedStudent.getAssessmentStudentID()));
+    assertThat(savedStudent).isPresent();
+    assertThat(savedStudent.get().getAssessmentEntity().getAssessmentID()).isEqualTo(newAssessmentEntity.getAssessmentID());
+    assertThat(savedStudent.get().getAssessmentEntity().getAssessmentTypeCode()).isEqualTo(newAssessmentEntity.getAssessmentTypeCode());
+  }
 }
