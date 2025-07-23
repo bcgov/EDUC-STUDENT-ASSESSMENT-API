@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -87,12 +88,12 @@ public class StudentAssessmentResultService {
                 .orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", studentResult.getAssessmentID()));
 
         var formEntity = assessmentEntity.getAssessmentForms().stream()
-                .filter(form -> form.getAssessmentFormID() == UUID.fromString(studentResult.getAssessmentFormID()))
+                .filter(form -> Objects.equals(form.getAssessmentFormID(), UUID.fromString(studentResult.getAssessmentFormID())))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, studentResult.getAssessmentFormID()));
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "assessmentFormID", studentResult.getAssessmentFormID()));
 
         var stagedStudentResult = stagedStudentResultRepository.findById(UUID.fromString(studentResult.getStagedStudentResultID()))
-                .orElseThrow(() -> new EntityNotFoundException(StagedStudentResultEntity.class, studentResult.getStagedStudentResultID()));
+                .orElseThrow(() -> new EntityNotFoundException(StagedStudentResultEntity.class, "stagedStudentResultID", studentResult.getStagedStudentResultID()));
 
         var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
 
@@ -184,7 +185,7 @@ public class StudentAssessmentResultService {
                 answer.setStagedAssessmentStudentComponentEntity(studentComponent);
                 var question = component.getAssessmentQuestionEntities().stream()
                         .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
-                        .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class));
+                        .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
                 questionCounter.getAndIncrement();
                 itemCounter.getAndIncrement();
                 answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
