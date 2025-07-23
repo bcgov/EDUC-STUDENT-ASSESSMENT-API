@@ -32,6 +32,9 @@ public class AssessmentSagaEntity {
   @Column(name = "SAGA_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
   UUID sagaId;
 
+  @Column(name = "STAGED_STUDENT_RESULT_ID", nullable = false, columnDefinition = "BINARY(16)")
+  private UUID stagedStudentResultID;
+
   @Column(name = "ASSESSMENT_STUDENT_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID assessmentStudentID;
 

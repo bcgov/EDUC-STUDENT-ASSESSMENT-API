@@ -30,4 +30,13 @@ public class EventTaskScheduler {
         this.getTaskSchedulerAsyncService().createSessionsForSchoolYear();
     }
 
+    @Scheduled(cron = "${scheduled.jobs.publish.loaded.assessment.students.cron}")
+    @SchedulerLock(name = "PROCESS_LOADED_STUDENTS", lockAtLeastFor = "${scheduled.jobs.publish.loaded.assessment.students.cron.lockAtLeastFor}", lockAtMostFor = "${scheduled.jobs.publish.loaded.assessment.students.cron.lockAtMostFor}")
+    public void processLoadedStudents() {
+        LockAssert.assertLocked();
+        log.debug("Started processLoadedStudents scheduler");
+        this.getTaskSchedulerAsyncService().findAndPublishLoadedStudentRecordsForProcessing();
+        log.debug("Scheduler processLoadedStudents complete");
+    }
+
 }

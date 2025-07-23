@@ -61,12 +61,15 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     private AssessmentComponentRepository assessmentComponentRepository;
     @Autowired
     AssessmentStudentRepository studentRepository;
+    @Autowired
+    StagedStudentResultRepository  stagedStudentResultRepository;
     protected static final ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
     private AssessmentEntity savedAssessmentEntity;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        stagedStudentResultRepository.deleteAll();
         studentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         assessmentFormRepository.deleteAll();
@@ -422,12 +425,12 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         // Enhanced validations - verify database state after processing
         
         // 1. Verify staged assessment students were created
-        long finalStagedStudentCount = stagedAssessmentStudentRepository.count();
+        long finalStagedStudentCount = stagedStudentResultRepository.count();
         assertTrue(finalStagedStudentCount > initialStagedStudentCount, 
                 "Should have created new staged assessment student records");
 
         // 2. Verify staged students have correct metadata
-        var stagedStudents = stagedAssessmentStudentRepository.findAll();
+        var stagedStudents = stagedStudentResultRepository.findAll();
         assertFalse(stagedStudents.isEmpty(), "Should have staged student records");
         
         for (var stagedStudent : stagedStudents) {
