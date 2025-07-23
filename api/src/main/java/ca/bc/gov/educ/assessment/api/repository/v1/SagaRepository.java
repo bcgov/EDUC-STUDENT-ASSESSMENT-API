@@ -20,7 +20,7 @@ import java.util.UUID;
 @Repository
 public interface SagaRepository extends JpaRepository<AssessmentSagaEntity, UUID>, JpaSpecificationExecutor<AssessmentSagaEntity> {
 
-  long countAllByStatusIn(List<String> statuses);
+  List<AssessmentSagaEntity> findTop500ByStatusInOrderByCreateDate(List<String> statuses);
 
   Optional<AssessmentSagaEntity> findByAssessmentStudentIDAndSagaNameAndStatusNot(UUID assessmentStudentID, String sagaName, String status);
 
