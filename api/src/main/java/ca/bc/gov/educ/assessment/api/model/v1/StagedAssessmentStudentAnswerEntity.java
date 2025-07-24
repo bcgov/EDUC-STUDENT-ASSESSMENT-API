@@ -33,6 +33,9 @@ public class StagedAssessmentStudentAnswerEntity {
     @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
     UUID assessmentQuestionID;
 
+    @Column(name = "ASSESSMENT_STUDENT_CHOICE_ID", updatable = false)
+    UUID assessmentStudentChoiceID;
+
     @Column(name = "SCORE")
     private BigDecimal score;
 
