@@ -67,6 +67,37 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
   }
 
   @Test
+  void purgeCompletedResultsFromStaging() {
+    var studentResult = StagedStudentResultEntity
+            .builder()
+            .assessmentEntity(savedAssessmentEntity)
+            .assessmentFormID(savedAssessmentFormEntity.getAssessmentFormID())
+            .pen("123456789")
+            .mincode("07965039")
+            .stagedStudentResultStatus("COMPLETED")
+            .componentType("1")
+            .oeMarks("03.003.004.003.003.003.0")
+            .mcMarks("00.000.000.001.001.000.001.001.001.001.000.001.001.000.000.000.001.001.000.001.001.000.001.000.001.001.000.001")
+            .choicePath(null)
+            .provincialSpecialCaseCode(null)
+            .proficiencyScore(3)
+            .adaptedAssessmentCode(null)
+            .irtScore("0.4733")
+            .markingSession(null)
+            .createUser("TEST")
+            .createDate(LocalDateTime.now())
+            .updateDate(LocalDateTime.now())
+            .updateUser("TEST")
+            .build();
+
+    var savedStudentResult = stagedStudentResultRepository.save(studentResult);
+    eventTaskScheduler.purgeCompletedResultsFromStaging();
+
+    var entity = stagedStudentResultRepository.findById(savedStudentResult.getStagedStudentResultID());
+    assertThat(entity).isEmpty();
+  }
+
+  @Test
   void processLoadedStudents() throws JsonProcessingException {
     var school = this.createMockSchoolTombstone();
     school.setMincode("07965039");

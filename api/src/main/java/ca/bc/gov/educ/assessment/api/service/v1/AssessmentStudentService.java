@@ -51,6 +51,7 @@ public class AssessmentStudentService {
     private final AssessmentRepository assessmentRepository;
     private final AssessmentStudentRulesProcessor assessmentStudentRulesProcessor;
     private final RestUtils restUtils;
+    private final StagedStudentResultRepository stagedStudentResultRepository;
 
     public AssessmentStudentEntity getStudentByID(UUID assessmentStudentID) {
         return assessmentStudentRepository.findById(assessmentStudentID).orElseThrow(() ->
@@ -249,7 +250,8 @@ public class AssessmentStudentService {
         List<AssessmentEntity> assessments = assessmentRepository.findByAssessmentSessionEntity_SessionID(sessionID);
         List<AssessmentResultsSummary> rowData = new ArrayList<>();
         for (AssessmentEntity assessment : assessments) {
-            if(!assessment.getAssessmentForms().isEmpty()) {
+            var stagedStudentResult =  stagedStudentResultRepository.findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(assessment.getAssessmentID());
+            if(stagedStudentResult.isEmpty() && !assessment.getAssessmentForms().isEmpty()) {
                 List<UUID> formIds = assessment.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
                 Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
                 rowData.add(AssessmentResultsSummary
@@ -257,13 +259,6 @@ public class AssessmentStudentService {
                         .assessmentType(assessment.getAssessmentTypeCode())
                         .uploadedBy(student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null))
                         .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
-                        .build());
-            } else {
-                rowData.add(AssessmentResultsSummary
-                        .builder()
-                        .assessmentType(assessment.getAssessmentTypeCode())
-                        .uploadedBy(null)
-                        .uploadDate(null)
                         .build());
             }
         }

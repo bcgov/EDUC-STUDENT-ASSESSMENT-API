@@ -153,4 +153,9 @@ public class EventTaskSchedulerAsyncService {
         this.sagaRepository.save(saga);
         LogHelper.logSagaRetry(saga);
     }
+
+    public void purgeCompletedResultsFromStaging() {
+        this.stagedStudentResultRepository.deleteResultWithStatusCompleted();
+        log.debug("Finished purging completed records from Staged Student Result.");
+    }
 }
