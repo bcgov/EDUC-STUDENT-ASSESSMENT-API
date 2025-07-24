@@ -185,4 +185,72 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
         assertThat(stagedResult.get().getStagedStudentResultStatus()).isEqualTo("COMPLETED");
     }
 
+
+    @SneakyThrows
+    @Test
+    void testHandleEvent_givenEventTypeTypeInitiatedAndPENNotInStudentAPI_createStudentResultRecordWithEventOutCome_STUDENT_RESULT_CREATED() {
+        var school = this.createMockSchoolTombstone();
+        school.setMincode("07965039");
+        when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
+
+        when(this.restUtils.getStudentByPEN(any(), any())).thenReturn(Optional.empty());
+
+        var studentResult = StagedStudentResultEntity
+                .builder()
+                .assessmentEntity(savedAssessmentEntity)
+                .assessmentFormID(savedAssessmentFormEntity.getAssessmentFormID())
+                .pen("123456789")
+                .mincode("07965039")
+                .stagedStudentResultStatus("LOADED")
+                .componentType("1")
+                .oeMarks("03.003.004.003.003.003.0")
+                .mcMarks("00.000.000.001.001.000.001.001.001.001.000.001.001.000.000.000.001.001.000.001.001.000.001.000.001.001.000.001")
+                .choicePath(null)
+                .provincialSpecialCaseCode(null)
+                .proficiencyScore(3)
+                .adaptedAssessmentCode(null)
+                .irtScore("0.4733")
+                .markingSession(null)
+                .createUser("TEST")
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .updateUser("TEST")
+                .build();
+
+        var savedStudentResult = stagedStudentResultRepository.save(studentResult);
+
+        var studentResultStruct = AssessmentStudentResultMapper.mapper.toStructure(savedStudentResult);
+        var sagaData = StudentResultSagaData
+                .builder()
+                .studentResult(studentResultStruct)
+                .school(school)
+                .build();
+
+        val saga = this.createStudentResultMockSaga(sagaData);
+        saga.setSagaId(null);
+        this.sagaRepository.save(saga);
+
+        val event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.INITIATED)
+                .eventOutcome(EventOutcome.INITIATE_SUCCESS)
+                .eventPayload(JsonUtil.getJsonStringFromObject(sagaData)).build();
+        this.studentResultProcessingOrchestrator.handleEvent(event);
+
+
+        verify(this.messagePublisher, atMost(2)).dispatchMessage(eq(this.studentResultProcessingOrchestrator.getTopicToSubscribe()), this.eventCaptor.capture());
+        final var newEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(this.eventCaptor.getValue()));
+        assertThat(newEvent.getEventType()).isEqualTo(CREATE_STUDENT_RESULT);
+        assertThat(newEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_RESULT_CREATED);
+
+        val savedSagaInDB = this.sagaRepository.findById(saga.getSagaId());
+        assertThat(savedSagaInDB).isPresent();
+        assertThat(savedSagaInDB.get().getStatus()).isEqualTo(IN_PROGRESS.toString());
+        assertThat(savedSagaInDB.get().getSagaState()).isEqualTo(CREATE_STUDENT_RESULT.toString());
+
+        val stagedResult = stagedStudentResultRepository.findById(savedStudentResult.getStagedStudentResultID());
+        assertThat(stagedResult).isPresent();
+        assertThat(stagedResult.get().getStagedStudentResultStatus()).isEqualTo("COMPLETED");
+    }
+
 }
