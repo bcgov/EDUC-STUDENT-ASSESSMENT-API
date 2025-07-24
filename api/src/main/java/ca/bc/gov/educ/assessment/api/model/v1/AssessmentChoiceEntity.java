@@ -6,8 +6,9 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -16,28 +17,22 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT_STUDENT_ANSWER")
-public class AssessmentStudentAnswerEntity {
+@Table(name = "ASSESSMENT_CHOICE")
+public class AssessmentChoiceEntity {
 
     @Id
     @UuidGenerator
-    @Column(name = "ASSESSMENT_STUDENT_ANSWER_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
-    private UUID assessmentStudentAnswerID;
+    @Column(name = "ASSESSMENT_CHOICE_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
+    private UUID assessmentChoiceID;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentStudentComponentEntity.class)
-    @JoinColumn(name = "ASSESSMENT_STUDENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_COMPONENT_ID", updatable = false)
-    AssessmentStudentComponentEntity assessmentStudentComponentEntity;
+    @ManyToOne(optional = false, targetEntity = AssessmentComponentEntity.class)
+    @JoinColumn(name = "ASSESSMENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_COMPONENT_ID", updatable = false)
+    AssessmentComponentEntity assessmentComponentEntity;
 
-    @Column(name = "ASSESSMENT_STUDENT_CHOICE_ID", updatable = false)
-    UUID assessmentStudentChoiceID;
-    
-    @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
-    UUID assessmentQuestionID;
-
-    @Column(name = "SCORE")
-    private BigDecimal score;
+    @Column(name = "ITEM_NUMBER")
+    private Integer itemNumber;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
@@ -52,5 +47,4 @@ public class AssessmentStudentAnswerEntity {
     @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
-
 }

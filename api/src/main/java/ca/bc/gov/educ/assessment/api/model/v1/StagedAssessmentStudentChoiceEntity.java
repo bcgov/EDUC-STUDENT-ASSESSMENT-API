@@ -6,7 +6,6 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -16,28 +15,25 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "ASSESSMENT_STUDENT_ANSWER")
-public class AssessmentStudentAnswerEntity {
+@Table(name = "STAGED_ASSESSMENT_STUDENT_CHOICE")
+public class StagedAssessmentStudentChoiceEntity {
 
     @Id
     @UuidGenerator
-    @Column(name = "ASSESSMENT_STUDENT_ANSWER_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
-    private UUID assessmentStudentAnswerID;
+    @Column(name = "ASSESSMENT_STUDENT_CHOICE_ID", unique = true, updatable = false, columnDefinition = "BINARY(16)")
+    private UUID assessmentStudentChoiceID;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @ManyToOne(optional = false, targetEntity = AssessmentStudentComponentEntity.class)
     @JoinColumn(name = "ASSESSMENT_STUDENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_COMPONENT_ID", updatable = false)
-    AssessmentStudentComponentEntity assessmentStudentComponentEntity;
+    StagedAssessmentStudentComponentEntity assessmentStudentComponentEntity;
 
-    @Column(name = "ASSESSMENT_STUDENT_CHOICE_ID", updatable = false)
-    UUID assessmentStudentChoiceID;
-    
-    @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
-    UUID assessmentQuestionID;
-
-    @Column(name = "SCORE")
-    private BigDecimal score;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false, targetEntity = AssessmentChoiceEntity.class)
+    @JoinColumn(name = "ASSESSMENT_CHOICE_ID", referencedColumnName = "ASSESSMENT_CHOICE_ID", updatable = false)
+    AssessmentChoiceEntity assessmentChoiceEntity;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
@@ -52,5 +48,4 @@ public class AssessmentStudentAnswerEntity {
     @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
-
 }
