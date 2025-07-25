@@ -35,23 +35,16 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 public class AssessmentStudentHistoryController implements AssessmentStudentHistoryEndpoint {
 
-  private final AssessmentStudentService studentService;
-  private final AssessmentStudentValidator validator;
   private final AssessmentStudentHistorySearchService searchService;
-  private final Publisher publisher;
-
-  private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
   private static final AssessmentStudentListItemMapper listItemMapper = AssessmentStudentListItemMapper.mapper;
 
   @Autowired
-  public AssessmentStudentHistoryController(AssessmentStudentService assessmentStudentService, AssessmentStudentValidator validator, AssessmentStudentHistorySearchService searchService, Publisher publisher) {
-    this.studentService = assessmentStudentService;
-    this.validator = validator;
-    this.searchService = searchService;
-    this.publisher = publisher;
+  public AssessmentStudentHistoryController(AssessmentStudentHistorySearchService searchService) {
+      this.searchService = searchService;
   }
 
-  @Override
+
+    @Override
   public CompletableFuture<Page<AssessmentStudentHistoryListItem>> findAll(Integer pageNumber, Integer pageSize, String sortCriteriaJson, String searchCriteriaListJson) {
     final List<Sort.Order> sorts = new ArrayList<>();
     Specification<AssessmentStudentHistorySearchEntity> specs = searchService
