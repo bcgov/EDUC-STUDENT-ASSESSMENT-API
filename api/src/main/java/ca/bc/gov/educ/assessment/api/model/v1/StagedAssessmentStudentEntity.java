@@ -47,13 +47,13 @@ public class StagedAssessmentStudentEntity {
   @Column(name = "SCHOOL_OF_RECORD_SCHOOL_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID schoolOfRecordSchoolID;
 
-  @Column(name = "STUDENT_ID", nullable = false, columnDefinition = "BINARY(16)")
+  @Column(name = "STUDENT_ID", columnDefinition = "BINARY(16)")
   private UUID studentID;
 
   @Column(name = "GIVEN_NAME", length = 25)
   private String givenName;
 
-  @Column(name = "SURNAME", nullable = false, length = 25)
+  @Column(name = "SURNAME", length = 25)
   private String surname;
 
   @Column(name = "PEN", nullable = false, length = 9)
@@ -94,6 +94,9 @@ public class StagedAssessmentStudentEntity {
 
   @Column(name = "IS_PRE_REGISTERED")
   private Boolean isPreRegistered;
+
+  @Column(name = "STAGED_ASSESSMENT_STUDENT_STATUS", length = 10)
+  private String stagedAssessmentStudentStatus;
 
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;

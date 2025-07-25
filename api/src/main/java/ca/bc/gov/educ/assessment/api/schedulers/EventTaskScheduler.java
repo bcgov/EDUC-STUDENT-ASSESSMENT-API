@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.schedulers;
 
 import ca.bc.gov.educ.assessment.api.service.v1.events.schedulers.EventTaskSchedulerAsyncService;
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockAssert;
@@ -47,6 +48,14 @@ public class EventTaskScheduler {
         log.debug("Started processLoadedStudents scheduler");
         this.getTaskSchedulerAsyncService().findAndPublishLoadedStudentRecordsForProcessing();
         log.debug("Scheduler processLoadedStudents complete");
+    }
+
+    @Scheduled(cron = "${scheduled.jobs.purge.completed.results.cron}")
+    @SchedulerLock(name = "PURGE_COMPLETED_RESULTS_FROM_STAGING", lockAtLeastFor = "${scheduled.jobs.purge.completed.results.cron.lockAtLeastFor}", lockAtMostFor = "${scheduled.jobs.purge.completed.results.cron.lockAtMostFor}")
+    @Transactional
+    public void purgeCompletedResultsFromStaging() {
+        LockAssert.assertLocked();
+        this.getTaskSchedulerAsyncService().purgeCompletedResultsFromStaging();
     }
 
 }

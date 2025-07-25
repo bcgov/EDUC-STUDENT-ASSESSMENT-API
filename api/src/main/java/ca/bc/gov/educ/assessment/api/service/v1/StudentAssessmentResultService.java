@@ -14,6 +14,9 @@ import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.Event;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
+import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
 import ca.bc.gov.educ.assessment.api.util.AssessmentUtil;
@@ -96,71 +99,88 @@ public class StudentAssessmentResultService {
                 .orElseThrow(() -> new EntityNotFoundException(StagedStudentResultEntity.class, "stagedStudentResultID", studentResult.getStagedStudentResultID()));
 
         var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
+        var penMatchFound = optStudent.isPresent();
+        StagedAssessmentStudentEntity stagedStudent;
+        if(penMatchFound) {
+            var studentApiStudent = optStudent.get();
+            var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(studentResult.getAssessmentID()), UUID.fromString(studentApiStudent.getStudentID()));
+            var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID())).orElse(null);
+            stagedStudent = existingStudentRegistrationOpt.isPresent() ?
+                    createFromExistingStudentEntity(studentResult, gradStudent, existingStudentRegistrationOpt.get(), formEntity.getAssessmentFormID())
+                    : createNewStagedAssessmentStudentEntity(studentResult, studentResultSagaData.getSchool(), studentApiStudent, gradStudent, formEntity.getAssessmentFormID(), assessmentEntity);
+            stagedStudent.setIsPreRegistered(existingStudentRegistrationOpt.isPresent());
+            stagedStudent.setStagedAssessmentStudentStatus("PENMATCHED");
+        } else {
+            stagedStudent = createNewStagedAssessmentStudentEntity(studentResult, studentResultSagaData.getSchool(), null, null, formEntity.getAssessmentFormID(), assessmentEntity);
+            stagedStudent.setIsPreRegistered(false);
+            stagedStudent.setStagedAssessmentStudentStatus("NOPENFOUND");
+        }
 
-            if(optStudent.isPresent()) {
-                var studentApiStudent = optStudent.get();
-                StagedAssessmentStudentEntity stagedStudent;
-                var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(studentResult.getAssessmentID()), UUID.fromString(studentApiStudent.getStudentID()));
-                var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID())).orElse(null);
-
-                if (existingStudentRegistrationOpt.isPresent()) {
-                    stagedStudent = AssessmentStudentMapper.mapper.toStagingStudent(existingStudentRegistrationOpt.get());
-                    stagedStudent.setIrtScore(studentResult.getIrtScore());
-                    stagedStudent.setAssessmentFormID(formEntity.getAssessmentFormID());
-                    stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
-                    stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
-                    stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
-                    stagedStudent.setMarkingSession(studentResult.getMarkingSession());
-                    stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : stagedStudent.getSchoolOfRecordSchoolID());
-//                stagedStudent.setMcTotal();
-//                stagedStudent.setOeTotal();
-//                stagedStudent.setRawScore();
-                    stagedStudent.setUpdateDate(LocalDateTime.now());
-                    stagedStudent.setUpdateUser(studentResult.getUpdateUser());
-                } else {
-                    stagedStudent = new StagedAssessmentStudentEntity();
-                    var school = studentResultSagaData.getSchool();
-
-                    stagedStudent.setAssessmentEntity(assessmentEntity);
-                    stagedStudent.setAssessmentFormID(formEntity.getAssessmentFormID());
-                    stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.getSchoolId()));
-                    stagedStudent.setSchoolOfRecordSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.getSchoolId()));
-                    stagedStudent.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
-                    stagedStudent.setGivenName(studentApiStudent.getLegalFirstName());
-                    stagedStudent.setSurname(studentApiStudent.getLegalLastName());
-                    stagedStudent.setPen(studentApiStudent.getPen());
-                    stagedStudent.setLocalID(studentApiStudent.getLocalID());
-                    stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
-                    stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
-                    stagedStudent.setNumberOfAttempts(assessmentStudentRepository.findNumberOfAttemptsForStudent(UUID.fromString(studentApiStudent.getStudentID()), AssessmentUtil.getAssessmentTypeCodeList(assessmentEntity.getAssessmentTypeCode())));
-                    stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
-                    stagedStudent.setIrtScore(studentResult.getIrtScore());
-//                stagedStudent.setMcTotal();
-//                stagedStudent.setOeTotal();
-//                stagedStudent.setRawScore();
-                    stagedStudent.setMarkingSession(studentResult.getMarkingSession());
-                    stagedStudent.setCreateUser(studentResult.getCreateUser());
-                    stagedStudent.setCreateDate(LocalDateTime.now());
-                    stagedStudent.setUpdateUser(studentResult.getUpdateUser());
-                    stagedStudent.setUpdateDate(LocalDateTime.now());
-                }
-
-                switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
-                    case MUL_CHOICE -> addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-                    case OPEN_ENDED -> addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-                    case ORAL -> addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
-                    case BOTH -> {
-                        addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-                        addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-                    }
-                }
-                stagedStudent.setIsPreRegistered(existingStudentRegistrationOpt.isPresent());
-                stagedAssessmentStudentRepository.save(stagedStudent);
-
-                stagedStudentResult.setStagedStudentResultStatus("COMPLETED");
-                stagedStudent.setUpdateDate(LocalDateTime.now());
-                stagedStudentResultRepository.save(stagedStudentResult);
+        switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
+            case MUL_CHOICE -> addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+            case OPEN_ENDED -> addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+            case ORAL -> addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
+            case BOTH -> {
+                addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+                addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
             }
+        }
+
+        stagedAssessmentStudentRepository.save(stagedStudent);
+
+        stagedStudentResult.setStagedStudentResultStatus("COMPLETED");
+        stagedStudentResult.setUpdateDate(LocalDateTime.now());
+        stagedStudentResultRepository.save(stagedStudentResult);
+
+    }
+
+    private StagedAssessmentStudentEntity createFromExistingStudentEntity(StudentResult studentResult, GradStudentRecord gradStudent, AssessmentStudentEntity existingStudent, UUID assessmentFormID) {
+        StagedAssessmentStudentEntity stagedStudent = AssessmentStudentMapper.mapper.toStagingStudent(existingStudent);
+        stagedStudent.setIrtScore(studentResult.getIrtScore());
+        stagedStudent.setAssessmentFormID(assessmentFormID);
+        stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
+        stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
+        stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
+        stagedStudent.setMarkingSession(studentResult.getMarkingSession());
+        stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : stagedStudent.getSchoolOfRecordSchoolID());
+//                stagedStudent.setMcTotal();
+//                stagedStudent.setOeTotal();
+//                stagedStudent.setRawScore();
+        stagedStudent.setUpdateDate(LocalDateTime.now());
+        stagedStudent.setUpdateUser(studentResult.getUpdateUser());
+
+        return stagedStudent;
+    }
+
+    private StagedAssessmentStudentEntity createNewStagedAssessmentStudentEntity(StudentResult studentResult, SchoolTombstone school, Student studentApiStudent, GradStudentRecord gradStudent, UUID assessmentFormID, AssessmentEntity assessmentEntity) {
+        StagedAssessmentStudentEntity stagedStudent = new StagedAssessmentStudentEntity();
+        var noOfAttempts = studentApiStudent != null
+                ? assessmentStudentRepository.findNumberOfAttemptsForStudent(UUID.fromString(studentApiStudent.getStudentID()), AssessmentUtil.getAssessmentTypeCodeList(assessmentEntity.getAssessmentTypeCode()))
+                : 0;
+        stagedStudent.setAssessmentEntity(assessmentEntity);
+        stagedStudent.setAssessmentFormID(assessmentFormID);
+        stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.getSchoolId()));
+        stagedStudent.setSchoolOfRecordSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.getSchoolId()));
+        stagedStudent.setStudentID(studentApiStudent != null ? UUID.fromString(studentApiStudent.getStudentID()) : null);
+        stagedStudent.setGivenName(studentApiStudent != null ? studentApiStudent.getLegalFirstName() : null);
+        stagedStudent.setSurname(studentApiStudent != null ? studentApiStudent.getLegalLastName(): null);
+        stagedStudent.setPen(studentApiStudent != null ? studentApiStudent.getPen(): studentResult.getPen());
+        stagedStudent.setLocalID(studentApiStudent != null ? studentApiStudent.getLocalID() : null);
+        stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
+        stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
+        stagedStudent.setNumberOfAttempts(noOfAttempts);
+        stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
+        stagedStudent.setIrtScore(studentResult.getIrtScore());
+//                stagedStudent.setMcTotal();
+//                stagedStudent.setOeTotal();
+//                stagedStudent.setRawScore();
+        stagedStudent.setMarkingSession(studentResult.getMarkingSession());
+        stagedStudent.setCreateUser(studentResult.getCreateUser());
+        stagedStudent.setCreateDate(LocalDateTime.now());
+        stagedStudent.setUpdateUser(studentResult.getUpdateUser());
+        stagedStudent.setUpdateDate(LocalDateTime.now());
+
+        return stagedStudent;
     }
 
     private void addStudentComponent(AssessmentFormEntity formEntity, StagedAssessmentStudentEntity assessmentStudent, StudentResult studentResult, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType) {
