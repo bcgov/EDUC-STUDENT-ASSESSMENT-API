@@ -35,7 +35,13 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
     private MockMvc mockMvc;
 
     @Autowired
+    AssessmentStudentRepository assessmentStudentRepository;
+
+    @Autowired
     AssessmentRepository assessmentRepository;
+
+    @Autowired
+    AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
     @Autowired
     AssessmentSessionRepository assessmentSessionRepository;
@@ -53,8 +59,10 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
 
     @BeforeEach
     void setUp() {
+        assessmentStudentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         assessmentFormRepository.deleteAll();
+        assessmentStudentHistoryRepository.deleteAll();
         this.assessmentRepository.deleteAll();
         this.assessmentSessionRepository.deleteAll();
     }

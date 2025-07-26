@@ -32,10 +32,19 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
     AssessmentRepository assessmentRepository;
 
     @Autowired
+    AssessmentStudentRepository assessmentStudentRepository;
+
+    @Autowired
     AssessmentSessionRepository assessmentSessionRepository;
 
     @Autowired
+    StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+
+    @Autowired
     AssessmentTypeCodeRepository assessmentTypeCodeRepository;
+
+    @Autowired
+    AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
     @Autowired
     private AssessmentFormRepository assessmentFormRepository;
@@ -44,6 +53,9 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
 
     @BeforeEach
     void setUp() {
+        stagedAssessmentStudentRepository.deleteAll();
+        assessmentStudentRepository.deleteAll();
+        assessmentStudentHistoryRepository.deleteAll();
         this.assessmentFormRepository.deleteAll();
         this.assessmentRepository.deleteAll();
         this.assessmentSessionRepository.deleteAll();
