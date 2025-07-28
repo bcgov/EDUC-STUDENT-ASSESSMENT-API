@@ -53,7 +53,7 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generateNumberOfAttemptsReport(sessionID);
             case PEN_MERGES:
                 return csvReportService.generatePenMergesReport();
-            case REGISTRATION_SUMMARY_CSV:
+            case REGISTRATION_DETAIL_CSV:
                 return csvReportService.generateRegistrationDetailReport(sessionID);
             default:
                 return new DownloadableReportResponse();
