@@ -7,10 +7,7 @@ import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsByAssessmentReportService;
 import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsInSessionReportService;
-import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
-import ca.bc.gov.educ.assessment.api.service.v1.CSVReportService;
-import ca.bc.gov.educ.assessment.api.service.v1.SummaryReportService;
-import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
+import ca.bc.gov.educ.assessment.api.service.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +31,7 @@ public class ReportsController implements ReportsEndpoint {
     private final CSVReportService csvReportService;
     private final XAMFileService xamFileService;
     private final SummaryReportService summaryReportService;
+    private final SessionService sessionService;
 
     @Override
     public DownloadableReportResponse getDownloadableReport(UUID sessionID, String type, String updateUser) {
@@ -48,10 +46,13 @@ public class ReportsController implements ReportsEndpoint {
             case ALL_SESSION_REGISTRATIONS:
                 var registrations = csvReportService.generateSessionRegistrationsReport(sessionID);
                 assessmentStudentService.markAllStudentsInSessionAsDownloaded(sessionID, updateUser);
+                sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS);
                 return registrations;
             case ATTEMPTS:
+                sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.ATTEMPTS);
                 return csvReportService.generateNumberOfAttemptsReport(sessionID);
             case PEN_MERGES:
+                sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.PEN_MERGES);
                 return csvReportService.generatePenMergesReport();
             case REGISTRATION_DETAIL_CSV:
                 return csvReportService.generateRegistrationDetailReport(sessionID);
