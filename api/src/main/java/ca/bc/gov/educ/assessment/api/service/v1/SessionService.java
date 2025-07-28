@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
+import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidParameterException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentCriteriaEntity;
@@ -62,6 +63,22 @@ public class SessionService {
 
     public List<AssessmentSessionEntity> getAllSessions() {
         return this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now());
+    }
+
+    public AssessmentSessionEntity recordTransferRegistrationsUser(UUID sessionID, String userID, AssessmentReportTypeCode reportTypeCode) {
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
+        switch (reportTypeCode) {
+            case ALL_SESSION_REGISTRATIONS:
+                session.setAssessmentRegistrationsExportUserID(userID);
+                session.setAssessmentRegistrationsExportDate(LocalDateTime.now());
+            case ATTEMPTS:
+                session.setSessionWritingAttemptsExportUserID(userID);
+                session.setSessionWritingAttemptsExportDate(LocalDateTime.now());
+            case PEN_MERGES:
+                session.setPenMergesExportUserID(userID);
+                session.setPenMergesExportDate(LocalDateTime.now());
+        }
+        return assessmentSessionRepository.save(session);
     }
 
     public AssessmentSessionEntity approveAssessment(final AssessmentApproval assessmentApproval) {
