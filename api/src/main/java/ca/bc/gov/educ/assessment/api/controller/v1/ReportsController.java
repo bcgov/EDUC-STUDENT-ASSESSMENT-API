@@ -2,7 +2,6 @@ package ca.bc.gov.educ.assessment.api.controller.v1;
 
 
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
-import ca.bc.gov.educ.assessment.api.constants.v1.reports.SummaryReportTypeCode;
 import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndpoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
@@ -54,6 +53,8 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generateNumberOfAttemptsReport(sessionID);
             case PEN_MERGES:
                 return csvReportService.generatePenMergesReport();
+            case REGISTRATION_SUMMARY_CSV:
+                return csvReportService.generateRegistrationDetailReport(sessionID);
             default:
                 return new DownloadableReportResponse();
         }
@@ -90,7 +91,7 @@ public class ReportsController implements ReportsEndpoint {
 
     @Override
     public SimpleHeadcountResultsTable getSummaryReports(UUID sessionID, String type) {
-        Optional<SummaryReportTypeCode> code = SummaryReportTypeCode.findByValue(type);
+        Optional<AssessmentReportTypeCode> code = AssessmentReportTypeCode.findByValue(type);
 
         if(code.isEmpty()){
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build();
