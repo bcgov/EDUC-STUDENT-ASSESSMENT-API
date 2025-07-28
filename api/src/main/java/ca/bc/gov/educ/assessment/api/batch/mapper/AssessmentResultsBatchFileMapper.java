@@ -2,12 +2,11 @@ package ca.bc.gov.educ.assessment.api.batch.mapper;
 
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentResultDetails;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
-
-import static ca.bc.gov.educ.assessment.api.properties.ApplicationProperties.STUDENT_ASSESSMENT_API;
 
 @Mapper
 @DecoratedWith(AssessmentResultsBatchFileDecorator.class)
@@ -20,10 +19,10 @@ public interface AssessmentResultsBatchFileMapper {
     @Mapping(target = "mcMarks", ignore = true)
     @Mapping(target = "provincialSpecialCaseCode", ignore = true)
     @Mapping(target = "adaptedAssessmentCode", ignore = true)
-    @Mapping(target = "updateUser", constant = STUDENT_ASSESSMENT_API)
+    @Mapping(target = "updateUser", source = "fileUpload.updateUser")
     @Mapping(target = "updateDate", expression = "java(java.time.LocalDateTime.now() )")
-    @Mapping(target = "createUser", constant = STUDENT_ASSESSMENT_API)
+    @Mapping(target = "createUser", source = "fileUpload.createUser")
     @Mapping(target = "createDate",expression = "java(java.time.LocalDateTime.now() )")
-    StagedStudentResultEntity toStagedStudentResultEntity(AssessmentResultDetails resultDetails, AssessmentEntity assessmentEntity);
+    StagedStudentResultEntity toStagedStudentResultEntity(AssessmentResultDetails resultDetails, AssessmentEntity assessmentEntity, AssessmentResultFileUpload fileUpload);
 
 }

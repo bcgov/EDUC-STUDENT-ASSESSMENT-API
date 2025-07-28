@@ -91,15 +91,9 @@ public class AssessmentResultService {
             throw new ConfirmationRequiredException(ApiError.builder().timestamp(LocalDateTime.now()).message(typeCode).status(PRECONDITION_REQUIRED).build());
         }
         stagedAssessmentStudentRepository.deleteAllByAssessmentID(assessmentEntity.getAssessmentID());
-//        List<String> ignoredPens = new ArrayList<>();
-        for(val studentResult : batchFile.getAssessmentResultData()) {
-//            var studentApiStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
-//
-//            if(studentApiStudent.isEmpty()) {
-//                ignoredPens.add(studentResult.getPen());
-//            }
 
-            StagedStudentResultEntity resultEntity = assessmentResultsBatchFileMapper.toStagedStudentResultEntity(studentResult, assessmentEntity);
+        for(val studentResult : batchFile.getAssessmentResultData()) {
+            StagedStudentResultEntity resultEntity = assessmentResultsBatchFileMapper.toStagedStudentResultEntity(studentResult, assessmentEntity, fileUpload);
             var formEntity = formMap.get(studentResult.getFormCode());
             if(formEntity == null) {
                 throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
