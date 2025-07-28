@@ -219,7 +219,7 @@ public class CSVReportService {
             csvPrinter.flush();
 
             var downloadableReport = new DownloadableReportResponse();
-            downloadableReport.setReportType("%s%s-Session Registration Details-%s-Results.csv".formatted(incomingSession.getCourseYear(), incomingSession.getCourseMonth(), LocalDate.now().toString()));
+            downloadableReport.setReportType("%s%s-Session Registration Details-%s.csv".formatted(incomingSession.getCourseYear(), incomingSession.getCourseMonth(), LocalDate.now().toString()));
             downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
 
             return downloadableReport;

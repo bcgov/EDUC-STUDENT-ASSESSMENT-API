@@ -382,7 +382,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(sessionEntity.getCourseYear() + sessionEntity.getCourseMonth() + "-Session Registration Details-"+LocalDate.now() + "-Results.csv");
+        assertThat(summary.getReportType()).isEqualTo(sessionEntity.getCourseYear() + sessionEntity.getCourseMonth() + "-Session Registration Details-"+LocalDate.now() + ".csv");
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 }
