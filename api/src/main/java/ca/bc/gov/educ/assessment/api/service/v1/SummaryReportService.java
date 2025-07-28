@@ -4,7 +4,9 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.RegistrationSummaryHea
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentLightEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentLightRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
@@ -23,6 +25,7 @@ public class SummaryReportService {
 
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
+    private final AssessmentStudentLightRepository assessmentStudentLightRepository;
 
     public SimpleHeadcountResultsTable getRegistrationSummaryCount(UUID sessionID) {
 
@@ -30,7 +33,14 @@ public class SummaryReportService {
                 assessmentSessionRepository.findById(sessionID)
                         .orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
         List<UUID> assessmentIDs = validSession.getAssessments().stream().map(AssessmentEntity::getAssessmentID).toList();
-        List<RegistrationSummaryResult> summaryResults = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDs(assessmentIDs);
+
+        Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNull(sessionID);
+        List<RegistrationSummaryResult> summaryResults;
+        if (studentEntityOpt.isPresent()) {
+            summaryResults = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNull(assessmentIDs);
+        } else {
+            summaryResults = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndDownloadDateNull(assessmentIDs);
+        }
 
         SimpleHeadcountResultsTable resultsTable = new SimpleHeadcountResultsTable();
         var headerList = new ArrayList<String>();

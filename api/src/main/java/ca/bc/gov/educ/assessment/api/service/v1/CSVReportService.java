@@ -32,6 +32,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.REGISTRATION_DETAIL_CSV;
+
 
 @Service
 @Slf4j
@@ -189,7 +191,7 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateRegistrationDetailReport(UUID sessionID) {
-        var incomingSession = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+        assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
         List<AssessmentStudentLightEntity> students;
         Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNull(sessionID);
@@ -216,7 +218,7 @@ public class CSVReportService {
             csvPrinter.flush();
 
             var downloadableReport = new DownloadableReportResponse();
-            downloadableReport.setReportType("%s%s-Session Registration Details-%s.csv".formatted(incomingSession.getCourseYear(), incomingSession.getCourseMonth(), LocalDate.now().toString()));
+            downloadableReport.setReportType(REGISTRATION_DETAIL_CSV.getCode());
             downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
 
             return downloadableReport;
