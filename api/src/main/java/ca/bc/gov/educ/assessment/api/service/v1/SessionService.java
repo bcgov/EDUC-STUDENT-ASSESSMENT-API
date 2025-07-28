@@ -77,6 +77,8 @@ public class SessionService {
             case PEN_MERGES:
                 session.setPenMergesExportUserID(userID);
                 session.setPenMergesExportDate(LocalDateTime.now());
+            default:
+                break;
         }
         return assessmentSessionRepository.save(session);
     }
