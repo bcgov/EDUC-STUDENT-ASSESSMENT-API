@@ -61,7 +61,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         count(case when stud.gradeAtRegistration = 'OT' then 1 end) as gradeOTCount,
         count(case when stud.gradeAtRegistration = 'HS' then 1 end) as gradeHSCount,
         count(case when stud.gradeAtRegistration = 'AN' then 1 end) as gradeANCount,
-        sum(case when stud.gradeAtRegistration in ('08','09','10','11','12','AD','OT','HS','AN') then 1 end) as total
+        sum(case when stud.gradeAtRegistration in ('08','09','10','11','12','AD','OT','HS','AN') then 1 else 0 end) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)
         group by stud.assessmentEntity.assessmentID

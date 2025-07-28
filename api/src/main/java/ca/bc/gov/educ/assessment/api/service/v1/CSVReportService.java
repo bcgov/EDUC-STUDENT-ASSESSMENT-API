@@ -7,7 +7,9 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentLightEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentLightRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
@@ -41,6 +43,7 @@ public class CSVReportService {
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final StudentMergeService studentMergeService;
     private final RestUtils restUtils;
+    private final AssessmentStudentLightRepository assessmentStudentLightRepository;
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
@@ -185,6 +188,43 @@ public class CSVReportService {
         }
     }
 
+    public DownloadableReportResponse generateRegistrationDetailReport(UUID sessionID) {
+        var incomingSession = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+
+        List<AssessmentStudentLightEntity> students;
+        Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNull(sessionID);
+        if(studentEntityOpt.isPresent()) {
+            students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndDownloadDateIsNotNull(sessionID);
+        } else {
+            students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
+        }
+
+        List<String> headers = Arrays.stream(RegistrationDetailsHeader.values()).map(RegistrationDetailsHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            for (AssessmentStudentLightEntity result : students) {
+                Optional<SchoolTombstone> school = (result.getSchoolAtWriteSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getSchoolAtWriteSchoolID().toString()) : Optional.empty();
+                List<String> csvRowData = prepareRegistrationDetailsDataForCsv(result, school);
+                csvPrinter.printRecord(csvRowData);
+            }
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType("%s%s-Session Registration Details-%s.csv".formatted(incomingSession.getCourseYear(), incomingSession.getCourseMonth(), LocalDate.now().toString()));
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
     private List<String> prepareNumberOfAttemptsDataForCsv(AssessmentStudentEntity student) {
         return new ArrayList<>(Arrays.asList(
                 student.getAssessmentEntity().getAssessmentTypeCode(),
@@ -216,6 +256,19 @@ public class CSVReportService {
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 student.getProvincialSpecialCaseCode(),
                 assessmentCenter.isPresent() ? assessmentCenter.get().getMincode() : ""
+        ));
+    }
+
+    private List<String> prepareRegistrationDetailsDataForCsv(AssessmentStudentLightEntity student, Optional<SchoolTombstone> school) {
+        return new ArrayList<>(Arrays.asList(
+                student.getPen(),
+                student.getGradeAtRegistration(),
+                student.getSurname(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                school.isPresent() ? school.get().getMincode(): "",
+                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
+                student.getProvincialSpecialCaseCode()
         ));
     }
 
