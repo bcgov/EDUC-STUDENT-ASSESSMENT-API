@@ -26,9 +26,9 @@ public interface AssessmentStudentMapper {
     @Mapping(target = "assessmentCenterSchoolID", source = "assessmentCenterSchoolID")
     @Mapping(target = "givenName", source = "givenName")
     AssessmentStudentEntity toModel(AssessmentStudent assessmentStudent);
-    
+
     StagedAssessmentStudentEntity toStagingStudent(AssessmentStudentEntity entity);
-    
+
     @AfterMapping
     default void transformToUpperCase(AssessmentStudentEntity assessmentStudentEntity, @MappingTarget AssessmentStudent.AssessmentStudentBuilder assessmentStudent) {
         TransformUtil.uppercaseFields(assessmentStudentEntity);

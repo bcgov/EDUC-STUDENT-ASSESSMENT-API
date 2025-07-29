@@ -13,7 +13,10 @@ public enum AssessmentReportTypeCode {
     ATTEMPTS("ATTEMPTS"),
     PEN_MERGES("PEN_MERGES"),
     XAM_FILE("XAM_FILE"),
-    SESSION_RESULTS("SESSION_RESULTS");
+    SESSION_RESULTS("SESSION_RESULTS"),
+    REGISTRATION_SUMMARY("registration-summary"),
+    REGISTRATION_DETAIL_CSV("registration-detail-csv")
+    ;
     private final String code;
     AssessmentReportTypeCode(String code) { this.code = code; }
 

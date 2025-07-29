@@ -264,6 +264,7 @@ public abstract class BaseAssessmentAPITest {
             .createDate(LocalDateTime.now().toString())
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .status("ACTIVE")
             .build();
   }
 
