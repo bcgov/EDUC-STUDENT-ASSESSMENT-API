@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.assessment.api.repository.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
