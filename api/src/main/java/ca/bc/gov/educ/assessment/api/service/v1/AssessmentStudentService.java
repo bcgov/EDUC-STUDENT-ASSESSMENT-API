@@ -52,6 +52,7 @@ public class AssessmentStudentService {
     private final AssessmentStudentRulesProcessor assessmentStudentRulesProcessor;
     private final RestUtils restUtils;
     private final StagedStudentResultRepository stagedStudentResultRepository;
+    private final AssessmentSessionRepository assessmentSessionRepository;
 
     public AssessmentStudentEntity getStudentByID(UUID assessmentStudentID) {
         return assessmentStudentRepository.findById(assessmentStudentID).orElseThrow(() ->
@@ -247,19 +248,36 @@ public class AssessmentStudentService {
 
 
     public List<AssessmentResultsSummary> getResultsUploadSummary(UUID sessionID) {
-        List<AssessmentEntity> assessments = assessmentRepository.findByAssessmentSessionEntity_SessionID(sessionID);
+        AssessmentSessionEntity session = assessmentSessionRepository.findById(sessionID)
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
+
+        List<AssessmentEntity> assessments = session.getAssessments().stream().toList();
+        boolean isSessionOpen = StringUtils.isBlank(session.getApprovalAssessmentAnalysisUserID())
+                && StringUtils.isBlank(session.getApprovalAssessmentDesignUserID())
+                && StringUtils.isBlank(session.getApprovalStudentCertUserID());
+
         List<AssessmentResultsSummary> rowData = new ArrayList<>();
         for (AssessmentEntity assessment : assessments) {
-            var stagedStudentResult =  stagedStudentResultRepository.findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(assessment.getAssessmentID());
-            if(stagedStudentResult.isEmpty() && !assessment.getAssessmentForms().isEmpty()) {
+            if(!assessment.getAssessmentForms().isEmpty()) {
                 List<UUID> formIds = assessment.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
-                Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
-                rowData.add(AssessmentResultsSummary
-                        .builder()
-                        .assessmentType(assessment.getAssessmentTypeCode())
-                        .uploadedBy(student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null))
-                        .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
-                        .build());
+                if(isSessionOpen) {
+                    Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
+                    var stagedStudentResult =  stagedStudentResultRepository.findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(assessment.getAssessmentID());
+                    rowData.add(AssessmentResultsSummary
+                            .builder()
+                            .assessmentType(assessment.getAssessmentTypeCode())
+                            .uploadedBy(stagedStudentResult.isPresent() ? null : student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null))
+                            .uploadDate(stagedStudentResult.isPresent() ? null : student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
+                            .build());
+                } else {
+                    Optional<AssessmentStudentEntity> student = assessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
+                    rowData.add(AssessmentResultsSummary
+                            .builder()
+                            .assessmentType(assessment.getAssessmentTypeCode())
+                            .uploadedBy(student.map(AssessmentStudentEntity::getCreateUser).orElse(null))
+                            .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
+                            .build());
+                }
             }
         }
         return rowData;

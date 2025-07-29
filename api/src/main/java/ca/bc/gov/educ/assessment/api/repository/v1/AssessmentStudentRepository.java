@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.repository.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -88,4 +89,13 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         group by stud.assessmentEntity.assessmentID
     """)
     List<RegistrationSummaryResult> getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNull(List<UUID> assessmentIDs);
+
+
+    @Query("""
+        SELECT s FROM AssessmentStudentEntity s 
+        WHERE s.assessmentEntity.assessmentID = :assessmentID 
+        AND s.assessmentFormID IN (:formIDs) 
+        ORDER BY s.createDate DESC 
+        LIMIT 1 """)
+    Optional<AssessmentStudentEntity> findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(UUID assessmentID, List<UUID> formIDs);
 }
