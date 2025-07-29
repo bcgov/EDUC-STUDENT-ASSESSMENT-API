@@ -88,4 +88,13 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         group by stud.assessmentEntity.assessmentID
     """)
     List<RegistrationSummaryResult> getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNull(List<UUID> assessmentIDs);
+
+
+    @Query("""
+        SELECT s FROM AssessmentStudentEntity s 
+        WHERE s.assessmentEntity.assessmentID = :assessmentID 
+        AND s.assessmentFormID IN (:formIDs) 
+        ORDER BY s.createDate DESC 
+        LIMIT 1 """)
+    Optional<AssessmentStudentEntity> findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(UUID assessmentID, List<UUID> formIDs);
 }

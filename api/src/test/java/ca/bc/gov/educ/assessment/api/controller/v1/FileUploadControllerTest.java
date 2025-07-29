@@ -491,7 +491,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetAssessmentResultsUploadSummary_WhenResultsAreNotLoaded_ShouldReturnOK() throws Exception {
+    void testGetAssessmentResultsUploadSummary_WhenResultsAreNotLoadedAndSessionIsOpen_ShouldReturnOK() throws Exception {
         var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
 
         var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessmentEntity, "A"));
@@ -511,6 +511,43 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         studentRepository.save(studentEntity1);
 
         var result = this.mockMvc.perform(get( BASE_URL + "/" + savedSession.get().getSessionID() + "/result-summary")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_ASSESSMENT_SESSIONS")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .contentType(APPLICATION_JSON)).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(result.andReturn().getResponse().getContentAsByteArray(), List.class);
+        assertThat(summary).isNotNull();
+    }
+
+    @Test
+    void testGetAssessmentResultsUploadSummary_WhenResultsAreLoadedAndSessionIsClosed_ShouldReturnOK() throws Exception {
+        var session = createMockSessionEntity();
+        session.setCourseMonth("01");
+        session.setCourseYear("2024");
+        session.setSchoolYear("2023/2024");
+        session.setApprovalAssessmentAnalysisUserID("TEST");
+        session.setApprovalAssessmentDesignUserID("TEST");
+        session.setApprovalStudentCertUserID("TEST");
+        var savedSession = assessmentSessionRepository.save(session);
+        var assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(savedSession, "LTE10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessmentEntity, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var studentEntity1 = createMockStudentEntity(assessmentEntity);
+        studentRepository.save(studentEntity1);
+
+        var result = this.mockMvc.perform(get( BASE_URL + "/" + savedSession.getSessionID() + "/result-summary")
                 .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_ASSESSMENT_SESSIONS")))
                 .header("correlationID", UUID.randomUUID().toString())
                 .contentType(APPLICATION_JSON)).andExpect(status().isOk());

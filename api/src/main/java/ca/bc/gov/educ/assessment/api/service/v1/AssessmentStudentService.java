@@ -6,7 +6,6 @@ import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
-import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
@@ -52,6 +51,7 @@ public class AssessmentStudentService {
     private final AssessmentStudentRulesProcessor assessmentStudentRulesProcessor;
     private final RestUtils restUtils;
     private final StagedStudentResultRepository stagedStudentResultRepository;
+    private final AssessmentSessionRepository assessmentSessionRepository;
 
     public AssessmentStudentEntity getStudentByID(UUID assessmentStudentID) {
         return assessmentStudentRepository.findById(assessmentStudentID).orElseThrow(() ->
@@ -247,22 +247,46 @@ public class AssessmentStudentService {
 
 
     public List<AssessmentResultsSummary> getResultsUploadSummary(UUID sessionID) {
-        List<AssessmentEntity> assessments = assessmentRepository.findByAssessmentSessionEntity_SessionID(sessionID);
+        AssessmentSessionEntity session = assessmentSessionRepository.findById(sessionID)
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
+
+        List<AssessmentEntity> assessments = session.getAssessments().stream().toList();
+        boolean isSessionOpen = StringUtils.isBlank(session.getApprovalAssessmentAnalysisUserID())
+                && StringUtils.isBlank(session.getApprovalAssessmentDesignUserID())
+                && StringUtils.isBlank(session.getApprovalStudentCertUserID());
+
         List<AssessmentResultsSummary> rowData = new ArrayList<>();
         for (AssessmentEntity assessment : assessments) {
-            var stagedStudentResult =  stagedStudentResultRepository.findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(assessment.getAssessmentID());
-            if(stagedStudentResult.isEmpty() && !assessment.getAssessmentForms().isEmpty()) {
+            if(!assessment.getAssessmentForms().isEmpty()) {
                 List<UUID> formIds = assessment.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
-                Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
-                rowData.add(AssessmentResultsSummary
-                        .builder()
-                        .assessmentType(assessment.getAssessmentTypeCode())
-                        .uploadedBy(student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null))
-                        .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
-                        .build());
+                if(isSessionOpen) {
+                    rowData.add(getSummaryForOpenSession(assessment, formIds));
+                } else {
+                    rowData.add(getSummaryForApprovedSession(assessment, formIds));
+                }
             }
         }
         return rowData;
     }
 
+    private AssessmentResultsSummary getSummaryForOpenSession(AssessmentEntity assessment, List<UUID> formIds) {
+        Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
+        var stagedStudentResult =  stagedStudentResultRepository.findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(assessment.getAssessmentID());
+        return AssessmentResultsSummary
+                .builder()
+                .assessmentType(assessment.getAssessmentTypeCode())
+                .uploadedBy(stagedStudentResult.isPresent() ? null : student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null))
+                .uploadDate(stagedStudentResult.isPresent() ? null : student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
+                .build();
+    }
+
+    private AssessmentResultsSummary getSummaryForApprovedSession(AssessmentEntity assessment, List<UUID> formIds) {
+        Optional<AssessmentStudentEntity> student = assessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
+        return AssessmentResultsSummary
+                .builder()
+                .assessmentType(assessment.getAssessmentTypeCode())
+                .uploadedBy(student.map(AssessmentStudentEntity::getCreateUser).orElse(null))
+                .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
+                .build();
+    }
 }
