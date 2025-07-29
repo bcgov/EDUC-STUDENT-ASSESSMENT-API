@@ -50,8 +50,8 @@ public class AssessmentStudentEntity {
   @Column(name = "STUDENT_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID studentID;
 
-  @Column(name = "STATUS", nullable = false, length = 10)
-  private String status;
+  @Column(name = "PEN_STATUS", nullable = false, length = 10)
+  private String penStatus;
 
   @Column(name = "GIVEN_NAME", length = 25)
   private String givenName;
