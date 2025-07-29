@@ -260,26 +260,33 @@ public class AssessmentStudentService {
             if(!assessment.getAssessmentForms().isEmpty()) {
                 List<UUID> formIds = assessment.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
                 if(isSessionOpen) {
-                    Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
-                    var stagedStudentResult =  stagedStudentResultRepository.findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(assessment.getAssessmentID());
-                    rowData.add(AssessmentResultsSummary
-                            .builder()
-                            .assessmentType(assessment.getAssessmentTypeCode())
-                            .uploadedBy(stagedStudentResult.isPresent() ? null : student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null))
-                            .uploadDate(stagedStudentResult.isPresent() ? null : student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
-                            .build());
+                    rowData.add(getSummaryForOpenSession(assessment, formIds));
                 } else {
-                    Optional<AssessmentStudentEntity> student = assessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
-                    rowData.add(AssessmentResultsSummary
-                            .builder()
-                            .assessmentType(assessment.getAssessmentTypeCode())
-                            .uploadedBy(student.map(AssessmentStudentEntity::getCreateUser).orElse(null))
-                            .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
-                            .build());
+                    rowData.add(getSummaryForApprovedSession(assessment, formIds));
                 }
             }
         }
         return rowData;
     }
 
+    private AssessmentResultsSummary getSummaryForOpenSession(AssessmentEntity assessment, List<UUID> formIds) {
+        Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
+        var stagedStudentResult =  stagedStudentResultRepository.findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(assessment.getAssessmentID());
+        return AssessmentResultsSummary
+                .builder()
+                .assessmentType(assessment.getAssessmentTypeCode())
+                .uploadedBy(stagedStudentResult.isPresent() ? null : student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null))
+                .uploadDate(stagedStudentResult.isPresent() ? null : student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
+                .build();
+    }
+
+    private AssessmentResultsSummary getSummaryForApprovedSession(AssessmentEntity assessment, List<UUID> formIds) {
+        Optional<AssessmentStudentEntity> student = assessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessment.getAssessmentID(), formIds);
+        return AssessmentResultsSummary
+                .builder()
+                .assessmentType(assessment.getAssessmentTypeCode())
+                .uploadedBy(student.map(AssessmentStudentEntity::getCreateUser).orElse(null))
+                .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
+                .build();
+    }
 }
