@@ -290,6 +290,7 @@ public abstract class BaseAssessmentAPITest {
             .surname("TestLast")
             .pen("120164447")
             .localID("123")
+            .status("ACTIVE")
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
