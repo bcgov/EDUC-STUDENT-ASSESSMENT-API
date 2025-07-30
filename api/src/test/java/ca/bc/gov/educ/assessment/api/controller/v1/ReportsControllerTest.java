@@ -8,6 +8,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCo
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge;
@@ -383,6 +384,44 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         assertThat(summary).isNotNull();
         assertThat(summary.getReportType()).isEqualTo("registration-detail-csv");
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetDownloadableReport_PenIssuesReport_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
+
+        StagedAssessmentStudentEntity student1 = createMockStagedStudentEntity(assessment);
+        student1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student1.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student1.setStagedAssessmentStudentStatus("NOPENFOUND");
+
+        StagedAssessmentStudentEntity student2 = createMockStagedStudentEntity(assessment);
+        student2.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student2.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student2.setStagedAssessmentStudentStatus("MERGED");
+        student2.setMergedPen("456789111");
+
+        stagedAssessmentStudentRepository.saveAll(List.of(student1, student2));
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/pen-issues-csv/download/" + "TESTUSER")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("pen-issues-csv");
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 }
