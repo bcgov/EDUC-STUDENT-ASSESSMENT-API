@@ -65,21 +65,27 @@ public class SessionService {
         return this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now());
     }
 
+    @Transactional
     public AssessmentSessionEntity recordTransferRegistrationsUser(UUID sessionID, String userID, AssessmentReportTypeCode reportTypeCode) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
         switch (reportTypeCode) {
             case ALL_SESSION_REGISTRATIONS:
                 session.setAssessmentRegistrationsExportUserID(userID);
                 session.setAssessmentRegistrationsExportDate(LocalDateTime.now());
+                break;
             case ATTEMPTS:
                 session.setSessionWritingAttemptsExportUserID(userID);
                 session.setSessionWritingAttemptsExportDate(LocalDateTime.now());
+                break;
             case PEN_MERGES:
                 session.setPenMergesExportUserID(userID);
                 session.setPenMergesExportDate(LocalDateTime.now());
+                break;
             default:
                 break;
         }
+        session.setUpdateUser(userID);
+        session.setUpdateDate(LocalDateTime.now());
         return assessmentSessionRepository.save(session);
     }
 
