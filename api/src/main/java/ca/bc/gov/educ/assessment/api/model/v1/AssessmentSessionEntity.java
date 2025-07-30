@@ -61,25 +61,25 @@ public class AssessmentSessionEntity {
   @Column(name = "APPROVAL_ASSESSMENT_ANALYSIS_SIGN_DATE", updatable = false)
   private LocalDateTime approvalAssessmentAnalysisSignDate;
 
-  @Column(name = "ASSESSMENT_REGISTRATIONS_EXPORT_USER_ID", updatable = false, length = 25)
+  @Column(name = "ASSESSMENT_REGISTRATIONS_EXPORT_USER_ID", length = 25)
   private String assessmentRegistrationsExportUserID;
 
   @PastOrPresent
-  @Column(name = "ASSESSMENT_REGISTRATIONS_EXPORT_DATE", updatable = false)
+  @Column(name = "ASSESSMENT_REGISTRATIONS_EXPORT_DATE")
   private LocalDateTime assessmentRegistrationsExportDate;
 
-  @Column(name = "SESSION_WRITING_ATTEMPTS_EXPORT_USER_ID", updatable = false, length = 25)
+  @Column(name = "SESSION_WRITING_ATTEMPTS_EXPORT_USER_ID", length = 25)
   private String sessionWritingAttemptsExportUserID;
 
   @PastOrPresent
-  @Column(name = "SESSION_WRITING_ATTEMPTS_EXPORT_DATE", updatable = false)
+  @Column(name = "SESSION_WRITING_ATTEMPTS_EXPORT_DATE")
   private LocalDateTime sessionWritingAttemptsExportDate;
 
-  @Column(name = "PEN_MERGES_EXPORT_USER_ID", updatable = false, length = 25)
+  @Column(name = "PEN_MERGES_EXPORT_USER_ID", length = 25)
   private String penMergesExportUserID;
 
   @PastOrPresent
-  @Column(name = "PEN_MERGES_EXPORT_DATE", updatable = false)
+  @Column(name = "PEN_MERGES_EXPORT_DATE")
   private LocalDateTime penMergesExportDate;
 
   @Column(name = "CREATE_USER", updatable = false, length = 100)
