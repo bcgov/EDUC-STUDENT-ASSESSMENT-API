@@ -15,7 +15,8 @@ public enum AssessmentReportTypeCode {
     XAM_FILE("XAM_FILE"),
     SESSION_RESULTS("SESSION_RESULTS"),
     REGISTRATION_SUMMARY("registration-summary"),
-    REGISTRATION_DETAIL_CSV("registration-detail-csv")
+    REGISTRATION_DETAIL_CSV("registration-detail-csv"),
+    PEN_ISSUES_CSV("pen-issues-csv"),
     ;
     private final String code;
     AssessmentReportTypeCode(String code) { this.code = code; }

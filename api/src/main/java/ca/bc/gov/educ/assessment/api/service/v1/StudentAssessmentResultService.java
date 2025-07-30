@@ -32,10 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -101,15 +98,30 @@ public class StudentAssessmentResultService {
         var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
         var penMatchFound = optStudent.isPresent();
         StagedAssessmentStudentEntity stagedStudent;
+        boolean isMergedRecord = false;
         if(penMatchFound) {
-            var studentApiStudent = optStudent.get();
-            var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(studentResult.getAssessmentID()), UUID.fromString(studentApiStudent.getStudentID()));
-            var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentApiStudent.getStudentID())).orElse(null);
+            Student studentApiStudent = optStudent.get();
+            Student trueStudentApiStudentRecord = null;
+            if(optStudent.get().getStatusCode().equalsIgnoreCase("M")) {
+                List<Student> mergedStudent = restUtils.getStudents(UUID.randomUUID(), Set.of(optStudent.get().getTrueStudentID()));
+                trueStudentApiStudentRecord = mergedStudent.getFirst();
+                isMergedRecord = true;
+            }
+
+            var studentID = isMergedRecord ? trueStudentApiStudentRecord.getStudentID() : studentApiStudent.getStudentID();
+            var studentApiRecord = isMergedRecord ? trueStudentApiStudentRecord : studentApiStudent;
+            var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(studentResult.getAssessmentID()), UUID.fromString(studentID));
+            var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentID)).orElse(null);
             stagedStudent = existingStudentRegistrationOpt.isPresent() ?
                     createFromExistingStudentEntity(studentResult, gradStudent, existingStudentRegistrationOpt.get(), formEntity.getAssessmentFormID())
-                    : createNewStagedAssessmentStudentEntity(studentResult, studentResultSagaData.getSchool(), studentApiStudent, gradStudent, formEntity.getAssessmentFormID(), assessmentEntity);
+                    : createNewStagedAssessmentStudentEntity(studentResult, studentResultSagaData.getSchool(), studentApiRecord, gradStudent, formEntity.getAssessmentFormID(), assessmentEntity);
             stagedStudent.setIsPreRegistered(existingStudentRegistrationOpt.isPresent());
-            stagedStudent.setStagedAssessmentStudentStatus("PENMATCHED");
+            if(isMergedRecord) {
+                stagedStudent.setStagedAssessmentStudentStatus("MERGED");
+                stagedStudent.setMergedPen(studentApiStudent.getPen());
+            } else {
+                stagedStudent.setStagedAssessmentStudentStatus("PENMATCHED");
+            }
         } else {
             stagedStudent = createNewStagedAssessmentStudentEntity(studentResult, studentResultSagaData.getSchool(), null, null, formEntity.getAssessmentFormID(), assessmentEntity);
             stagedStudent.setIsPreRegistered(false);

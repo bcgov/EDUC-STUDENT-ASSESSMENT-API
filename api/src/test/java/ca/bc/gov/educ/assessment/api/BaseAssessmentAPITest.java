@@ -298,6 +298,25 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
+  public StagedAssessmentStudentEntity createMockStagedStudentEntity(AssessmentEntity assessmentEntity) {
+    return StagedAssessmentStudentEntity.builder()
+            .assessmentStudentID(UUID.randomUUID())
+            .assessmentEntity(assessmentEntity)
+            .schoolOfRecordSchoolID(UUID.randomUUID())
+            .assessmentCenterSchoolID(UUID.randomUUID())
+            .studentID(UUID.randomUUID())
+            .givenName("TestFirst")
+            .surname("TestLast")
+            .pen("120164447")
+            .localID("123")
+            .isPreRegistered(false)
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
   public AssessmentStudentHistoryEntity createMockStudentHistoryEntity(AssessmentStudentEntity assessmentStudentEntity) {
     return AssessmentStudentHistoryEntity.builder()
             .assessmentStudentHistoryID(UUID.randomUUID())
