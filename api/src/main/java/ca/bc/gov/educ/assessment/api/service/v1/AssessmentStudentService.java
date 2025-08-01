@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.constants.EventStatus;
+import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
@@ -118,6 +119,7 @@ public class AssessmentStudentService {
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
+        assessmentStudentEntity.setStudentStatus(StudentStatusCodes.ACTIVE.getCode());
         var student = processStudent(assessmentStudentEntity, null, true);
         var event = generateStudentUpdatedEvent(student.getStudentID());
         assessmentEventRepository.save(event);
