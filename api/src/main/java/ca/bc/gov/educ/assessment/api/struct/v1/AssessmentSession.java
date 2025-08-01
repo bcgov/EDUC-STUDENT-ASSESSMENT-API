@@ -47,7 +47,7 @@ public class AssessmentSession extends BaseRequest implements Serializable {
 
   private String approvalAssessmentAnalysisSignDate;
 
-  private String assessmentRegistrationExportUserID;
+  private String assessmentRegistrationsExportUserID;
 
   private String assessmentRegistrationsExportDate;
 

@@ -98,6 +98,9 @@ public class StagedAssessmentStudentEntity {
   @Column(name = "STAGED_ASSESSMENT_STUDENT_STATUS", length = 10)
   private String stagedAssessmentStudentStatus;
 
+  @Column(name = "MERGED_PEN", length = 9)
+  private String mergedPen;
+
   @Column(name = "CREATE_USER", updatable = false , length = 100)
   private String createUser;
 
@@ -114,7 +117,7 @@ public class StagedAssessmentStudentEntity {
 
   @EqualsAndHashCode.Exclude
   @ToString.Exclude
-  @OneToMany(mappedBy = "stagedAssessmentStudentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = StagedAssessmentStudentComponentEntity.class)
+  @OneToMany(mappedBy = "stagedAssessmentStudentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = StagedAssessmentStudentComponentEntity.class)
   Set<StagedAssessmentStudentComponentEntity> stagedAssessmentStudentComponentEntities;
 
   public Set<StagedAssessmentStudentComponentEntity> getStagedAssessmentStudentComponentEntities() {

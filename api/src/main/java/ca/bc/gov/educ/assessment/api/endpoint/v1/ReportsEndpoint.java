@@ -19,7 +19,7 @@ public interface ReportsEndpoint {
 
     @GetMapping("/{sessionID}/{type}/download/{updateUser}")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
-    @Transactional(readOnly = true)
+    @Transactional()
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     DownloadableReportResponse getDownloadableReport(@PathVariable UUID sessionID, @PathVariable(name = "type") String type,  @PathVariable(name = "updateUser") String updateUser);
 
