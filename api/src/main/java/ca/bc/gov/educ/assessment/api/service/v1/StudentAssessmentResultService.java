@@ -157,14 +157,16 @@ public class StudentAssessmentResultService {
     private BigDecimal setTotals(StagedAssessmentStudentEntity stagedStudent, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, AssessmentFormEntity formEntity) {
         var component = formEntity.getAssessmentComponentEntities().stream()
                 .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode()) && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
-                .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentComponentEntity.class, componentType.getCode()));
-        var componentEntity = stagedStudent.getStagedAssessmentStudentComponentEntities().stream()
-                .filter(comp -> comp.getAssessmentStudentComponentID() == component.getAssessmentComponentID())
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(AssessmentComponentEntity.class, componentType.getCode()));
-        return componentEntity.getStagedAssessmentStudentAnswerEntities().stream()
-                .map(StagedAssessmentStudentAnswerEntity::getScore)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .findFirst();
+        if(component.isPresent()) {
+            var componentEntity = stagedStudent.getStagedAssessmentStudentComponentEntities().stream()
+                    .filter(comp -> Objects.equals(comp.getAssessmentComponentID(), component.get().getAssessmentComponentID()))
+                    .findFirst();
+            return componentEntity.map(stagedAssessmentStudentComponentEntity -> stagedAssessmentStudentComponentEntity.getStagedAssessmentStudentAnswerEntities().stream()
+                    .map(StagedAssessmentStudentAnswerEntity::getScore)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)).orElse(BigDecimal.ZERO);
+        }
+        return BigDecimal.ZERO;
     }
 
     private StagedAssessmentStudentEntity createFromExistingStudentEntity(StudentResult studentResult, GradStudentRecord gradStudent, AssessmentStudentEntity existingStudent, UUID assessmentFormID) {
