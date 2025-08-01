@@ -131,10 +131,6 @@ public class SessionService {
         return this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(LocalDateTime.now(), LocalDateTime.now());
     }
 
-    public Optional<AssessmentSessionEntity> getSessionByID(UUID sessionID) {
-        return this.getAssessmentSessionRepository().findById(sessionID);
-    }
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentSessionEntity updateSession(UUID sessionID, AssessmentSessionEntity updatedAssessmentSessionEntity) {
         val optionalSession = getAssessmentSessionRepository().findById(sessionID);
