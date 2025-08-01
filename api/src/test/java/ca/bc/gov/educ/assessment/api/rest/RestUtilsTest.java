@@ -41,7 +41,7 @@ class RestUtilsTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        restUtils = spy(new RestUtils(webClient, props, messagePublisher));
+        restUtils = spy(new RestUtils(webClient, webClient, props, messagePublisher));
     }
 
     @Test
