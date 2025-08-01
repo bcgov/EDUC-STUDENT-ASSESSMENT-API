@@ -56,4 +56,13 @@ public class ApplicationProperties {
   private String instituteApiURL;
   @Value("${number.students.process.saga}")
   private String numberOfStudentsToProcessInSaga;
+
+  @Value("${ches.endpoint.url}")
+  private String chesEndpointURL;
+  @Value("${ches.client.id}")
+  private String chesClientID;
+  @Value("${ches.client.secret}")
+  private String chesClientSecret;
+  @Value("${ches.token.url}")
+  private String chesTokenURL;
 }

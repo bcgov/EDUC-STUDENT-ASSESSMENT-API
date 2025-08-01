@@ -1,26 +1,29 @@
 package ca.bc.gov.educ.assessment.api.orchestrator;
 
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
+import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEventStatesEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.BaseOrchestrator;
-import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
-import ca.bc.gov.educ.assessment.api.service.v1.SessionApprovalOrchestrationService;
-import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
+import ca.bc.gov.educ.assessment.api.properties.EmailProperties;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.service.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.UUID;
 
-import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.GRAD_STUDENT_API_NOTIFIED;
-import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.XAM_FILES_GENERATED_AND_UPLOADED;
-import static ca.bc.gov.educ.assessment.api.constants.EventType.GENERATE_XAM_FILES_AND_UPLOAD;
-import static ca.bc.gov.educ.assessment.api.constants.EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS;
+import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.*;
+import static ca.bc.gov.educ.assessment.api.constants.EventType.*;
 import static ca.bc.gov.educ.assessment.api.constants.SagaEnum.GENERATE_XAM_FILES;
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.XAM_FILE_GENERATION_TOPIC;
 
@@ -31,14 +34,20 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<String> {
     private final Publisher publisher;
     private final XAMFileService xamFileService;
     private final SessionApprovalOrchestrationService sessionApprovalOrchestrationService;
+    private final AssessmentSessionRepository assessmentSessionRepository;
     private final SagaService sagaService;
+    private final EmailProperties emailProperties;
+    private final EmailService emailService;
 
-    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, Publisher publisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService) {
+    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, Publisher publisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailProperties emailProperties, EmailService emailService) {
         super(sagaService, messagePublisher, String.class, GENERATE_XAM_FILES.toString(), XAM_FILE_GENERATION_TOPIC.toString());
         this.publisher = publisher;
         this.xamFileService = xamFileService;
         this.sagaService = sagaService;
         this.sessionApprovalOrchestrationService = sessionApprovalOrchestrationService;
+        this.assessmentSessionRepository = assessmentSessionRepository;
+        this.emailProperties = emailProperties;
+        this.emailService = emailService;
     }
 
     @Override
@@ -46,7 +55,8 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<String> {
         this.stepBuilder()
             .begin(GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
             .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_GRAD_OF_UPDATED_STUDENTS, this::notifyGradOfUpdatedStudents)
-            .end(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED);
+            .step(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
+            .end(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED);
     }
 
     private void generateXAMFilesAndUpload(Event event, AssessmentSagaEntity saga, String payload) throws JsonProcessingException {
@@ -80,6 +90,33 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<String> {
         final Event nextEvent = Event.builder().sagaId(saga.getSagaId())
                 .eventType(NOTIFY_GRAD_OF_UPDATED_STUDENTS).eventOutcome(GRAD_STUDENT_API_NOTIFIED)
                 .eventPayload(JsonUtil.getJsonStringFromObject("GRAD system notified of " + pair.getRight().size() + " updated students"))
+                .build();
+        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
+        log.debug("Posted completion message for saga step notifyGradOfUpdatedStudents: {}", saga.getSagaId());
+    }
+
+    private void notifyMyEDOfApproval(Event event, AssessmentSagaEntity saga, String payload) throws JsonProcessingException {
+        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
+        saga.setSagaState(NOTIFY_MYED_OF_UPDATED_STUDENTS.toString());
+        saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
+        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
+
+        UUID sessionID = UUID.fromString(payload);
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "assessmentSessionID", sessionID.toString()));
+        
+        var emailFields = new HashMap<String, String>();
+        emailFields.put("currentSession", session.getCourseYear() + "/" + session.getCourseMonth());
+
+        var subject = emailProperties.getEmailSubjectMyEdApproval();
+        var fromEmail = emailProperties.getEmailMyEdApprovalFrom();
+        var toEmail = Arrays.asList(emailProperties.getEmailMyEdApprovalTo());
+
+        var emailSagaData = emailService.createEmailSagaData(fromEmail, toEmail, subject, "myed.approval.notification", emailFields);
+        emailService.sendEmail(emailSagaData);
+        
+        final Event nextEvent = Event.builder().sagaId(saga.getSagaId())
+                .eventType(NOTIFY_MYED_OF_UPDATED_STUDENTS).eventOutcome(MYED_NOTIFIED)
+                .eventPayload(JsonUtil.getJsonStringFromObject("MyED system notified"))
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("Posted completion message for saga step notifyGradOfUpdatedStudents: {}", saga.getSagaId());
