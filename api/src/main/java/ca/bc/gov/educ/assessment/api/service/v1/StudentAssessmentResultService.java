@@ -138,12 +138,33 @@ public class StudentAssessmentResultService {
             }
         }
 
+        var mcTotal = setTotals(stagedStudent, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, formEntity);
+        var oeTotal = setTotals(stagedStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, formEntity);
+        var oralTotal = setTotals(stagedStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL, formEntity);
+
+        stagedStudent.setMcTotal(mcTotal);
+        stagedStudent.setOeTotal(oeTotal.add(oralTotal));
+        stagedStudent.setRawScore(mcTotal.add(oralTotal).add(oeTotal));
+
         stagedAssessmentStudentRepository.save(stagedStudent);
 
         stagedStudentResult.setStagedStudentResultStatus("COMPLETED");
         stagedStudentResult.setUpdateDate(LocalDateTime.now());
         stagedStudentResultRepository.save(stagedStudentResult);
 
+    }
+
+    private BigDecimal setTotals(StagedAssessmentStudentEntity stagedStudent, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, AssessmentFormEntity formEntity) {
+        var component = formEntity.getAssessmentComponentEntities().stream()
+                .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode()) && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
+                .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentComponentEntity.class, componentType.getCode()));
+        var componentEntity = stagedStudent.getStagedAssessmentStudentComponentEntities().stream()
+                .filter(comp -> comp.getAssessmentStudentComponentID() == component.getAssessmentComponentID())
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentComponentEntity.class, componentType.getCode()));
+        return componentEntity.getStagedAssessmentStudentAnswerEntities().stream()
+                .map(StagedAssessmentStudentAnswerEntity::getScore)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private StagedAssessmentStudentEntity createFromExistingStudentEntity(StudentResult studentResult, GradStudentRecord gradStudent, AssessmentStudentEntity existingStudent, UUID assessmentFormID) {
@@ -155,9 +176,6 @@ public class StudentAssessmentResultService {
         stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
         stagedStudent.setMarkingSession(studentResult.getMarkingSession());
         stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : stagedStudent.getSchoolOfRecordSchoolID());
-//                stagedStudent.setMcTotal();
-//                stagedStudent.setOeTotal();
-//                stagedStudent.setRawScore();
         stagedStudent.setUpdateDate(LocalDateTime.now());
         stagedStudent.setUpdateUser(studentResult.getUpdateUser());
 
@@ -183,9 +201,6 @@ public class StudentAssessmentResultService {
         stagedStudent.setNumberOfAttempts(noOfAttempts);
         stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
         stagedStudent.setIrtScore(studentResult.getIrtScore());
-//                stagedStudent.setMcTotal();
-//                stagedStudent.setOeTotal();
-//                stagedStudent.setRawScore();
         stagedStudent.setMarkingSession(studentResult.getMarkingSession());
         stagedStudent.setCreateUser(studentResult.getCreateUser());
         stagedStudent.setCreateDate(LocalDateTime.now());
@@ -198,9 +213,11 @@ public class StudentAssessmentResultService {
     private void addStudentComponent(AssessmentFormEntity formEntity, StagedAssessmentStudentEntity assessmentStudent, StudentResult studentResult, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType) {
         var studentComponent = new StagedAssessmentStudentComponentEntity();
         studentComponent.setStagedAssessmentStudentEntity(assessmentStudent);
+
         var component = formEntity.getAssessmentComponentEntities().stream()
                 .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode()) && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
                 .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentComponentEntity.class, componentType.getCode()));
+
         studentComponent.setAssessmentComponentID(component.getAssessmentComponentID());
         studentComponent.setCreateUser(studentResult.getCreateUser());
         studentComponent.setCreateDate(LocalDateTime.now());
