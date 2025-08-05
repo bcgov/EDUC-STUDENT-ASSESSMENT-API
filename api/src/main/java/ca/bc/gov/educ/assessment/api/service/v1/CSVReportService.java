@@ -18,6 +18,7 @@ import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
@@ -35,8 +36,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.PEN_ISSUES_CSV;
-import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.REGISTRATION_DETAIL_CSV;
+import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.*;
 
 
 @Service
@@ -51,6 +51,7 @@ public class CSVReportService {
     private final RestUtils restUtils;
     private final AssessmentStudentLightRepository assessmentStudentLightRepository;
     private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+    private final SummaryReportService summaryReportService;
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
@@ -261,6 +262,33 @@ public class CSVReportService {
         }
     }
 
+    public DownloadableReportResponse generateAssessmentRegistrationTotalsBySchoolReport(UUID sessionID) {
+        SimpleHeadcountResultsTable assessmentRegistrationTotalsBySchoolReportTable = summaryReportService.getAssessmentRegistrationTotalsBySchool(sessionID);
+        List<String> headers =  assessmentRegistrationTotalsBySchoolReportTable.getHeaders();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            for (Map<String, String> result : assessmentRegistrationTotalsBySchoolReportTable.getRows()) {
+                List<String> csvRowData = prepareAssessmentRegistrationTotalsBySchoolForCsv(result, headers);
+                csvPrinter.printRecord(csvRowData);
+            }
+            csvPrinter.flush();
+
+            DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(REGISTRATION_SUMMARY_BY_SCHOOL.getCode());
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
     private List<String> prepareNumberOfAttemptsDataForCsv(AssessmentStudentEntity student) {
         return new ArrayList<>(Arrays.asList(
                 student.getAssessmentEntity().getAssessmentTypeCode(),
@@ -316,4 +344,15 @@ public class CSVReportService {
         ));
     }
 
+    private List<String> prepareAssessmentRegistrationTotalsBySchoolForCsv(Map<String, String> result, List<String> headers) {
+        List<String> toReturn = new ArrayList<>();
+        for (String header : headers) {
+            if (!result.containsKey(header)) {
+                toReturn.add("");
+                continue;
+            }
+            toReturn.add(result.get(header));
+        }
+        return toReturn;
+    }
 }

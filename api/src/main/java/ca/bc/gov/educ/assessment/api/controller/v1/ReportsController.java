@@ -58,6 +58,8 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generateRegistrationDetailReport(sessionID);
             case PEN_ISSUES_CSV:
                 return csvReportService.generatePenIssuesReport(sessionID);
+            case REGISTRATION_SUMMARY_BY_SCHOOL:
+                return csvReportService.generateAssessmentRegistrationTotalsBySchoolReport(sessionID);
             default:
                 return new DownloadableReportResponse();
         }
