@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
+import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
@@ -13,6 +14,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportRespons
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,7 +42,12 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         sessionRepository = mock(AssessmentSessionRepository.class);
         studentRepository = mock(AssessmentStudentRepository.class);
         restUtils = mock(RestUtils.class);
-        xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils));
+        S3Client s3Client = mock(S3Client.class);
+        ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
+
+        when(applicationProperties.getS3BucketName()).thenReturn("test-bucket");
+
+        xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, s3Client, applicationProperties));
     }
 
     @AfterEach
