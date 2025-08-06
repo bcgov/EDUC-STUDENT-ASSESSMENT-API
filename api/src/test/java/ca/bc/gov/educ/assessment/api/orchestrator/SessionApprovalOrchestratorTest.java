@@ -10,6 +10,7 @@ import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
+import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.lang.reflect.Method;
 import java.util.UUID;
@@ -201,7 +203,9 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         AssessmentStudentRepository dummyStudentRepo = Mockito.mock(AssessmentStudentRepository.class);
         AssessmentSessionRepository dummySessionRepo = Mockito.mock(AssessmentSessionRepository.class);
         RestUtils dummyRestUtils = Mockito.mock(RestUtils.class);
-        XAMFileService dummyService = new XAMFileService(dummyStudentRepo, dummySessionRepo, dummyRestUtils);
+        S3Client dummyS3Client = Mockito.mock(S3Client.class);
+        ApplicationProperties dummyApplicationProperties = Mockito.mock(ApplicationProperties.class);
+        XAMFileService dummyService = new XAMFileService(dummyStudentRepo, dummySessionRepo, dummyRestUtils, dummyS3Client, dummyApplicationProperties);
         XAMFileService spyService = Mockito.spy(dummyService);
         ReflectionTestUtils.setField(sessionApprovalOrchestrator, "xamFileService", spyService);
 
