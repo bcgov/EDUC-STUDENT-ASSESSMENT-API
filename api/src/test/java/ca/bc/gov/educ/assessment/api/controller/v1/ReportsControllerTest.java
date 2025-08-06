@@ -438,18 +438,17 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
 
-        StagedAssessmentStudentEntity student1 = createMockStagedStudentEntity(assessment);
-        student1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
         student1.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
-        student1.setStagedAssessmentStudentStatus("NOPENFOUND");
-
-        StagedAssessmentStudentEntity student2 = createMockStagedStudentEntity(assessment);
-        student2.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student1.setGradeAtRegistration("10");
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
         student2.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
-        student2.setStagedAssessmentStudentStatus("MERGED");
-        student2.setMergedPen("456789111");
+        student2.setGradeAtRegistration("10");
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment);
+        student3.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student3.setGradeAtRegistration("12");
 
-        stagedAssessmentStudentRepository.saveAll(List.of(student1, student2));
+        studentRepository.saveAll(List.of(student1, student2, student3));
 
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/registration-summary-by-school/download/" + "TESTUSER")
