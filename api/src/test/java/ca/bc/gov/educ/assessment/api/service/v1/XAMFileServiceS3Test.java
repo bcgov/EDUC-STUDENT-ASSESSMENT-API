@@ -1,10 +1,8 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
-import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
@@ -15,8 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -108,11 +104,11 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
             .thenThrow(S3Exception.builder().message("S3 upload failed").build());
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        StudentAssessmentAPIRuntimeException exception = assertThrows(StudentAssessmentAPIRuntimeException.class,
             () -> xamFileService.uploadToS3(file, testKey));
 
         assertTrue(exception.getMessage().contains("Failed to upload file to BCBox S3"));
-        assertInstanceOf(S3Exception.class, exception.getCause());
+        assertTrue(exception.getMessage().contains("S3 upload failed"));
     }
 
     @Test

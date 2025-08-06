@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
@@ -20,6 +21,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -102,7 +107,7 @@ public class XAMFileService {
                 return (T) file;
             } catch (Exception e) {
                 log.error("Failed to write XAM file", e);
-                throw new RuntimeException("Failed to write XAM file", e);
+                throw new StudentAssessmentAPIRuntimeException("Failed to write XAM file: " + e.getMessage());
             }
         } else {
             DownloadableReportResponse response = new DownloadableReportResponse();
@@ -136,7 +141,7 @@ public class XAMFileService {
             log.debug("Successfully uploaded file to BCBox S3: {} (size: {} bytes)", key, file.length());
         } catch (Exception e) {
             log.error("Failed to upload file to BCBox S3: {}", key, e);
-            throw new RuntimeException("Failed to upload file to BCBox S3", e);
+            throw new StudentAssessmentAPIRuntimeException("Failed to upload file to BCBox S3: " + e.getMessage());
         }
     }
 
@@ -194,14 +199,15 @@ public class XAMFileService {
      */
     private void deleteFile(String filePath, String schoolMincode) {
         try {
-            File file = new File(filePath);
-            if (file.exists() && file.delete()) {
-                log.debug("Successfully deleted temporary XAM file for school {}: {}", schoolMincode, filePath);
-            } else if (file.exists()) {
-                log.warn("Failed to delete temporary XAM file for school {}: {}", schoolMincode, filePath);
-            }
+            Path path = Path.of(filePath);
+            Files.delete(path);
+            log.debug("Successfully deleted temporary XAM file for school {}: {}", schoolMincode, filePath);
+        } catch (NoSuchFileException e) {
+            log.debug("Temporary XAM file for school {} already deleted or does not exist: {}", schoolMincode, filePath);
+        } catch (IOException e) {
+            log.warn("Failed to delete temporary XAM file for school {}: {} - {}", schoolMincode, filePath, e.getMessage());
         } catch (Exception e) {
-            log.error("Error deleting temporary XAM file for school {}: {}", schoolMincode, filePath, e);
+            log.error("Unexpected error deleting temporary XAM file for school {}: {}", schoolMincode, filePath, e);
         }
     }
 
