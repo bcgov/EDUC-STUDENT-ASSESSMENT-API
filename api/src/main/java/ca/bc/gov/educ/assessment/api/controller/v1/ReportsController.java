@@ -45,7 +45,6 @@ public class ReportsController implements ReportsEndpoint {
         switch (code.get()) {
             case ALL_SESSION_REGISTRATIONS:
                 var registrations = csvReportService.generateSessionRegistrationsReport(sessionID);
-                assessmentStudentService.markAllStudentsInSessionAsDownloaded(sessionID, updateUser);
                 sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS);
                 return registrations;
             case ATTEMPTS:
