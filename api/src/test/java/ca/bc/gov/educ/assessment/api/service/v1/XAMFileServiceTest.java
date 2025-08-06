@@ -143,9 +143,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(school.getMincode()).thenReturn("MINCODE3");
         when(school.getVendorSourceSystemCode()).thenReturn("MYED");
 
-        Exception ex = assertThrows(EntityNotFoundException.class, () -> {
-            xamFileService.generateXamReport(sessionId, UUID.fromString(school.getSchoolId()));
-        });
+        assertThrows(EntityNotFoundException.class, () -> xamFileService.generateXamReport(sessionId, UUID.fromString(school.getSchoolId())));
     }
 
     @Test
