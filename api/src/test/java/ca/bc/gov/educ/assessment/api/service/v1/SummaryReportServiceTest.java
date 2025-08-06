@@ -51,7 +51,7 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
     SummaryReportService summaryReportService;
 
     @AfterEach
-    public void after() {
+    void after() {
         assessmentStudentHistoryRepository.deleteAll();
         assessmentStudentRepository.deleteAll();
         assessmentRepository.deleteAll();
@@ -115,16 +115,16 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
         assertThat(results.getHeaders().get(4)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode());
         Map<String, String> row1 = results.getRows().stream().filter(r -> r.get(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode()).equals(school.getMincode())).findFirst().orElse(null);
         assertThat(row1).isNotNull();
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode())).isEqualTo("LTE10");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode())).isEqualTo("2");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_12_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode())).isEqualTo("3");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode(), "LTE10");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode(), "2");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_12_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode(), "3");
         Map<String, String> row2 = results.getRows().stream().filter(r -> r.get(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode()).equals(String.valueOf(schoolID2))).findFirst().orElse(null);
         assertThat(row2).isNotNull();
-        assertThat(row2.get(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode())).isEqualTo("LTE10");
-        assertThat(row2.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode())).isEqualTo("1");
-        assertThat(row2.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_12_COUNT.getCode())).isEqualTo("0");
-        assertThat(row2.get(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode())).isEqualTo("1");
+        assertThat(row2).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode(), "LTE10");
+        assertThat(row2).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode(), "1");
+        assertThat(row2).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_12_COUNT.getCode(), "0");
+        assertThat(row2).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode(), "1");
     }
 
     @Test
@@ -173,11 +173,11 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
         assertThat(results.getHeaders().get(3)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_11_COUNT.getCode());
         assertThat(results.getHeaders().get(4)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode());
         Map<String, String> row1 = results.getRows().getFirst();
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode())).isEqualTo("LTE10");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode())).isEqualTo(school.getMincode());
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_11_COUNT.getCode())).isEqualTo("2");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode())).isEqualTo("3");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode(), "LTE10");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode(), school.getMincode());
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_11_COUNT.getCode(), "2");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode(), "3");
     }
 
     @Test
@@ -251,18 +251,18 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
         assertThat(results.getHeaders().get(11)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.BLANK_GRADE_COUNT.getCode());
         assertThat(results.getHeaders().get(12)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode());
         Map<String, String> row1 = results.getRows().getFirst();
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode())).isEqualTo("LTE10");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode())).isEqualTo(school.getMincode());
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_08_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_09_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_11_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_12_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AD_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_OT_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_HS_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AN_COUNT.getCode())).isEqualTo("1");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.BLANK_GRADE_COUNT.getCode())).isEqualTo("2");
-        assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode())).isEqualTo("11");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode(), "LTE10");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode(), school.getMincode());
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_08_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_09_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_11_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_12_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AD_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_OT_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_HS_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AN_COUNT.getCode(), "1");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.BLANK_GRADE_COUNT.getCode(), "2");
+        assertThat(row1).containsEntry(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode(), "11");
     }
 }
