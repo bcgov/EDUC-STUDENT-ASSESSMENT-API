@@ -8,6 +8,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentHistoryRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
@@ -43,12 +44,15 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
     @Autowired
     AssessmentStudentRepository assessmentStudentRepository;
     @Autowired
+    AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+    @Autowired
     RestUtils restUtils;
     @Autowired
     SummaryReportService summaryReportService;
 
     @AfterEach
     public void after() {
+        assessmentStudentHistoryRepository.deleteAll();
         assessmentStudentRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
