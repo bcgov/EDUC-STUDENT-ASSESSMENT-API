@@ -163,16 +163,40 @@ public class XAMFileService {
         List<SchoolTombstone> myEdSchools = schools.stream()
                 .filter(school -> "MYED".equalsIgnoreCase(school.getVendorSourceSystemCode()))
                 .toList();
-        // todo only eligible schools
         log.info("Starting generation and upload of XAM files for {} MYED schools, session {}", myEdSchools.size(), sessionID);
         for (SchoolTombstone school : myEdSchools) {
-            log.info("Generating XAM file for school: {}", school.getMincode());
-            String filePath = generateXamFileAndReturnPath(sessionID, school);
-            log.info("Uploading XAM file for school: {}", school.getMincode());
-            uploadFilePathToS3(filePath, sessionID, school);
-            // todo delete the files after they are uploaded
+            String filePath = null;
+            try {
+                log.info("Generating XAM file for school: {}", school.getMincode());
+                filePath = generateXamFileAndReturnPath(sessionID, school);
+                log.info("Uploading XAM file for school: {}", school.getMincode());
+                uploadFilePathToS3(filePath, sessionID, school);
+                log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
+            } catch (Exception e) {
+                log.error("Failed to process XAM file for school: {}", school.getMincode(), e);
+            } finally {
+                if (filePath != null) {
+                    deleteFile(filePath, school.getMincode());
+                }
+            }
         }
         log.info("Completed processing XAM files for session {}", sessionID);
+    }
+
+    /**
+     * Delete a file and log the result
+     */
+    private void deleteFile(String filePath, String schoolMincode) {
+        try {
+            File file = new File(filePath);
+            if (file.exists() && file.delete()) {
+                log.debug("Successfully deleted temporary XAM file for school {}: {}", schoolMincode, filePath);
+            } else if (file.exists()) {
+                log.warn("Failed to delete temporary XAM file for school {}: {}", schoolMincode, filePath);
+            }
+        } catch (Exception e) {
+            log.error("Error deleting temporary XAM file for school {}: {}", schoolMincode, filePath, e);
+        }
     }
 
     private String padRight(String value, int length) {

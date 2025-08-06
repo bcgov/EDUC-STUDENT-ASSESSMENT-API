@@ -65,4 +65,9 @@ public class ApplicationProperties {
   private String chesClientSecret;
   @Value("${ches.token.url}")
   private String chesTokenURL;
+
+  @Value("${s3.access.key.id}")
+  private String s3AccessKeyId;
+  @Value("${s3.access.secret.key}")
+  private String s3AccessSecretKey;
 }
