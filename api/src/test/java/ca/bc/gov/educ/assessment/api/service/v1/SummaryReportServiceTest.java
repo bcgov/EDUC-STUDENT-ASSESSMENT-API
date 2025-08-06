@@ -79,29 +79,31 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
 
     @Test
     void testGetAssessmentRegistrationTotalsBySchool_GivenValidSessionIdAndData_ShouldGenerate() {
-        UUID schoolID = UUID.randomUUID();
+        UUID schoolID1 = UUID.randomUUID();
+        UUID schoolID2 = UUID.randomUUID();
         SchoolTombstone school = this.createMockSchool();
-        school.setSchoolId(String.valueOf(schoolID));
+        school.setSchoolId(String.valueOf(schoolID1));
         when(this.restUtils.getSchoolBySchoolID(school.getSchoolId())).thenReturn(Optional.of(school));
+        when(this.restUtils.getSchoolBySchoolID(String.valueOf(schoolID2))).thenReturn(Optional.empty());
 
         AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
         AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, "LTE10"));
         AssessmentStudentEntity assessmentStudentEntity1 = createMockStudentEntity(assessmentEntity);
-        assessmentStudentEntity1.setSchoolOfRecordSchoolID(schoolID);
+        assessmentStudentEntity1.setSchoolOfRecordSchoolID(schoolID1);
         assessmentStudentEntity1.setGradeAtRegistration("10");
         assessmentStudentRepository.save(assessmentStudentEntity1);
         AssessmentStudentEntity assessmentStudentEntity2 = createMockStudentEntity(assessmentEntity);
-        assessmentStudentEntity2.setSchoolOfRecordSchoolID(schoolID);
+        assessmentStudentEntity2.setSchoolOfRecordSchoolID(schoolID1);
         assessmentStudentEntity2.setGradeAtRegistration("10");
         assessmentStudentRepository.save(assessmentStudentEntity2);
         AssessmentStudentEntity assessmentStudentEntity3 = createMockStudentEntity(assessmentEntity);
-        assessmentStudentEntity3.setSchoolOfRecordSchoolID(schoolID);
+        assessmentStudentEntity3.setSchoolOfRecordSchoolID(schoolID1);
         assessmentStudentEntity3.setGradeAtRegistration("12");
         assessmentStudentRepository.save(assessmentStudentEntity3);
         AssessmentStudentEntity assessmentStudentEntity4 = createMockStudentEntity(assessmentEntity);
-        assessmentStudentEntity4.setSchoolOfRecordSchoolID(UUID.randomUUID());
+        assessmentStudentEntity4.setSchoolOfRecordSchoolID(schoolID2);
         assessmentStudentEntity4.setGradeAtRegistration("10");
-        AssessmentStudentEntity finalAssessmentStudentEntity4 = assessmentStudentRepository.save(assessmentStudentEntity4);
+        assessmentStudentRepository.save(assessmentStudentEntity4);
 
         SimpleHeadcountResultsTable results = summaryReportService.getAssessmentRegistrationTotalsBySchool(assessmentSessionEntity.getSessionID());
         assertThat(results.getHeaders()).isNotEmpty();
@@ -117,7 +119,7 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
         assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode())).isEqualTo("2");
         assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_12_COUNT.getCode())).isEqualTo("1");
         assertThat(row1.get(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode())).isEqualTo("3");
-        Map<String, String> row2 = results.getRows().stream().filter(r -> r.get(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode()).equals(String.valueOf(finalAssessmentStudentEntity4.getSchoolOfRecordSchoolID()))).findFirst().orElse(null);
+        Map<String, String> row2 = results.getRows().stream().filter(r -> r.get(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode()).equals(String.valueOf(schoolID2))).findFirst().orElse(null);
         assertThat(row2).isNotNull();
         assertThat(row2.get(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode())).isEqualTo("LTE10");
         assertThat(row2.get(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode())).isEqualTo("1");
