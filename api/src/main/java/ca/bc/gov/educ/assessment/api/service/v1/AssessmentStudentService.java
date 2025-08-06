@@ -107,13 +107,6 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markAllStudentsInSessionAsDownloaded(UUID assessmentSessionID, String updateUser) {
-        var currentDate = LocalDateTime.now();
-        assessmentStudentRepository.updateDownloadDataAllByAssessmentSessionAndNoExemption(assessmentSessionID, currentDate, updateUser, currentDate);
-        assessmentStudentHistoryRepository.insertHistoryForDownloadDateUpdate(assessmentSessionID, updateUser, currentDate);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity) throws JsonProcessingException {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
