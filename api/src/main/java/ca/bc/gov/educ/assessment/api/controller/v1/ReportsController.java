@@ -53,6 +53,8 @@ public class ReportsController implements ReportsEndpoint {
             case PEN_MERGES:
                 sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.PEN_MERGES);
                 return csvReportService.generatePenMergesReport();
+            case ALL_DETAILED_STUDENTS_IN_SESSION_CSV:
+                return csvReportService.generateAllDetailedStudentsInSession(sessionID);
             case REGISTRATION_DETAIL_CSV:
                 return csvReportService.generateRegistrationDetailReport(sessionID);
             case PEN_ISSUES_CSV:

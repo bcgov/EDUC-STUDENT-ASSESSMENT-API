@@ -9,8 +9,6 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -21,7 +19,7 @@ import java.util.UUID;
 @Builder
 @Table(name = "STAGED_ASSESSMENT_STUDENT")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StagedAssessmentStudentEntity {
+public class StagedAssessmentStudentLightEntity {
 
   @Id
   @GeneratedValue(generator = "UUID")
@@ -62,17 +60,11 @@ public class StagedAssessmentStudentEntity {
   @Column(name = "LOCAL_ID", length = 12)
   private String localID;
 
-  @Column(name = "LOCAL_ASSESSMENT_ID", length = 20)
-  private String localAssessmentID;
-
   @Column(name = "PROFICIENCY_SCORE", length = 1)
   private Integer proficiencyScore;
 
   @Column(name = "PROVINCIAL_SPECIAL_CASE_CODE", length = 1)
   private String provincialSpecialCaseCode;
-
-  @Column(name = "NUMBER_OF_ATTEMPTS", length = 1)
-  private Integer numberOfAttempts;
 
   @Column(name = "RAW_SCORE")
   private BigDecimal rawScore;
@@ -83,23 +75,14 @@ public class StagedAssessmentStudentEntity {
   @Column(name = "OE_TOTAL")
   private BigDecimal oeTotal;
 
-  @Column(name = "ADAPTED_ASSESSMENT_CODE", length = 10)
-  private String adaptedAssessmentCode;
+  @Column(name = "GRADE_AT_REGISTRATION", length = 2)
+  private String gradeAtRegistration;
+  
+  @Column(name = "STAGED_ASSESSMENT_STUDENT_STATUS", length = 10)
+  private String stagedAssessmentStudentStatus;
 
   @Column(name = "IRT_SCORE", length = 7)
   private String irtScore;
-
-  @Column(name = "MARKING_SESSION", length = 6)
-  private String markingSession;
-
-  @Column(name = "IS_PRE_REGISTERED")
-  private Boolean isPreRegistered;
-
-  @Column(name = "STAGED_ASSESSMENT_STUDENT_STATUS", length = 10)
-  private String stagedAssessmentStudentStatus;
-  
-  @Column(name = "GRADE_AT_REGISTRATION", length = 2)
-  private String gradeAtRegistration;
   
   @Column(name = "MERGED_PEN", length = 9)
   private String mergedPen;
@@ -117,16 +100,5 @@ public class StagedAssessmentStudentEntity {
   @PastOrPresent
   @Column(name = "UPDATE_DATE")
   private LocalDateTime updateDate;
-
-  @EqualsAndHashCode.Exclude
-  @ToString.Exclude
-  @OneToMany(mappedBy = "stagedAssessmentStudentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = StagedAssessmentStudentComponentEntity.class)
-  Set<StagedAssessmentStudentComponentEntity> stagedAssessmentStudentComponentEntities;
-
-  public Set<StagedAssessmentStudentComponentEntity> getStagedAssessmentStudentComponentEntities() {
-    if (this.stagedAssessmentStudentComponentEntities == null) {
-      this.stagedAssessmentStudentComponentEntities = new HashSet<>();
-    }
-    return this.stagedAssessmentStudentComponentEntities;
-  }
+  
 }

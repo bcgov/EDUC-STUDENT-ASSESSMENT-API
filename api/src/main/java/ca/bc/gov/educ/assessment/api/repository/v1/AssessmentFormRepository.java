@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,5 +19,6 @@ public interface AssessmentFormRepository extends JpaRepository<AssessmentFormEn
             "AND form.formCode = :formCode")
     Optional<AssessmentFormEntity> findFormBySessionAndAssessmentType(String courseYear, String courseMonth, String assessmentTypeCode, String formCode);
     Optional<AssessmentFormEntity> findByAssessmentEntity_AssessmentIDAndFormCode(UUID assessmentID, String formCode);
+    List<AssessmentFormEntity> findAllByAssessmentEntity_AssessmentSessionEntity_SessionID(UUID sessionID);
 
 }
