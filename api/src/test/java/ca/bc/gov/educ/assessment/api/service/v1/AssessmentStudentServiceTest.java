@@ -138,7 +138,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
 
     //when creating an assessment student
-    var pair = assessmentStudentService.createStudent(assessmentStudentEntity);
+    var pair = assessmentStudentService.createStudent(assessmentStudentEntity, false);
     AssessmentStudent student = pair.getLeft();
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
     //then assessment student is created
@@ -149,7 +149,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     assertThat(studentHistory).hasSize(1);
 
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.empty());
-    var pair2 = assessmentStudentService.createStudent(assessmentStudentEntity);
+    var pair2 = assessmentStudentService.createStudent(assessmentStudentEntity, false);
     AssessmentStudent student2 = pair2.getLeft();
     assertNotNull(student2);
     assertThat(student2.getGradeAtRegistration()).isNotEqualTo(gradStudentRecord.getStudentGrade());
@@ -191,10 +191,10 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setStudentGrade("10");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(studentEntity);
+    var pair = assessmentStudentService.createStudent(studentEntity, false);
     AssessmentStudent assessmentStudent = pair.getLeft();
     //when updating the student
-    var pair2 = assessmentStudentService.updateStudent(mapper.toModel(assessmentStudent));
+    var pair2 = assessmentStudentService.updateStudent(mapper.toModel(assessmentStudent), false);
     var student = pair2.getLeft();
     assertNotNull(student);
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
@@ -217,7 +217,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity student = AssessmentStudentEntity.builder().assessmentStudentID(UUID.randomUUID()).pen("120164447").schoolOfRecordSchoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build();
 
     //then throw exception
-    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(student));
+    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(student, false));
   }
 
   @Test
@@ -231,7 +231,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity student = createMockStudentEntity(assessmentEntity);
 
     //then throw exception
-    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(student));
+    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(student, false));
   }
 
   @Test
@@ -260,7 +260,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setGraduated("Y");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(assessmentStudentEntity);
+    var pair = assessmentStudentService.createStudent(assessmentStudentEntity, false);
     AssessmentStudent student = pair.getLeft();
     assertThat(student.getAssessmentStudentValidationIssues()).hasSize(2);
   }
@@ -365,7 +365,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     assertThat(studentHistory).hasSize(2);
 
     String expectedEventPayloadBody = JsonUtil.getJsonStringFromObject(studentEntity.getStudentID());
-    List<AssessmentEventEntity> events = assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity.getAssessmentStudentID()));
+    List<AssessmentEventEntity> events = assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity.getAssessmentStudentID()), false);
     assertThat(events).hasSize(1);
     assertThat(events).anyMatch(e -> e.getEventPayload().equals(expectedEventPayloadBody));
 
@@ -394,7 +394,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
     String expectedEventPayloadBody1 = JsonUtil.getJsonStringFromObject(studentEntity1.getStudentID());
     String expectedEventPayloadBody2 = JsonUtil.getJsonStringFromObject(studentEntity2.getStudentID());
-    List<AssessmentEventEntity> events = assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()));
+    List<AssessmentEventEntity> events = assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false);
     assertThat(events).hasSize(2);
     assertThat(events).anyMatch(e -> e.getEventPayload().equals(expectedEventPayloadBody1));
     assertThat(events).anyMatch(e -> e.getEventPayload().equals(expectedEventPayloadBody2));
@@ -429,7 +429,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
     String expectedEventPayloadBody1 = JsonUtil.getJsonStringFromObject(studentEntity1.getStudentID());
     String expectedEventPayloadBody2 = JsonUtil.getJsonStringFromObject(studentEntity2.getStudentID());
-    List<AssessmentEventEntity> events = assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity1.getAssessmentStudentID()));
+    List<AssessmentEventEntity> events = assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity1.getAssessmentStudentID()), false);
     assertThat(events).hasSize(1);
     assertThat(events).anyMatch(e -> e.getEventPayload().equals(expectedEventPayloadBody1));
     assertThat(events).noneMatch(e -> e.getEventPayload().equals(expectedEventPayloadBody2));
@@ -454,7 +454,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase = assessmentStudentRepository.findById(studentEntity.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase).isNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity.getAssessmentStudentID())));
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity.getAssessmentStudentID()), false));
   }
 
   @Test
@@ -469,7 +469,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID())));
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
   }
 
   @Test
@@ -484,7 +484,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID())));
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
   }
 
   @Test
@@ -501,7 +501,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase = assessmentStudentRepository.findById(studentEntity.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity.getAssessmentStudentID())));
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity.getAssessmentStudentID()), false));
   }
 
   @Test
@@ -521,7 +521,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID())));
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
   }
 
   @Test
@@ -543,7 +543,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID())));
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
   }
 
   @Test
@@ -558,7 +558,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase = assessmentStudentRepository.findById(finalStudentEntity.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Collections.singletonList(finalStudentEntity.getAssessmentStudentID())));
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Collections.singletonList(finalStudentEntity.getAssessmentStudentID()), false));
   }
 
   @Test
@@ -578,7 +578,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(finalStudentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(finalStudentEntity1.getAssessmentStudentID(), finalStudentEntity2.getAssessmentStudentID())));
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(finalStudentEntity1.getAssessmentStudentID(), finalStudentEntity2.getAssessmentStudentID()), false));
   }
 
   @Test
@@ -596,7 +596,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(finalStudentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID())));
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(finalStudentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
   }
 
   @Test
@@ -616,7 +616,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
     String expectedEventPayloadBody1 = JsonUtil.getJsonStringFromObject(finalStudentEntity1.getStudentID());
     String expectedEventPayloadBody2 = JsonUtil.getJsonStringFromObject(studentEntity2.getStudentID());
-    List<AssessmentEventEntity> events = assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity2.getAssessmentStudentID()));
+    List<AssessmentEventEntity> events = assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity2.getAssessmentStudentID()), false);
     assertThat(events).hasSize(1);
     assertThat(events).noneMatch(e -> e.getEventPayload().equals(expectedEventPayloadBody1));
     assertThat(events).anyMatch(e -> e.getEventPayload().equals(expectedEventPayloadBody2));
@@ -655,14 +655,14 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setGraduated("Y");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(currentStudentEntity);
+    var pair = assessmentStudentService.createStudent(currentStudentEntity, false);
     AssessmentStudent createdStudent = pair.getLeft();
 
     //when updating student with same assessment ID
     AssessmentStudentEntity updateStudentEntity = mapper.toModel(createdStudent);
     updateStudentEntity.getAssessmentEntity().setAssessmentID(currentAssessmentEntity.getAssessmentID());
 
-    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity);
+    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity, false);
     AssessmentStudent updatedStudent = updatePair.getLeft();
 
     //then current assessment entity should be used
@@ -699,7 +699,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setGraduated("Y");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(currentStudentEntity);
+    var pair = assessmentStudentService.createStudent(currentStudentEntity, false);
     AssessmentStudent createdStudent = pair.getLeft();
 
     //when updating student with different assessment ID
@@ -708,7 +708,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     updateStudentEntity.getAssessmentEntity().setAssessmentID(newAssessmentId);
 
     //then should throw exception for non-existent assessment
-    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(updateStudentEntity));
+    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(updateStudentEntity, false));
   }
 
   @Test
@@ -741,14 +741,14 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setGraduated("Y");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(currentStudentEntity);
+    var pair = assessmentStudentService.createStudent(currentStudentEntity, false);
     AssessmentStudent createdStudent = pair.getLeft();
 
     //when updating student with new assessment ID
     AssessmentStudentEntity updateStudentEntity = mapper.toModel(createdStudent);
     updateStudentEntity.getAssessmentEntity().setAssessmentID(newAssessmentEntity.getAssessmentID());
 
-    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity);
+    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity, false);
     AssessmentStudent updatedStudent = updatePair.getLeft();
 
     //then new assessment entity should be used

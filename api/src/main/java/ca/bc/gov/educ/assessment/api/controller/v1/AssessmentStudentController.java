@@ -54,20 +54,20 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID) throws JsonProcessingException {
+  public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID, boolean allowRuleOverride) throws JsonProcessingException {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, false));
     RequestUtil.setAuditColumnsForUpdate(assessmentStudent);
-    var pair = studentService.updateStudent(mapper.toModel(assessmentStudent));
+    var pair = studentService.updateStudent(mapper.toModel(assessmentStudent), allowRuleOverride);
     publisher.dispatchChoreographyEvent(pair.getRight());
     return pair.getLeft();
   }
 
   @Override
-  public AssessmentStudent createStudent(AssessmentStudent assessmentStudent) throws JsonProcessingException {
+  public AssessmentStudent createStudent(AssessmentStudent assessmentStudent, boolean allowRuleOverride) throws JsonProcessingException {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
     RequestUtil.setAuditColumnsForCreate(assessmentStudent);
     AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
-    var pair = studentService.createStudent(assessmentStudentEntity);
+    var pair = studentService.createStudent(assessmentStudentEntity, allowRuleOverride);
     publisher.dispatchChoreographyEvent(pair.getRight());
     return pair.getLeft();
   }
@@ -88,8 +88,8 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public ResponseEntity<Void> deleteStudents(List<UUID> assessmentStudentIDs) throws JsonProcessingException {
-    List<AssessmentEventEntity> events = studentService.deleteStudents(assessmentStudentIDs);
+  public ResponseEntity<Void> deleteStudents(List<UUID> assessmentStudentIDs, boolean allowRuleOverride) throws JsonProcessingException {
+    List<AssessmentEventEntity> events = studentService.deleteStudents(assessmentStudentIDs, allowRuleOverride);
     events.forEach(publisher::dispatchChoreographyEvent);
     return ResponseEntity.noContent().build();
   }
