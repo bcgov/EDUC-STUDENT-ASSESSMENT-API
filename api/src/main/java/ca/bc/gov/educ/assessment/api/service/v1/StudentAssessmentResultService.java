@@ -178,6 +178,7 @@ public class StudentAssessmentResultService {
         stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
         stagedStudent.setMarkingSession(studentResult.getMarkingSession());
         stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : stagedStudent.getSchoolOfRecordSchoolID());
+        stagedStudent.setGradeAtRegistration(gradStudent != null ? gradStudent.getStudentGrade() : null);
         stagedStudent.setUpdateDate(LocalDateTime.now());
         stagedStudent.setUpdateUser(studentResult.getUpdateUser());
 
@@ -198,6 +199,7 @@ public class StudentAssessmentResultService {
         stagedStudent.setSurname(studentApiStudent != null ? studentApiStudent.getLegalLastName(): null);
         stagedStudent.setPen(studentApiStudent != null ? studentApiStudent.getPen(): studentResult.getPen());
         stagedStudent.setLocalID(studentApiStudent != null ? studentApiStudent.getLocalID() : null);
+        stagedStudent.setGradeAtRegistration(gradStudent != null ? gradStudent.getStudentGrade() : null);
         stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
         stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
         stagedStudent.setNumberOfAttempts(noOfAttempts);
