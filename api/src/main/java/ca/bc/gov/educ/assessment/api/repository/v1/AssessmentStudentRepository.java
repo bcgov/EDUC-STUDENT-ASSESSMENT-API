@@ -2,6 +2,7 @@ package ca.bc.gov.educ.assessment.api.repository.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentRegistrationTotalsBySchoolResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -88,6 +89,47 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         group by stud.assessmentEntity.assessmentID
     """)
     List<RegistrationSummaryResult> getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNull(List<UUID> assessmentIDs);
+
+    @Query(value="""
+        select stud.assessmentEntity.assessmentID as assessmentID,
+        stud.schoolOfRecordSchoolID as schoolOfRecordSchoolID,
+        count(case when stud.gradeAtRegistration = '08' then 1 end) as grade8Count,
+        count(case when stud.gradeAtRegistration = '09' then 1 end) as grade9Count,
+        count(case when stud.gradeAtRegistration = '10' then 1 end) as grade10Count,
+        count(case when stud.gradeAtRegistration = '11' then 1 end) as grade11Count,
+        count(case when stud.gradeAtRegistration = '12' then 1 end) as grade12Count,
+        count(case when stud.gradeAtRegistration = 'AD' then 1 end) as gradeADCount,
+        count(case when stud.gradeAtRegistration = 'OT' then 1 end) as gradeOTCount,
+        count(case when stud.gradeAtRegistration = 'HS' then 1 end) as gradeHSCount,
+        count(case when stud.gradeAtRegistration = 'AN' then 1 end) as gradeANCount,
+        count(case when stud.gradeAtRegistration not in ('08', '09', '10', '11', '12', 'AD', 'OT', 'HS', 'AN') or stud.gradeAtRegistration is null then 1 end) as blankGradeCount,
+        count(*) as total
+        from AssessmentStudentEntity stud
+        where stud.assessmentEntity.assessmentID in (:assessmentIDs)
+        group by stud.assessmentEntity.assessmentID, stud.schoolOfRecordSchoolID
+    """)
+    List<AssessmentRegistrationTotalsBySchoolResult> getRegistrationSummaryByAssessmentIDsAndSchoolIDs(List<UUID> assessmentIDs);
+
+    @Query(value="""
+        select stud.assessmentEntity.assessmentID as assessmentID,
+        stud.schoolOfRecordSchoolID as schoolOfRecordSchoolID,
+        count(case when stud.gradeAtRegistration = '08' then 1 end) as grade8Count,
+        count(case when stud.gradeAtRegistration = '09' then 1 end) as grade9Count,
+        count(case when stud.gradeAtRegistration = '10' then 1 end) as grade10Count,
+        count(case when stud.gradeAtRegistration = '11' then 1 end) as grade11Count,
+        count(case when stud.gradeAtRegistration = '12' then 1 end) as grade12Count,
+        count(case when stud.gradeAtRegistration = 'AD' then 1 end) as gradeADCount,
+        count(case when stud.gradeAtRegistration = 'OT' then 1 end) as gradeOTCount,
+        count(case when stud.gradeAtRegistration = 'HS' then 1 end) as gradeHSCount,
+        count(case when stud.gradeAtRegistration = 'AN' then 1 end) as gradeANCount,
+        count(case when stud.gradeAtRegistration not in ('08', '09', '10', '11', '12', 'AD', 'OT', 'HS', 'AN') or stud.gradeAtRegistration is null then 1 end) as blankGradeCount,
+        count(*) as total
+        from AssessmentStudentEntity stud
+        where stud.assessmentEntity.assessmentID in (:assessmentIDs)
+        and stud.downloadDate is not null
+        group by stud.assessmentEntity.assessmentID, stud.schoolOfRecordSchoolID
+    """)
+    List<AssessmentRegistrationTotalsBySchoolResult> getRegistrationSummaryByAssessmentIDsAndSchoolIDsAndDownloadDateIsNotNull(List<UUID> assessmentIDs);
 
 
     @Query("""

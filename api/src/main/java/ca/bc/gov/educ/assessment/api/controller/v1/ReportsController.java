@@ -45,7 +45,6 @@ public class ReportsController implements ReportsEndpoint {
         switch (code.get()) {
             case ALL_SESSION_REGISTRATIONS:
                 var registrations = csvReportService.generateSessionRegistrationsReport(sessionID);
-                assessmentStudentService.markAllStudentsInSessionAsDownloaded(sessionID, updateUser);
                 sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS);
                 return registrations;
             case ATTEMPTS:
@@ -54,10 +53,14 @@ public class ReportsController implements ReportsEndpoint {
             case PEN_MERGES:
                 sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.PEN_MERGES);
                 return csvReportService.generatePenMergesReport();
+            case ALL_DETAILED_STUDENTS_IN_SESSION_CSV:
+                return csvReportService.generateAllDetailedStudentsInSession(sessionID);
             case REGISTRATION_DETAIL_CSV:
                 return csvReportService.generateRegistrationDetailReport(sessionID);
             case PEN_ISSUES_CSV:
                 return csvReportService.generatePenIssuesReport(sessionID);
+            case REGISTRATION_SUMMARY_BY_SCHOOL:
+                return csvReportService.generateAssessmentRegistrationTotalsBySchoolReport(sessionID);
             default:
                 return new DownloadableReportResponse();
         }

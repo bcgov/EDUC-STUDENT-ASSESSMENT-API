@@ -4,7 +4,6 @@ import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEventStatesEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
@@ -66,7 +65,8 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<String> {
         this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
 
         UUID sessionID = UUID.fromString(payload);
-        xamFileService.generateAndUploadXamFiles(sessionID);
+        var assessmentSessionEntity = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
+        xamFileService.generateAndUploadXamFiles(assessmentSessionEntity);
 
         final Event nextEvent = Event.builder()
                 .sagaId(saga.getSagaId())
