@@ -1,8 +1,10 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
@@ -12,10 +14,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -27,27 +36,28 @@ public class XAMFileService {
     private final AssessmentStudentRepository assessmentStudentRepository;
     private AssessmentSessionRepository assessmentSessionRepository;
     private RestUtils restUtils;
-//    @Value("${s3.bucket.name}")
-//    private String bucketName;
+    private final S3Client s3Client;
+    private final ApplicationProperties applicationProperties;
 
     @Autowired
-    public XAMFileService(AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, RestUtils restUtils) {
+    public XAMFileService(AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, RestUtils restUtils, S3Client s3Client, ApplicationProperties applicationProperties) {
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.restUtils = restUtils;
+        this.s3Client = s3Client;
+        this.applicationProperties = applicationProperties;
     }
 
     /**
      * Generic method to generate XAM content and return either a File or DownloadableReportResponse
-     * @param sessionID the session ID
+     * @param assessmentSessionEntity the assessment session ID
      * @param school the school tombstone
      * @param asFile whether to return a File (true) or DownloadableReportResponse (false)
      * @return T - either File or DownloadableReportResponse
      */
     @SuppressWarnings("unchecked")
-    private <T> T generateXamContent(UUID sessionID, SchoolTombstone school, boolean asFile) {
-        var assessmentSession = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
-        List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(sessionID, UUID.fromString(school.getSchoolId()));
+    private <T> T generateXamContent(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school, boolean asFile) {
+        List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()));
 
         StringBuilder sb = new StringBuilder();
 
@@ -86,7 +96,7 @@ public class XAMFileService {
                 "\n";
             sb.append(record);
         }
-        String fileName = school.getMincode() + "-" + assessmentSession.getCourseYear() + assessmentSession.getCourseMonth() + "-Results" + ".xam";
+        String fileName = generateXamFileName(school, assessmentSessionEntity);
         String content = sb.toString();
 
         if (asFile) {
@@ -96,7 +106,7 @@ public class XAMFileService {
                 return (T) file;
             } catch (Exception e) {
                 log.error("Failed to write XAM file", e);
-                throw new RuntimeException("Failed to write XAM file", e);
+                throw new StudentAssessmentAPIRuntimeException("Failed to write XAM file: " + e.getMessage());
             }
         } else {
             DownloadableReportResponse response = new DownloadableReportResponse();
@@ -109,28 +119,29 @@ public class XAMFileService {
     /**
      * Returns a File for the XAM content (used by orchestrator)
      */
-    public File generateXamFile(UUID sessionID, SchoolTombstone school) {
-        return generateXamContent(sessionID, school, true);
+    public File generateXamFile(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school) {
+        return generateXamContent(assessmentSessionEntity, school, true);
     }
 
     /**
      * Returns a DownloadableReportResponse for the XAM content (used by controller)
      */
     public DownloadableReportResponse generateXamReport(UUID sessionID, UUID schoolID) {
+        var assessmentSession = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
         var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class));
-        return generateXamContent(sessionID, schoolTombstone, false);
+        return generateXamContent(assessmentSession, schoolTombstone, false);
     }
 
     public void uploadToS3(File file, String key) {
         try {
-//            s3Client.putObject(PutObjectRequest.builder()
-//                    .bucket(bucketName)
-//                    .key(key)
-//                    .build(), Path.of(file.getPath()));
-            log.info("Uploaded file to S3: {}", key);
+            s3Client.putObject(PutObjectRequest.builder()
+                    .bucket(applicationProperties.getS3BucketName())
+                    .key(key)
+                    .build(), RequestBody.fromFile(file));
+            log.debug("Successfully uploaded file to BCBox S3: {} (size: {} bytes)", key, file.length());
         } catch (Exception e) {
-            log.error("Failed to upload file to S3", e);
-            throw new RuntimeException("Failed to upload file to S3", e);
+            log.error("Failed to upload file to BCBox S3: {}", key, e);
+            throw new StudentAssessmentAPIRuntimeException("Failed to upload file to BCBox S3: " + e.getMessage());
         }
     }
 
@@ -138,8 +149,8 @@ public class XAMFileService {
      * for orchestration:
      * Generates a XAM file for the given school and session, returns the file path.
      */
-    public String generateXamFileAndReturnPath(UUID sessionID, SchoolTombstone school) {
-        File file = generateXamFile(sessionID, school);
+    public String generateXamFileAndReturnPath(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school) {
+        File file = generateXamFile(assessmentSessionEntity, school);
         return file.getAbsolutePath();
     }
 
@@ -147,9 +158,10 @@ public class XAMFileService {
      * for orchestration:
      * Uploads the file at the given path to S3 for the given school and session.
      */
-    public void uploadFilePathToS3(String filePath, UUID sessionID, SchoolTombstone school) {
+    public void uploadFilePathToS3(String filePath, AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school) {
         File file = new File(filePath);
-        String key = "xam-files/" + school.getMincode() + "_" + sessionID + ".xam";
+        String fileName = generateXamFileName(school, assessmentSessionEntity);
+        String key = "xam-files/" + fileName;
         uploadToS3(file, key);
     }
 
@@ -158,21 +170,53 @@ public class XAMFileService {
      * Generates and uploads XAM files for all schools for the given session.
      * Only schools with vendor source system code MYED
      */
-    public void generateAndUploadXamFiles(UUID sessionID) {
+    public void generateAndUploadXamFiles(AssessmentSessionEntity assessmentSessionEntity) {
         List<SchoolTombstone> schools = restUtils.getAllSchoolTombstones();
         List<SchoolTombstone> myEdSchools = schools.stream()
                 .filter(school -> "MYED".equalsIgnoreCase(school.getVendorSourceSystemCode()))
                 .toList();
-        // todo only eligible schools
-        log.info("Starting generation and upload of XAM files for {} MYED schools, session {}", myEdSchools.size(), sessionID);
+        log.debug("Starting generation and upload of XAM files for {} MYED schools, session {}", myEdSchools.size(), assessmentSessionEntity.getSessionID());
         for (SchoolTombstone school : myEdSchools) {
-            log.info("Generating XAM file for school: {}", school.getMincode());
-            String filePath = generateXamFileAndReturnPath(sessionID, school);
-            log.info("Uploading XAM file for school: {}", school.getMincode());
-            uploadFilePathToS3(filePath, sessionID, school);
-            // todo delete the files after they are uploaded
+            String filePath = null;
+            try {
+                log.debug("Generating XAM file for school: {}", school.getMincode());
+                filePath = generateXamFileAndReturnPath(assessmentSessionEntity, school);
+                log.debug("Uploading XAM file for school: {}", school.getMincode());
+                uploadFilePathToS3(filePath, assessmentSessionEntity, school);
+                log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
+            } catch (Exception e) {
+                log.error("Failed to process XAM file for school: {}", school.getMincode(), e);
+            } finally {
+                if (filePath != null) {
+                    deleteFile(filePath, school.getMincode());
+                }
+            }
         }
-        log.info("Completed processing XAM files for session {}", sessionID);
+        log.debug("Completed processing XAM files for session {}", assessmentSessionEntity.getSessionID());
+    }
+
+    /**
+     * Delete a file and log the result
+     */
+    private void deleteFile(String filePath, String schoolMincode) {
+        try {
+            Path path = Path.of(filePath);
+            Files.delete(path);
+            log.debug("Successfully deleted temporary XAM file for school {}: {}", schoolMincode, filePath);
+        } catch (NoSuchFileException e) {
+            log.debug("Temporary XAM file for school {} already deleted or does not exist: {}", schoolMincode, filePath);
+        } catch (IOException e) {
+            log.warn("Failed to delete temporary XAM file for school {}: {} - {}", schoolMincode, filePath, e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error deleting temporary XAM file for school {}: {}", schoolMincode, filePath, e);
+        }
+    }
+
+    /**
+     * Generate the XAM filename based on school and session information
+     */
+    private String generateXamFileName(SchoolTombstone school, AssessmentSessionEntity assessmentSessionEntity) {
+        return school.getMincode() + "-" + assessmentSessionEntity.getCourseYear() + assessmentSessionEntity.getCourseMonth() + "-Results.xam";
     }
 
     private String padRight(String value, int length) {

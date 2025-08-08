@@ -117,6 +117,40 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
+    void testGetMinistryReport_AllDetailedStudentsInSessionType_ShouldReturnReportData() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        AssessmentStudentEntity student = createMockStudentEntity(assessment);
+        studentRepository.save(student);
+
+        AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
+        studentRepository.save(student2);
+
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment2);
+        studentRepository.save(student3);
+
+        var resultActions1 = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.ALL_DETAILED_STUDENTS_IN_SESSION_CSV.getCode() + "/download/JANE").with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary1 = objectMapper.readValue(resultActions1.andReturn().getResponse().getContentAsByteArray(), new TypeReference<DownloadableReportResponse>() {
+        });
+
+        assertThat(summary1).isNotNull();
+        assertThat(summary1.getReportType()).isEqualTo(AssessmentReportTypeCode.ALL_DETAILED_STUDENTS_IN_SESSION_CSV.getCode());
+    }
+
+    @Test
     void testGetMinistryReport_ValidTypeAttempts_ShouldReturnReportData() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
@@ -422,6 +456,43 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         assertThat(summary).isNotNull();
         assertThat(summary.getReportType()).isEqualTo("pen-issues-csv");
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetDownloadableReport_RegistrationSummaryBySchool_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
+
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+        student1.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student1.setGradeAtRegistration("10");
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+        student2.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student2.setGradeAtRegistration("10");
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment);
+        student3.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student3.setGradeAtRegistration("12");
+
+        studentRepository.saveAll(List.of(student1, student2, student3));
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/registration-summary-by-school/download/" + "TESTUSER")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("registration-summary-by-school");
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 }

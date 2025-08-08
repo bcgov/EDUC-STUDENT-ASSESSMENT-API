@@ -8,9 +8,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionCriteriaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.SessionApprovalOrchestrator;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionCriteriaRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentApproval;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,15 +48,23 @@ public class SessionService {
     @Getter(AccessLevel.PRIVATE)
     private final SessionApprovalOrchestrator sessionApprovalOrchestrator;
 
+    @Getter(AccessLevel.PRIVATE)
+    private final AssessmentStudentRepository assessmentStudentRepository;
+
+    @Getter(AccessLevel.PRIVATE)
+    private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+
     private static final String ASSESSMENT_API = "ASSESSMENT_API";
 
     @Autowired
-    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator) {
+    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository) {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentSessionCriteriaRepository = assessmentSessionCriteriaRepository;
         this.assessmentRepository = assessmentRepository;
         this.assessmentService = assessmentService;
         this.sessionApprovalOrchestrator = sessionApprovalOrchestrator;
+        this.assessmentStudentRepository = assessmentStudentRepository;
+        this.assessmentStudentHistoryRepository = assessmentStudentHistoryRepository;
     }
 
     public List<AssessmentSessionEntity> getAllSessions() {
@@ -70,6 +76,9 @@ public class SessionService {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
         switch (reportTypeCode) {
             case ALL_SESSION_REGISTRATIONS:
+                var currentDate = LocalDateTime.now();
+                assessmentStudentRepository.updateDownloadDataAllByAssessmentSessionAndNoExemption(sessionID, currentDate, userID, currentDate);
+                assessmentStudentHistoryRepository.insertHistoryForDownloadDateUpdate(sessionID, userID, currentDate);
                 session.setAssessmentRegistrationsExportUserID(userID);
                 session.setAssessmentRegistrationsExportDate(LocalDateTime.now());
                 break;

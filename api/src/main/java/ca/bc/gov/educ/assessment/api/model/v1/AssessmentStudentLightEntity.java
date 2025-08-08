@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -32,6 +33,9 @@ public class AssessmentStudentLightEntity {
   @JoinColumn(name = "ASSESSMENT_ID", referencedColumnName = "ASSESSMENT_ID")
   AssessmentEntity assessmentEntity;
 
+  @Column(name = "ASSESSMENT_FORM_ID")
+  private UUID assessmentFormID;
+
   @Column(name = "SCHOOL_OF_RECORD_AT_WRITE_SCHOOL_ID", columnDefinition = "BINARY(16)")
   private UUID schoolAtWriteSchoolID;
 
@@ -41,7 +45,7 @@ public class AssessmentStudentLightEntity {
   @Column(name = "PEN", nullable = false, length = 9)
   private String pen;
 
-  @Column(name = "GRADE_AT_REGISTRATION", length = 3)
+  @Column(name = "GRADE_AT_REGISTRATION", length = 2)
   private String gradeAtRegistration;
 
   @Column(name = "PROFICIENCY_SCORE", length = 1)
@@ -49,9 +53,30 @@ public class AssessmentStudentLightEntity {
 
   @Column(name = "PROVINCIAL_SPECIAL_CASE_CODE", length = 1)
   private String provincialSpecialCaseCode;
+  
+  @Column(name = "RAW_SCORE")
+  private BigDecimal rawScore;
+
+  @Column(name = "MC_TOTAL")
+  private BigDecimal mcTotal;
+
+  @Column(name = "OE_TOTAL")
+  private BigDecimal oeTotal;
+
+  @Column(name = "ADAPTED_ASSESSMENT_CODE", length = 10)
+  private String adaptedAssessmentCode;
+
+  @Column(name = "IRT_SCORE", length = 7)
+  private String irtScore;
+
+  @Column(name = "STUDENT_STATUS", nullable = false, length = 10)
+  private String studentStatus;
 
   @PastOrPresent
   @Column(name = "DOWNLOAD_DATE", updatable = false)
   private LocalDateTime downloadDate;
+  
+  @Column(name = "ASSESSMENT_CENTER_SCHOOL_ID", columnDefinition = "BINARY(16)")
+  private UUID assessmentCenterSchoolID;
 
 }

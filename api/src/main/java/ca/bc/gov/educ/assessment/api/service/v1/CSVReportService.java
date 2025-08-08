@@ -6,18 +6,13 @@ import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.*;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentLightEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentLightRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.StagedAssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.model.v1.*;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
@@ -35,8 +30,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.PEN_ISSUES_CSV;
-import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.REGISTRATION_DETAIL_CSV;
+import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.*;
 
 
 @Service
@@ -47,10 +41,12 @@ public class CSVReportService {
     private static final String SESSION_ID = "sessionID";
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
+    private final AssessmentFormRepository assessmentFormRepository;
     private final StudentMergeService studentMergeService;
     private final RestUtils restUtils;
     private final AssessmentStudentLightRepository assessmentStudentLightRepository;
-    private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+    private final StagedAssessmentStudentLightRepository stagedAssessmentStudentLightRepository;
+    private final SummaryReportService summaryReportService;
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
@@ -231,10 +227,71 @@ public class CSVReportService {
             throw new StudentAssessmentAPIRuntimeException(e);
         }
     }
+    
+    private boolean sessionIsApproved(AssessmentSessionEntity assessmentSessionEntity) {
+        return assessmentSessionEntity.getApprovalStudentCertSignDate() != null && assessmentSessionEntity.getApprovalAssessmentAnalysisSignDate() != null && assessmentSessionEntity.getApprovalAssessmentDesignSignDate() != null;
+    }
+
+    public DownloadableReportResponse generateAllDetailedStudentsInSession(UUID sessionID) {
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+        var forms = assessmentFormRepository.findAllByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
+
+        List<String> headers = Arrays.stream(AllStudentDetailedRegistrationDetailsHeader.values()).map(AllStudentDetailedRegistrationDetailsHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            if(sessionIsApproved(session)) {
+                List<AssessmentStudentLightEntity>  students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusIn(sessionID, List.of("ACTIVE"));
+                populateCSVPrinterForApproval(students, forms, csvPrinter);
+            }else{
+                List<StagedAssessmentStudentLightEntity> students = stagedAssessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatusIn(sessionID, List.of("ACTIVE"));
+                populateCSVPrinterForStaged(students, forms, csvPrinter);
+            }
+            
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(ALL_DETAILED_STUDENTS_IN_SESSION_CSV.getCode());
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+    
+    private void populateCSVPrinterForApproval(List<AssessmentStudentLightEntity> students, List<AssessmentFormEntity> forms, CSVPrinter csvPrinter) throws IOException {
+        for (AssessmentStudentLightEntity result : students) {
+            Optional<SchoolTombstone> school = (result.getSchoolAtWriteSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getSchoolAtWriteSchoolID().toString()) : Optional.empty();
+            Optional<SchoolTombstone> assessmentCenter = (result.getAssessmentCenterSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString()) : Optional.empty();
+            var form = result.getAssessmentFormID() != null ? forms.stream()
+                    .filter(assessmentFormEntity ->  assessmentFormEntity.getAssessmentFormID().equals(result.getAssessmentFormID())).findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "AssessmentForm", result.getAssessmentFormID().toString())).getFormCode() : "";
+            List<String> csvRowData = prepareAllStudentDetailsRegistrationDetailsDataForCsv(result, school, form, assessmentCenter);
+            csvPrinter.printRecord(csvRowData);
+        }
+    }
+
+    private void populateCSVPrinterForStaged(List<StagedAssessmentStudentLightEntity> students, List<AssessmentFormEntity> forms, CSVPrinter csvPrinter) throws IOException {
+        for (StagedAssessmentStudentLightEntity result : students) {
+            Optional<SchoolTombstone> school = (result.getSchoolAtWriteSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getSchoolAtWriteSchoolID().toString()) : Optional.empty();
+            Optional<SchoolTombstone> assessmentCenter = (result.getAssessmentCenterSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString()) : Optional.empty();
+            var form = result.getAssessmentFormID() != null ? forms.stream()
+                    .filter(assessmentFormEntity ->  assessmentFormEntity.getAssessmentFormID().equals(result.getAssessmentFormID())).findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "AssessmentForm", result.getAssessmentFormID().toString())).getFormCode() : "";
+            List<String> csvRowData = prepareAllStudentDetailsRegistrationDetailsDataForCsv(result, school, form, assessmentCenter);
+            csvPrinter.printRecord(csvRowData);
+        }
+    }
 
     public DownloadableReportResponse generatePenIssuesReport(UUID sessionID) {
         assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        List<StagedAssessmentStudentEntity> results = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatusIn(sessionID, List.of("MERGED", "NOPENFOUND"));
+        List<StagedAssessmentStudentLightEntity> results = stagedAssessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatusIn(sessionID, List.of("MERGED", "NOPENFOUND"));
 
         List<String> headers = Arrays.stream(PenIssuesHeader.values()).map(PenIssuesHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
@@ -245,7 +302,7 @@ public class CSVReportService {
 
             csvPrinter.printRecord(headers);
 
-            for (StagedAssessmentStudentEntity result : results) {
+            for (StagedAssessmentStudentLightEntity result : results) {
                 List<String> csvRowData = preparePenIssuesForCsv(result);
                 csvPrinter.printRecord(csvRowData);
             }
@@ -253,6 +310,33 @@ public class CSVReportService {
 
             var downloadableReport = new DownloadableReportResponse();
             downloadableReport.setReportType(PEN_ISSUES_CSV.getCode());
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
+    public DownloadableReportResponse generateAssessmentRegistrationTotalsBySchoolReport(UUID sessionID) {
+        SimpleHeadcountResultsTable assessmentRegistrationTotalsBySchoolReportTable = summaryReportService.getAssessmentRegistrationTotalsBySchool(sessionID);
+        List<String> headers =  assessmentRegistrationTotalsBySchoolReportTable.getHeaders();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            for (Map<String, String> result : assessmentRegistrationTotalsBySchoolReportTable.getRows()) {
+                List<String> csvRowData = prepareAssessmentRegistrationTotalsBySchoolForCsv(result, headers);
+                csvPrinter.printRecord(csvRowData);
+            }
+            csvPrinter.flush();
+
+            DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(REGISTRATION_SUMMARY_BY_SCHOOL.getCode());
             downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
 
             return downloadableReport;
@@ -295,6 +379,44 @@ public class CSVReportService {
         ));
     }
 
+    private List<String> prepareAllStudentDetailsRegistrationDetailsDataForCsv(AssessmentStudentLightEntity student, Optional<SchoolTombstone> school, String form, Optional<SchoolTombstone> assessmentCenter) {
+        return new ArrayList<>(Arrays.asList(
+                student.getPen(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                form,
+                school.isPresent() ? school.get().getMincode(): "",
+                school.isPresent() ? school.get().getSchoolCategoryCode(): "",
+                student.getGradeAtRegistration(),
+                student.getMcTotal() != null ? student.getMcTotal().toString() : "",
+                student.getOeTotal() != null ? student.getOeTotal().toString() : "",
+                student.getRawScore() != null ? student.getRawScore().toString() : "",
+                student.getIrtScore(),
+                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
+                student.getProvincialSpecialCaseCode(),
+                assessmentCenter.isPresent() ? assessmentCenter.get().getMincode(): ""
+        ));
+    }
+
+    private List<String> prepareAllStudentDetailsRegistrationDetailsDataForCsv(StagedAssessmentStudentLightEntity student, Optional<SchoolTombstone> school, String form, Optional<SchoolTombstone> assessmentCenter) {
+        return new ArrayList<>(Arrays.asList(
+                student.getPen(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                form,
+                school.isPresent() ? school.get().getMincode(): "",
+                school.isPresent() ? school.get().getSchoolCategoryCode(): "",
+                student.getGradeAtRegistration(),
+                student.getMcTotal() != null ? student.getMcTotal().toString() : "",
+                student.getOeTotal() != null ? student.getOeTotal().toString() : "",
+                student.getRawScore() != null ? student.getRawScore().toString() : "",
+                student.getIrtScore(),
+                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
+                student.getProvincialSpecialCaseCode(),
+                assessmentCenter.isPresent() ? assessmentCenter.get().getMincode(): ""
+        ));
+    }
+
     private List<String> prepareRegistrationDetailsDataForCsv(AssessmentStudentLightEntity student, Optional<SchoolTombstone> school) {
         return new ArrayList<>(Arrays.asList(
                 student.getPen(),
@@ -308,7 +430,7 @@ public class CSVReportService {
         ));
     }
 
-    private List<String> preparePenIssuesForCsv(StagedAssessmentStudentEntity student) {
+    private List<String> preparePenIssuesForCsv(StagedAssessmentStudentLightEntity student) {
         return new ArrayList<>(Arrays.asList(
                 student.getPen(),
                 student.getMergedPen(),
@@ -316,4 +438,15 @@ public class CSVReportService {
         ));
     }
 
+    private List<String> prepareAssessmentRegistrationTotalsBySchoolForCsv(Map<String, String> result, List<String> headers) {
+        List<String> toReturn = new ArrayList<>();
+        for (String header : headers) {
+            if (!result.containsKey(header)) {
+                toReturn.add("");
+                continue;
+            }
+            toReturn.add(result.get(header));
+        }
+        return toReturn;
+    }
 }
