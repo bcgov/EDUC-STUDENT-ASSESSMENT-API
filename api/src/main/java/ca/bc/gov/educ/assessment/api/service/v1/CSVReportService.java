@@ -235,7 +235,6 @@ public class CSVReportService {
     
     public DownloadableReportResponse generateSummaryResultsByGradeInSession(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        var forms = assessmentFormRepository.findAllByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
 
         List<String> headers = Arrays.stream(SummaryResultsByGradeHeader.values()).map(SummaryResultsByGradeHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
