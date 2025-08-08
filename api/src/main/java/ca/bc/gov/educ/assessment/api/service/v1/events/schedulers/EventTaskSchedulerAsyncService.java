@@ -13,7 +13,6 @@ import ca.bc.gov.educ.assessment.api.service.v1.SessionService;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -30,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 import static lombok.AccessLevel.PRIVATE;
@@ -152,6 +152,48 @@ public class EventTaskSchedulerAsyncService {
         saga.setRetryCount(retryCount);
         this.sagaRepository.save(saga);
         LogHelper.logSagaRetry(saga);
+    }
+
+    @Async("processTransferStudentsTaskExecutor")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void findAndProcessTransferStudents() {
+        log.debug("Querying for students marked with TRANSFER status to process");
+        if (this.getSagaRepository().findByStatusIn(this.getStatusFilters(), 101).size() > 100) { // at max there will be 100 parallel sagas.
+            log.debug("Saga count is greater than 100, so not processing transfer students");
+            return;
+        }
+
+        int batchSize = Integer.parseInt(numberOfStudentsToProcess);
+        final var transferStudentIds = assessmentStudentService.findBatchOfTransferStudentIds(batchSize);
+        log.debug("Found :: {} students marked for transfer in this batch", transferStudentIds.size());
+
+        if (!transferStudentIds.isEmpty()) {
+            int sagasCreated = 0;
+
+            for (UUID studentId : transferStudentIds) {
+                try {
+                    int updated = assessmentStudentService.markStudentAsTransferInProgress(studentId);
+
+                    if (updated > 0) {
+                        // TODO: Create individual saga for each student
+                        // Each saga will have the student ID as payload
+                        log.debug("Creating transfer processing saga for student: {}", studentId);
+
+                        // Placeholder for saga creation
+                        // transferProcessingOrchestrator.startTransferProcessingSaga(studentId);
+
+                        sagasCreated++;
+                    } else {
+                        log.debug("Student {} may have already been processed by another thread", studentId);
+                    }
+
+                } catch (Exception e) {
+                    log.error("Failed to create transfer saga for student {}: {}", studentId, e.getMessage(), e);
+                }
+            }
+
+            log.debug("Created {} new transfer sagas", sagasCreated);
+        }
     }
 
     public void purgeCompletedResultsFromStaging() {

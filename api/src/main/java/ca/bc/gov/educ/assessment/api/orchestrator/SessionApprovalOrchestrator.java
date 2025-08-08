@@ -37,8 +37,9 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<String> {
     private final SagaService sagaService;
     private final EmailProperties emailProperties;
     private final EmailService emailService;
+    private final AssessmentStudentService assessmentStudentService;
 
-    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, Publisher publisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailProperties emailProperties, EmailService emailService) {
+    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, Publisher publisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailProperties emailProperties, EmailService emailService, AssessmentStudentService assessmentStudentService) {
         super(sagaService, messagePublisher, String.class, GENERATE_XAM_FILES.toString(), XAM_FILE_GENERATION_TOPIC.toString());
         this.publisher = publisher;
         this.xamFileService = xamFileService;
@@ -47,15 +48,37 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<String> {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.emailProperties = emailProperties;
         this.emailService = emailService;
+        this.assessmentStudentService = assessmentStudentService;
     }
 
     @Override
     public void populateStepsToExecuteMap() {
         this.stepBuilder()
-            .begin(GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
+            .begin(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
+            .step(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER, GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
             .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_GRAD_OF_UPDATED_STUDENTS, this::notifyGradOfUpdatedStudents)
             .step(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
             .end(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED);
+    }
+
+    private void markStagedStudentsReadyForTransfer(Event event, AssessmentSagaEntity saga, String payload) throws JsonProcessingException {
+        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
+        saga.setSagaState(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER.toString());
+        saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
+        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
+
+        UUID sessionID = UUID.fromString(payload);
+        assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
+        int updatedStudentCount = assessmentStudentService.markStagedStudentsReadyForTransfer();
+
+        final Event nextEvent = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER)
+                .eventOutcome(STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER)
+                .eventPayload(JsonUtil.getJsonStringFromObject("Marked " + updatedStudentCount + " staged students as ready for transfer"))
+                .build();
+        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
+        log.debug("Posted completion message for saga step markStagedStudentsReadyForTransfer: {}", saga.getSagaId());
     }
 
     private void generateXAMFilesAndUpload(Event event, AssessmentSagaEntity saga, String payload) throws JsonProcessingException {
