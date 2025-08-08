@@ -55,6 +55,8 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generatePenMergesReport();
             case ALL_DETAILED_STUDENTS_IN_SESSION_CSV:
                 return csvReportService.generateAllDetailedStudentsInSession(sessionID);
+            case SUMMARY_BY_GRADE_FOR_SESSION:
+                return csvReportService.generateSummaryResultsByGradeInSession(sessionID);
             case REGISTRATION_DETAIL_CSV:
                 return csvReportService.generateRegistrationDetailReport(sessionID);
             case PEN_ISSUES_CSV:

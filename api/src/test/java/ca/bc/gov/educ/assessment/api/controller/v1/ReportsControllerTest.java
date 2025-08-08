@@ -151,6 +151,40 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
+    void testGetMinistryReport_SummaryByGradeInSessionType_ShouldReturnReportData() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        AssessmentStudentEntity student = createMockStudentEntity(assessment);
+        studentRepository.save(student);
+
+        AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
+        studentRepository.save(student2);
+
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment2);
+        studentRepository.save(student3);
+
+        var resultActions1 = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/" + AssessmentReportTypeCode.SUMMARY_BY_GRADE_FOR_SESSION.getCode() + "/download/JANE").with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary1 = objectMapper.readValue(resultActions1.andReturn().getResponse().getContentAsByteArray(), new TypeReference<DownloadableReportResponse>() {
+        });
+
+        assertThat(summary1).isNotNull();
+        assertThat(summary1.getReportType()).isEqualTo(AssessmentReportTypeCode.SUMMARY_BY_GRADE_FOR_SESSION.getCode());
+    }
+    
+    @Test
     void testGetMinistryReport_ValidTypeAttempts_ShouldReturnReportData() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
