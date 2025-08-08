@@ -4,7 +4,6 @@ import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationFieldCode;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentValidationBaseRule;
-import ca.bc.gov.educ.assessment.api.rules.utils.RuleUtil;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentRuleData;
@@ -53,11 +52,11 @@ public class V317ExamSchool implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V317 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        if(student.getAssessmentStudentID() != null){
+        if(student.getAssessmentStudentID() != null && student.getAssessmentCenterSchoolID() != null){
             Optional<SchoolTombstone> assessmentCenter = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
 
-            if(assessmentCenter.isEmpty() || !RuleUtil.isSchoolValid(assessmentCenter.get())){
-                log.debug("V317: Invalid assessment centre provided with schoolID :: {}", student.getSchoolOfRecordSchoolID());
+            if(assessmentCenter.isEmpty()){
+                log.debug("V317: Invalid assessment centre provided with assessmentCenterSchoolID :: {}", student.getAssessmentCenterSchoolID());
                 errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.EXAM_SCHOOL, AssessmentStudentValidationIssueTypeCode.EXAM_SCHOOL_INVALID));
             }
         }

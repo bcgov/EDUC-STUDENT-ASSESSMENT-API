@@ -80,7 +80,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<AssessmentStudent, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity) throws JsonProcessingException {
+    public Pair<AssessmentStudent, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride) {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
         );
@@ -93,7 +93,7 @@ public class AssessmentStudentService {
             assessmentStudentEntity.setAssessmentEntity(updatedAssessmentEntity);
         }
 
-        var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity, false);
+        var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity, false, allowRuleOverride);
 
         var event = generateStudentUpdatedEvent(student.getStudentID());
         assessmentEventRepository.save(event);
@@ -107,20 +107,20 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity) throws JsonProcessingException {
+    public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
         assessmentStudentEntity.setStudentStatus(StudentStatusCodes.ACTIVE.getCode());
-        var student = processStudent(assessmentStudentEntity, null, true);
+        var student = processStudent(assessmentStudentEntity, null, true, allowRuleOverride);
         var event = generateStudentUpdatedEvent(student.getStudentID());
         assessmentEventRepository.save(event);
 
         return Pair.of(student, event);
     }
 
-    private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity, boolean newAssessmentStudentRegistration) {
+    private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity, boolean newAssessmentStudentRegistration, boolean allowRuleOverride) {
         SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID().toString()).orElse(null);
 
         UUID studentCorrelationID = UUID.randomUUID();
@@ -128,7 +128,7 @@ public class AssessmentStudentService {
         Student studentApiStudent = restUtils.getStudentByPEN(studentCorrelationID, assessmentStudentEntity.getPen()).orElseThrow(() ->
                 new EntityNotFoundException(Student.class, "Student", assessmentStudentEntity.getPen()));
 
-        List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, studentApiStudent);
+        List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, studentApiStudent, allowRuleOverride);
 
         if (newAssessmentStudentRegistration) {
             UUID gradStudentRecordCorrelationID = UUID.randomUUID();
@@ -167,21 +167,22 @@ public class AssessmentStudentService {
         return savedEntity;
     }
 
-    public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, Student studentApiStudent) {
+    public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, Student studentApiStudent, boolean allowRuleOverride) {
         StudentRuleData studentRuleData = new StudentRuleData();
         studentRuleData.setAssessmentStudentEntity(assessmentStudentEntity);
         studentRuleData.setSchool(schoolTombstone);
         studentRuleData.setStudentApiStudent(studentApiStudent);
+        studentRuleData.setAllowRuleOverride(allowRuleOverride);
 
         return this.assessmentStudentRulesProcessor.processRules(studentRuleData);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<AssessmentEventEntity> deleteStudents(List<UUID> assessmentStudentIDs) throws JsonProcessingException {
+    public List<AssessmentEventEntity> deleteStudents(List<UUID> assessmentStudentIDs, boolean allowRuleOverride) {
         ArrayList<AssessmentEventEntity> events = new ArrayList<>();
         for (UUID assessmentStudentID : assessmentStudentIDs) {
             try {
-                AssessmentStudentEntity deletedStudent = performDeleteStudent(assessmentStudentID);
+                AssessmentStudentEntity deletedStudent = performDeleteStudent(assessmentStudentID, allowRuleOverride);
                 AssessmentEventEntity event = assessmentEventRepository.save(generateStudentUpdatedEvent(deletedStudent.getStudentID().toString()));
                 events.add(event);
             } catch (EntityNotFoundException | InvalidPayloadException e) {
@@ -192,21 +193,23 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AssessmentEventEntity deleteStudent(UUID assessmentStudentID) throws JsonProcessingException {
-        AssessmentStudentEntity deletedStudent = performDeleteStudent(assessmentStudentID);
+    public AssessmentEventEntity deleteStudent(UUID assessmentStudentID) {
+        AssessmentStudentEntity deletedStudent = performDeleteStudent(assessmentStudentID, false);
         return assessmentEventRepository.save(generateStudentUpdatedEvent(deletedStudent.getStudentID().toString()));
     }
 
-    private AssessmentStudentEntity performDeleteStudent(UUID assessmentStudentID) {
+    private AssessmentStudentEntity performDeleteStudent(UUID assessmentStudentID, boolean allowRuleOverride) {
         Optional<AssessmentStudentEntity> entityOptional = assessmentStudentRepository.findById(assessmentStudentID);
         AssessmentStudentEntity entity = entityOptional.orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "assessmentStudentID", assessmentStudentID.toString()));
 
         LocalDateTime sessionEnd = entity.getAssessmentEntity().getAssessmentSessionEntity().getActiveUntilDate();
         boolean sessionEnded = sessionEnd.isBefore(LocalDateTime.now());
-        boolean hasResult = entity.getProficiencyScore() != null || entity.getProvincialSpecialCaseCode() != null;
+        boolean hasProvincialSpecialCaseCode = !allowRuleOverride && entity.getProvincialSpecialCaseCode() != null;
+        boolean hasProficiencyScore = entity.getProficiencyScore() != null;
+        boolean hasResult = hasProficiencyScore || hasProvincialSpecialCaseCode;
 
         if (sessionEnded || hasResult) {
-            throw new InvalidPayloadException(ApiError.builder().timestamp(LocalDateTime.now()).message("Cannot delete student. Reason: %s %s".formatted(sessionEnded ? "Session has ended. " : "", hasResult ? "Student has a proficiency score." : "").trim()).status(CONFLICT).build());
+            throw new InvalidPayloadException(ApiError.builder().timestamp(LocalDateTime.now()).message("Cannot delete student. Reason: %s %s %s".formatted(sessionEnded ? "Session has ended. " : "", hasProficiencyScore ? "Student has a proficiency score." : "", hasProvincialSpecialCaseCode ? "Student has a special case code." : "").trim()).status(CONFLICT).build());
         }
 
         assessmentStudentHistoryRepository.deleteAllByAssessmentIDAndAssessmentStudentID(entity.getAssessmentEntity().getAssessmentID(), assessmentStudentID);

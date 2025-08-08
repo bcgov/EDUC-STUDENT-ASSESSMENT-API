@@ -4,7 +4,6 @@ import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidatio
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentValidationBaseRule;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentRulesService;
-import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentValidationIssue;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentRuleData;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +60,7 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
         if (hasStudentAssessmentDuplicate) {
             log.debug("V304: The student has already been registered for this assessment in this session :: {}", student.getPen());
             errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_DUP));
-        }else if (studentWritesExceeded) {
+        }else if (studentWritesExceeded && !studentRuleData.isAllowRuleOverride()) {
             log.debug("V304: Student has already reached the maximum number of writes for the {} Assessment for student PEN :: {}", student.getAssessmentEntity().getAssessmentTypeCode(), student.getPen());
             errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.COURSE_CODE, AssessmentStudentValidationIssueTypeCode.COURSE_SESSION_EXCEED));
         }
