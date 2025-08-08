@@ -178,7 +178,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<AssessmentEventEntity> deleteStudents(List<UUID> assessmentStudentIDs, boolean allowRuleOverride) throws JsonProcessingException {
+    public List<AssessmentEventEntity> deleteStudents(List<UUID> assessmentStudentIDs, boolean allowRuleOverride) {
         ArrayList<AssessmentEventEntity> events = new ArrayList<>();
         for (UUID assessmentStudentID : assessmentStudentIDs) {
             try {
