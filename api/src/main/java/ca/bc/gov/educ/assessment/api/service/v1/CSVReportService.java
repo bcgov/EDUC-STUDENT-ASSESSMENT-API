@@ -11,6 +11,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByFormQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
@@ -265,6 +266,40 @@ public class CSVReportService {
             throw new StudentAssessmentAPIRuntimeException(e);
         }
     }
+
+    public DownloadableReportResponse generateSummaryByFormInSession(UUID sessionID) {
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+        var forms = assessmentFormRepository.findAllByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
+
+        List<String> headers = Arrays.stream(SummaryByFormHeader.values()).map(SummaryByFormHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            List<SummaryByFormQueryResponse> formSummaries;
+            if(sessionIsApproved(session)) {
+                formSummaries = assessmentStudentLightRepository.getSummaryByFormForSession(sessionID);
+            }else{
+                formSummaries = stagedAssessmentStudentLightRepository.getSummaryByFormForSession(sessionID);
+            }
+            
+            populateCSVPrinterForFormSummary(formSummaries, csvPrinter, forms);
+
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(SUMMARY_BY_FORM_FOR_SESSION.getCode());
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
     
     public DownloadableReportResponse generateAllDetailedStudentsInSession(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
@@ -296,6 +331,16 @@ public class CSVReportService {
             return downloadableReport;
         } catch (IOException e) {
             throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
+    private void populateCSVPrinterForFormSummary(List<SummaryByFormQueryResponse> results, CSVPrinter csvPrinter, List<AssessmentFormEntity> forms) throws IOException {
+        for (SummaryByFormQueryResponse result : results) {
+            var form = result.getFormID() != null ? forms.stream()
+                    .filter(assessmentFormEntity ->  assessmentFormEntity.getAssessmentFormID().equals(result.getFormID())).findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "AssessmentForm", result.getFormID().toString())).getFormCode() : "";
+            List<String> csvRowData = prepareFormSummaryDetailsDataForCsv(result, form);
+            csvPrinter.printRecord(csvRowData);
         }
     }
 
@@ -419,7 +464,24 @@ public class CSVReportService {
                 assessmentCenter.isPresent() ? assessmentCenter.get().getMincode() : ""
         ));
     }
-    
+
+    private List<String> prepareFormSummaryDetailsDataForCsv(SummaryByFormQueryResponse formSummary, String form) {
+        return new ArrayList<>(Arrays.asList(
+                formSummary.getAssessmentTypeCode(),
+                form,
+                Long.toString(formSummary.getProfScore1()),
+                Long.toString(formSummary.getProfScore2()),
+                Long.toString(formSummary.getProfScore3()),
+                Long.toString(formSummary.getProfScore4()),
+                Long.toString(formSummary.getAegCount()),
+                Long.toString(formSummary.getNcCount()),
+                Long.toString(formSummary.getDsqCount()),
+                Long.toString(formSummary.getXmtCount()),
+                Long.toString(formSummary.getTotal())
+        ));
+    }
+
+
     private List<String> prepareGradeSummaryDetailsDataForCsv(SummaryByGradeQueryResponse gradeSummary, AssessmentSessionEntity session) {
         return new ArrayList<>(Arrays.asList(
                 gradeSummary.getAssessmentTypeCode(),
