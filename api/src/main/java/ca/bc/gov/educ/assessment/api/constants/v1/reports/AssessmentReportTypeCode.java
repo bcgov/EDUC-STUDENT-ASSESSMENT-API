@@ -19,6 +19,7 @@ public enum AssessmentReportTypeCode {
     REGISTRATION_DETAIL_CSV("registration-detail-csv"),
     ALL_DETAILED_STUDENTS_IN_SESSION_CSV("all-detailed-students-in-session-csv"),
     SUMMARY_BY_GRADE_FOR_SESSION("summary-by-grade-for-session"),
+    SUMMARY_BY_FORM_FOR_SESSION("summary-by-form-for-session"),
     PEN_ISSUES_CSV("pen-issues-csv"),
     ;
     private final String code;
