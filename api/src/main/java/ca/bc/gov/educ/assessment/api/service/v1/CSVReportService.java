@@ -11,6 +11,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import lombok.RequiredArgsConstructor;
@@ -231,7 +232,40 @@ public class CSVReportService {
     private boolean sessionIsApproved(AssessmentSessionEntity assessmentSessionEntity) {
         return assessmentSessionEntity.getApprovalStudentCertSignDate() != null && assessmentSessionEntity.getApprovalAssessmentAnalysisSignDate() != null && assessmentSessionEntity.getApprovalAssessmentDesignSignDate() != null;
     }
+    
+    public DownloadableReportResponse generateSummaryResultsByGradeInSession(UUID sessionID) {
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
+        List<String> headers = Arrays.stream(SummaryResultsByGradeHeader.values()).map(SummaryResultsByGradeHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            List<SummaryByGradeQueryResponse> gradeSummaries;
+            if(sessionIsApproved(session)) {
+                gradeSummaries = assessmentStudentLightRepository.getSummaryByGradeForSession(sessionID);
+            }else{
+                gradeSummaries = stagedAssessmentStudentLightRepository.getSummaryByGradeForSession(sessionID);
+            }
+
+            populateCSVPrinterForGradeSummary(gradeSummaries, csvPrinter, session);
+
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(SUMMARY_BY_GRADE_FOR_SESSION.getCode());
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+    
     public DownloadableReportResponse generateAllDetailedStudentsInSession(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         var forms = assessmentFormRepository.findAllByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
@@ -262,6 +296,13 @@ public class CSVReportService {
             return downloadableReport;
         } catch (IOException e) {
             throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
+    private void populateCSVPrinterForGradeSummary(List<SummaryByGradeQueryResponse> students, CSVPrinter csvPrinter, AssessmentSessionEntity session) throws IOException {
+        for (SummaryByGradeQueryResponse result : students) {
+            List<String> csvRowData = prepareGradeSummaryDetailsDataForCsv(result, session);
+            csvPrinter.printRecord(csvRowData);
         }
     }
     
@@ -376,6 +417,22 @@ public class CSVReportService {
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 student.getProvincialSpecialCaseCode(),
                 assessmentCenter.isPresent() ? assessmentCenter.get().getMincode() : ""
+        ));
+    }
+    
+    private List<String> prepareGradeSummaryDetailsDataForCsv(SummaryByGradeQueryResponse gradeSummary, AssessmentSessionEntity session) {
+        return new ArrayList<>(Arrays.asList(
+                gradeSummary.getAssessmentTypeCode(),
+                session.getCourseMonth() + session.getCourseMonth(),
+                Long.toString(gradeSummary.getProfScore1()),
+                Long.toString(gradeSummary.getProfScore2()),
+                Long.toString(gradeSummary.getProfScore3()),
+                Long.toString(gradeSummary.getProfScore4()),
+                Long.toString(gradeSummary.getAegCount()),
+                Long.toString(gradeSummary.getNcCount()),
+                Long.toString(gradeSummary.getDsqCount()),
+                Long.toString(gradeSummary.getXmtCount()),
+                Long.toString(gradeSummary.getTotal())
         ));
     }
 
