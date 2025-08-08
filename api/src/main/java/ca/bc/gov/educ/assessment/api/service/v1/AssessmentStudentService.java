@@ -80,7 +80,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<AssessmentStudent, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride) throws JsonProcessingException {
+    public Pair<AssessmentStudent, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride) {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
         );
@@ -114,7 +114,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride) throws JsonProcessingException {
+    public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
@@ -200,7 +200,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AssessmentEventEntity deleteStudent(UUID assessmentStudentID) throws JsonProcessingException {
+    public AssessmentEventEntity deleteStudent(UUID assessmentStudentID) {
         AssessmentStudentEntity deletedStudent = performDeleteStudent(assessmentStudentID, false);
         return assessmentEventRepository.save(generateStudentUpdatedEvent(deletedStudent.getStudentID().toString()));
     }

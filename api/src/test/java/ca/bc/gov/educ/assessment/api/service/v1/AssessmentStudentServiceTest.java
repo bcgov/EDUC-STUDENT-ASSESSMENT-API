@@ -317,7 +317,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase = assessmentStudentRepository.findById(studentEntity.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase).isNull();
 
-    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.deleteStudent(studentEntity.getAssessmentStudentID()));
+    UUID studentId = studentEntity.getAssessmentStudentID();
+    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.deleteStudent(studentId));
   }
 
   @Test
@@ -334,7 +335,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase = assessmentStudentRepository.findById(studentEntity.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudent(studentEntity.getAssessmentStudentID()));
+    UUID studentId = studentEntity.getAssessmentStudentID();
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudent(studentId));
   }
 
   @Test
@@ -349,7 +351,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase = assessmentStudentRepository.findById(finalStudentEntity.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudent(finalStudentEntity.getAssessmentStudentID()));
+    UUID studentId = finalStudentEntity.getAssessmentStudentID();
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudent(studentId));
   }
 
   @Test
@@ -454,7 +457,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase = assessmentStudentRepository.findById(studentEntity.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase).isNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity.getAssessmentStudentID()), false));
+    List<UUID> studentIds = Collections.singletonList(studentEntity.getAssessmentStudentID());
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(studentIds, false));
   }
 
   @Test
@@ -469,7 +473,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
+    List<UUID> studentIds = Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID());
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(studentIds, false));
   }
 
   @Test
@@ -484,7 +489,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
+    List<UUID> studentIds = Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID());
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(studentIds, false));
   }
 
   @Test
@@ -501,7 +507,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase = assessmentStudentRepository.findById(studentEntity.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Collections.singletonList(studentEntity.getAssessmentStudentID()), false));
+    List<UUID> studentIds = Collections.singletonList(studentEntity.getAssessmentStudentID());
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(studentIds, false));
   }
 
   @Test
@@ -521,7 +528,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
+    List<UUID> studentIds = Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID());
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(studentIds, false));
   }
 
   @Test
@@ -543,7 +551,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
+    List<UUID> studentIds = Arrays.asList(studentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID());
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(studentIds, false));
   }
 
   @Test
@@ -558,7 +567,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase = assessmentStudentRepository.findById(finalStudentEntity.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Collections.singletonList(finalStudentEntity.getAssessmentStudentID()), false));
+    List<UUID> studentIds = Collections.singletonList(finalStudentEntity.getAssessmentStudentID());
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(studentIds, false));
   }
 
   @Test
@@ -578,7 +588,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(finalStudentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(finalStudentEntity1.getAssessmentStudentID(), finalStudentEntity2.getAssessmentStudentID()), false));
+    List<UUID> studentIds = Arrays.asList(finalStudentEntity1.getAssessmentStudentID(), finalStudentEntity2.getAssessmentStudentID());
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(studentIds, false));
   }
 
   @Test
@@ -596,7 +607,8 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity existsInDatabase2 = assessmentStudentRepository.findById(studentEntity2.getAssessmentStudentID()).orElse(null);
     assertThat(existsInDatabase2).isNotNull();
 
-    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(Arrays.asList(finalStudentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID()), false));
+    List<UUID> studentIds = Arrays.asList(finalStudentEntity1.getAssessmentStudentID(), studentEntity2.getAssessmentStudentID());
+    assertThrows(InvalidPayloadException.class, () -> assessmentStudentService.deleteStudents(studentIds, false));
   }
 
   @Test
