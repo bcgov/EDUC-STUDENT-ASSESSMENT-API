@@ -57,7 +57,7 @@ public class XAMFileService {
      */
     @SuppressWarnings("unchecked")
     private <T> T generateXamContent(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school, boolean asFile) {
-        List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()));
+        List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
 
         StringBuilder sb = new StringBuilder();
 

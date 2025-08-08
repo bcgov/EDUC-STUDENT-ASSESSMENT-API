@@ -132,7 +132,7 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
         AssessmentSessionEntity sessionEntity = createMockSession();
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
 
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionEntity.getSessionID()), any()))
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
             .thenReturn(List.of());
 
         List<SchoolTombstone> schools = Arrays.asList(
@@ -169,7 +169,7 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
         doThrow(new RuntimeException("File generation failed")).when(xamFileService).generateXamFileAndReturnPath(sessionEntity, school2);
         doNothing().when(xamFileService).uploadFilePathToS3(anyString(), eq(sessionEntity), any(SchoolTombstone.class));
 
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionEntity.getSessionID()), any()))
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
             .thenReturn(List.of());
 
         assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionEntity));
@@ -192,7 +192,7 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
         doReturn("test-file-path").when(xamFileService).generateXamFileAndReturnPath(sessionEntity, school);
         doThrow(new RuntimeException("S3 upload failed")).when(xamFileService).uploadFilePathToS3(anyString(), eq(sessionEntity), eq(school));
 
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionEntity.getSessionID()), any()))
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
             .thenReturn(List.of());
 
         assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionEntity));
@@ -212,7 +212,7 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
         doReturn("test-file-path").when(xamFileService).generateXamFileAndReturnPath(sessionEntity, school);
         doNothing().when(xamFileService).uploadFilePathToS3(anyString(), eq(sessionEntity), eq(school));
 
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(eq(sessionEntity.getSessionID()), any()))
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
             .thenReturn(List.of());
 
         assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionEntity));

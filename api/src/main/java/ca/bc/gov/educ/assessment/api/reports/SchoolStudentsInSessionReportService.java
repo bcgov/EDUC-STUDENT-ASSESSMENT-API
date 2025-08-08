@@ -25,10 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Service class for generating School Students in Session Report
@@ -72,7 +69,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
   public DownloadableReportResponse generateSchoolStudentsInSessionReport(UUID assessmentSessionID, UUID schoolID){
     try {
       var assessmentTypes = codeTableService.getAllAssessmentTypeCodesAsMap();
-      var students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolID(assessmentSessionID, schoolID);
+      var students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(assessmentSessionID, schoolID, List.of("ACTIVE"));
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
 
       SchoolStudentRootNode schoolStudentRootNode = new SchoolStudentRootNode();
