@@ -25,6 +25,8 @@ import com.nimbusds.jose.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -286,5 +288,45 @@ public class AssessmentStudentService {
                 .uploadedBy(student.map(AssessmentStudentEntity::getCreateUser).orElse(null))
                 .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
                 .build();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int markStagedStudentsReadyForTransfer() {
+        log.debug("Marking all staged students as ready for transfer");
+
+        LocalDateTime updateTime = LocalDateTime.now();
+        int updatedCount = stagedAssessmentStudentRepository.updateAllStagedAssessmentStudentStatus(
+            "TRANSFER",
+            "ASSESSMENT-API",
+            updateTime
+        );
+
+        log.debug("Successfully marked {} staged students as ready for transfer", updatedCount);
+
+        return updatedCount;
+    }
+
+    public List<UUID> findBatchOfTransferStudentIds(int batchSize) {
+        log.debug("Finding batch of {} students with TRANSFER status", batchSize);
+        Pageable pageable = PageRequest.of(0, batchSize);
+        return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("TRANSFER", pageable);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int markStudentAsTransferInProgress(UUID studentId) {
+        log.debug("Marking student {} as TRANSFERIN", studentId);
+
+        LocalDateTime updateTime = LocalDateTime.now();
+        List<UUID> studentIds = List.of(studentId);
+        int updatedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusByIds(
+            studentIds,
+            "TRANSFER",
+            "TRANSFERIN",
+            "ASSESSMENT-API",
+            updateTime
+        );
+
+        log.debug("Successfully marked student {} as TRANSFERIN (updated: {})", studentId, updatedCount);
+        return updatedCount;
     }
 }
