@@ -485,7 +485,8 @@ public class CSVReportService {
     private List<String> prepareGradeSummaryDetailsDataForCsv(SummaryByGradeQueryResponse gradeSummary, AssessmentSessionEntity session) {
         return new ArrayList<>(Arrays.asList(
                 gradeSummary.getAssessmentTypeCode(),
-                session.getCourseMonth() + session.getCourseMonth(),
+                session.getCourseYear() + session.getCourseMonth(),
+                gradeSummary.getGrade(),
                 Long.toString(gradeSummary.getProfScore1()),
                 Long.toString(gradeSummary.getProfScore2()),
                 Long.toString(gradeSummary.getProfScore3()),
