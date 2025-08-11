@@ -74,11 +74,14 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
     ArgumentCaptor<byte[]> eventCaptor;
     @Autowired
     StagedStudentResultRepository stagedStudentResultRepository;
+    @Autowired
+    AssessmentStudentRepository assessmentStudentRepository;
 
     @BeforeEach
     void setUp() {
         sagaEventRepository.deleteAll();
         sagaRepository.deleteAll();
+        assessmentStudentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         stagedStudentResultRepository.deleteAll();
         assessmentQuestionRepository.deleteAll();
