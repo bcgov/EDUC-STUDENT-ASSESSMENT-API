@@ -329,4 +329,28 @@ public class AssessmentStudentService {
         log.debug("Successfully marked student {} as TRANSFERIN (updated: {})", studentId, updatedCount);
         return updatedCount;
     }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int markStudentAsTransferred(UUID studentId) {
+        log.debug("Marking student {} as TRANSFERED", studentId);
+
+        LocalDateTime updateTime = LocalDateTime.now();
+        List<UUID> studentIds = List.of(studentId);
+        int updatedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusByIds(
+            studentIds,
+            "TRANSFERIN",
+            "TRANSFERED",
+            "ASSESSMENT-API",
+            updateTime
+        );
+
+        log.debug("Successfully marked student {} as TRANSFERED (updated: {})", studentId, updatedCount);
+        return updatedCount;
+    }
+
+    public StagedAssessmentStudentEntity getStagedStudentById(UUID stagedStudentId) {
+        return stagedAssessmentStudentRepository.findById(stagedStudentId).orElseThrow(() ->
+                new EntityNotFoundException(StagedAssessmentStudentEntity.class, "stagedStudentId", stagedStudentId.toString())
+        );
+    }
 }

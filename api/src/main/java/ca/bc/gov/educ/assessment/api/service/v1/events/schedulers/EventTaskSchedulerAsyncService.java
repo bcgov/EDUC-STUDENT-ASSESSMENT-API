@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.service.v1.events.schedulers;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.helpers.LogHelper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
+import ca.bc.gov.educ.assessment.api.orchestrator.TransferStudentProcessingOrchestrator;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.Orchestrator;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
@@ -55,6 +56,7 @@ public class EventTaskSchedulerAsyncService {
 
     private final StagedStudentResultRepository stagedStudentResultRepository;
     private final StudentAssessmentResultService studentAssessmentResultService;
+    private final TransferStudentProcessingOrchestrator transferStudentProcessingOrchestrator;
 
     @Value("${number.students.process.saga}")
     private String numberOfStudentsToProcess;
@@ -63,7 +65,7 @@ public class EventTaskSchedulerAsyncService {
     @Setter
     private List<String> statusFilters;
 
-    public EventTaskSchedulerAsyncService(final List<Orchestrator> orchestrators, SagaRepository sagaRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentService assessmentStudentService, SessionService sessionService, StagedStudentResultRepository stagedStudentResultRepository, StudentAssessmentResultService studentAssessmentResultService) {
+    public EventTaskSchedulerAsyncService(final List<Orchestrator> orchestrators, SagaRepository sagaRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentService assessmentStudentService, SessionService sessionService, StagedStudentResultRepository stagedStudentResultRepository, StudentAssessmentResultService studentAssessmentResultService, TransferStudentProcessingOrchestrator transferStudentProcessingOrchestrator) {
         this.sagaRepository = sagaRepository;
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentSessionRepository = assessmentSessionRepository;
@@ -71,6 +73,7 @@ public class EventTaskSchedulerAsyncService {
         this.sessionService = sessionService;
         this.stagedStudentResultRepository = stagedStudentResultRepository;
         this.studentAssessmentResultService = studentAssessmentResultService;
+        this.transferStudentProcessingOrchestrator = transferStudentProcessingOrchestrator;
         orchestrators.forEach(orchestrator -> this.sagaOrchestrators.put(orchestrator.getSagaName(), orchestrator));
     }
 
@@ -175,13 +178,9 @@ public class EventTaskSchedulerAsyncService {
                     int updated = assessmentStudentService.markStudentAsTransferInProgress(studentId);
 
                     if (updated > 0) {
-                        // TODO: Create individual saga for each student
-                        // Each saga will have the student ID as payload
+                        // Create individual saga for each student
                         log.debug("Creating transfer processing saga for student: {}", studentId);
-
-                        // Placeholder for saga creation
-                        // transferProcessingOrchestrator.startTransferProcessingSaga(studentId);
-
+                        transferStudentProcessingOrchestrator.startStudentTransferProcessingSaga(studentId);
                         sagasCreated++;
                     } else {
                         log.debug("Student {} may have already been processed by another thread", studentId);
