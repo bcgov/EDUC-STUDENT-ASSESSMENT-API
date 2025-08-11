@@ -103,9 +103,16 @@ public class AssessmentStudentService {
         return Pair.of(student, event);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AssessmentStudentEntity createStudentWithoutValidation(AssessmentStudentEntity assessmentStudentEntity) {
-        return saveAssessmentStudentWithHistory(assessmentStudentEntity);
+    @Transactional(propagation = Propagation.MANDATORY)
+    public AssessmentStudentEntity saveAssessmentStudentWithHistoryInCurrentTransaction(AssessmentStudentEntity assessmentStudentEntity) {
+        AssessmentStudentEntity savedEntity = assessmentStudentRepository.save(assessmentStudentEntity);
+        assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
+        return savedEntity;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public AssessmentStudentEntity createStudentWithoutValidationInCurrentTransaction(AssessmentStudentEntity assessmentStudentEntity) {
+        return saveAssessmentStudentWithHistoryInCurrentTransaction(assessmentStudentEntity);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -330,21 +337,21 @@ public class AssessmentStudentService {
         return updatedCount;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public int markStudentAsTransferred(UUID studentId) {
-        log.debug("Marking student {} as TRANSFERED", studentId);
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int markStudentAsTransferredInCurrentTransaction(UUID studentId) {
+        log.debug("Marking student {} as TRANSFERRED in current transaction", studentId);
 
         LocalDateTime updateTime = LocalDateTime.now();
         List<UUID> studentIds = List.of(studentId);
         int updatedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusByIds(
             studentIds,
             "TRANSFERIN",
-            "TRANSFERED",
+            "TRANSFERRED",
             "ASSESSMENT-API",
             updateTime
         );
 
-        log.debug("Successfully marked student {} as TRANSFERED (updated: {})", studentId, updatedCount);
+        log.debug("Successfully marked student {} as TRANSFERRED (updated: {})", studentId, updatedCount);
         return updatedCount;
     }
 
