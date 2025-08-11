@@ -339,19 +339,19 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public int markStudentAsTransferredInCurrentTransaction(UUID studentId) {
-        log.debug("Marking student {} as TRANSFERRED in current transaction", studentId);
+        log.debug("Marking student {} as TRANSFERED in current transaction", studentId);
 
         LocalDateTime updateTime = LocalDateTime.now();
         List<UUID> studentIds = List.of(studentId);
         int updatedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusByIds(
             studentIds,
             "TRANSFERIN",
-            "TRANSFERRED",
+            "TRANSFERED",
             "ASSESSMENT-API",
             updateTime
         );
 
-        log.debug("Successfully marked student {} as TRANSFERRED (updated: {})", studentId, updatedCount);
+        log.debug("Successfully marked student {} as TRANSFERED (updated: {})", studentId, updatedCount);
         return updatedCount;
     }
 

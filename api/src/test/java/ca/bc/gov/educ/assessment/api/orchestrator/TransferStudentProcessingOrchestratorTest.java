@@ -8,7 +8,6 @@ import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
-import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
@@ -66,18 +65,11 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
     @Autowired
     private SagaEventRepository sagaEventRepository;
 
-    @Autowired
-    private AssessmentStudentService assessmentStudentService;
-
     @Captor
     private ArgumentCaptor<byte[]> eventCaptor;
 
-    private UUID sagaData;
     private String sagaPayload;
     private AssessmentSagaEntity saga;
-    private StagedAssessmentStudentEntity stagedStudent;
-    private AssessmentEntity assessment;
-    private AssessmentSessionEntity session;
 
     @AfterEach
     public void after() {
@@ -94,13 +86,13 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
     public void setUp() {
         Mockito.reset(this.messagePublisher);
 
-        session = assessmentSessionRepository.save(createMockSessionEntity());
-        assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
-        stagedStudent = createMockStagedStudentEntity(assessment);
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+        StagedAssessmentStudentEntity stagedStudent = createMockStagedStudentEntity(assessment);
         stagedStudent.setStagedAssessmentStudentStatus("TRANSFER");
         stagedStudent = stagedAssessmentStudentRepository.save(stagedStudent);
 
-        sagaData = stagedStudent.getAssessmentStudentID();
+        UUID sagaData = stagedStudent.getAssessmentStudentID();
         MockitoAnnotations.openMocks(this);
         sagaPayload = JsonUtil.getJsonString(sagaData).get();
         saga = this.sagaService.createSagaRecordInDB(
@@ -134,12 +126,12 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
     @SneakyThrows
     @Test
-    void testOrchestratorHandlesEventAndDelegatesStep1ToService() {
+    void testOrchestratorHandlesProcessStudentTransferEventAndCompletesSaga() {
         String payload = sagaPayload;
         Event event = Event.builder()
                 .sagaId(saga.getSagaId())
-                .eventType(EventType.MARK_STAGED_STUDENTS_READY_FOR_TRANSFER)
-                .eventOutcome(EventOutcome.STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER)
+                .eventType(EventType.PROCESS_STUDENT_TRANSFER_EVENT)
+                .eventOutcome(EventOutcome.STUDENT_TRANSFER_PROCESSED)
                 .eventPayload(payload)
                 .build();
 
