@@ -76,11 +76,14 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
     StagedStudentResultRepository stagedStudentResultRepository;
     @Autowired
     AssessmentStudentRepository assessmentStudentRepository;
+    @Autowired
+    private AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
     @BeforeEach
     void setUp() {
         sagaEventRepository.deleteAll();
         sagaRepository.deleteAll();
+        assessmentStudentHistoryRepository.deleteAll();
         assessmentStudentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         stagedStudentResultRepository.deleteAll();
