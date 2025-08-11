@@ -51,9 +51,15 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
   AssessmentSessionRepository assessmentSessionRepository;
   @Autowired
   StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+  @Autowired
+  private AssessmentStudentRepository assessmentStudentRepository;
+  @Autowired
+  private AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
   @BeforeEach
   void setUp() {
+    assessmentStudentHistoryRepository.deleteAll();
+    assessmentStudentRepository.deleteAll();
     stagedAssessmentStudentRepository.deleteAll();
     stagedStudentResultRepository.deleteAll();
     assessmentFormRepository.deleteAll();
