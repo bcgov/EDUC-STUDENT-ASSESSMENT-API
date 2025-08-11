@@ -27,9 +27,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -152,5 +151,46 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
     @Test
     void testOrchestratorGetTopicToSubscribe() {
         assertEquals("STUDENT_TRANSFER_PROCESSING_TOPIC", transferStudentProcessingOrchestrator.getTopicToSubscribe());
+    }
+
+    @SneakyThrows
+    @Test
+    void testStartStudentTransferProcessingSaga_initiatesSagaAndDispatchesEvent() {
+        SagaService mockSagaService = Mockito.mock(SagaService.class);
+        MessagePublisher mockMessagePublisher = Mockito.mock(MessagePublisher.class);
+        TransferStudentProcessingOrchestrator orchestratorWithMocks = new TransferStudentProcessingOrchestrator(mockSagaService, mockMessagePublisher, null);
+
+        AssessmentSagaEntity dummySaga = new AssessmentSagaEntity();
+        dummySaga.setSagaId(UUID.randomUUID());
+        when(mockSagaService.createSagaRecordInDB(anyString(), anyString(), anyString(), isNull(), any(UUID.class))).thenReturn(dummySaga);
+
+        UUID stagedStudentId = UUID.randomUUID();
+
+        orchestratorWithMocks.startStudentTransferProcessingSaga(stagedStudentId);
+
+        verify(mockSagaService, atLeastOnce()).createSagaRecordInDB(anyString(), anyString(), anyString(), isNull(), any(UUID.class));
+        verify(mockMessagePublisher, atLeastOnce()).dispatchMessage(eq(orchestratorWithMocks.getTopicToSubscribe()), eventCaptor.capture());
+
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.INITIATED);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.INITIATE_SUCCESS);
+    }
+
+    private AssessmentStudentEntity createMainStudentFromStaged(StagedAssessmentStudentEntity staged) {
+        return AssessmentStudentEntity.builder()
+                .assessmentEntity(staged.getAssessmentEntity())
+                .studentID(staged.getStudentID())
+                .pen(staged.getPen())
+                .surname(staged.getSurname())
+                .givenName(staged.getGivenName())
+                .schoolOfRecordSchoolID(staged.getSchoolOfRecordSchoolID())
+                .proficiencyScore(staged.getProficiencyScore())
+                .createUser(staged.getCreateUser())
+                .createDate(staged.getCreateDate())
+                .updateUser(staged.getUpdateUser())
+                .updateDate(staged.getUpdateDate())
+                .build();
     }
 }
