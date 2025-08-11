@@ -238,8 +238,8 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Stri
                 .updateDate(staged.getUpdateDate())
                 .build();
     }
-    public void startStudentTransferProcessingSaga(UUID stagedStudentResultID) {
-        String payload = stagedStudentResultID.toString();
+    public void startStudentTransferProcessingSaga(UUID stagedStudentResultID) throws JsonProcessingException {
+        String payload = JsonUtil.getJsonStringFromObject(stagedStudentResultID.toString());
         AssessmentSagaEntity saga = sagaService.createSagaRecordInDB(
                 this.getSagaName(),
                 "ASSESSMENT-API",
