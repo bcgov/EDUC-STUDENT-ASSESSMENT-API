@@ -6,6 +6,7 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
+import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
@@ -791,7 +792,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     List<StagedAssessmentStudentEntity> transferStudents = stagedAssessmentStudentRepository.findAll();
     assertThat(transferStudents).hasSize(2);
     assertThat(transferStudents).allMatch(student -> "TRANSFER".equals(student.getStagedAssessmentStudentStatus()));
-    assertThat(transferStudents).allMatch(student -> "ASSESSMENT-API".equals(student.getUpdateUser()));
+    assertThat(transferStudents).allMatch(student -> ApplicationProperties.STUDENT_ASSESSMENT_API.equals(student.getUpdateUser()));
   }
 
   @Test

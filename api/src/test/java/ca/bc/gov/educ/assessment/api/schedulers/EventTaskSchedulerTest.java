@@ -148,8 +148,8 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     var updatedStudent2 = stagedAssessmentStudentRepository.findById(savedStudent2.getAssessmentStudentID()).orElse(null);
 
     assertThat(updatedStudent1).isNotNull();
-    assertThat(updatedStudent1.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERIN");
+    assertThat(updatedStudent1.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERED");
     assertThat(updatedStudent2).isNotNull();
-    assertThat(updatedStudent2.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERIN");
+    assertThat(updatedStudent2.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERED");
   }
 }
