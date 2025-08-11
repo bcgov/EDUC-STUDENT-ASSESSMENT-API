@@ -304,7 +304,7 @@ public class AssessmentStudentService {
         LocalDateTime updateTime = LocalDateTime.now();
         int updatedCount = stagedAssessmentStudentRepository.updateAllStagedAssessmentStudentStatus(
             "TRANSFER",
-            "ASSESSMENT-API",
+            ApplicationProperties.STUDENT_ASSESSMENT_API,
             updateTime
         );
 
