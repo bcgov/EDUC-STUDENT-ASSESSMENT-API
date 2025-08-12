@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api.reports;
 
+import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -86,7 +88,7 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
           studentNode.setPen(student.getPen());
           studentNode.setLocalID(student.getLocalID());
           studentNode.setName(student.getSurname() + ", " + student.getGivenName());
-          studentNode.setScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null);
+          studentNode.setScore(student.getProficiencyScore() == null ? StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : "" : student.getProficiencyScore().toString());
           schoolStudentReportNode.getStudents().add(studentNode);
         });
         schoolStudentReportNode.setStudents(schoolStudentReportNode.getStudents().stream().sorted(Comparator.comparing(SchoolStudentNode::getName)).toList());
