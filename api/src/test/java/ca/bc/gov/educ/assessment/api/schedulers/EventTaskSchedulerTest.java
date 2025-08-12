@@ -11,7 +11,6 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.StagedStudentResultEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
-import ca.bc.gov.educ.assessment.api.service.v1.events.schedulers.EventTaskSchedulerAsyncService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,14 +51,21 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
   AssessmentSessionRepository assessmentSessionRepository;
   @Autowired
   StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+  @Autowired
+  private AssessmentStudentRepository assessmentStudentRepository;
+  @Autowired
+  private AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
   @BeforeEach
   void setUp() {
+    assessmentStudentHistoryRepository.deleteAll();
+    assessmentStudentRepository.deleteAll();
     stagedAssessmentStudentRepository.deleteAll();
     stagedStudentResultRepository.deleteAll();
     assessmentFormRepository.deleteAll();
     assessmentRepository.deleteAll();
     assessmentSessionRepository.deleteAll();
+    stagedAssessmentStudentRepository.deleteAll();
 
     AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     savedAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTP10.getCode()));
@@ -132,4 +138,24 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     assertThat(newEvent.getEventType()).isEqualTo(EventType.READ_STUDENT_RESULT_FOR_PROCESSING);
   }
 
+  @Test
+  void processTransferStudents_WhenTransferStudentsExist_ShouldCallAsyncService() {
+    var stagedStudent1 = createMockStagedStudentEntity(savedAssessmentEntity);
+    stagedStudent1.setStagedAssessmentStudentStatus("TRANSFER");
+    var stagedStudent2 = createMockStagedStudentEntity(savedAssessmentEntity);
+    stagedStudent2.setStagedAssessmentStudentStatus("TRANSFER");
+
+    var savedStudent1 = stagedAssessmentStudentRepository.save(stagedStudent1);
+    var savedStudent2 = stagedAssessmentStudentRepository.save(stagedStudent2);
+
+    eventTaskScheduler.processTransferStudents();
+
+    var updatedStudent1 = stagedAssessmentStudentRepository.findById(savedStudent1.getAssessmentStudentID()).orElse(null);
+    var updatedStudent2 = stagedAssessmentStudentRepository.findById(savedStudent2.getAssessmentStudentID()).orElse(null);
+
+    assertThat(updatedStudent1).isNotNull();
+    assertThat(updatedStudent1.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERED");
+    assertThat(updatedStudent2).isNotNull();
+    assertThat(updatedStudent2.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERED");
+  }
 }

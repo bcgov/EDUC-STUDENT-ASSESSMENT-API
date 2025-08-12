@@ -25,6 +25,8 @@ import com.nimbusds.jose.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,9 +103,16 @@ public class AssessmentStudentService {
         return Pair.of(student, event);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AssessmentStudentEntity createStudentWithoutValidation(AssessmentStudentEntity assessmentStudentEntity) {
-        return saveAssessmentStudentWithHistory(assessmentStudentEntity);
+    @Transactional(propagation = Propagation.MANDATORY)
+    public AssessmentStudentEntity saveAssessmentStudentWithHistoryInCurrentTransaction(AssessmentStudentEntity assessmentStudentEntity) {
+        AssessmentStudentEntity savedEntity = assessmentStudentRepository.save(assessmentStudentEntity);
+        assessmentStudentHistoryRepository.save(this.assessmentStudentHistoryService.createAssessmentStudentHistoryEntity(assessmentStudentEntity, assessmentStudentEntity.getUpdateUser()));
+        return savedEntity;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public AssessmentStudentEntity createStudentWithoutValidationInCurrentTransaction(AssessmentStudentEntity assessmentStudentEntity) {
+        return saveAssessmentStudentWithHistoryInCurrentTransaction(assessmentStudentEntity);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -286,5 +295,69 @@ public class AssessmentStudentService {
                 .uploadedBy(student.map(AssessmentStudentEntity::getCreateUser).orElse(null))
                 .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
                 .build();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int markStagedStudentsReadyForTransfer() {
+        log.debug("Marking all staged students as ready for transfer");
+
+        LocalDateTime updateTime = LocalDateTime.now();
+        int updatedCount = stagedAssessmentStudentRepository.updateAllStagedAssessmentStudentStatus(
+            "TRANSFER",
+            ApplicationProperties.STUDENT_ASSESSMENT_API,
+            updateTime
+        );
+
+        log.debug("Successfully marked {} staged students as ready for transfer", updatedCount);
+
+        return updatedCount;
+    }
+
+    public List<UUID> findBatchOfTransferStudentIds(int batchSize) {
+        log.debug("Finding batch of {} students with TRANSFER status", batchSize);
+        Pageable pageable = PageRequest.of(0, batchSize);
+        return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("TRANSFER", pageable);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int markStudentAsTransferInProgress(UUID studentId) {
+        log.debug("Marking student {} as TRANSFERIN", studentId);
+
+        LocalDateTime updateTime = LocalDateTime.now();
+        List<UUID> studentIds = List.of(studentId);
+        int updatedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusByIds(
+            studentIds,
+            "TRANSFER",
+            "TRANSFERIN",
+            "ASSESSMENT-API",
+            updateTime
+        );
+
+        log.debug("Successfully marked student {} as TRANSFERIN (updated: {})", studentId, updatedCount);
+        return updatedCount;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int markStudentAsTransferredInCurrentTransaction(UUID studentId) {
+        log.debug("Marking student {} as TRANSFERED in current transaction", studentId);
+
+        LocalDateTime updateTime = LocalDateTime.now();
+        List<UUID> studentIds = List.of(studentId);
+        int updatedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusByIds(
+            studentIds,
+            "TRANSFERIN",
+            "TRANSFERED",
+            "ASSESSMENT-API",
+            updateTime
+        );
+
+        log.debug("Successfully marked student {} as TRANSFERED (updated: {})", studentId, updatedCount);
+        return updatedCount;
+    }
+
+    public StagedAssessmentStudentEntity getStagedStudentById(UUID stagedStudentId) {
+        return stagedAssessmentStudentRepository.findById(stagedStudentId).orElseThrow(() ->
+                new EntityNotFoundException(StagedAssessmentStudentEntity.class, "stagedStudentId", stagedStudentId.toString())
+        );
     }
 }
