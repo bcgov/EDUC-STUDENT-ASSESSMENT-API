@@ -121,7 +121,7 @@ public class AssessmentStudentService {
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
-        assessmentStudentEntity.setStudentStatus(StudentStatusCodes.ACTIVE.getCode());
+        assessmentStudentEntity.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
         var student = processStudent(assessmentStudentEntity, null, true, allowRuleOverride);
         var event = generateStudentUpdatedEvent(student.getStudentID());
         assessmentEventRepository.save(event);

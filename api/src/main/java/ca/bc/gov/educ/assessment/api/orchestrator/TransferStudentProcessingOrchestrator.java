@@ -156,7 +156,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Stri
                 .assessmentCenterSchoolID(staged.getAssessmentCenterSchoolID())
                 .schoolOfRecordSchoolID(staged.getSchoolOfRecordSchoolID())
                 .studentID(staged.getStudentID())
-                .studentStatus(staged.getStagedAssessmentStudentStatus()) // do we want to do this?
+                .studentStatusCode(staged.getStagedAssessmentStudentStatus()) // do we want to do this?
                 .givenName(staged.getGivenName())
                 .surname(staged.getSurname())
                 .pen(staged.getPen())

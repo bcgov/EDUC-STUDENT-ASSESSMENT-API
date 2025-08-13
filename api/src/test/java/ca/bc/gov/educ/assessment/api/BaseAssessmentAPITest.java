@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
@@ -264,7 +265,7 @@ public abstract class BaseAssessmentAPITest {
             .createDate(LocalDateTime.now().toString())
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
-            .studentStatus("ACTIVE")
+            .studentStatusCode(StudentStatusCodes.ACTIVE.toString())
             .build();
   }
 
@@ -290,7 +291,7 @@ public abstract class BaseAssessmentAPITest {
             .surname("TestLast")
             .pen("120164447")
             .localID("123")
-            .studentStatus("ACTIVE")
+           .studentStatusCode(StudentStatusCodes.ACTIVE.toString())
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
