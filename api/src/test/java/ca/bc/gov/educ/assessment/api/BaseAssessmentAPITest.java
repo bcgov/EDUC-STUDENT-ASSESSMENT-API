@@ -28,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -160,6 +161,8 @@ public abstract class BaseAssessmentAPITest {
             .assessmentComponentEntity(assessmentComponentEntity)
             .itemNumber(itemNumber)
             .questionNumber(questionNumber)
+            .scaleFactor(1)
+            .questionValue(BigDecimal.TWO)
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
@@ -388,6 +391,19 @@ public abstract class BaseAssessmentAPITest {
             .assessmentStudentEntity(assessmentStudentEntity)
             .assessmentComponentID(assessmentComponentID)
             .choicePath("A")
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
+  public AssessmentStudentAnswerEntity createMockAssessmentStudentAnswerEntity(UUID assessmentQuestionID, BigDecimal score, AssessmentStudentComponentEntity assessmentStudentComponentEntity) {
+    return AssessmentStudentAnswerEntity.builder()
+            .assessmentStudentAnswerID(UUID.randomUUID())
+            .assessmentStudentComponentEntity(assessmentStudentComponentEntity)
+            .assessmentQuestionID(assessmentQuestionID)
+            .score(score)
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)

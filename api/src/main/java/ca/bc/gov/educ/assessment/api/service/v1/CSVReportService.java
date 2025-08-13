@@ -23,6 +23,7 @@ import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -50,6 +51,7 @@ public class CSVReportService {
     private final AssessmentStudentLightRepository assessmentStudentLightRepository;
     private final StagedAssessmentStudentLightRepository stagedAssessmentStudentLightRepository;
     private final SummaryReportService summaryReportService;
+    private final DOARReportService doarReportService;
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
@@ -424,6 +426,58 @@ public class CSVReportService {
 
             DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
             downloadableReport.setReportType(REGISTRATION_SUMMARY_BY_SCHOOL.getCode());
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
+    public DownloadableReportResponse generateNmeDetailedDOARBySchool(UUID sessionID, UUID schoolID) {
+        List<String> headers = Arrays.stream(NMEDoarHeader.values()).map(NMEDoarHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            for (List<String> row : doarReportService.generateDetailedDOARBySchoolAndAssessmentType(sessionID, schoolID, "NME10")) {
+                csvPrinter.printRecord(row);
+            }
+            csvPrinter.flush();
+
+            DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(NME_DETAILED_DOAR.getCode());
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
+    public DownloadableReportResponse generateNmfDetailedDOARBySchool(UUID sessionID, UUID schoolID) {
+        List<String> headers = Arrays.stream(NMEDoarHeader.values()).map(NMEDoarHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            for (List<String> row : doarReportService.generateDetailedDOARBySchoolAndAssessmentType(sessionID, schoolID, "NMF10")) {
+                csvPrinter.printRecord(row);
+            }
+            csvPrinter.flush();
+
+            DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(NMF_DETAILED_DOAR.getCode());
             downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
 
             return downloadableReport;
