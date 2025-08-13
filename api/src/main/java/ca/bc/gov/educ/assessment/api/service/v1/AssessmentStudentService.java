@@ -60,6 +60,10 @@ public class AssessmentStudentService {
         );
     }
 
+    public List<AssessmentStudentEntity> getStudentByStudentId(UUID studentID) {
+        return assessmentStudentRepository.findByStudentID(studentID);
+    }
+
     public List<UUID> getAllStudentIDsInSessionFromResultsStaging(UUID assessmentSessionID) {
         return stagedAssessmentStudentRepository.findAllStagedStudentsInSession(assessmentSessionID);
     }
