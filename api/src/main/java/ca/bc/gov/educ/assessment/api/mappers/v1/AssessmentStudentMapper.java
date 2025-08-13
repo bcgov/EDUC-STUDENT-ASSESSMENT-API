@@ -25,7 +25,7 @@ public interface AssessmentStudentMapper {
     @Mapping(target = "assessmentEntity.assessmentID", source = "assessmentID")
     @Mapping(target = "assessmentCenterSchoolID", source = "assessmentCenterSchoolID")
     @Mapping(target = "givenName", source = "givenName")
-    @Mapping(target = "studentStatus", source = "studentStatus")
+    @Mapping(target = "studentStatusCode", source = "studentStatusCode")
     AssessmentStudentEntity toModel(AssessmentStudent assessmentStudent);
 
     StagedAssessmentStudentEntity toStagingStudent(AssessmentStudentEntity entity);

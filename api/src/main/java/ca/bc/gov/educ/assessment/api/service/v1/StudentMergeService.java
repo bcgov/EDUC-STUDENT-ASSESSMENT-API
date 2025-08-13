@@ -101,7 +101,7 @@ public class StudentMergeService {
             List<AssessmentStudentEntity> assessmentStudents = this.assessmentStudentService.getStudentByStudentId(studentID);
 
             assessmentStudents.stream().forEach(assessmentStudent -> {
-                assessmentStudent.setStudentStatus(statusCode.toString());
+                assessmentStudent.setStudentStatusCode(statusCode.toString());
                 this.assessmentStudentRepository.save(assessmentStudent);
             });
            }

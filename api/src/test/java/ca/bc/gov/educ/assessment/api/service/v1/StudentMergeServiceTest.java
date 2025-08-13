@@ -105,7 +105,7 @@ class StudentMergeServiceTest {
 
         verify(assessmentStudentService, times(1)).getStudentByStudentId(studentId);
         verify(assessmentStudentRepository, times(1)).save(assessmentStudent);
-        assertEquals(StudentStatusCodes.MERGED.toString(), assessmentStudent.getStudentStatus());
+        assertEquals(StudentStatusCodes.MERGED.toString(), assessmentStudent.getStudentStatusCode());
     }
 
     @Test
@@ -126,7 +126,7 @@ class StudentMergeServiceTest {
 
         verify(assessmentStudentService, times(1)).getStudentByStudentId(studentId);
         verify(assessmentStudentRepository, times(1)).save(assessmentStudent);
-        assertEquals(StudentStatusCodes.ACTIVE.toString(), assessmentStudent.getStudentStatus());
+        assertEquals(StudentStatusCodes.ACTIVE.toString(), assessmentStudent.getStudentStatusCode());
     }
 
     @Test
@@ -175,7 +175,7 @@ class StudentMergeServiceTest {
 
         verify(assessmentStudentService, times(1)).getStudentByStudentId(studentId);
         verify(assessmentStudentRepository, times(1)).save(assessmentStudent);
-        assertEquals(StudentStatusCodes.MERGED.toString(), assessmentStudent.getStudentStatus());
+        assertEquals(StudentStatusCodes.MERGED.toString(), assessmentStudent.getStudentStatusCode());
 
         verify(assessmentEventRepository, times(1)).findByEventId(event.getEventId());
         verify(assessmentEventRepository, times(1)).save(event);
@@ -209,7 +209,7 @@ class StudentMergeServiceTest {
 
         verify(assessmentStudentService, times(1)).getStudentByStudentId(studentId);
         verify(assessmentStudentRepository, times(1)).save(assessmentStudent);
-        assertEquals(StudentStatusCodes.ACTIVE.toString(), assessmentStudent.getStudentStatus());
+        assertEquals(StudentStatusCodes.ACTIVE.toString(), assessmentStudent.getStudentStatusCode());
 
         verify(assessmentEventRepository, times(1)).findByEventId(event.getEventId());
         verify(assessmentEventRepository, times(1)).save(event);
