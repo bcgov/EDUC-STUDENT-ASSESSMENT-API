@@ -92,25 +92,25 @@ public class DOARReportService {
         map = new EnumMap<>(DOARColumnLookup.class);
 
         map.put(DOARColumnLookup.ENTRY1, (selectedAssessmentForm, student, code) -> {
-            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "ORAL");
+            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "OPEN_ENDED");
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "MUL_CHOICE");
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
 
         map.put(DOARColumnLookup.ENTRY2, (selectedAssessmentForm, student, code) -> {
-            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "ORAL");
+            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "OPEN_ENDED");
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "MUL_CHOICE");
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
 
         map.put(DOARColumnLookup.ENTRY3, (selectedAssessmentForm, student, code) -> {
-            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "ORAL");
+            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "OPEN_ENDED");
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "MUL_CHOICE");
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
 
         map.put(DOARColumnLookup.ENTRY4, (selectedAssessmentForm, student, code) -> {
-            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "ORAL");
+            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "OPEN_ENDED");
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "MUL_CHOICE");
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
@@ -136,19 +136,19 @@ public class DOARReportService {
         });
 
         map.put(DOARColumnLookup.ENTRY9, (selectedAssessmentForm, student, code) -> {
-            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "ORAL");
+            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "OPEN_ENDED");
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "MUL_CHOICE");
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
 
         map.put(DOARColumnLookup.ENTRY10, (selectedAssessmentForm, student, code) -> {
-            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "ORAL");
+            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "OPEN_ENDED");
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "MUL_CHOICE");
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
 
         map.put(DOARColumnLookup.ENTRY11, (selectedAssessmentForm, student, code) -> {
-            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "ORAL");
+            List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "OPEN_ENDED");
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, "MUL_CHOICE");
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });

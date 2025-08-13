@@ -108,15 +108,9 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         List<AssessmentQuestionEntity> updatedQues = new ArrayList<>();
 
         for (int i = 1; i < ques.size(); i++) {
-            if (i % 2 == 0) {
-                ques.get(i).setTaskCode("P");
-                ques.get(i).setClaimCode("I");
-                ques.get(i).setCognitiveLevelCode("8");
-            } else {
-                ques.get(i).setTaskCode("M");
-                ques.get(i).setClaimCode("P");
-                ques.get(i).setCognitiveLevelCode("9");
-            }
+            ques.get(i).setTaskCode("P");
+            ques.get(i).setClaimCode("I");
+            ques.get(i).setCognitiveLevelCode("8");
             updatedQues.add(ques.get(i));
         }
         assessmentQuestionRepository.saveAll(updatedQues);
@@ -126,7 +120,7 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         assertThat(studentTotal).hasSize(1);
         var row = studentTotal.get(0);
         assertThat(row.get(0)).isEqualTo("202501");
-        assertThat(row.get(9)).isEqualTo("0.00");
+        assertThat(row.get(9)).isEqualTo("1.00");
     }
 
     private AssessmentFormEntity setData(String assessmentTypeCode, SchoolTombstone schoolTombstone) {
@@ -145,10 +139,21 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         }
 
         var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
-        var oe1 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
-        var oe4 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+        var q1 = createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2);
+        q1.setMasterQuestionNumber(2);
+        var oe1 = assessmentQuestionRepository.save(q1);
+
+        var q2 = createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3);
+        q2.setMasterQuestionNumber(2);
+        assessmentQuestionRepository.save(q2);
+
+        var q3 = createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5);
+        q3.setMasterQuestionNumber(4);
+        assessmentQuestionRepository.save(q3);
+
+        var q4 = createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6);
+        q4.setMasterQuestionNumber(4);
+        var oe4 = assessmentQuestionRepository.save(q4);
 
         var studentEntity1 = createMockStudentEntity(savedAssessmentEntity);
         studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(schoolTombstone.getSchoolId()));
