@@ -95,9 +95,9 @@ public class ReportsController implements ReportsEndpoint {
             case SCHOOL_STUDENTS_BY_ASSESSMENT:
                 return schoolStudentsByAssessmentReportService.generateSchoolStudentsByAssessmentReport(sessionID, schoolID);
             case NME_DETAILED_DOAR:
-                return csvReportService.generateNmeDetailedDOARBySchool(sessionID, schoolID);
+                return csvReportService.generateNmeDetailedDOARBySchool(sessionID, schoolID, "NME10");
             case NMF_DETAILED_DOAR:
-                return csvReportService.generateNmfDetailedDOARBySchool(sessionID, schoolID);
+                return csvReportService.generateNmeDetailedDOARBySchool(sessionID, schoolID, "NMF10");
             default:
                 return new DownloadableReportResponse();
         }
