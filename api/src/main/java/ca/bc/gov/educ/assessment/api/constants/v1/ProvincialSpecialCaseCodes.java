@@ -8,14 +8,16 @@ import java.util.Optional;
 
 @Getter
 public enum ProvincialSpecialCaseCodes {
-  AEGROTAT("A"),
-  EXEMPT("E"),
-  DISQUALIFIED("Q"),
-  NOTCOMPLETED("X");
+  AEGROTAT("A", "AEG"),
+  EXEMPT("E", "XMT"),
+  DISQUALIFIED("Q", "DSQ"),
+  NOTCOMPLETED("X", "NC");
 
   private final String code;
-  ProvincialSpecialCaseCodes(String code) {
+  private final String description;
+  ProvincialSpecialCaseCodes(String code, String description) {
     this.code = code;
+    this.description = description;
   }
 
   public static Optional<ProvincialSpecialCaseCodes> findByValue(String value) {
