@@ -628,7 +628,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo("nme-detailed-doar");
+        assertThat(summary.getReportType()).isEqualTo("NME10");
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 
@@ -690,7 +690,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo("nmf-detailed-doar");
+        assertThat(summary.getReportType()).isEqualTo("NMF10");
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 }

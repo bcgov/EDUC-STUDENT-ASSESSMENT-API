@@ -23,7 +23,6 @@ import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -434,9 +433,8 @@ public class CSVReportService {
         }
     }
 
-    public DownloadableReportResponse generateNmeDetailedDOARBySchool(UUID sessionID, UUID schoolID, String assessmentTypeCode) {
-        List<String> headers = assessmentTypeCode.equalsIgnoreCase("NME10") ? Arrays.stream(NMEDoarHeader.values()).map(NMEDoarHeader::getCode).toList()
-                : Arrays.stream(NMFDoarHeader.values()).map(NMFDoarHeader::getCode).toList();
+    public DownloadableReportResponse generateDetailedDOARBySchool(UUID sessionID, UUID schoolID, String assessmentTypeCode) {
+        List<String> headers = getDOARHeaders(assessmentTypeCode);
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
         try {
@@ -452,13 +450,24 @@ public class CSVReportService {
             csvPrinter.flush();
 
             DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
-            downloadableReport.setReportType(assessmentTypeCode.equalsIgnoreCase("NME10") ? NME_DETAILED_DOAR.getCode(): NMF_DETAILED_DOAR.getCode());
+            downloadableReport.setReportType(assessmentTypeCode);
             downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
-
             return downloadableReport;
         } catch (IOException e) {
             throw new StudentAssessmentAPIRuntimeException(e);
         }
+    }
+
+    private List<String> getDOARHeaders(String assessmentTypeCode) {
+        return switch (assessmentTypeCode) {
+            case "NME10" -> Arrays.stream(NMEDoarHeader.values()).map(NMEDoarHeader::getCode).toList();
+            case "NMF10" -> Arrays.stream(NMFDoarHeader.values()).map(NMFDoarHeader::getCode).toList();
+            case "LTE10", "LTE12" -> Arrays.stream(LTEDoarHeader.values()).map(LTEDoarHeader::getCode).toList();
+            case "LTP12" -> Arrays.stream(LTP12DoarHeader.values()).map(LTP12DoarHeader::getCode).toList();
+            case "LTP10" -> Arrays.stream(LTP10DoarHeader.values()).map(LTP10DoarHeader::getCode).toList();
+            case "LTF12" -> Arrays.stream(LTF12DoarHeader.values()).map(LTF12DoarHeader::getCode).toList();
+            default -> Collections.emptyList();
+        };
     }
 
     private List<String> prepareNumberOfAttemptsDataForCsv(AssessmentStudentEntity student) {
