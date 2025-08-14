@@ -10,19 +10,23 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.service.v1.StudentMergeService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ChoreographEventHandlerTest extends BaseAssessmentAPITest {
 
@@ -38,6 +42,9 @@ class ChoreographEventHandlerTest extends BaseAssessmentAPITest {
     AssessmentRepository assessmentRepository;
     @Autowired
     private AssessmentEventRepository assessmentEventRepository;
+
+    @MockBean
+    private StudentMergeService studentMergeService;
 
     @Test
     void handleEvent_UPDATE_SCHOOL_OF_RECORD_shouldUpdateStudentRecord() throws JsonProcessingException {
@@ -120,5 +127,53 @@ class ChoreographEventHandlerTest extends BaseAssessmentAPITest {
         assertThat(updatedStudent).hasSize(1);
         assertThat(updatedStudent.get(0).getSchoolOfRecordSchoolID()).isNotEqualTo(UUID.fromString(studentForUpdate.getSchoolOfRecordID()));
 
+    }
+
+    @Test
+    void handleEvent_CREATE_MERGE_shouldCallStudentMergeService() throws JsonProcessingException {
+        Map<String, String> studentMerge = new HashMap<>();
+        studentMerge.put("studentID", UUID.randomUUID().toString());
+        studentMerge.put("mergeStudentID", UUID.randomUUID().toString());
+
+        var assessmentEventEntity = AssessmentEventEntity.builder()
+                .eventType("CREATE_MERGE")
+                .eventOutcome("MERGE_CREATED")
+                .eventStatus("DB_COMMITTED")
+                .eventPayload(JsonUtil.getJsonStringFromObject(studentMerge))
+                .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+                .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .build();
+        var savedEvent = assessmentEventRepository.save(assessmentEventEntity);
+
+        assessmentEventEntity.setEventId(savedEvent.getEventId());
+        choreographEventHandler.handleEvent(assessmentEventEntity);
+
+        verify(studentMergeService, times(1)).processMergeEvent(assessmentEventEntity);
+    }
+
+    @Test
+    void handleEvent_DELETE_MERGE_shouldCallStudentMergeService() throws JsonProcessingException {
+        Map<String, String> studentMerge = new HashMap<>();
+        studentMerge.put("studentID", UUID.randomUUID().toString());
+        studentMerge.put("mergeStudentID", UUID.randomUUID().toString());
+
+        var assessmentEventEntity = AssessmentEventEntity.builder()
+                .eventType("DELETE_MERGE")
+                .eventOutcome("MERGE_DELETED")
+                .eventStatus("DB_COMMITTED")
+                .eventPayload(JsonUtil.getJsonStringFromObject(studentMerge))
+                .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+                .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .build();
+        var savedEvent = assessmentEventRepository.save(assessmentEventEntity);
+
+        assessmentEventEntity.setEventId(savedEvent.getEventId());
+        choreographEventHandler.handleEvent(assessmentEventEntity);
+
+        verify(studentMergeService, times(1)).processMergeEvent(assessmentEventEntity);
     }
 }
