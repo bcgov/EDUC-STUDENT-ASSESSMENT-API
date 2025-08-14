@@ -76,7 +76,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(assessment.getAssessmentSessionEntity()).thenReturn(sessionEntity);
         when(student.getAssessmentEntity()).thenReturn(assessment);
 
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
                 .thenReturn(List.of(student));
 
         SchoolTombstone school = mock(SchoolTombstone.class);
@@ -117,7 +117,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(student.getPen()).thenReturn("123456789");
 
 
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(sessionEntity.getSessionID(), schoolId, List.of("ACTIVE")))
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(sessionEntity.getSessionID(), schoolId, List.of("ACTIVE")))
                 .thenReturn(List.of(student));
 
         when(restUtils.getSchoolBySchoolID(schoolId.toString())).thenReturn(Optional.of(mainSchool));
@@ -162,7 +162,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2023");
         when(sessionEntity.getCourseMonth()).thenReturn("09");
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
                 .thenReturn(List.of());
 
         SchoolTombstone myEdSchool = mock(SchoolTombstone.class);

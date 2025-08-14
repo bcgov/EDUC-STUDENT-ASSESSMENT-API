@@ -19,7 +19,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentID(UUID assessmentID, UUID studentID);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolID(UUID sessionID, UUID schoolAtWriteSchoolID);
-    
+
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDInAndStudentID(List<UUID> assessmentIDs, UUID studentID);
 
     Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentIDAndAssessmentStudentIDIsNot(UUID AssessmentID, UUID studentID, UUID assessmentStudentID);
@@ -37,9 +37,9 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     List<AssessmentStudentEntity> findByStudentID(UUID studentID);
 
-    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusIn(UUID sessionID, List<String> statuses);
+    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> statuses);
 
-    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(UUID sessionID, UUID schoolAtWriteSchoolID, List<String> statuses);
+    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(UUID sessionID, UUID schoolAtWriteSchoolID, List<String> statuses);
 
     @Query(value="""
     select count(*) from AssessmentStudentEntity as stud
@@ -106,7 +106,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         count(*) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)
-        and stud.studentStatus = 'ACTIVE'
+        and stud.studentStatusCode = 'ACTIVE'
         group by stud.assessmentEntity.assessmentID, stud.schoolOfRecordSchoolID
     """)
     List<AssessmentRegistrationTotalsBySchoolResult> getRegistrationSummaryByAssessmentIDsAndSchoolIDs(List<UUID> assessmentIDs);
@@ -128,17 +128,17 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)
         and stud.downloadDate is not null
-        and stud.studentStatus = 'ACTIVE'
+        and stud.studentStatusCode = 'ACTIVE'
         group by stud.assessmentEntity.assessmentID, stud.schoolOfRecordSchoolID
     """)
     List<AssessmentRegistrationTotalsBySchoolResult> getRegistrationSummaryByAssessmentIDsAndSchoolIDsAndDownloadDateIsNotNull(List<UUID> assessmentIDs);
 
 
     @Query("""
-        SELECT s FROM AssessmentStudentEntity s 
-        WHERE s.assessmentEntity.assessmentID = :assessmentID 
-        AND s.assessmentFormID IN (:formIDs) 
-        ORDER BY s.createDate DESC 
+        SELECT s FROM AssessmentStudentEntity s
+        WHERE s.assessmentEntity.assessmentID = :assessmentID
+        AND s.assessmentFormID IN (:formIDs)
+        ORDER BY s.createDate DESC
         LIMIT 1 """)
     Optional<AssessmentStudentEntity> findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(UUID assessmentID, List<UUID> formIDs);
 }

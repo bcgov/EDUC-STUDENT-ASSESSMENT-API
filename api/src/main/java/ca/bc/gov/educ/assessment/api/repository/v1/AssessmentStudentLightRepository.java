@@ -21,7 +21,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
 
     List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndDownloadDateIsNotNull(UUID sessionID);
 
-    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusIn(UUID sessionID, List<String> studentStatuses);
+    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> studentStatuses);
 
     @Query("""
     select stud from AssessmentStudentLightEntity stud
@@ -46,7 +46,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         count(stud.gradeAtRegistration) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
-        and stud.studentStatus = 'ACTIVE'
+        and stud.studentStatusCode = 'ACTIVE'
         group by stud.assessmentEntity.assessmentTypeCode, stud.gradeAtRegistration
     """)
     List<SummaryByGradeQueryResponse> getSummaryByGradeForSession(UUID sessionID);
@@ -65,7 +65,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         count(stud.assessmentFormID) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
-        and stud.studentStatus = 'ACTIVE'
+        and stud.studentStatusCode = 'ACTIVE'
         group by stud.assessmentEntity.assessmentTypeCode, stud.assessmentFormID
     """)
     List<SummaryByFormQueryResponse> getSummaryByFormForSession(UUID sessionID);
