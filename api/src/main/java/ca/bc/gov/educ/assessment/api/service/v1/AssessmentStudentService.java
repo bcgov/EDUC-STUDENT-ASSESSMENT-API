@@ -325,14 +325,14 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int markStudentAsTransferInProgress(UUID studentId) {
-        log.debug("Marking student {} as TRANSFERIN", studentId);
+        log.debug("Marking student {} as TRANSFERED", studentId);
 
         LocalDateTime updateTime = LocalDateTime.now();
         List<UUID> studentIds = List.of(studentId);
         int updatedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusByIds(
             studentIds,
             "TRANSFER",
-            "TRANSFERIN",
+            "TRANSFERED",
             "ASSESSMENT-API",
             updateTime
         );
