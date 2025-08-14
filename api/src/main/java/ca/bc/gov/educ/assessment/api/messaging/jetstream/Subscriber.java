@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.STUDENT_ASSESSMENT_EVENTS_TOPIC;
+import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.PEN_SERVICES_API_TOPIC;
 import static ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher.STREAM_NAME;
 
 /**
@@ -60,6 +61,7 @@ public class Subscriber {
     private void initializeStreamTopicMap() {
         final List<String> studentAssessmentEventsTopics = new ArrayList<>();
         studentAssessmentEventsTopics.add(STUDENT_ASSESSMENT_EVENTS_TOPIC.toString());
+        studentAssessmentEventsTopics.add(PEN_SERVICES_API_TOPIC.toString());
         this.streamTopicsMap.put(STREAM_NAME, studentAssessmentEventsTopics);
     }
 
@@ -92,7 +94,9 @@ public class Subscriber {
                 }
                 this.subscriberExecutor.execute(() -> {
                     try {
-                        if (event.getEventType().equals(EventType.UPDATE_SCHOOL_OF_RECORD)) {
+                        if (event.getEventType().equals(EventType.UPDATE_SCHOOL_OF_RECORD)
+                           || event.getEventType().equals(EventType.CREATE_MERGE)
+                           || event.getEventType().equals(EventType.DELETE_MERGE)) {
                             this.jetStreamEventHandlerService.handleEvent(event, message);
                         } else {
                             jetStreamEventHandlerService.updateEventStatus(event);

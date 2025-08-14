@@ -18,4 +18,4 @@ public abstract class AssessmentStudentMapperDecorator implements AssessmentStud
         AssessmentStudentMapperUtils.setWroteFlag(entity, assessmentStudent);
         return assessmentStudent;
     }
-} 
+}

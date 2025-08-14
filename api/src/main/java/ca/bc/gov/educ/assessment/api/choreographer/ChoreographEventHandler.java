@@ -1,13 +1,16 @@
 package ca.bc.gov.educ.assessment.api.choreographer;
 
 import ca.bc.gov.educ.assessment.api.constants.EventStatus;
+import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
+import ca.bc.gov.educ.assessment.api.service.v1.StudentMergeService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -24,11 +27,13 @@ public class ChoreographEventHandler {
     private final AssessmentEventRepository assessmentEventRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentStudentService assessmentStudentService;
+    private final StudentMergeService studentMergeService;
 
-    public ChoreographEventHandler(AssessmentEventRepository assessmentEventRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentService assessmentStudentService) {
+    public ChoreographEventHandler(AssessmentEventRepository assessmentEventRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentService assessmentStudentService, StudentMergeService studentMergeService) {
         this.assessmentEventRepository = assessmentEventRepository;
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentStudentService = assessmentStudentService;
+        this.studentMergeService = studentMergeService;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -39,8 +44,12 @@ public class ChoreographEventHandler {
             if (eventFromDB.getEventStatus().equals(EventStatus.DB_COMMITTED.toString())) {
                 log.info("Processing event with event ID :: {}", event.getEventId());
                 try {
-                    switch (event.getEventType()) {
-                        case "UPDATE_SCHOOL_OF_RECORD":
+                    switch (EventType.valueOf(event.getEventType())) {
+                        case EventType.CREATE_MERGE:
+                        case EventType.DELETE_MERGE:
+                            this.studentMergeService.processMergeEvent(event);
+                            break;
+                        case EventType.UPDATE_SCHOOL_OF_RECORD:
                             final StudentForAssessmentUpdate update = JsonUtil.getJsonObjectFromString(StudentForAssessmentUpdate.class, event.getEventPayload());
                             List<AssessmentStudentEntity> students = assessmentStudentRepository.findByStudentID(UUID.fromString(update.getStudentID()));
                             if(!students.isEmpty()) {

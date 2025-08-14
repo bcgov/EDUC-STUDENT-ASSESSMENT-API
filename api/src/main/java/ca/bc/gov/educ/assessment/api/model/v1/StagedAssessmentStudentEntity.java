@@ -97,10 +97,10 @@ public class StagedAssessmentStudentEntity {
 
   @Column(name = "STAGED_ASSESSMENT_STUDENT_STATUS", length = 10)
   private String stagedAssessmentStudentStatus;
-  
+
   @Column(name = "GRADE_AT_REGISTRATION", length = 2)
   private String gradeAtRegistration;
-  
+
   @Column(name = "MERGED_PEN", length = 9)
   private String mergedPen;
 
