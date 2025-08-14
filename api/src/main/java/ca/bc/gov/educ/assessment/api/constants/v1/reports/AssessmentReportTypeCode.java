@@ -21,6 +21,8 @@ public enum AssessmentReportTypeCode {
     SUMMARY_BY_GRADE_FOR_SESSION("summary-by-grade-for-session"),
     SUMMARY_BY_FORM_FOR_SESSION("summary-by-form-for-session"),
     PEN_ISSUES_CSV("pen-issues-csv"),
+    NME_DETAILED_DOAR("nme-detailed-doar"),
+    NMF_DETAILED_DOAR("nmf-detailed-doar"),
     ;
     private final String code;
     AssessmentReportTypeCode(String code) { this.code = code; }

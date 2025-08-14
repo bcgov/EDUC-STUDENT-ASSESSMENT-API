@@ -120,7 +120,7 @@ public class StudentAssessmentResultService {
                 stagedStudent.setStagedAssessmentStudentStatus("MERGED");
                 stagedStudent.setMergedPen(studentApiStudent.getPen());
             } else {
-                stagedStudent.setStagedAssessmentStudentStatus("PENMATCHED");
+                stagedStudent.setStagedAssessmentStudentStatus("ACTIVE");
             }
         } else {
             stagedStudent = createNewStagedAssessmentStudentEntity(studentResult, studentResultSagaData.getSchool(), null, null, formEntity.getAssessmentFormID(), assessmentEntity);
