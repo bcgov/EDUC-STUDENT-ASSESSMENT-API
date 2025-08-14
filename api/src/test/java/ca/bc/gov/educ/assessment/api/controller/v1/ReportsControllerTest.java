@@ -27,6 +27,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -49,10 +50,12 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     protected static final ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
     @Autowired
     AssessmentStudentRepository studentRepository;
-
+    @Autowired
+    private AssessmentComponentRepository assessmentComponentRepository;
     @Autowired
     AssessmentSessionRepository assessmentSessionRepository;
-
+    @Autowired
+    private AssessmentQuestionRepository assessmentQuestionRepository;
     @Autowired
     AssessmentRepository assessmentRepository;
     @Autowired
@@ -70,6 +73,8 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         stagedAssessmentStudentRepository.deleteAll();
         assessmentFormRepository.deleteAll();
         this.studentRepository.deleteAll();
+        assessmentQuestionRepository.deleteAll();
+        assessmentComponentRepository.deleteAll();
         this.assessmentRepository.deleteAll();
         this.assessmentSessionRepository.deleteAll();
     }
@@ -561,6 +566,131 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         assertThat(summary).isNotNull();
         assertThat(summary.getReportType()).isEqualTo("registration-summary-by-school");
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+
+    @Test
+    void testGetDownloadableReport_NmeDetailedDOARBySchool_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "NME10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        var oe1 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        var oe4 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var studentEntity1 = createMockStudentEntity(assessment);
+        studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
+        var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
+        componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        componentEntity2.setAssessmentFormID(savedForm.getAssessmentFormID());
+
+        var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
+        for(int i = 1;i < multiQues.size() ;i++) {
+            if(i % 2 == 0) {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ZERO, componentEntity1));
+            } else {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ONE, componentEntity1));
+
+            }
+        }
+
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe1.getAssessmentQuestionID(), BigDecimal.ONE, componentEntity2));
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe4.getAssessmentQuestionID(), new BigDecimal(9999), componentEntity2));
+
+        studentEntity1.getAssessmentStudentComponentEntities().addAll(List.of(componentEntity1, componentEntity2));
+        studentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        studentRepository.save(studentEntity1);
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/nme-detailed-doar/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("nme-detailed-doar");
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetDownloadableReport_NmfDetailedDOARBySchool_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "NMF10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        var oe1 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        var oe4 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var studentEntity1 = createMockStudentEntity(assessment);
+        studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
+        var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
+        componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        componentEntity2.setAssessmentFormID(savedForm.getAssessmentFormID());
+
+        var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
+        for(int i = 1;i < multiQues.size() ;i++) {
+            if(i % 2 == 0) {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ZERO, componentEntity1));
+            } else {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ONE, componentEntity1));
+
+            }
+        }
+
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe1.getAssessmentQuestionID(), BigDecimal.ONE, componentEntity2));
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe4.getAssessmentQuestionID(), new BigDecimal(9999), componentEntity2));
+
+        studentEntity1.getAssessmentStudentComponentEntities().addAll(List.of(componentEntity1, componentEntity2));
+        studentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        studentRepository.save(studentEntity1);
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/nmf-detailed-doar/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("nmf-detailed-doar");
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 }

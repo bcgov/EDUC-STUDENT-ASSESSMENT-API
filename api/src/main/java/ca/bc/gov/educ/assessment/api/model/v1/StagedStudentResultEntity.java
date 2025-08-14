@@ -16,7 +16,7 @@ import java.util.UUID;
 @DynamicUpdate
 @Entity
 @Builder
-@Table(name = "STAGED_STUDENT_RESULT")
+@Table(name = "STAGED_STUDENT_RESULT_UPLOAD")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StagedStudentResultEntity {
 
