@@ -10,7 +10,7 @@ public enum DOARColumnLookup {
     ENTRY4("OPEN_ENDED", new String[] {"W", "O"}, new String[] {"LTF12", "LTP10", "LTP12", "LTE"}),// claim code
     ENTRY5("MUL_CHOICE", new String[] {"A", "I", "E"}, new String[] {"LTF12"}), //task code
     ENTRY6("OPEN_ENDED", new String[] {"WRS", "WRD", "WRF", "O1D", "O1F", "O1E", "O2D", "O2F", "O2E", "GO", "WRA", "WRB", "O1", "O2", "O3"}, new String[] {"LTF12", "LTP10", "LTP12", "LTE"}), //concepts code
-    ENTRY7("MUL_CHOICE", new String[] {"A", "B"}, new String[] {"LTE"}) //assmt. section
+    ENTRY7("MUL_CHOICE", new String[] {"A", "B"}, new String[] {"LTE", "LTP12", "LTP10"}) //assmt. section
     ;
 
     private final String componentType;

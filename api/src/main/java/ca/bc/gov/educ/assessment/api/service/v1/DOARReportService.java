@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.*;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.exception.InvalidParameterException;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
@@ -66,7 +67,12 @@ public class DOARReportService {
     }
 
     public String getStudentTotals(String componentType, String code, AssessmentFormEntity selectedAssessmentForm, AssessmentStudentEntity student, String assessmentTypeCode, boolean includeChoiceCalc) {
-        return map.get(DOARColumnLookup.getDOARColumn(componentType, code, assessmentTypeCode)).calculateTotal(selectedAssessmentForm, student, code, includeChoiceCalc);
+        var lookup = map.get(DOARColumnLookup.getDOARColumn(componentType, code, assessmentTypeCode));
+        if (lookup != null) {
+            return map.get(DOARColumnLookup.getDOARColumn(componentType, code, assessmentTypeCode)).calculateTotal(selectedAssessmentForm, student, code, includeChoiceCalc);
+        } else {
+            throw new InvalidParameterException("Column type does not exist for this report");
+        }
     }
 
     @PostConstruct
