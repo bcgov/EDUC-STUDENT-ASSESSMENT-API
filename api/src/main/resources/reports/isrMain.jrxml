@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.21.3.final using JasperReports Library version 6.21.3-4a3078d20785ebe464f18037d738d12fc98c13cf  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ISRMain" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ISRMain" pageWidth="792" pageHeight="800" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="isrMain"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -280,9 +280,6 @@
 		<property name="net.sf.jasperreports.jsonql.field.expression" value="assessments"/>
 		<fieldDescription><![CDATA[assessments]]></fieldDescription>
 	</field>
-	<background>
-		<band height="160" splitType="Stretch"/>
-	</background>
 	<pageHeader>
 		<band height="72" splitType="Stretch">
 			<staticText>
@@ -534,20 +531,21 @@
 				<text><![CDATA[If you have achieved a proficiency score of 1, 2, 3, 4, or AEG you have met the graduation requirement.]]></text>
 			</staticText>
 		</band>
-		<band height="50" splitType="Stretch">
+		<band height="600" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<printWhenExpression><![CDATA[$F{dynamicSections} != null]]></printWhenExpression>
 			<break>
 				<reportElement x="0" y="0" width="100" height="1" uuid="a1a2a3a4-b5b6-c7c8-d9d0-e1e2e3e4e5e6"/>
 			</break>
 			<componentElement>
-				<reportElement x="0" y="2" width="752" height="35" uuid="11223344-5566-7788-9900-aabbccddeeff"/>
+				<reportElement x="0" y="2" width="752" height="57" uuid="11223344-5566-7788-9900-aabbccddeeff"/>
 				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
 					<datasetRun subDataset="DynamicSectionSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
 						<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("dynamicSections")]]></dataSourceExpression>
 					</datasetRun>
-					<jr:listContents height="35" width="752">
-						<subreport>
-							<reportElement x="0" y="0" width="752" height="35" uuid="11223344-5566-7788-9900-aabbccddeefa">
+					<jr:listContents height="530" width="752">
+						<subreport overflowType="Stretch">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeefa">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("LTE10")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="assessmentCode">
@@ -604,7 +602,7 @@
 							<subreportExpression><![CDATA["lte10summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
-							<reportElement x="0" y="0" width="752" height="35" uuid="11223344-5566-7788-9900-aabbccddeefa">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="35" uuid="11223344-5566-7788-9900-aabbccddeeda">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("NME10")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="assessmentCode">

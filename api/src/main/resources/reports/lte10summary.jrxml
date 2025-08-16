@@ -18,7 +18,7 @@
 	<parameter name="partBWrittenResponseUnderstandingScore" class="java.lang.String"/>
 	<parameter name="partBWrittenResponseUnderstandingOutOf" class="java.lang.String"/>
 	<title>
-		<band height="500">
+		<band height="526" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<rectangle>
 				<reportElement mode="Opaque" x="535" y="74" width="175" height="224" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
@@ -44,7 +44,7 @@
 				</reportElement>
 			</rectangle>
 			<break>
-				<reportElement positionType="Float" x="0" y="298" width="85" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
+				<reportElement positionType="Float" x="0" y="525" width="80" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
 			</break>
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#003366" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
@@ -201,6 +201,530 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
+			<staticText>
+				<reportElement x="1" y="305" width="82" height="19" uuid="68f2a54f-ebdb-42c6-814e-2a6d155b0c23"/>
+				<textElement>
+					<font fontName="BC Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Your Raw Scores]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="320" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
+				<textElement>
+					<font fontName="BC Sans" size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Below are your raw scores on the Grade 10 Literacy Assessment. These scores indicate how you performed on the different areas of the assessment. These raw scores can not be directly converted to your proficiency level.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="1" y="347" width="484" height="13" backcolor="#E0E0E0" uuid="1c2bedb1-cd70-4ac5-8de5-8fafca494a25">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="BC Sans" size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[Raw Scores by Task]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="480" y="347" width="105" height="13" backcolor="#E0E0E0" uuid="091d67d7-aa28-4ba1-bca9-b0bf749e3b5e"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="BC Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Your Score]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="580" y="347" width="105" height="13" backcolor="#E0E0E0" uuid="bc277b69-c609-493b-9a82-9c9aefcbc10b"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="BC Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Out of]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="360" width="479" height="22" backcolor="#FFFFFF" uuid="ca20abd2-9d38-41a8-9480-80da1c053469">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[<b>Comprehend:</b> Analyzing and making meaning from texts<br>
+<i>Selected-response questions (machine-scored)</i>]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="382" width="479" height="22" backcolor="#FFFFFF" uuid="437d7843-db34-4407-9ebb-1680336c7a17">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[<b>Communicate:</b> Understanding of Texts/Making Personal Connections<br>
+<i>Written-response questions (teacher-scored)</i>]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="480" y="360" width="100" height="22" uuid="bef2864b-e66b-444a-bb54-dd641632b551"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{comprehendScore}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="580" y="360" width="105" height="22" uuid="d30cd488-96cc-47d5-97b1-5cba4c07f084"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{comprehendOutOf}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="580" y="382" width="105" height="22" uuid="60df56e3-7414-4321-9d09-c960ca952d4e"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{communicateOutOf}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="480" y="382" width="100" height="22" uuid="7393ce8a-3985-4ec2-8a8a-1e6983413356"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{communicateScore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="1" y="404" width="484" height="13" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="BC Sans" size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[Raw Scores by Part]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="480" y="404" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="BC Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Your Score]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="580" y="404" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="BC Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Out of]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="417" width="479" height="12" backcolor="#FFFFFF" uuid="ad81b2cb-0a61-4c97-834b-d8f7359b62bd">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[<b>Part A</b>]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="429" width="479" height="11" backcolor="#FFFFFF" uuid="002b91d3-eb1a-4740-8103-a12113f800a1">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[Select-response questions (machine-scored)]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="480" y="417" width="100" height="12" uuid="7d4b9114-5343-4611-956f-50838e525215"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="580" y="417" width="105" height="12" uuid="de019763-b119-4f92-8227-0eb6f7b80b65"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="580" y="429" width="105" height="11" uuid="aa2a4ba2-189a-46fe-bd8c-aec8d8100e70"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partASelectedResponseOutOf}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="480" y="429" width="100" height="11" uuid="b7e8d610-5623-432c-8677-a409539ecd42"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partASelectedResponseScore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="440" width="479" height="11" backcolor="#FFFFFF" uuid="7665b24c-01af-4346-a046-eea0e14d7fd4">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[<b>Written Response:</b> Graphic Organizer]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="580" y="440" width="105" height="11" uuid="aff0c5e1-cff3-4b30-9381-381e21d62aaf"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="480" y="440" width="100" height="11" uuid="3ac15c41-ab1b-4cbe-b5f8-ed7a4c550e03"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="451" width="479" height="11" backcolor="#FFFFFF" uuid="75b2a40e-a072-4323-8dc2-b346515092c1">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[<b>Written Response:</b> Communicating Understanding]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="580" y="451" width="105" height="11" uuid="484780fa-ffd0-4205-81fb-247d5bd720a9"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="480" y="451" width="100" height="11" uuid="ffbbf485-4ecc-4936-8056-82ea38db6a89"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingScore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="462" width="479" height="12" backcolor="#FFFFFF" uuid="c595a89b-1d9e-46a8-9be4-bcff9e5a0167">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[<b>Part B</b>]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="474" width="479" height="11" backcolor="#FFFFFF" uuid="46cdff92-2cd2-48c9-ade8-14ef5b04339f">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[Select-response questions (machine-scored)]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="480" y="462" width="100" height="12" uuid="f612b2cb-e2c7-4167-b294-edbd9936beb4"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="580" y="462" width="105" height="12" uuid="c41175c7-96c0-4037-a352-b61c6fd89dc6"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="580" y="474" width="105" height="11" uuid="69e47e0a-62ac-484a-9b9a-9b9503d92d03"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partASelectedResponseOutOf}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="480" y="474" width="100" height="11" uuid="c140d2d5-9eb2-445d-a32b-68fe8cb167d1"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partASelectedResponseScore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="485" width="479" height="11" backcolor="#FFFFFF" uuid="56dbaa42-5776-4ea7-aff0-e4cae8620b39">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[<b>Written Response:</b> Communicating Personal Connections]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="580" y="485" width="105" height="11" uuid="589ff4a7-0169-4292-9929-d05ba0356e8b"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="480" y="485" width="100" height="11" uuid="4275b21b-de41-43f4-8897-37248d49c94c"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="2" y="506" width="683" height="19" uuid="947f1d2d-184a-44e9-a95c-0ecf5c77eac1"/>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[<b>Further Information about the Grade 10 Literacy Assessment:</b> <a style="color: blue" href="https://curriculum.gov.bc.ca/assessment/literacy-assessment/grade-10-literacy-assessment">https://curriculum.gov.bc.ca/assessment/literacy-assessment/grade-10-literacy-assessment</a>]]></text>
+			</staticText>
 		</band>
 	</title>
 </jasperReport>
