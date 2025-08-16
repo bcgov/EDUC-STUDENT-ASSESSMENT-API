@@ -40,25 +40,25 @@ public class AssessmentSessionEntity {
   @Column(name = "ACTIVE_UNTIL_DATE", nullable = false)
   private LocalDateTime activeUntilDate;
 
-  @Column(name = "APPROVAL_STUDENT_CERT_USER_ID", updatable = false, length = 25)
+  @Column(name = "APPROVAL_STUDENT_CERT_USER_ID", length = 25)
   private String approvalStudentCertUserID;
 
   @PastOrPresent
-  @Column(name = "APPROVAL_STUDENT_CERT_SIGN_DATE", updatable = false)
+  @Column(name = "APPROVAL_STUDENT_CERT_SIGN_DATE")
   private LocalDateTime approvalStudentCertSignDate;
 
-  @Column(name = "APPROVAL_ASSESSMENT_DESIGN_USER_ID", updatable = false, length = 25)
+  @Column(name = "APPROVAL_ASSESSMENT_DESIGN_USER_ID", length = 25)
   private String approvalAssessmentDesignUserID;
 
   @PastOrPresent
-  @Column(name = "APPROVAL_ASSESSMENT_DESIGN_SIGN_DATE", updatable = false)
+  @Column(name = "APPROVAL_ASSESSMENT_DESIGN_SIGN_DATE")
   private LocalDateTime approvalAssessmentDesignSignDate;
 
-  @Column(name = "APPROVAL_ASSESSMENT_ANALYSIS_USER_ID", updatable = false, length = 25)
+  @Column(name = "APPROVAL_ASSESSMENT_ANALYSIS_USER_ID", length = 25)
   private String approvalAssessmentAnalysisUserID;
 
   @PastOrPresent
-  @Column(name = "APPROVAL_ASSESSMENT_ANALYSIS_SIGN_DATE", updatable = false)
+  @Column(name = "APPROVAL_ASSESSMENT_ANALYSIS_SIGN_DATE")
   private LocalDateTime approvalAssessmentAnalysisSignDate;
 
   @Column(name = "ASSESSMENT_REGISTRATIONS_EXPORT_USER_ID", length = 25)

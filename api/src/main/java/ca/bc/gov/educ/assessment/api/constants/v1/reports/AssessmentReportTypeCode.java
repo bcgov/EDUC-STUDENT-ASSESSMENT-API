@@ -21,6 +21,13 @@ public enum AssessmentReportTypeCode {
     SUMMARY_BY_GRADE_FOR_SESSION("summary-by-grade-for-session"),
     SUMMARY_BY_FORM_FOR_SESSION("summary-by-form-for-session"),
     PEN_ISSUES_CSV("pen-issues-csv"),
+    NME_DETAILED_DOAR("nme-detailed-doar"),
+    NMF_DETAILED_DOAR("nmf-detailed-doar"),
+    LTE10_DETAILED_DOAR("lte10-detailed-doar"),
+    LTE12_DETAILED_DOAR("lte12-detailed-doar"),
+    LTP10_DETAILED_DOAR("ltp10-detailed-doar"),
+    LTP12_DETAILED_DOAR("ltp12-detailed-doar"),
+    LTF12_DETAILED_DOAR("ltf12-detailed-doar"),
     ;
     private final String code;
     AssessmentReportTypeCode(String code) { this.code = code; }

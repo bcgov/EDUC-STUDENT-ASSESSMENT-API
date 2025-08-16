@@ -53,7 +53,7 @@ public class AssessmentStudentLightEntity {
 
   @Column(name = "PROVINCIAL_SPECIAL_CASE_CODE", length = 1)
   private String provincialSpecialCaseCode;
-  
+
   @Column(name = "RAW_SCORE")
   private BigDecimal rawScore;
 
@@ -69,13 +69,13 @@ public class AssessmentStudentLightEntity {
   @Column(name = "IRT_SCORE", length = 7)
   private String irtScore;
 
-  @Column(name = "STUDENT_STATUS", nullable = false, length = 10)
-  private String studentStatus;
+  @Column(name = "STUDENT_STATUS_CODE", nullable = false, length = 10)
+  private String studentStatusCode;
 
   @PastOrPresent
   @Column(name = "DOWNLOAD_DATE", updatable = false)
   private LocalDateTime downloadDate;
-  
+
   @Column(name = "ASSESSMENT_CENTER_SCHOOL_ID", columnDefinition = "BINARY(16)")
   private UUID assessmentCenterSchoolID;
 

@@ -50,10 +50,11 @@ public class CSVReportService {
     private final AssessmentStudentLightRepository assessmentStudentLightRepository;
     private final StagedAssessmentStudentLightRepository stagedAssessmentStudentLightRepository;
     private final SummaryReportService summaryReportService;
+    private final DOARReportService doarReportService;
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusIn(sessionID, activeStatus);
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(sessionID, activeStatus);
         List<String> headers = Arrays.stream(AllStudentRegistrationsHeader.values()).map(AllStudentRegistrationsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .build();
@@ -94,7 +95,7 @@ public class CSVReportService {
 
     public DownloadableReportResponse generateNumberOfAttemptsReport(UUID sessionID) {
         assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusIn(sessionID, activeStatus);
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(sessionID, activeStatus);
         List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values()).map(NumberOfAttemptsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .build();
@@ -167,7 +168,7 @@ public class CSVReportService {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, schoolID.toString()));
 
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusIn(sessionID, schoolID, activeStatus);
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(sessionID, schoolID, activeStatus);
         List<String> headers = Arrays.stream(SessionResultsHeader.values()).map(SessionResultsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
         try {
@@ -316,7 +317,7 @@ public class CSVReportService {
             csvPrinter.printRecord(headers);
 
             if(sessionIsApproved(session)) {
-                List<AssessmentStudentLightEntity>  students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusIn(sessionID, List.of("ACTIVE"));
+                List<AssessmentStudentLightEntity>  students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(sessionID, List.of("ACTIVE"));
                 populateCSVPrinterForApproval(students, forms, csvPrinter);
             }else{
                 List<StagedAssessmentStudentLightEntity> students = stagedAssessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatusIn(sessionID, List.of("ACTIVE"));
@@ -430,6 +431,43 @@ public class CSVReportService {
         } catch (IOException e) {
             throw new StudentAssessmentAPIRuntimeException(e);
         }
+    }
+
+    public DownloadableReportResponse generateDetailedDOARBySchool(UUID sessionID, UUID schoolID, String assessmentTypeCode) {
+        List<String> headers = getDOARHeaders(assessmentTypeCode);
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            for (List<String> row : doarReportService.generateDetailedDOARBySchoolAndAssessmentType(sessionID, schoolID, assessmentTypeCode)) {
+                csvPrinter.printRecord(row);
+            }
+            csvPrinter.flush();
+
+            DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(assessmentTypeCode);
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
+    private List<String> getDOARHeaders(String assessmentTypeCode) {
+        return switch (assessmentTypeCode) {
+            case "NME10" -> Arrays.stream(NMEDoarHeader.values()).map(NMEDoarHeader::getCode).toList();
+            case "NMF10" -> Arrays.stream(NMFDoarHeader.values()).map(NMFDoarHeader::getCode).toList();
+            case "LTE10", "LTE12" -> Arrays.stream(LTEDoarHeader.values()).map(LTEDoarHeader::getCode).toList();
+            case "LTP12" -> Arrays.stream(LTP12DoarHeader.values()).map(LTP12DoarHeader::getCode).toList();
+            case "LTP10" -> Arrays.stream(LTP10DoarHeader.values()).map(LTP10DoarHeader::getCode).toList();
+            case "LTF12" -> Arrays.stream(LTF12DoarHeader.values()).map(LTF12DoarHeader::getCode).toList();
+            default -> Collections.emptyList();
+        };
     }
 
     private List<String> prepareNumberOfAttemptsDataForCsv(AssessmentStudentEntity student) {

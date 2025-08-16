@@ -62,6 +62,10 @@ public class AssessmentStudentService {
         );
     }
 
+    public List<AssessmentStudentEntity> getStudentByStudentId(UUID studentID) {
+        return assessmentStudentRepository.findByStudentID(studentID);
+    }
+
     public List<UUID> getAllStudentIDsInSessionFromResultsStaging(UUID assessmentSessionID) {
         return stagedAssessmentStudentRepository.findAllStagedStudentsInSession(assessmentSessionID);
     }
@@ -121,7 +125,7 @@ public class AssessmentStudentService {
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
-        assessmentStudentEntity.setStudentStatus(StudentStatusCodes.ACTIVE.getCode());
+        assessmentStudentEntity.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
         var student = processStudent(assessmentStudentEntity, null, true, allowRuleOverride);
         var event = generateStudentUpdatedEvent(student.getStudentID());
         assessmentEventRepository.save(event);
@@ -321,14 +325,14 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int markStudentAsTransferInProgress(UUID studentId) {
-        log.debug("Marking student {} as TRANSFERIN", studentId);
+        log.debug("Marking student {} as TRANSFERED", studentId);
 
         LocalDateTime updateTime = LocalDateTime.now();
         List<UUID> studentIds = List.of(studentId);
         int updatedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusByIds(
             studentIds,
             "TRANSFER",
-            "TRANSFERIN",
+            "TRANSFERED",
             "ASSESSMENT-API",
             updateTime
         );

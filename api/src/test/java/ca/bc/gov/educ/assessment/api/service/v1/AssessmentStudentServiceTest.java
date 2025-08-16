@@ -860,7 +860,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
     StagedAssessmentStudentEntity updatedStudent = stagedAssessmentStudentRepository.findById(savedStudent.getAssessmentStudentID()).orElse(null);
     assertThat(updatedStudent).isNotNull();
-    assertThat(updatedStudent.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERIN");
+    assertThat(updatedStudent.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERED");
     assertThat(updatedStudent.getUpdateUser()).isEqualTo("ASSESSMENT-API");
   }
 
