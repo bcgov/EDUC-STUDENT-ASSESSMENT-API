@@ -602,7 +602,7 @@
 							<subreportExpression><![CDATA["lte10summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
-							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="35" uuid="11223344-5566-7788-9900-aabbccddeeda">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("NME10")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="assessmentCode">
