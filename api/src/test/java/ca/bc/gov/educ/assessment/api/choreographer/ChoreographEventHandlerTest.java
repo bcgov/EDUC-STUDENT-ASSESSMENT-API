@@ -14,6 +14,8 @@ import ca.bc.gov.educ.assessment.api.service.v1.StudentMergeService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -45,6 +47,14 @@ class ChoreographEventHandlerTest extends BaseAssessmentAPITest {
 
     @MockBean
     private StudentMergeService studentMergeService;
+
+    @AfterEach
+    void tearDown() {
+        this.studentRepository.deleteAll();
+        this.assessmentEventRepository.deleteAll();
+        this.assessmentRepository.deleteAll();
+        this.assessmentSessionRepository.deleteAll();
+    }
 
     @Test
     void handleEvent_UPDATE_SCHOOL_OF_RECORD_shouldUpdateStudentRecord() throws JsonProcessingException {
