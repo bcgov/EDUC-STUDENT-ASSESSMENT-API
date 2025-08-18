@@ -199,7 +199,7 @@ public class CSVReportService {
         assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
         List<AssessmentStudentLightEntity> students;
-        Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNull(sessionID);
+        Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNot(sessionID, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         if(studentEntityOpt.isPresent()) {
             students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndDownloadDateIsNotNull(sessionID);
         } else {
