@@ -72,7 +72,7 @@ public class Subscriber {
         for (val entry : this.streamTopicsMap.entrySet()) {
             for (val topic : entry.getValue()) {
                 final PushSubscribeOptions options = PushSubscribeOptions.builder().stream(entry.getKey())
-                        .durable(ApplicationProperties.STUDENT_ASSESSMENT_API.concat("-DURABLE"))
+                        .durable(ApplicationProperties.STUDENT_ASSESSMENT_API.concat("-DURABLE-") + topic)
                         .configuration(ConsumerConfiguration.builder().deliverPolicy(DeliverPolicy.New).build()).build();
                 this.natsConnection.jetStream().subscribe(topic, qName, this.natsConnection.createDispatcher(), this::onMessage,
                         autoAck, options);
