@@ -24,7 +24,7 @@ public class Publisher {
 
     private final JetStream jetStream;
 
-    public static final String STREAM_NAME= "ASSESSMENT_EVENTS";
+    public static final String PUBLISHER_STREAM_NAME = "ASSESSMENT_EVENTS";
 
     /**
      * Instantiates a new Publisher.
@@ -47,7 +47,7 @@ public class Publisher {
      * @throws JetStreamApiException the jet stream api exception
      */
     private void createOrUpdateAssessmentEventStream(final Connection natsConnection) throws IOException, JetStreamApiException {
-        val streamConfiguration = StreamConfiguration.builder().name(STREAM_NAME).replicas(1).maxMessages(10000).addSubjects(STUDENT_ASSESSMENT_EVENTS_TOPIC.toString()).build();
+        val streamConfiguration = StreamConfiguration.builder().name(PUBLISHER_STREAM_NAME).replicas(1).maxMessages(10000).addSubjects(STUDENT_ASSESSMENT_EVENTS_TOPIC.toString()).build();
         try {
             natsConnection.jetStreamManagement().updateStream(streamConfiguration);
         } catch (final JetStreamApiException exception) {
