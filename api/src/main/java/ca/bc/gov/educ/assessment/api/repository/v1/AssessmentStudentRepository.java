@@ -86,9 +86,11 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)
         and stud.downloadDate is not null
+        and (stud.provincialSpecialCaseCode is null
+         or stud.provincialSpecialCaseCode <> :provincialSpecialCaseCode)
         group by stud.assessmentEntity.assessmentID
     """)
-    List<RegistrationSummaryResult> getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNull(List<UUID> assessmentIDs);
+    List<RegistrationSummaryResult> getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNullAndProvincialSpecialCaseCodeNot(List<UUID> assessmentIDs, String provincialSpecialCaseCode);
 
     @Query(value="""
         select stud.assessmentEntity.assessmentID as assessmentID,
@@ -129,9 +131,11 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)
         and stud.downloadDate is not null
         and stud.studentStatusCode = 'ACTIVE'
+        and (stud.provincialSpecialCaseCode is null
+         or stud.provincialSpecialCaseCode <> :provincialSpecialCaseCode)
         group by stud.assessmentEntity.assessmentID, stud.schoolOfRecordSchoolID
     """)
-    List<AssessmentRegistrationTotalsBySchoolResult> getRegistrationSummaryByAssessmentIDsAndSchoolIDsAndDownloadDateIsNotNull(List<UUID> assessmentIDs);
+    List<AssessmentRegistrationTotalsBySchoolResult> getRegistrationSummaryByAssessmentIDsAndSchoolIDsAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNot(List<UUID> assessmentIDs, String provincialSpecialCaseCode);
 
 
     @Query("""
@@ -139,6 +143,6 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         WHERE s.assessmentEntity.assessmentID = :assessmentID
         AND s.assessmentFormID IN (:formIDs)
         ORDER BY s.createDate DESC
-        LIMIT 1 """)
+        LIMIT 1""")
     Optional<AssessmentStudentEntity> findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(UUID assessmentID, List<UUID> formIDs);
 }

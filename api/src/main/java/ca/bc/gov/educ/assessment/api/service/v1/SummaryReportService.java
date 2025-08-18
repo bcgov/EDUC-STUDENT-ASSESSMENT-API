@@ -44,7 +44,7 @@ public class SummaryReportService {
         Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNot(sessionID, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         List<RegistrationSummaryResult> summaryResults;
         if (studentEntityOpt.isPresent()) {
-            summaryResults = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNull(assessmentIDs);
+            summaryResults = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNullAndProvincialSpecialCaseCodeNot(assessmentIDs, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         } else {
             summaryResults = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndDownloadDateNull(assessmentIDs);
         }
@@ -93,7 +93,7 @@ public class SummaryReportService {
         List<AssessmentRegistrationTotalsBySchoolResult> registrations;
         Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNot(sessionID, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         if (studentEntityOpt.isPresent()) {
-            registrations = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndSchoolIDsAndDownloadDateIsNotNull(assessmentIDs);
+            registrations = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndSchoolIDsAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNot(assessmentIDs, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         } else {
             registrations = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndSchoolIDs(assessmentIDs);
         }
