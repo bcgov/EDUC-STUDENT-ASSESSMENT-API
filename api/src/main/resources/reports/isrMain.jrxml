@@ -246,6 +246,54 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="partBWrittenResponseUnderstandingOutOf"/>
 			<fieldDescription><![CDATA[partBWrittenResponseUnderstandingOutOf]]></fieldDescription>
 		</field>
+		<field name="onlinePlanAndDesignScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="onlinePlanAndDesignScore"/>
+			<fieldDescription><![CDATA[onlinePlanAndDesignScore]]></fieldDescription>
+		</field>
+		<field name="onlinePlanAndDesignOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="onlinePlanAndDesignOutOf"/>
+			<fieldDescription><![CDATA[onlinePlanAndDesignOutOf]]></fieldDescription>
+		</field>
+		<field name="onlineReasonedEstimatesScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="onlineReasonedEstimatesScore"/>
+			<fieldDescription><![CDATA[onlineReasonedEstimatesScore]]></fieldDescription>
+		</field>
+		<field name="onlineReasonedEstimatesOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="onlineReasonedEstimatesOutOf"/>
+			<fieldDescription><![CDATA[onlineReasonedEstimatesOutOf]]></fieldDescription>
+		</field>
+		<field name="onlineFairShareScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="onlineFairShareScore"/>
+			<fieldDescription><![CDATA[onlineFairShareScore]]></fieldDescription>
+		</field>
+		<field name="onlineFairShareOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="onlineFairShareOutOf"/>
+			<fieldDescription><![CDATA[onlineFairShareOutOf]]></fieldDescription>
+		</field>
+		<field name="onlineModelScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="onlineModelScore"/>
+			<fieldDescription><![CDATA[onlineModelScore]]></fieldDescription>
+		</field>
+		<field name="onlineModelOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="onlineModelOutOf"/>
+			<fieldDescription><![CDATA[onlineModelOutOf]]></fieldDescription>
+		</field>
+		<field name="writtenFairScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenFairScore"/>
+			<fieldDescription><![CDATA[writtenFairScore]]></fieldDescription>
+		</field>
+		<field name="writtenFairOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenFairOutOf"/>
+			<fieldDescription><![CDATA[writtenFairOutOf]]></fieldDescription>
+		</field>
+		<field name="writtenReasonedEstimatesScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenReasonedEstimatesScore"/>
+			<fieldDescription><![CDATA[writtenReasonedEstimatesScore]]></fieldDescription>
+		</field>
+		<field name="writtenReasonedEstimatesOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenReasonedEstimatesOutOf"/>
+			<fieldDescription><![CDATA[writtenReasonedEstimatesOutOf]]></fieldDescription>
+		</field>
 	</subDataset>
 	<queryString language="JSON">
 		<![CDATA[report]]>
@@ -605,56 +653,47 @@
 							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("NME10")]]></printWhenExpression>
 							</reportElement>
-							<subreportParameter name="assessmentCode">
-								<subreportParameterExpression><![CDATA[$F{assessmentCode}]]></subreportParameterExpression>
-							</subreportParameter>
 							<subreportParameter name="session">
 								<subreportParameterExpression><![CDATA[$F{session}]]></subreportParameterExpression>
 							</subreportParameter>
 							<subreportParameter name="score">
 								<subreportParameterExpression><![CDATA[$F{score}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="comprehendScore">
-								<subreportParameterExpression><![CDATA[$F{comprehendScore}]]></subreportParameterExpression>
+							<subreportParameter name="onlinePlanAndDesignScore">
+								<subreportParameterExpression><![CDATA[$F{onlinePlanAndDesignScore}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="comprehendOutOf">
-								<subreportParameterExpression><![CDATA[$F{comprehendOutOf}]]></subreportParameterExpression>
+							<subreportParameter name="onlinePlanAndDesignOutOf">
+								<subreportParameterExpression><![CDATA[$F{onlinePlanAndDesignOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="communicateScore">
-								<subreportParameterExpression><![CDATA[$F{communicateScore}]]></subreportParameterExpression>
+							<subreportParameter name="onlineReasonedEstimatesScore">
+								<subreportParameterExpression><![CDATA[$F{onlineReasonedEstimatesScore}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="communicateOutOf">
-								<subreportParameterExpression><![CDATA[$F{communicateOutOf}]]></subreportParameterExpression>
+							<subreportParameter name="onlineReasonedEstimatesOutOf">
+								<subreportParameterExpression><![CDATA[$F{onlineReasonedEstimatesOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partASelectedResponseScore">
-								<subreportParameterExpression><![CDATA[$F{partASelectedResponseScore}]]></subreportParameterExpression>
+							<subreportParameter name="onlineFairShareScore">
+								<subreportParameterExpression><![CDATA[$F{onlineFairShareScore}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partASelectedResponseOutOf">
-								<subreportParameterExpression><![CDATA[$F{partASelectedResponseOutOf}]]></subreportParameterExpression>
+							<subreportParameter name="onlineFairShareOutOf">
+								<subreportParameterExpression><![CDATA[$F{onlineFairShareOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partAWrittenResponseGraphicScore">
-								<subreportParameterExpression><![CDATA[$F{partAWrittenResponseGraphicScore}]]></subreportParameterExpression>
+							<subreportParameter name="onlineModelScore">
+								<subreportParameterExpression><![CDATA[$F{onlineModelScore}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partAWrittenResponseGraphicOutOf">
-								<subreportParameterExpression><![CDATA[$F{partAWrittenResponseGraphicOutOf}]]></subreportParameterExpression>
+							<subreportParameter name="onlineModelOutOf">
+								<subreportParameterExpression><![CDATA[$F{onlineModelOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partAWrittenResponseUnderstandingScore">
-								<subreportParameterExpression><![CDATA[$F{partAWrittenResponseUnderstandingScore}]]></subreportParameterExpression>
+							<subreportParameter name="writtenFairScore">
+								<subreportParameterExpression><![CDATA[$F{writtenFairScore}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partAWrittenResponseUnderstandingOutOf">
-								<subreportParameterExpression><![CDATA[$F{partAWrittenResponseUnderstandingOutOf}]]></subreportParameterExpression>
+							<subreportParameter name="writtenFairOutOf">
+								<subreportParameterExpression><![CDATA[$F{writtenFairOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partBSelectedResponseScore">
-								<subreportParameterExpression><![CDATA[$F{partBSelectedResponseScore}]]></subreportParameterExpression>
+							<subreportParameter name="writtenReasonedEstimatesScore">
+								<subreportParameterExpression><![CDATA[$F{writtenReasonedEstimatesScore}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partBSelectedResponseOutOf">
-								<subreportParameterExpression><![CDATA[$F{partBSelectedResponseOutOf}]]></subreportParameterExpression>
-							</subreportParameter>
-							<subreportParameter name="partBWrittenResponseUnderstandingScore">
-								<subreportParameterExpression><![CDATA[$F{partBWrittenResponseUnderstandingScore}]]></subreportParameterExpression>
-							</subreportParameter>
-							<subreportParameter name="partBWrittenResponseUnderstandingOutOf">
-								<subreportParameterExpression><![CDATA[$F{partBWrittenResponseUnderstandingOutOf}]]></subreportParameterExpression>
+							<subreportParameter name="writtenReasonedEstimatesOutOf">
+								<subreportParameterExpression><![CDATA[$F{writtenReasonedEstimatesOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
 							<subreportExpression><![CDATA["nme10summary.jasper"]]></subreportExpression>
 						</subreport>
