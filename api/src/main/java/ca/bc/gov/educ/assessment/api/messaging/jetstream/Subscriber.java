@@ -32,7 +32,7 @@ import java.util.concurrent.Executor;
 
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.STUDENT_ASSESSMENT_EVENTS_TOPIC;
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.PEN_SERVICES_EVENTS_TOPIC;
-import static ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher.STREAM_NAME;
+import static ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher.PUBLISHER_STREAM_NAME;
 
 /**
  * The type Subscriber.
@@ -59,10 +59,13 @@ public class Subscriber {
      * this is the source of truth for all the topics this api subscribes to.
      */
     private void initializeStreamTopicMap() {
-        final List<String> studentAssessmentEventsTopics = new ArrayList<>();
-        studentAssessmentEventsTopics.add(STUDENT_ASSESSMENT_EVENTS_TOPIC.toString());
-        studentAssessmentEventsTopics.add(PEN_SERVICES_EVENTS_TOPIC.toString());
-        this.streamTopicsMap.put(STREAM_NAME, studentAssessmentEventsTopics);
+        final List<String> studentAssessmentEventTopics = new ArrayList<>();
+        final List<String> penServicesEventTopics = new ArrayList<>();
+        studentAssessmentEventTopics.add(STUDENT_ASSESSMENT_EVENTS_TOPIC.toString());
+        penServicesEventTopics.add(PEN_SERVICES_EVENTS_TOPIC.toString());
+
+        this.streamTopicsMap.put(PUBLISHER_STREAM_NAME, studentAssessmentEventTopics);
+        this.streamTopicsMap.put("PEN_SERVICES_EVENTS", penServicesEventTopics);
     }
 
     @PostConstruct
@@ -72,10 +75,10 @@ public class Subscriber {
         for (val entry : this.streamTopicsMap.entrySet()) {
             for (val topic : entry.getValue()) {
                 final PushSubscribeOptions options = PushSubscribeOptions.builder().stream(entry.getKey())
-                        .durable(ApplicationProperties.STUDENT_ASSESSMENT_API.concat("-DURABLE-") + topic)
-                        .configuration(ConsumerConfiguration.builder().deliverPolicy(DeliverPolicy.New).filterSubject(topic).build()).build();
+                    .durable(ApplicationProperties.STUDENT_ASSESSMENT_API.concat("-DURABLE"))
+                    .configuration(ConsumerConfiguration.builder().deliverPolicy(DeliverPolicy.New).build()).build();
                 this.natsConnection.jetStream().subscribe(topic, qName, this.natsConnection.createDispatcher(), this::onMessage,
-                        autoAck, options);
+                    autoAck, options);
             }
         }
     }
