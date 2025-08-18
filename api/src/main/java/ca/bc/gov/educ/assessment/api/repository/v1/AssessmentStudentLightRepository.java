@@ -18,7 +18,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
 
     List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionID(UUID sessionID);
 
-    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNot(UUID sessionID, String provincialSpecialCaseCode);
+    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCode(UUID sessionID, String provincialSpecialCaseCode, String studentStatusCode);
 
     List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> studentStatuses);
 
@@ -26,12 +26,13 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     select stud from AssessmentStudentLightEntity stud
     where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
     and stud.downloadDate is not null
+    and stud.studentStatusCode = 'ACTIVE'
     and (stud.provincialSpecialCaseCode is null
          or stud.provincialSpecialCaseCode <> :provincialSpecialCaseCode)
     order by stud.downloadDate desc
     limit 1
     """)
-    Optional<AssessmentStudentLightEntity> findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNot(UUID sessionID, String provincialSpecialCaseCode);
+    Optional<AssessmentStudentLightEntity> findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCodeActive(UUID sessionID, String provincialSpecialCaseCode);
 
     @Query(value="""
         select stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode,
