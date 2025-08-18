@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
+import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentRegistrationTotalsBySchoolHeader;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
@@ -157,6 +158,60 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
         assessmentStudentEntity5.setSchoolOfRecordSchoolID(schoolID);
         assessmentStudentEntity5.setGradeAtRegistration("12");
         assessmentStudentEntity5.setDownloadDate(null);
+
+        assessmentStudentRepository.saveAll(List.of(assessmentStudentEntity1, assessmentStudentEntity2, assessmentStudentEntity3, assessmentStudentEntity4, assessmentStudentEntity5));
+
+        SimpleHeadcountResultsTable results = summaryReportService.getAssessmentRegistrationTotalsBySchool(assessmentSessionEntity.getSessionID());
+        assertThat(results.getHeaders()).isNotEmpty();
+        assertThat(results.getRows()).isNotEmpty();
+        assertThat(results.getHeaders().get(0)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode());
+        assertThat(results.getHeaders().get(1)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode());
+        assertThat(results.getHeaders().get(2)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode());
+        assertThat(results.getHeaders().get(3)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_11_COUNT.getCode());
+        assertThat(results.getHeaders().get(4)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode());
+        Map<String, String> row1 = results.getRows().getFirst();
+        assertThat(row1)
+                .containsEntry(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode(), "LTE10")
+                .containsEntry(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode(), school.getMincode())
+                .containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode(), "1")
+                .containsEntry(AssessmentRegistrationTotalsBySchoolHeader.GRADE_11_COUNT.getCode(), "2")
+                .containsEntry(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode(), "3");
+    }
+
+    @Test
+    void testGetAssessmentRegistrationTotalsBySchool_GivenExemptStudent_OnlyIncludesNonExemptStudents() {
+        UUID schoolID = UUID.randomUUID();
+        SchoolTombstone school = this.createMockSchool();
+        school.setSchoolId(String.valueOf(schoolID));
+        when(this.restUtils.getSchoolBySchoolID(school.getSchoolId())).thenReturn(Optional.of(school));
+
+        LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
+
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+        AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, "LTE10"));
+        AssessmentStudentEntity assessmentStudentEntity1 = createMockStudentEntity(assessmentEntity);
+        assessmentStudentEntity1.setSchoolOfRecordSchoolID(schoolID);
+        assessmentStudentEntity1.setGradeAtRegistration("10");
+        assessmentStudentEntity1.setDownloadDate(yesterday);
+        AssessmentStudentEntity assessmentStudentEntity2 = createMockStudentEntity(assessmentEntity);
+        assessmentStudentEntity2.setSchoolOfRecordSchoolID(schoolID);
+        assessmentStudentEntity2.setGradeAtRegistration("11");
+        assessmentStudentEntity2.setDownloadDate(yesterday);
+        AssessmentStudentEntity assessmentStudentEntity3 = createMockStudentEntity(assessmentEntity);
+        assessmentStudentEntity3.setSchoolOfRecordSchoolID(schoolID);
+        assessmentStudentEntity3.setGradeAtRegistration("10");
+        assessmentStudentEntity3.setDownloadDate(yesterday);
+        assessmentStudentEntity3.setProvincialSpecialCaseCode(ProvincialSpecialCaseCodes.EXEMPT.getCode());
+        AssessmentStudentEntity assessmentStudentEntity4 = createMockStudentEntity(assessmentEntity);
+        assessmentStudentEntity4.setSchoolOfRecordSchoolID(schoolID);
+        assessmentStudentEntity4.setGradeAtRegistration("11");
+        assessmentStudentEntity4.setDownloadDate(yesterday);
+        AssessmentStudentEntity assessmentStudentEntity5 = createMockStudentEntity(assessmentEntity);
+        assessmentStudentEntity5.setSchoolOfRecordSchoolID(schoolID);
+        assessmentStudentEntity5.setGradeAtRegistration("12");
+        assessmentStudentEntity5.setDownloadDate(yesterday);
+        assessmentStudentEntity5.setProvincialSpecialCaseCode(ProvincialSpecialCaseCodes.EXEMPT.getCode());
+
 
         assessmentStudentRepository.saveAll(List.of(assessmentStudentEntity1, assessmentStudentEntity2, assessmentStudentEntity3, assessmentStudentEntity4, assessmentStudentEntity5));
 

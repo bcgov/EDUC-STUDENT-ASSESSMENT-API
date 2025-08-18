@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
+import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentRegistrationTotalsBySchoolHeader;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.RegistrationSummaryHeader;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
@@ -40,10 +41,10 @@ public class SummaryReportService {
                         .orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         List<UUID> assessmentIDs = validSession.getAssessments().stream().map(AssessmentEntity::getAssessmentID).toList();
 
-        Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNull(sessionID);
+        Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCodeActive(sessionID, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         List<RegistrationSummaryResult> summaryResults;
         if (studentEntityOpt.isPresent()) {
-            summaryResults = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNull(assessmentIDs);
+            summaryResults = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndDownloadDateNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCodeActive(assessmentIDs, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         } else {
             summaryResults = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndDownloadDateNull(assessmentIDs);
         }
@@ -90,9 +91,9 @@ public class SummaryReportService {
         });
 
         List<AssessmentRegistrationTotalsBySchoolResult> registrations;
-        Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNull(sessionID);
+        Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCodeActive(sessionID, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         if (studentEntityOpt.isPresent()) {
-            registrations = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndSchoolIDsAndDownloadDateIsNotNull(assessmentIDs);
+            registrations = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndSchoolIDsAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCodeActive(assessmentIDs, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         } else {
             registrations = assessmentStudentRepository.getRegistrationSummaryByAssessmentIDsAndSchoolIDs(assessmentIDs);
         }

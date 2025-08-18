@@ -4,7 +4,6 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentLightEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByFormQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +18,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
 
     List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionID(UUID sessionID);
 
-    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndDownloadDateIsNotNull(UUID sessionID);
+    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCode(UUID sessionID, String provincialSpecialCaseCode, String studentStatusCode);
 
     List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> studentStatuses);
 
@@ -27,10 +26,13 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     select stud from AssessmentStudentLightEntity stud
     where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
     and stud.downloadDate is not null
+    and stud.studentStatusCode = 'ACTIVE'
+    and (stud.provincialSpecialCaseCode is null
+         or stud.provincialSpecialCaseCode <> :provincialSpecialCaseCode)
     order by stud.downloadDate desc
     limit 1
     """)
-    Optional<AssessmentStudentLightEntity> findBySessionIDAndDownloadDateIsNotNull(UUID sessionID);
+    Optional<AssessmentStudentLightEntity> findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCodeActive(UUID sessionID, String provincialSpecialCaseCode);
 
     @Query(value="""
         select stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode,
