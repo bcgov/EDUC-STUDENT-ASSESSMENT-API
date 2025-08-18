@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.STUDENT_ASSESSMENT_EVENTS_TOPIC;
-import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.PEN_SERVICES_API_TOPIC;
+import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.PEN_SERVICES_EVENTS_TOPIC;
 import static ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher.STREAM_NAME;
 
 /**
@@ -61,7 +61,7 @@ public class Subscriber {
     private void initializeStreamTopicMap() {
         final List<String> studentAssessmentEventsTopics = new ArrayList<>();
         studentAssessmentEventsTopics.add(STUDENT_ASSESSMENT_EVENTS_TOPIC.toString());
-        studentAssessmentEventsTopics.add(PEN_SERVICES_API_TOPIC.toString());
+        studentAssessmentEventsTopics.add(PEN_SERVICES_EVENTS_TOPIC.toString());
         this.streamTopicsMap.put(STREAM_NAME, studentAssessmentEventsTopics);
     }
 
@@ -72,7 +72,7 @@ public class Subscriber {
         for (val entry : this.streamTopicsMap.entrySet()) {
             for (val topic : entry.getValue()) {
                 final PushSubscribeOptions options = PushSubscribeOptions.builder().stream(entry.getKey())
-                        .durable(ApplicationProperties.STUDENT_ASSESSMENT_API.concat("-DURABLE"))
+                        .durable(ApplicationProperties.STUDENT_ASSESSMENT_API.concat("-DURABLE-") + topic)
                         .configuration(ConsumerConfiguration.builder().deliverPolicy(DeliverPolicy.New).build()).build();
                 this.natsConnection.jetStream().subscribe(topic, qName, this.natsConnection.createDispatcher(), this::onMessage,
                         autoAck, options);
