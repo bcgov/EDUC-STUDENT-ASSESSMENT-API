@@ -216,7 +216,7 @@ public class AssessmentStudentService {
         AssessmentStudentEntity entity = entityOptional.orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "assessmentStudentID", assessmentStudentID.toString()));
 
         LocalDateTime sessionEnd = entity.getAssessmentEntity().getAssessmentSessionEntity().getActiveUntilDate();
-        boolean sessionEnded = sessionEnd.isBefore(LocalDateTime.now());
+        boolean sessionEnded = !allowRuleOverride && sessionEnd.isBefore(LocalDateTime.now());
         boolean hasProvincialSpecialCaseCode = !allowRuleOverride && entity.getProvincialSpecialCaseCode() != null;
         boolean hasProficiencyScore = entity.getProficiencyScore() != null;
         boolean hasResult = hasProficiencyScore || hasProvincialSpecialCaseCode;
