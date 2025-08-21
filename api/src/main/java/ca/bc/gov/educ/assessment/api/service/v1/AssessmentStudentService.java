@@ -114,11 +114,6 @@ public class AssessmentStudentService {
         return savedEntity;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
-    public AssessmentStudentEntity createStudentWithoutValidationInCurrentTransaction(AssessmentStudentEntity assessmentStudentEntity) {
-        return saveAssessmentStudentWithHistoryInCurrentTransaction(assessmentStudentEntity);
-    }
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
@@ -317,7 +312,7 @@ public class AssessmentStudentService {
         return updatedCount;
     }
 
-    public List<UUID> findBatchOfTransferStudentIds(int batchSize) {
+    public List<StagedAssessmentStudentEntity> findBatchOfTransferStudentIds(int batchSize) {
         log.debug("Finding batch of {} students with TRANSFER status", batchSize);
         Pageable pageable = PageRequest.of(0, batchSize);
         return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("TRANSFER", pageable);

@@ -817,9 +817,10 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity saved2 = stagedAssessmentStudentRepository.save(transferStudent2);
     stagedAssessmentStudentRepository.save(nonTransferStudent);
 
-    List<UUID> transferStudentIds = assessmentStudentService.findBatchOfTransferStudentIds(10);
+    List<StagedAssessmentStudentEntity> transferStudents = assessmentStudentService.findBatchOfTransferStudentIds(10);
 
-    assertThat(transferStudentIds).hasSize(2);
+    assertThat(transferStudents).hasSize(2);
+    var transferStudentIds = transferStudents.stream().map(StagedAssessmentStudentEntity::getAssessmentStudentID).toList();
     assertThat(transferStudentIds).containsExactlyInAnyOrder(saved1.getAssessmentStudentID(), saved2.getAssessmentStudentID());
   }
 
@@ -834,14 +835,14 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
       stagedAssessmentStudentRepository.save(transferStudent);
     }
 
-    List<UUID> transferStudentIds = assessmentStudentService.findBatchOfTransferStudentIds(3);
+    List<StagedAssessmentStudentEntity> transferStudentIds = assessmentStudentService.findBatchOfTransferStudentIds(3);
 
     assertThat(transferStudentIds).hasSize(3);
   }
 
   @Test
   void testFindBatchOfTransferStudentIds_WhenNoTransferStudentsExist_ShouldReturnEmptyList() {
-    List<UUID> transferStudentIds = assessmentStudentService.findBatchOfTransferStudentIds(10);
+    List<StagedAssessmentStudentEntity> transferStudentIds = assessmentStudentService.findBatchOfTransferStudentIds(10);
     assertThat(transferStudentIds).isEmpty();
   }
 

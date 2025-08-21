@@ -5,11 +5,14 @@ import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.BaseOrchestrator;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
+import ca.bc.gov.educ.assessment.api.service.v1.DOARReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
+import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,40 +24,45 @@ import java.util.Set;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.*;
-import static ca.bc.gov.educ.assessment.api.constants.EventType.PROCESS_STUDENT_TRANSFER_EVENT;
+import static ca.bc.gov.educ.assessment.api.constants.EventType.*;
+import static ca.bc.gov.educ.assessment.api.constants.EventType.CREATE_STUDENT_RESULT;
 import static ca.bc.gov.educ.assessment.api.constants.SagaEnum.PROCESS_STUDENT_TRANSFER;
+import static ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum.IN_PROGRESS;
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.STUDENT_TRANSFER_PROCESSING_TOPIC;
 
 @Slf4j
 @Component
-public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<String> {
+public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<TransferOnApprovalSagaData> {
 
     private final AssessmentStudentService assessmentStudentService;
     private final SagaService sagaService;
+    private final DOARReportService doarReportService;
 
     protected TransferStudentProcessingOrchestrator(final SagaService sagaService,
                                                     final MessagePublisher messagePublisher,
-                                                    final AssessmentStudentService assessmentStudentService) {
-        super(sagaService, messagePublisher, String.class, PROCESS_STUDENT_TRANSFER.toString(), STUDENT_TRANSFER_PROCESSING_TOPIC.toString());
+                                                    final AssessmentStudentService assessmentStudentService, DOARReportService doarReportService) {
+        super(sagaService, messagePublisher, TransferOnApprovalSagaData.class, PROCESS_STUDENT_TRANSFER.toString(), STUDENT_TRANSFER_PROCESSING_TOPIC.toString());
         this.assessmentStudentService = assessmentStudentService;
         this.sagaService = sagaService;
+        this.doarReportService = doarReportService;
     }
 
     @Override
     public void populateStepsToExecuteMap() {
         this.stepBuilder()
             .begin(PROCESS_STUDENT_TRANSFER_EVENT, this::processStudentTransfer)
-            .end(PROCESS_STUDENT_TRANSFER_EVENT, STUDENT_TRANSFER_PROCESSED);
+            .step(PROCESS_STUDENT_TRANSFER_EVENT, STUDENT_TRANSFER_PROCESSED, CALCULATE_STUDENT_DOAR, this::createAndPopulateDOARCalculations)
+            .end(CALCULATE_STUDENT_DOAR, STUDENT_DOAR_CALCULATED);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    protected void processStudentTransfer(Event event, AssessmentSagaEntity saga, String payload) throws JsonProcessingException {
+    protected void processStudentTransfer(Event event, AssessmentSagaEntity saga, TransferOnApprovalSagaData transferOnApprovalSagaData) throws JsonProcessingException {
         final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
         saga.setSagaState(PROCESS_STUDENT_TRANSFER_EVENT.toString());
         saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
         this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
 
-        UUID studentId = UUID.fromString(payload);
+        UUID studentId = UUID.fromString(transferOnApprovalSagaData.getStagedStudentAssessmentID());
         log.debug("Processing transfer for student: {}", studentId);
 
         // Transfer student data from staging to main tables
@@ -68,10 +76,27 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Stri
                 .sagaId(saga.getSagaId())
                 .eventType(PROCESS_STUDENT_TRANSFER_EVENT)
                 .eventOutcome(STUDENT_TRANSFER_PROCESSED)
-                .eventPayload(JsonUtil.getJsonStringFromObject("Student " + studentId + " transfer completed and marked as transferred successfully"))
+                .eventPayload(JsonUtil.getJsonStringFromObject(transferOnApprovalSagaData))
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("Posted completion message for saga step processStudentTransfer: {}", saga.getSagaId());
+    }
+
+    protected void createAndPopulateDOARCalculations(Event event, AssessmentSagaEntity saga, TransferOnApprovalSagaData transferOnApprovalSagaData) throws JsonProcessingException {
+        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
+        saga.setSagaState(CALCULATE_STUDENT_DOAR.toString());
+        saga.setStatus(IN_PROGRESS.toString());
+        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
+
+        final Event.EventBuilder eventBuilder = Event.builder();
+        eventBuilder.sagaId(saga.getSagaId()).eventType(CALCULATE_STUDENT_DOAR);
+
+        doarReportService.createAndPopulateDOARSummaryCalculations(transferOnApprovalSagaData);
+
+        eventBuilder.eventOutcome(STUDENT_DOAR_CALCULATED);
+        val nextEvent = eventBuilder.build();
+        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
+        log.debug("message sent to {} for {} Event. :: {}", this.getTopicToSubscribe(), nextEvent, saga.getSagaId());
     }
 
     private int markStudentAsTransferredInTransaction(UUID studentId) {
@@ -96,6 +121,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Stri
             log.debug("Creating new student {} for assessment {}", stagedStudent.getStudentID(), stagedStudent.getAssessmentEntity().getAssessmentID());
             createNewStudentFromStaged(stagedStudent);
         }
+
     }
 
     private void updateExistingStudentFromStaged(AssessmentStudentEntity existingStudent, StagedAssessmentStudentEntity stagedStudent) {
@@ -119,7 +145,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Stri
     private void createNewStudentFromStaged(StagedAssessmentStudentEntity stagedStudent) {
         AssessmentStudentEntity mainStudent = createMainStudentFromStaged(stagedStudent);
 
-        AssessmentStudentEntity savedMainStudent = assessmentStudentService.createStudentWithoutValidationInCurrentTransaction(mainStudent);
+        AssessmentStudentEntity savedMainStudent = assessmentStudentService.saveAssessmentStudentWithHistoryInCurrentTransaction(mainStudent);
 
         log.debug("Created new student {} from staged student {}", savedMainStudent.getAssessmentStudentID(), stagedStudent.getAssessmentStudentID());
     }
@@ -224,16 +250,16 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Stri
                 .updateDate(staged.getUpdateDate())
                 .build();
     }
-    public void startStudentTransferProcessingSaga(UUID stagedStudentResultID) throws JsonProcessingException {
-        String payload = JsonUtil.getJsonStringFromObject(stagedStudentResultID.toString());
+    public void startStudentTransferProcessingSaga(TransferOnApprovalSagaData transferOnApprovalSagaData) throws JsonProcessingException {
+        String payload = JsonUtil.getJsonStringFromObject(transferOnApprovalSagaData);
         AssessmentSagaEntity saga = sagaService.createSagaRecordInDB(
                 this.getSagaName(),
                 "ASSESSMENT-API",
                 payload,
                 null,
-                stagedStudentResultID
+                UUID.fromString(transferOnApprovalSagaData.getStagedStudentAssessmentID())
         );
         this.startSaga(saga);
-        log.debug("Started student transfer processing saga for student: {}", stagedStudentResultID);
+        log.debug("Started student transfer processing saga for student: {}", transferOnApprovalSagaData.getStagedStudentAssessmentID());
     }
 }
