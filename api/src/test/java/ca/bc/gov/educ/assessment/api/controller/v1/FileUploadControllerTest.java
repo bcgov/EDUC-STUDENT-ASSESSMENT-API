@@ -476,7 +476,6 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
 
         var studentEntity1 = createMockStudentEntity(savedAssessmentEntity);
         var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
-        componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
         studentEntity1.getAssessmentStudentComponentEntities().add(componentEntity1);
         studentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
         studentRepository.save(studentEntity1);

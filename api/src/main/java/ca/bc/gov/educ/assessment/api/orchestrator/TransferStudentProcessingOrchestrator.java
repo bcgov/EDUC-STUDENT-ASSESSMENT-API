@@ -218,7 +218,6 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
     private AssessmentStudentComponentEntity createMainComponentFromStaged(StagedAssessmentStudentComponentEntity staged, AssessmentStudentEntity mainStudent) {
         AssessmentStudentComponentEntity main = AssessmentStudentComponentEntity.builder()
                 .assessmentStudentEntity(mainStudent)
-                .assessmentFormID(null) // this is missing on staged
                 .assessmentComponentID(staged.getAssessmentComponentID())
                 .choicePath(staged.getChoicePath())
                 .createUser(staged.getCreateUser())

@@ -32,9 +32,6 @@ public class AssessmentStudentComponentEntity {
     @JoinColumn(name = "ASSESSMENT_STUDENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_ID", updatable = false)
     AssessmentStudentEntity assessmentStudentEntity;
 
-    @Column(name = "ASSESSMENT_FORM_ID")
-    private UUID assessmentFormID;
-
     @Column(name = "ASSESSMENT_COMPONENT_ID", updatable = false)
     UUID assessmentComponentID;
 
