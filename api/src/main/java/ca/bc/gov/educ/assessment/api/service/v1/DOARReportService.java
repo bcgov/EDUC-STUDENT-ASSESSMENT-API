@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.*;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidParameterException;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
+import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentDOARCalculationRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -123,11 +125,17 @@ public class DOARReportService {
                 .orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "StudentID", sagaData.getStudentID()));
 
         var selectedAssessmentForm = assessmentStudentEntity.getAssessmentEntity().getAssessmentForms().stream()
-                .filter(assessmentFormEntity -> Objects.equals(assessmentFormEntity.getAssessmentFormID(), assessmentStudentEntity.getAssessmentFormID()))
-                .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "assessmentFormID", assessmentStudentEntity.getAssessmentFormID().toString()));
-
-        var assessmentStudentDOARCalculationEntity = prepareLTEDOARSummaryEntity(assessmentStudentEntity, selectedAssessmentForm, assessmentStudentEntity.getAssessmentEntity().getAssessmentTypeCode());
-        assessmentStudentDOARCalculationRepository.save(assessmentStudentDOARCalculationEntity);
+                .filter(assessmentFormEntity -> assessmentStudentEntity.getAssessmentFormID() != null
+                        && Objects.equals(assessmentFormEntity.getAssessmentFormID(), assessmentStudentEntity.getAssessmentFormID()))
+                .findFirst();
+        if(selectedAssessmentForm.isPresent()) {
+            var assessmentStudentDOARCalculationEntity = prepareLTEDOARSummaryEntity(assessmentStudentEntity, selectedAssessmentForm.get(), assessmentStudentEntity.getAssessmentEntity().getAssessmentTypeCode());
+            assessmentStudentDOARCalculationEntity.setCreateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
+            assessmentStudentDOARCalculationEntity.setUpdateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
+            assessmentStudentDOARCalculationEntity.setCreateDate(LocalDateTime.now());
+            assessmentStudentDOARCalculationEntity.setUpdateDate(LocalDateTime.now());
+            assessmentStudentDOARCalculationRepository.save(assessmentStudentDOARCalculationEntity);
+        }
     }
 
     private List<String> prepareDOARForCsv(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String mincode, String assessmentTypeCode) {
