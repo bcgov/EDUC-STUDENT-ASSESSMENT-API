@@ -600,8 +600,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
         var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
         var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
-        componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
-        componentEntity2.setAssessmentFormID(savedForm.getAssessmentFormID());
 
         var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
         for(int i = 1;i < multiQues.size() ;i++) {
@@ -662,8 +660,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
         var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
         var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
-        componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
-        componentEntity2.setAssessmentFormID(savedForm.getAssessmentFormID());
 
         var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
         for(int i = 1;i < multiQues.size() ;i++) {
@@ -724,8 +720,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
         var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
         var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
-        componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
-        componentEntity2.setAssessmentFormID(savedForm.getAssessmentFormID());
 
         var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
         for(int i = 1;i < multiQues.size() ;i++) {
@@ -786,8 +780,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
         var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
         var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
-        componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
-        componentEntity2.setAssessmentFormID(savedForm.getAssessmentFormID());
 
         var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
         for(int i = 1;i < multiQues.size() ;i++) {
@@ -848,8 +840,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
         var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
         var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
-        componentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
-        componentEntity2.setAssessmentFormID(savedForm.getAssessmentFormID());
 
         var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
         for(int i = 1;i < multiQues.size() ;i++) {
