@@ -18,12 +18,10 @@ public class LTF12Assessment extends ISRAssessment {
     private String comprehendOutOf;
     private String communicateScore;
     private String communicateOutOf;
+    private String communicateOralScore;
+    private String communicateOralOutOf;
     private String partASelectedResponseScore;
     private String partASelectedResponseOutOf;
-    private String partAWrittenResponseGraphicScore;
-    private String partAWrittenResponseGraphicOutOf;
-    private String partAWrittenResponseUnderstandingScore;
-    private String partAWrittenResponseUnderstandingOutOf;
     private String partBSelectedResponseScore;
     private String partBSelectedResponseOutOf;
     private String partBWrittenResponseAnalyzeScore;

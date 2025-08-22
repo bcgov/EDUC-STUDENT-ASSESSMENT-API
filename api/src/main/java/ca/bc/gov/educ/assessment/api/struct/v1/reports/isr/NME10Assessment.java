@@ -14,16 +14,16 @@ import lombok.experimental.SuperBuilder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ToString(callSuper = true)
 public class NME10Assessment extends ISRAssessment {
-    private Integer onlinePlanAndDesignScore;
-    private Integer onlinePlanAndDesignOutOf;
-    private Integer onlineReasonedEstimatesScore;
-    private Integer onlineReasonedEstimatesOutOf;
-    private Integer onlineFairShareScore;
-    private Integer onlineFairShareOutOf;
-    private Integer onlineModelScore;
-    private Integer onlineModelOutOf;
-    private Integer writtenFairScore;
-    private Integer writtenFairOutOf;
-    private Integer writtenReasonedEstimatesScore;
-    private Integer writtenReasonedEstimatesOutOf;
+    private String onlinePlanAndDesignScore;
+    private String onlinePlanAndDesignOutOf;
+    private String onlineReasonedEstimatesScore;
+    private String onlineReasonedEstimatesOutOf;
+    private String onlineFairShareScore;
+    private String onlineFairShareOutOf;
+    private String onlineModelScore;
+    private String onlineModelOutOf;
+    private String writtenFairScore;
+    private String writtenFairOutOf;
+    private String writtenReasonedEstimatesScore;
+    private String writtenReasonedEstimatesOutOf;
 }

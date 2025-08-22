@@ -450,6 +450,62 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="writtenPlanningOutOf"/>
 			<fieldDescription><![CDATA[writtenPlanningOutOf]]></fieldDescription>
 		</field>
+		<field name="partAWrittenShortScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partAWrittenShortScore"/>
+			<fieldDescription><![CDATA[partAWrittenShortScore]]></fieldDescription>
+		</field>
+		<field name="partAWrittenShortOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partAWrittenShortOutOf"/>
+			<fieldDescription><![CDATA[partAWrittenShortOutOf]]></fieldDescription>
+		</field>
+		<field name="partAWrittenGraphicScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partAWrittenGraphicScore"/>
+			<fieldDescription><![CDATA[partAWrittenGraphicScore]]></fieldDescription>
+		</field>
+		<field name="partAWrittenGraphicOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partAWrittenGraphicOutOf"/>
+			<fieldDescription><![CDATA[partAWrittenGraphicOutOf]]></fieldDescription>
+		</field>
+		<field name="partAWrittenLongScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partAWrittenLongScore"/>
+			<fieldDescription><![CDATA[partAWrittenLongScore]]></fieldDescription>
+		</field>
+		<field name="partAWrittenLongOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partAWrittenLongOutOf"/>
+			<fieldDescription><![CDATA[partAWrittenLongOutOf]]></fieldDescription>
+		</field>
+		<field name="partBWrittenShortScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partBWrittenShortScore"/>
+			<fieldDescription><![CDATA[partBWrittenShortScore]]></fieldDescription>
+		</field>
+		<field name="partBWrittenShortOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partBWrittenShortOutOf"/>
+			<fieldDescription><![CDATA[partBWrittenShortOutOf]]></fieldDescription>
+		</field>
+		<field name="partOralPart1Score" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partOralPart1Score"/>
+			<fieldDescription><![CDATA[partOralPart1Score]]></fieldDescription>
+		</field>
+		<field name="partOralPart1OutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partOralPart1OutOf"/>
+			<fieldDescription><![CDATA[partOralPart1OutOf]]></fieldDescription>
+		</field>
+		<field name="partOralPart2Score" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partOralPart2Score"/>
+			<fieldDescription><![CDATA[partOralPart2Score]]></fieldDescription>
+		</field>
+		<field name="partOralPart2OutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partOralPart2OutOf"/>
+			<fieldDescription><![CDATA[partOralPart2OutOf]]></fieldDescription>
+		</field>
+		<field name="partOralPart3Score" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partOralPart3Score"/>
+			<fieldDescription><![CDATA[partOralPart3Score]]></fieldDescription>
+		</field>
+		<field name="partOralPart3OutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="partOralPart3OutOf"/>
+			<fieldDescription><![CDATA[partOralPart3OutOf]]></fieldDescription>
+		</field>
 	</subDataset>
 	<queryString language="JSON">
 		<![CDATA[report]]>
@@ -935,23 +991,35 @@
 							<subreportParameter name="communicateOutOf">
 								<subreportParameterExpression><![CDATA[$F{communicateOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
+							<subreportParameter name="communicateOralScore">
+								<subreportParameterExpression><![CDATA[$F{communicateOralScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="communicateOralOutOf">
+								<subreportParameterExpression><![CDATA[$F{communicateOralOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
 							<subreportParameter name="partASelectedResponseScore">
 								<subreportParameterExpression><![CDATA[$F{partASelectedResponseScore}]]></subreportParameterExpression>
 							</subreportParameter>
 							<subreportParameter name="partASelectedResponseOutOf">
 								<subreportParameterExpression><![CDATA[$F{partASelectedResponseOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partAWrittenResponseGraphicScore">
-								<subreportParameterExpression><![CDATA[$F{partAWrittenResponseGraphicScore}]]></subreportParameterExpression>
+							<subreportParameter name="partAWrittenShortScore">
+								<subreportParameterExpression><![CDATA[$F{partAWrittenShortScore}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partAWrittenResponseGraphicOutOf">
-								<subreportParameterExpression><![CDATA[$F{partAWrittenResponseGraphicOutOf}]]></subreportParameterExpression>
+							<subreportParameter name="partAWrittenShortOutOf">
+								<subreportParameterExpression><![CDATA[$F{partAWrittenShortOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partAWrittenResponseUnderstandingScore">
-								<subreportParameterExpression><![CDATA[$F{partAWrittenResponseUnderstandingScore}]]></subreportParameterExpression>
+							<subreportParameter name="partAWrittenGraphicScore">
+								<subreportParameterExpression><![CDATA[$F{partAWrittenGraphicScore}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partAWrittenResponseUnderstandingOutOf">
-								<subreportParameterExpression><![CDATA[$F{partAWrittenResponseUnderstandingOutOf}]]></subreportParameterExpression>
+							<subreportParameter name="partAWrittenGraphicOutOf">
+								<subreportParameterExpression><![CDATA[$F{partAWrittenGraphicOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="partAWrittenLongScore">
+								<subreportParameterExpression><![CDATA[$F{partAWrittenLongScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="partAWrittenLongOutOf">
+								<subreportParameterExpression><![CDATA[$F{partAWrittenLongOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
 							<subreportParameter name="partBSelectedResponseScore">
 								<subreportParameterExpression><![CDATA[$F{partBSelectedResponseScore}]]></subreportParameterExpression>
@@ -959,11 +1027,29 @@
 							<subreportParameter name="partBSelectedResponseOutOf">
 								<subreportParameterExpression><![CDATA[$F{partBSelectedResponseOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partBWrittenResponseUnderstandingScore">
-								<subreportParameterExpression><![CDATA[$F{partBWrittenResponseUnderstandingScore}]]></subreportParameterExpression>
+							<subreportParameter name="partBWrittenShortScore">
+								<subreportParameterExpression><![CDATA[$F{partBWrittenShortScore}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportParameter name="partBWrittenResponseUnderstandingOutOf">
-								<subreportParameterExpression><![CDATA[$F{partBWrittenResponseUnderstandingOutOf}]]></subreportParameterExpression>
+							<subreportParameter name="partBWrittenShortOutOf">
+								<subreportParameterExpression><![CDATA[$F{partBWrittenShortOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="partOralPart1Score">
+								<subreportParameterExpression><![CDATA[$F{partOralPart1Score}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="partOralPart1OutOf">
+								<subreportParameterExpression><![CDATA[$F{partOralPart1OutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="partOralPart2Score">
+								<subreportParameterExpression><![CDATA[$F{partOralPart2Score}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="partOralPart2OutOf">
+								<subreportParameterExpression><![CDATA[$F{partOralPart2OutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="partOralPart3Score">
+								<subreportParameterExpression><![CDATA[$F{partOralPart3Score}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="partOralPart3OutOf">
+								<subreportParameterExpression><![CDATA[$F{partOralPart3OutOf}]]></subreportParameterExpression>
 							</subreportParameter>
 							<subreportExpression><![CDATA["ltp10summary.jasper"]]></subreportExpression>
 						</subreport>

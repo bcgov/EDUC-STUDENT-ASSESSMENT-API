@@ -12,14 +12,22 @@
 	<parameter name="communicateOralOutOf" class="java.lang.String"/>
 	<parameter name="partASelectedResponseScore" class="java.lang.String"/>
 	<parameter name="partASelectedResponseOutOf" class="java.lang.String"/>
-	<parameter name="partAWrittenResponseGraphicScore" class="java.lang.String"/>
-	<parameter name="partAWrittenResponseGraphicOutOf" class="java.lang.String"/>
-	<parameter name="partAWrittenResponseUnderstandingScore" class="java.lang.String"/>
-	<parameter name="partAWrittenResponseUnderstandingOutOf" class="java.lang.String"/>
+	<parameter name="partAWrittenShortScore" class="java.lang.String"/>
+	<parameter name="partAWrittenShortOutOf" class="java.lang.String"/>
+	<parameter name="partAWrittenGraphicScore" class="java.lang.String"/>
+	<parameter name="partAWrittenGraphicOutOf" class="java.lang.String"/>
+	<parameter name="partAWrittenLongScore" class="java.lang.String"/>
+	<parameter name="partAWrittenLongOutOf" class="java.lang.String"/>
 	<parameter name="partBSelectedResponseScore" class="java.lang.String"/>
 	<parameter name="partBSelectedResponseOutOf" class="java.lang.String"/>
-	<parameter name="partBWrittenResponseUnderstandingScore" class="java.lang.String"/>
-	<parameter name="partBWrittenResponseUnderstandingOutOf" class="java.lang.String"/>
+	<parameter name="partBWrittenShortScore" class="java.lang.String"/>
+	<parameter name="partBWrittenShortOutOf" class="java.lang.String"/>
+	<parameter name="partOralPart1Score" class="java.lang.String"/>
+	<parameter name="partOralPart1OutOf" class="java.lang.String"/>
+	<parameter name="partOralPart2Score" class="java.lang.String"/>
+	<parameter name="partOralPart2OutOf" class="java.lang.String"/>
+	<parameter name="partOralPart3Score" class="java.lang.String"/>
+	<parameter name="partOralPart3OutOf" class="java.lang.String"/>
 	<title>
 		<band height="730" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -530,7 +538,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partAWrittenShortOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="585" width="100" height="11" uuid="3ac15c41-ab1b-4cbe-b5f8-ed7a4c550e03"/>
@@ -544,7 +552,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partAWrittenShortScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement mode="Transparent" x="1" y="596" width="479" height="11" backcolor="#FFFFFF" uuid="75b2a40e-a072-4323-8dc2-b346515092c1">
@@ -575,7 +583,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partAWrittenGraphicOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="596" width="100" height="11" uuid="ffbbf485-4ecc-4936-8056-82ea38db6a89"/>
@@ -589,7 +597,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partAWrittenGraphicScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement mode="Transparent" x="1" y="618" width="479" height="12" backcolor="#FFFFFF" uuid="c595a89b-1d9e-46a8-9be4-bcff9e5a0167">
@@ -666,7 +674,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partASelectedResponseOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partBSelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="630" width="100" height="11" uuid="c140d2d5-9eb2-445d-a32b-68fe8cb167d1"/>
@@ -680,7 +688,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partASelectedResponseScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partBSelectedResponseScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement mode="Transparent" x="1" y="641" width="479" height="11" backcolor="#FFFFFF" uuid="56dbaa42-5776-4ea7-aff0-e4cae8620b39">
@@ -712,7 +720,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partBWrittenShortOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="641" width="100" height="11" uuid="4275b21b-de41-43f4-8897-37248d49c94c"/>
@@ -726,7 +734,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partBWrittenShortScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="2" y="703" width="683" height="26" uuid="947f1d2d-184a-44e9-a95c-0ecf5c77eac1"/>
@@ -766,7 +774,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{communicateScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{communicateOralScore}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="580" y="527" width="105" height="22" uuid="714b2610-1785-4e95-b6dd-48ab116a2a2e"/>
@@ -780,7 +788,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{communicateOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{communicateOralOutOf}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement mode="Transparent" x="1" y="607" width="479" height="11" backcolor="#FFFFFF" uuid="1807e4ab-01b9-4875-b9e0-89abadbfacb3">
@@ -812,7 +820,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partAWrittenLongOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="607" width="100" height="11" uuid="501f3dc0-ba02-44fc-9c33-76cb95c2feee"/>
@@ -826,7 +834,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partAWrittenLongScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement mode="Transparent" x="1" y="652" width="479" height="12" backcolor="#FFFFFF" uuid="7216d03f-a244-4132-a9c6-84418a081656">
@@ -903,7 +911,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partASelectedResponseOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partOralPart1OutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="664" width="100" height="11" uuid="eb952eb4-8fbf-4f8c-aaed-83da444a9149"/>
@@ -917,7 +925,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partASelectedResponseScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partOralPart1Score}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement mode="Transparent" x="1" y="675" width="479" height="11" backcolor="#FFFFFF" uuid="87d9efce-46fb-4093-ba41-a195e1482c42">
@@ -949,7 +957,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partOralPart2OutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="675" width="100" height="11" uuid="5671448c-c560-46d5-aef1-26bcdf056fad"/>
@@ -963,7 +971,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partOralPart2Score}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="686" width="100" height="11" uuid="5bb68d4b-2755-4962-9ae9-067170c1e48b"/>
@@ -977,7 +985,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partOralPart3Score}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement mode="Transparent" x="1" y="686" width="479" height="11" backcolor="#FFFFFF" uuid="3bace97b-2724-48e5-b47c-804ea3c885a5">
@@ -1009,7 +1017,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partOralPart3OutOf}]]></textFieldExpression>
 			</textField>
 		</band>
 	</title>

@@ -14,16 +14,16 @@ import lombok.experimental.SuperBuilder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ToString(callSuper = true)
 public class NMF10Assessment extends ISRAssessment {
-    private Integer multiChoicePlanningScore;
-    private Integer multiChoicePlanningOutOf;
-    private Integer multiChoiceEstimationsScore;
-    private Integer multiChoiceEstimationsOutOf;
-    private Integer multiChoiceGroupingScore;
-    private Integer multiChoiceGroupingOutOf;
-    private Integer multiChoiceModelScore;
-    private Integer multiChoiceModelOutOf;
-    private Integer writtenGroupingScore;
-    private Integer writtenGroupingOutOf;
-    private Integer writtenPlanningScore;
-    private Integer writtenPlanningOutOf;
+    private String multiChoicePlanningScore;
+    private String multiChoicePlanningOutOf;
+    private String multiChoiceEstimationsScore;
+    private String multiChoiceEstimationsOutOf;
+    private String multiChoiceGroupingScore;
+    private String multiChoiceGroupingOutOf;
+    private String multiChoiceModelScore;
+    private String multiChoiceModelOutOf;
+    private String writtenGroupingScore;
+    private String writtenGroupingOutOf;
+    private String writtenPlanningScore;
+    private String writtenPlanningOutOf;
 }
