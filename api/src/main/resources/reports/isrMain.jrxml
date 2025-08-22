@@ -173,7 +173,7 @@
 			<fieldDescription><![CDATA[assessments.score]]></fieldDescription>
 		</field>
 	</subDataset>
-	<subDataset name="DynamicSectionSet" uuid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
+	<subDataset name="AssessmentDetailsSet" uuid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="isrMain"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
@@ -402,14 +402,62 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="partCOralResponsePart2DiscourseOralOutOf"/>
 			<fieldDescription><![CDATA[partCOralResponsePart2DiscourseOralOutOf]]></fieldDescription>
 		</field>
+		<field name="multiChoicePlanningScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="multiChoicePlanningScore"/>
+			<fieldDescription><![CDATA[multiChoicePlanningScore]]></fieldDescription>
+		</field>
+		<field name="multiChoicePlanningOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="multiChoicePlanningOutOf"/>
+			<fieldDescription><![CDATA[multiChoicePlanningOutOf]]></fieldDescription>
+		</field>
+		<field name="multiChoiceEstimationsScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="multiChoiceEstimationsScore"/>
+			<fieldDescription><![CDATA[multiChoiceEstimationsScore]]></fieldDescription>
+		</field>
+		<field name="multiChoiceEstimationsOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="multiChoiceEstimationsOutOf"/>
+			<fieldDescription><![CDATA[multiChoiceEstimationsOutOf]]></fieldDescription>
+		</field>
+		<field name="multiChoiceGroupingScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="multiChoiceGroupingScore"/>
+			<fieldDescription><![CDATA[multiChoiceGroupingScore]]></fieldDescription>
+		</field>
+		<field name="multiChoiceGroupingOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="multiChoiceGroupingOutOf"/>
+			<fieldDescription><![CDATA[multiChoiceGroupingOutOf]]></fieldDescription>
+		</field>
+		<field name="multiChoiceModelScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="multiChoiceModelScore"/>
+			<fieldDescription><![CDATA[multiChoiceModelScore]]></fieldDescription>
+		</field>
+		<field name="multiChoiceModelOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="multiChoiceModelOutOf"/>
+			<fieldDescription><![CDATA[multiChoiceModelOutOf]]></fieldDescription>
+		</field>
+		<field name="writtenGroupingScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenGroupingScore"/>
+			<fieldDescription><![CDATA[writtenGroupingScore]]></fieldDescription>
+		</field>
+		<field name="writtenGroupingOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenGroupingOutOf"/>
+			<fieldDescription><![CDATA[writtenGroupingOutOf]]></fieldDescription>
+		</field>
+		<field name="writtenPlanningScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenPlanningScore"/>
+			<fieldDescription><![CDATA[writtenPlanningScore]]></fieldDescription>
+		</field>
+		<field name="writtenPlanningOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenPlanningOutOf"/>
+			<fieldDescription><![CDATA[writtenPlanningOutOf]]></fieldDescription>
+		</field>
 	</subDataset>
 	<queryString language="JSON">
 		<![CDATA[report]]>
 	</queryString>
-	<field name="dynamicSections" class="java.lang.String">
-		<property name="net.sf.jasperreports.json.field.expression" value="dynamicSections"/>
-		<property name="net.sf.jasperreports.jsonql.field.expression" value="dynamicSections"/>
-		<fieldDescription><![CDATA[dynamicSections]]></fieldDescription>
+	<field name="assessmentDetails" class="java.lang.String">
+		<property name="net.sf.jasperreports.json.field.expression" value="assessmentDetails"/>
+		<property name="net.sf.jasperreports.jsonql.field.expression" value="assessmentDetails"/>
+		<fieldDescription><![CDATA[assessmentDetails]]></fieldDescription>
 	</field>
 	<field name="schoolDetail" class="java.lang.String">
 		<property name="net.sf.jasperreports.json.field.expression" value="schoolDetail"/>
@@ -689,15 +737,15 @@
 		</band>
 		<band height="600" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
-			<printWhenExpression><![CDATA[$F{dynamicSections} != null]]></printWhenExpression>
+			<printWhenExpression><![CDATA[$F{assessmentDetails} != null]]></printWhenExpression>
 			<break>
 				<reportElement x="0" y="0" width="100" height="1" uuid="a1a2a3a4-b5b6-c7c8-d9d0-e1e2e3e4e5e6"/>
 			</break>
 			<componentElement>
 				<reportElement x="0" y="2" width="752" height="57" uuid="11223344-5566-7788-9900-aabbccddeeff"/>
 				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
-					<datasetRun subDataset="DynamicSectionSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
-						<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("dynamicSections")]]></dataSourceExpression>
+					<datasetRun subDataset="AssessmentDetailsSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
+						<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("assessmentDetails")]]></dataSourceExpression>
 					</datasetRun>
 					<jr:listContents height="530" width="752">
 						<subreport overflowType="Stretch">
@@ -1101,6 +1149,57 @@
 								<subreportParameterExpression><![CDATA[$F{partCOralResponsePart2DiscourseOralOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
 							<subreportExpression><![CDATA["ltf12summary.jasper"]]></subreportExpression>
+						</subreport>
+						<subreport>
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
+								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("NMF10")]]></printWhenExpression>
+							</reportElement>
+							<subreportParameter name="assessmentCode">
+								<subreportParameterExpression><![CDATA[$F{assessmentCode}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="session">
+								<subreportParameterExpression><![CDATA[$F{session}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="score">
+								<subreportParameterExpression><![CDATA[$F{score}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="multiChoicePlanningScore">
+								<subreportParameterExpression><![CDATA[$F{multiChoicePlanningScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="multiChoicePlanningOutOf">
+								<subreportParameterExpression><![CDATA[$F{multiChoicePlanningOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="multiChoiceEstimationsScore">
+								<subreportParameterExpression><![CDATA[$F{multiChoiceEstimationsScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="multiChoiceEstimationsOutOf">
+								<subreportParameterExpression><![CDATA[$F{multiChoiceEstimationsOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="multiChoiceGroupingScore">
+								<subreportParameterExpression><![CDATA[$F{multiChoiceGroupingScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="multiChoiceGroupingOutOf">
+								<subreportParameterExpression><![CDATA[$F{multiChoiceGroupingOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="multiChoiceModelScore">
+								<subreportParameterExpression><![CDATA[$F{multiChoiceModelScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="multiChoiceModelOutOf">
+								<subreportParameterExpression><![CDATA[$F{multiChoiceModelOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="writtenGroupingScore">
+								<subreportParameterExpression><![CDATA[$F{writtenGroupingScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="writtenGroupingOutOf">
+								<subreportParameterExpression><![CDATA[$F{writtenGroupingOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="writtenPlanningScore">
+								<subreportParameterExpression><![CDATA[$F{writtenPlanningScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="writtenPlanningOutOf">
+								<subreportParameterExpression><![CDATA[$F{writtenPlanningOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportExpression><![CDATA["nmf10summary.jasper"]]></subreportExpression>
 						</subreport>
 					</jr:listContents>
 				</jr:list>
