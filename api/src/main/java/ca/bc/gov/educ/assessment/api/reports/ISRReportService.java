@@ -114,7 +114,6 @@ public class ISRReportService extends BaseReportGenerationService {
         assessmentSummary.setAssessment(assessmentTypes.get(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()));
         reportNode.getAssessments().add(assessmentSummary);
 
-        var components = assessmentComponentRepository.findByAssessmentFormEntity_AssessmentFormID(assessmentStudent.getAssessmentFormID());
         var questions = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentFormEntity_AssessmentFormID(assessmentStudent.getAssessmentFormID());
         var studentAnswers = assessmentStudentAnswerRepository.findAllByAssessmentStudentComponentEntity_AssessmentStudentEntity_AssessmentStudentID_AndAssessmentQuestionIDIsNotNull(assessmentStudent.getAssessmentStudentID());
         
