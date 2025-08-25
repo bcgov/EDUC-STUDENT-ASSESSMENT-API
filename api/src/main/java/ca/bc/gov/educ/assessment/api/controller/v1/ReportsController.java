@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCo
 import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndpoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
+import ca.bc.gov.educ.assessment.api.reports.ISRReportService;
 import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsByAssessmentReportService;
 import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsInSessionReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.*;
@@ -25,9 +26,9 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @RequiredArgsConstructor
 public class ReportsController implements ReportsEndpoint {
 
-    private final AssessmentStudentService assessmentStudentService;
     private final SchoolStudentsInSessionReportService schoolStudentsInSessionReportService;
     private final SchoolStudentsByAssessmentReportService schoolStudentsByAssessmentReportService;
+    private final ISRReportService isrReportService;
     private final CSVReportService csvReportService;
     private final XAMFileService xamFileService;
     private final SummaryReportService summaryReportService;
@@ -126,5 +127,10 @@ public class ReportsController implements ReportsEndpoint {
             case REGISTRATION_SUMMARY -> summaryReportService.getRegistrationSummaryCount(sessionID);
             default -> new SimpleHeadcountResultsTable();
         };
+    }
+
+    @Override
+    public DownloadableReportResponse getStudentReport(UUID studentID) {
+       return isrReportService.generateIndividualStudentReport(studentID);
     }
 }
