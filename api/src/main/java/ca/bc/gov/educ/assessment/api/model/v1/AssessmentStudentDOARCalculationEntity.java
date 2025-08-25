@@ -122,19 +122,19 @@ public class AssessmentStudentDOARCalculationEntity {
     private BigDecimal communicateOralPart1Background;
 
     @Column(name = "COMMUNICATE_ORAL_PART_1_FORM")
-    private BigDecimal comprehendOralPart1Form;
+    private BigDecimal communicateOralPart1Form;
 
     @Column(name = "COMMUNICATE_ORAL_PART_1_EXPR")
-    private BigDecimal comprehendOralPart1Expression;
+    private BigDecimal communicateOralPart1Expression;
 
     @Column(name = "COMMUNICATE_ORAL_PART_2_BACKGROUND")
     private BigDecimal communicateOralPart2Background;
 
     @Column(name = "COMMUNICATE_ORAL_PART_2_FORM")
-    private BigDecimal comprehendOralPart2Form;
+    private BigDecimal communicateOralPart2Form;
 
     @Column(name = "COMMUNICATE_ORAL_PART_2_EXPR")
-    private BigDecimal comprehendOralPart2Expression;
+    private BigDecimal communicateOralPart2Expression;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
