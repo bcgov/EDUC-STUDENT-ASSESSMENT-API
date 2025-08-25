@@ -8,6 +8,8 @@ import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombston
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -52,112 +54,20 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         assessmentSessionRepository.deleteAll();
     }
 
-    @Test
-    void createAndPopulateDOARSummaryCalculations_NMF10() {
+    @ParameterizedTest
+    @CsvSource({
+            "NMF10",
+            "LTE10",
+            "LTP10",
+            "LTF12",
+            "LTE12",
+            "NME10"
+    })
+    void createAndPopulateDOARSummaryCalculations_NMF10(String typeCode) {
         var school = this.createMockSchool();
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
-        AssessmentFormEntity formEntity = setData("NMF10", school);
-        var comps = assessmentComponentRepository.findByAssessmentFormEntity_AssessmentFormID(formEntity.getAssessmentFormID());
-        var comp1UUID = comps.get(0).getAssessmentComponentID();
-        var comp2UUID = comps.get(1).getAssessmentComponentID();
-        List<AssessmentQuestionEntity> ques1 = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(comp1UUID);
-        List<AssessmentQuestionEntity> ques2 = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(comp2UUID);
-
-        List<AssessmentQuestionEntity> ques = new ArrayList<>();
-        ques.addAll(ques1);
-        ques.addAll(ques2);
-
-        List<AssessmentQuestionEntity> updatedQues = new ArrayList<>();
-
-        for (int i = 1; i < ques.size(); i++) {
-            if (i % 2 == 0) {
-                ques.get(i).setTaskCode("P");
-                ques.get(i).setClaimCode("I");
-                ques.get(i).setCognitiveLevelCode("8");
-            } else if (i % 7 == 0) {
-                ques.get(i).setTaskCode("F");
-                ques.get(i).setClaimCode("S");
-                ques.get(i).setCognitiveLevelCode("7");
-            } else {
-                ques.get(i).setTaskCode("M");
-                ques.get(i).setClaimCode("P");
-                ques.get(i).setCognitiveLevelCode("9");
-            }
-            updatedQues.add(ques.get(i));
-        }
-        assessmentQuestionRepository.saveAll(updatedQues);
-
-        var student = studentRepository.findByAssessmentFormIDIn(List.of(formEntity.getAssessmentFormID()));
-
-        var sagaData = TransferOnApprovalSagaData
-                .builder()
-                .stagedStudentAssessmentID(UUID.randomUUID().toString())
-                .studentID(String.valueOf(student.get(0).getStudentID()))
-                .assessmentID(String.valueOf(student.get(0).getAssessmentEntity().getAssessmentID()))
-                .build();
-        doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
-
-        var studentCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentID(student.get(0).getAssessmentStudentID());
-        assertThat(studentCalc).isPresent();
-    }
-
-    @Test
-    void createAndPopulateDOARSummaryCalculations_LTE10() {
-        var school = this.createMockSchool();
-        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
-
-        AssessmentFormEntity formEntity = setData("LTE10", school);
-        var comps = assessmentComponentRepository.findByAssessmentFormEntity_AssessmentFormID(formEntity.getAssessmentFormID());
-        var comp1UUID = comps.get(0).getAssessmentComponentID();
-        var comp2UUID = comps.get(1).getAssessmentComponentID();
-        List<AssessmentQuestionEntity> ques1 = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(comp1UUID);
-        List<AssessmentQuestionEntity> ques2 = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(comp2UUID);
-
-        List<AssessmentQuestionEntity> ques = new ArrayList<>();
-        ques.addAll(ques1);
-        ques.addAll(ques2);
-
-        List<AssessmentQuestionEntity> updatedQues = new ArrayList<>();
-
-        for (int i = 1; i < ques.size(); i++) {
-            if (i % 2 == 0) {
-                ques.get(i).setTaskCode("P");
-                ques.get(i).setClaimCode("I");
-                ques.get(i).setCognitiveLevelCode("8");
-            } else if (i % 7 == 0) {
-                ques.get(i).setTaskCode("F");
-                ques.get(i).setClaimCode("S");
-                ques.get(i).setCognitiveLevelCode("7");
-            } else {
-                ques.get(i).setTaskCode("M");
-                ques.get(i).setClaimCode("P");
-                ques.get(i).setCognitiveLevelCode("9");
-            }
-            updatedQues.add(ques.get(i));
-        }
-        assessmentQuestionRepository.saveAll(updatedQues);
-
-        var student = studentRepository.findByAssessmentFormIDIn(List.of(formEntity.getAssessmentFormID()));
-
-        var sagaData = TransferOnApprovalSagaData
-                .builder()
-                .stagedStudentAssessmentID(UUID.randomUUID().toString())
-                .studentID(String.valueOf(student.get(0).getStudentID()))
-                .assessmentID(String.valueOf(student.get(0).getAssessmentEntity().getAssessmentID()))
-                .build();
-        doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
-
-        var studentCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentID(student.get(0).getAssessmentStudentID());
-        assertThat(studentCalc).isPresent();
-    }
-
-    @Test
-    void createAndPopulateDOARSummaryCalculations_LTP10() {
-        var school = this.createMockSchool();
-        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
-
-        AssessmentFormEntity formEntity = setData("LTP10", school);
+        AssessmentFormEntity formEntity = setData(typeCode, school);
         var comps = assessmentComponentRepository.findByAssessmentFormEntity_AssessmentFormID(formEntity.getAssessmentFormID());
         var comp1UUID = comps.get(0).getAssessmentComponentID();
         var comp2UUID = comps.get(1).getAssessmentComponentID();
