@@ -461,7 +461,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentRepository.save(student);
 
         var resultActions = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/student/" + student.getStudentID() + "/isr")
+                        get(URL.BASE_URL_REPORT + "/student/" + student.getStudentID() + "/ISR/download")
                                 .with(mockAuthority))
                 .andDo(print()).andExpect(status().isOk());
 
