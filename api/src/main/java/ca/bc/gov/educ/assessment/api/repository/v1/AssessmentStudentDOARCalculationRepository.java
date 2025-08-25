@@ -4,10 +4,12 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentDOARCalculationEn
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface AssessmentStudentDOARCalculationRepository extends JpaRepository<AssessmentStudentDOARCalculationEntity, UUID> {
 
+    Optional<AssessmentStudentDOARCalculationEntity> findByAssessmentStudentID(UUID assessmentStudentID);
 
 }
