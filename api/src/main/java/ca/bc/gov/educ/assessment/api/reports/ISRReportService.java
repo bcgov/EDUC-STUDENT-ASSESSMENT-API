@@ -155,7 +155,7 @@ public class ISRReportService extends BaseReportGenerationService {
         
       });
       
-      return generateJasperReport(objectWriter.writeValueAsString(isrRootNode), schoolStudentByAssessmentReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_BY_ASSESSMENT.getCode());
+      return generateJasperReport(objectWriter.writeValueAsString(isrRootNode), schoolStudentByAssessmentReport, AssessmentReportTypeCode.ISR.getCode());
     } catch (JsonProcessingException e) {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
@@ -164,22 +164,22 @@ public class ISRReportService extends BaseReportGenerationService {
   
   private Pair<String, String> getResultSummaryForQuestionsWithTaskCode(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String taskCode){
     var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getTaskCode().equals(taskCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
-    return Pair.of(getTotalScore(filteredQuestions, answers, questionType), getTotalOutOf(filteredQuestions, questionType));
+    return getTotals(filteredQuestions, answers, questionType);
   }
 
   private Pair<String, String> getResultSummaryForQuestionsWithClaimCode(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String claimCode){
     var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getClaimCode().equals(claimCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
-    return Pair.of(getTotalScore(filteredQuestions, answers, questionType), getTotalOutOf(filteredQuestions, questionType));
+    return getTotals(filteredQuestions, answers, questionType);
   }
 
   private Pair<String, String> getResultSummaryForQuestionsWithConceptsCode(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String conceptsCode){
     var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getConceptCode().equals(conceptsCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
-    return Pair.of(getTotalScore(filteredQuestions, answers, questionType), getTotalOutOf(filteredQuestions, questionType));
+    return getTotals(filteredQuestions, answers, questionType);
   }
 
   private Pair<String, String> getResultSummaryForQuestionsWithAssessmentSectionStartsWith(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String assessmentSection){
     var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getAssessmentSection().startsWith(assessmentSection) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
-    return Pair.of(getTotalScore(filteredQuestions, answers, questionType), getTotalOutOf(filteredQuestions, questionType));
+    return getTotals(filteredQuestions, answers, questionType);
   }
   
   private AssessmentStudentComponentEntity getAssessmentComponent(List<AssessmentComponentEntity> assessmentComponents, Set<AssessmentStudentComponentEntity> studentComponents, String componentTypeCode, String componentTypeSubCode) {
@@ -190,19 +190,20 @@ public class ISRReportService extends BaseReportGenerationService {
     return null;
   }
   
-  private String getTotalScore(List<AssessmentQuestionEntity> filteredQuestions, List<AssessmentStudentAnswerEntity> answers, String questionType){
+  private Pair<String, String> getTotals(List<AssessmentQuestionEntity> filteredQuestions, List<AssessmentStudentAnswerEntity> answers, String questionType){
     int totalScore = 0;
     String choicePathToIgnore = null;
 
     for(AssessmentStudentAnswerEntity answer : answers){
-      if(choicePathToIgnore == null){
+      if(choicePathToIgnore == null && StringUtils.isNotBlank(answer.getAssessmentStudentComponentEntity().getChoicePath())){
         var choicePath = answer.getAssessmentStudentComponentEntity().getChoicePath();
         choicePathToIgnore = choicePathToIgnore(choicePath);
       }
 
       Optional<AssessmentQuestionEntity> question;
       if(StringUtils.isNotBlank(choicePathToIgnore)){
-        question = filteredQuestions.stream().filter(filteredQuestion -> filteredQuestion.getAssessmentQuestionID().equals(answer.getAssessmentQuestionID()) && !filteredQuestion.getTaskCode().equalsIgnoreCase(choicePathToIgnore)).findFirst();
+        String finalChoicePathToIgnore = choicePathToIgnore;
+        question = filteredQuestions.stream().filter(filteredQuestion -> filteredQuestion.getAssessmentQuestionID().equals(answer.getAssessmentQuestionID()) && !filteredQuestion.getTaskCode().equalsIgnoreCase(finalChoicePathToIgnore)).findFirst();
       }else{
         question = filteredQuestions.stream().filter(filteredQuestion -> filteredQuestion.getAssessmentQuestionID().equals(answer.getAssessmentQuestionID())).findFirst();
       }
@@ -214,7 +215,20 @@ public class ISRReportService extends BaseReportGenerationService {
         }
       }
     }
-    return totalScore + "";
+    
+    int totalOutOf = 0;
+
+    for (AssessmentQuestionEntity question : filteredQuestions) {
+      if(StringUtils.isBlank(choicePathToIgnore) || !question.getTaskCode().equalsIgnoreCase(choicePathToIgnore)) {
+        if (questionType.equalsIgnoreCase(MUL_CHOICE.getCode())) {
+          totalOutOf = totalOutOf + (question.getQuestionValue().intValue() * (question.getScaleFactor() / 100));
+        } else if (question.getQuestionNumber().equals(question.getMasterQuestionNumber())) {
+          totalOutOf = totalOutOf + (question.getQuestionValue().intValue() * (question.getScaleFactor() / 100));
+        }
+      }
+    }
+
+    return Pair.of(totalScore + "", totalOutOf + "");
   }
   
   private String choicePathToIgnore(String choicePath){
@@ -222,20 +236,6 @@ public class ISRReportService extends BaseReportGenerationService {
       return "E";
     }
     return "I";
-  }
-
-  private String getTotalOutOf(List<AssessmentQuestionEntity> filteredQuestions, String questionType){
-    int totalOutOf = 0;
-    
-    for (AssessmentQuestionEntity question : filteredQuestions) {
-      if(questionType.equalsIgnoreCase(MUL_CHOICE.getCode())) {
-        totalOutOf = totalOutOf + (question.getQuestionValue().intValue() * (question.getScaleFactor()/100));
-      }else if(question.getQuestionNumber().equals(question.getMasterQuestionNumber())){
-        totalOutOf = totalOutOf + (question.getQuestionValue().intValue() * (question.getScaleFactor()/100));
-      }
-    }
-    
-    return totalOutOf + "";
   }
 
   protected void setReportTombstoneValues(UUID schoolID, ISRReportNode reportNode, String studentPEN, String studentName){

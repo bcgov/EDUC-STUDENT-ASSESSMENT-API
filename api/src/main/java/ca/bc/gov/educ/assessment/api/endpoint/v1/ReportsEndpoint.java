@@ -35,4 +35,10 @@ public interface ReportsEndpoint {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     SimpleHeadcountResultsTable getSummaryReports(@PathVariable UUID sessionID, @PathVariable(name = "type") String type);
 
+    @GetMapping("/student/{studentID}/isr")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    DownloadableReportResponse getStudentReport(@PathVariable UUID studentID);
+    
 }
