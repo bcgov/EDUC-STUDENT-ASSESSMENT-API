@@ -1,9 +1,7 @@
 package ca.bc.gov.educ.assessment.api.reports;
 
-import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
-import ca.bc.gov.educ.assessment.api.constants.v1.ComponentSubTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
-import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
+import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
@@ -12,18 +10,12 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
-import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentTypeCode;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.isr.*;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentNode;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentReportNode;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentRootNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.util.Pair;
 import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -35,7 +27,6 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.*;
 
-import static ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes.*;
 import static ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes.MUL_CHOICE;
 import static ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes.OPEN_ENDED;
 
@@ -52,7 +43,7 @@ public class ISRReportService extends BaseReportGenerationService {
   private final AssessmentStudentRepository assessmentStudentRepository;
   private final RestUtils restUtils;
   private final CodeTableService codeTableService;
-  private JasperReport schoolStudentByAssessmentReport;
+  private JasperReport isrReport;
 
   public ISRReportService(AssessmentComponentRepository assessmentComponentRepository, AssessmentQuestionRepository assessmentQuestionRepository, AssessmentStudentAnswerRepository assessmentStudentAnswerRepository, AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils, CodeTableService codeTableService) {
     super(restUtils);
@@ -90,7 +81,7 @@ public class ISRReportService extends BaseReportGenerationService {
       InputStream subReport7 = getClass().getResourceAsStream("/reports/nmf10summary.jrxml");
       JasperCompileManager.compileReport(subReport7);
       InputStream report = getClass().getResourceAsStream("/reports/isrMain.jrxml");
-      schoolStudentByAssessmentReport = JasperCompileManager.compileReport(report);
+      isrReport = JasperCompileManager.compileReport(report);
     } catch (JRException e) {
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
@@ -155,7 +146,7 @@ public class ISRReportService extends BaseReportGenerationService {
         
       });
       
-      return generateJasperReport(objectWriter.writeValueAsString(isrRootNode), schoolStudentByAssessmentReport, AssessmentReportTypeCode.ISR.getCode());
+      return generateJasperReport(objectWriter.writeValueAsString(isrRootNode), isrReport, AssessmentStudentReportTypeCode.ISR.getCode());
     } catch (JsonProcessingException e) {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
