@@ -2,6 +2,7 @@ package ca.bc.gov.educ.assessment.api.controller.v1;
 
 
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
+import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndpoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
@@ -130,7 +131,14 @@ public class ReportsController implements ReportsEndpoint {
     }
 
     @Override
-    public DownloadableReportResponse getStudentReport(UUID studentID) {
+    public DownloadableReportResponse getStudentReport(UUID studentID, String type) {
+        Optional<AssessmentStudentReportTypeCode> code = AssessmentStudentReportTypeCode.findByValue(type);
+
+        if(code.isEmpty()){
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build();
+            throw new InvalidPayloadException(error);
+        }
+        
        return isrReportService.generateIndividualStudentReport(studentID);
     }
 }
