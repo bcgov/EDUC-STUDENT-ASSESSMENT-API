@@ -88,7 +88,7 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
     private AssessmentSagaEntity saga;
 
     @AfterEach
-    public void after() {
+    void after() {
         sagaEventRepository.deleteAll();
         sagaRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
