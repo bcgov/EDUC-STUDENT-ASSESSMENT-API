@@ -151,7 +151,6 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
     }
 
     private void updateMainStudentFromStaged(AssessmentStudentEntity existing, StagedAssessmentStudentEntity staged) {
-        existing.setAssessmentEntity(staged.getAssessmentEntity());
         existing.setAssessmentFormID(staged.getAssessmentFormID());
         existing.setSchoolAtWriteSchoolID(staged.getSchoolAtWriteSchoolID());
         existing.setAssessmentCenterSchoolID(staged.getAssessmentCenterSchoolID());
