@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.URL;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
+import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
@@ -468,7 +469,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(ISR.getCode());
+        assertThat(summary.getReportType()).isEqualTo(AssessmentStudentReportTypeCode.ISR.getCode());
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 
