@@ -17,4 +17,5 @@ public class ISRAssessmentSummary implements Serializable {
   private String session;
   private String assessment;
   private String score;
+  private String assessmentCode;
 }

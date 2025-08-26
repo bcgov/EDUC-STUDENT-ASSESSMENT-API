@@ -243,7 +243,7 @@ public class ISRReportService extends BaseReportGenerationService {
     NME10Assessment assessmentNME10 = new NME10Assessment();
     assessmentNME10.setSession(assessmentSummary.getSession());
     assessmentNME10.setScore(assessmentSummary.getScore());
-    assessmentNME10.setAssessmentCode(assessmentSummary.getAssessment());
+    assessmentNME10.setAssessmentCode(assessmentSummary.getAssessmentCode());
 
     var planDesign = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, MUL_CHOICE.getCode(), "P");
     assessmentNME10.setOnlinePlanAndDesignScore(planDesign.getLeft());
@@ -272,7 +272,7 @@ public class ISRReportService extends BaseReportGenerationService {
     
     assessmentNMF10.setSession(assessmentSummary.getSession());
     assessmentNMF10.setScore(assessmentSummary.getScore());
-    assessmentNMF10.setAssessmentCode(assessmentSummary.getAssessment());
+    assessmentNMF10.setAssessmentCode(assessmentSummary.getAssessmentCode());
     
     var planDesign = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, MUL_CHOICE.getCode(), "P");
     assessmentNMF10.setMultiChoicePlanningScore(planDesign.getLeft());
@@ -300,7 +300,7 @@ public class ISRReportService extends BaseReportGenerationService {
     LTE10Assessment assessmentLTE10 = new LTE10Assessment();
     assessmentLTE10.setSession(assessmentSummary.getSession());
     assessmentLTE10.setScore(assessmentSummary.getScore());
-    assessmentLTE10.setAssessmentCode(assessmentSummary.getAssessment());
+    assessmentLTE10.setAssessmentCode(assessmentSummary.getAssessmentCode());
 
     var comprehend = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, MUL_CHOICE.getCode(), "C");
     assessmentLTE10.setComprehendScore(comprehend.getLeft());
@@ -330,7 +330,7 @@ public class ISRReportService extends BaseReportGenerationService {
     LTE12Assessment assessmentLTE12 = new LTE12Assessment();
     assessmentLTE12.setSession(assessmentSummary.getSession());
     assessmentLTE12.setScore(assessmentSummary.getScore());
-    assessmentLTE12.setAssessmentCode(assessmentSummary.getAssessment());
+    assessmentLTE12.setAssessmentCode(assessmentSummary.getAssessmentCode());
 
     var comprehend = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, MUL_CHOICE.getCode(), "C");
     assessmentLTE12.setComprehendScore(comprehend.getLeft());
@@ -361,7 +361,7 @@ public class ISRReportService extends BaseReportGenerationService {
     
     assessmentLTP12.setSession(assessmentSummary.getSession());
     assessmentLTP12.setScore(assessmentSummary.getScore());
-    assessmentLTP12.setAssessmentCode(assessmentSummary.getAssessment());
+    assessmentLTP12.setAssessmentCode(assessmentSummary.getAssessmentCode());
 
     var comprehend = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, MUL_CHOICE.getCode(), "C");
     assessmentLTP12.setComprehendScore(comprehend.getLeft());
@@ -405,7 +405,7 @@ public class ISRReportService extends BaseReportGenerationService {
 
     assessmentLTP10.setSession(assessmentSummary.getSession());
     assessmentLTP10.setScore(assessmentSummary.getScore());
-    assessmentLTP10.setAssessmentCode(assessmentSummary.getAssessment());
+    assessmentLTP10.setAssessmentCode(assessmentSummary.getAssessmentCode());
 
     var comprehend = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, MUL_CHOICE.getCode(), "C");
     assessmentLTP10.setComprehendScore(comprehend.getLeft());
@@ -452,7 +452,7 @@ public class ISRReportService extends BaseReportGenerationService {
     
     assessmentLTF12.setSession(assessmentSummary.getSession());
     assessmentLTF12.setScore(assessmentSummary.getScore());
-    assessmentLTF12.setAssessmentCode(assessmentSummary.getAssessment());
+    assessmentLTF12.setAssessmentCode(assessmentSummary.getAssessmentCode());
 
     var comprehend = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, MUL_CHOICE.getCode(), "C");
     assessmentLTF12.setComprehendScore(comprehend.getLeft());
