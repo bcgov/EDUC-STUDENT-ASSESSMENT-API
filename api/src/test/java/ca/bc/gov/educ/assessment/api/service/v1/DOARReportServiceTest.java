@@ -147,6 +147,14 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
             updatedQues.add(ques.get(i));
         }
         assessmentQuestionRepository.saveAll(updatedQues);
+        var student = studentRepository.findByAssessmentFormIDIn(List.of(formEntity.getAssessmentFormID()));
+        var sagaData = TransferOnApprovalSagaData
+                .builder()
+                .stagedStudentAssessmentID(UUID.randomUUID().toString())
+                .studentID(String.valueOf(student.get(0).getStudentID()))
+                .assessmentID(String.valueOf(student.get(0).getAssessmentEntity().getAssessmentID()))
+                .build();
+        doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
 
         var studentTotal = doarReportService
                 .generateDetailedDOARBySchoolAndAssessmentType(formEntity.getAssessmentEntity().getAssessmentSessionEntity().getSessionID(), UUID.fromString(school.getSchoolId()), "NME10");
@@ -178,6 +186,14 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
             updatedQues.add(ques.get(i));
         }
         assessmentQuestionRepository.saveAll(updatedQues);
+        var student = studentRepository.findByAssessmentFormIDIn(List.of(formEntity.getAssessmentFormID()));
+        var sagaData = TransferOnApprovalSagaData
+                .builder()
+                .stagedStudentAssessmentID(UUID.randomUUID().toString())
+                .studentID(String.valueOf(student.get(0).getStudentID()))
+                .assessmentID(String.valueOf(student.get(0).getAssessmentEntity().getAssessmentID()))
+                .build();
+        doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
 
         var studentTotal = doarReportService
                 .generateDetailedDOARBySchoolAndAssessmentType(formEntity.getAssessmentEntity().getAssessmentSessionEntity().getSessionID(), UUID.fromString(school.getSchoolId()), "NMF10");

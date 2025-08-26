@@ -18,6 +18,7 @@ import java.util.List;
 public class DOARSummaryPage {
     private String reportId;
     private String session;
+    private String reportTitle;
     private String reportGeneratedDate;
     private String districtNumberAndName;
     private String schoolMincodeAndName;

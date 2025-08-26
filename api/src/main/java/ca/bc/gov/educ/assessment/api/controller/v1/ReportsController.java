@@ -7,6 +7,7 @@ import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndpoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.reports.ISRReportService;
+import ca.bc.gov.educ.assessment.api.reports.DOARSummaryReportService;
 import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsByAssessmentReportService;
 import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsInSessionReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.*;
@@ -34,6 +35,7 @@ public class ReportsController implements ReportsEndpoint {
     private final XAMFileService xamFileService;
     private final SummaryReportService summaryReportService;
     private final SessionService sessionService;
+    private final DOARSummaryReportService doarSummaryReportService;
 
     @Override
     public DownloadableReportResponse getDownloadableReport(UUID sessionID, String type, String updateUser) {
@@ -114,6 +116,8 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, "LTP12");
             case LTF12_DETAILED_DOAR:
                 return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, "LTF12");
+            case DOAR_SUMMARY:
+                return doarSummaryReportService.generateDOARSummaryReport(sessionID, schoolID);
             default:
                 return new DownloadableReportResponse();
         }
