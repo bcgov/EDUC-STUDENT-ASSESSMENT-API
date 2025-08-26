@@ -142,10 +142,12 @@ public class ISRReportService extends BaseReportGenerationService {
             reportNode.getAssessmentDetails().add(populateNMF10Assessment(assessmentSummary, questions, studentAnswers));
             break;
         }
-        
       });
       
-      return generateJasperReport(objectWriter.writeValueAsString(isrRootNode), isrReport, AssessmentStudentReportTypeCode.ISR.getCode());
+      var payload = objectWriter.writeValueAsString(isrRootNode);
+      log.info("Payload for ISR is: " + payload);
+      
+      return generateJasperReport(payload, isrReport, AssessmentStudentReportTypeCode.ISR.getCode());
     } catch (JsonProcessingException e) {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
