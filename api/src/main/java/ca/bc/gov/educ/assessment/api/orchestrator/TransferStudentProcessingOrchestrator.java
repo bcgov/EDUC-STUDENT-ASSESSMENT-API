@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.orchestrator;
 
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
+import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.BaseOrchestrator;
@@ -25,7 +26,6 @@ import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.*;
 import static ca.bc.gov.educ.assessment.api.constants.EventType.*;
-import static ca.bc.gov.educ.assessment.api.constants.EventType.CREATE_STUDENT_RESULT;
 import static ca.bc.gov.educ.assessment.api.constants.SagaEnum.PROCESS_STUDENT_TRANSFER;
 import static ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum.IN_PROGRESS;
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.STUDENT_TRANSFER_PROCESSING_TOPIC;
@@ -155,6 +155,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         existing.setSchoolAtWriteSchoolID(staged.getSchoolAtWriteSchoolID());
         existing.setAssessmentCenterSchoolID(staged.getAssessmentCenterSchoolID());
         existing.setSchoolOfRecordSchoolID(staged.getSchoolOfRecordSchoolID());
+        existing.setStudentID(staged.getStudentID());
         existing.setGivenName(staged.getGivenName());
         existing.setSurname(staged.getSurname());
         existing.setPen(staged.getPen());
@@ -182,7 +183,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
                 .assessmentCenterSchoolID(staged.getAssessmentCenterSchoolID())
                 .schoolOfRecordSchoolID(staged.getSchoolOfRecordSchoolID())
                 .studentID(staged.getStudentID())
-                .studentStatusCode(staged.getStagedAssessmentStudentStatus()) // do we want to do this?
+                .studentStatusCode(StudentStatusCodes.ACTIVE.getCode())
                 .givenName(staged.getGivenName())
                 .surname(staged.getSurname())
                 .pen(staged.getPen())
