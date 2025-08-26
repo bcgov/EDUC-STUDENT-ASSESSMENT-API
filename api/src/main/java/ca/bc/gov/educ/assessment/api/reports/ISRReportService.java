@@ -68,7 +68,7 @@ public class ISRReportService extends BaseReportGenerationService {
 
   private void compileJasperReports(){
     try {
-      String compiledReportsPath = getClass().getResource("/reports").getPath();
+      String compiledReportsPath = getClass().getResource("/reports/").getPath();
       InputStream subReport1 = getClass().getResourceAsStream("/reports/lte10summary.jrxml");
       JasperReport compiled1 = JasperCompileManager.compileReport(subReport1);
       JRSaver.saveObject(compiled1, compiledReportsPath + "lte10summary.jasper");
