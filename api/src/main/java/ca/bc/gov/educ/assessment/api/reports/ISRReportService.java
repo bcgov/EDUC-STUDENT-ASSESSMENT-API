@@ -20,9 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.util.JRSaver;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.*;
@@ -66,20 +68,35 @@ public class ISRReportService extends BaseReportGenerationService {
 
   private void compileJasperReports(){
     try {
+      String compiledReportsPath = getClass().getResource("/reports").getPath();
       InputStream subReport1 = getClass().getResourceAsStream("/reports/lte10summary.jrxml");
-      JasperCompileManager.compileReport(subReport1);
+      JasperReport compiled1 = JasperCompileManager.compileReport(subReport1);
+      JRSaver.saveObject(compiled1, compiledReportsPath + "lte10summary.jasper");
+      
       InputStream subReport2 = getClass().getResourceAsStream("/reports/lte12summary.jrxml");
-      JasperCompileManager.compileReport(subReport2);
+      JasperReport compiled2 = JasperCompileManager.compileReport(subReport2);
+      JRSaver.saveObject(compiled2, compiledReportsPath + "lte12summary.jasper");
+      
       InputStream subReport3 = getClass().getResourceAsStream("/reports/ltp10summary.jrxml");
-      JasperCompileManager.compileReport(subReport3);
+      JasperReport compiled3 = JasperCompileManager.compileReport(subReport3);
+      JRSaver.saveObject(compiled3, compiledReportsPath + "ltp10summary.jasper");
+      
       InputStream subReport4 = getClass().getResourceAsStream("/reports/ltp12summary.jrxml");
-      JasperCompileManager.compileReport(subReport4);
+      JasperReport compiled4 = JasperCompileManager.compileReport(subReport4);
+      JRSaver.saveObject(compiled4, compiledReportsPath + "ltp12summary.jasper");
+      
       InputStream subReport5 = getClass().getResourceAsStream("/reports/ltf12summary.jrxml");
-      JasperCompileManager.compileReport(subReport5);
+      JasperReport compiled5 = JasperCompileManager.compileReport(subReport5);
+      JRSaver.saveObject(compiled5, compiledReportsPath + "ltf12summary.jasper");
+      
       InputStream subReport6 = getClass().getResourceAsStream("/reports/nme10summary.jrxml");
-      JasperCompileManager.compileReport(subReport6);
+      JasperReport compiled6 = JasperCompileManager.compileReport(subReport6);
+      JRSaver.saveObject(compiled6, compiledReportsPath + "nme10summary.jasper");
+      
       InputStream subReport7 = getClass().getResourceAsStream("/reports/nmf10summary.jrxml");
-      JasperCompileManager.compileReport(subReport7);
+      JasperReport compiled7 = JasperCompileManager.compileReport(subReport7);
+      JRSaver.saveObject(compiled7, compiledReportsPath + "nmf10summary.jasper");
+
       InputStream report = getClass().getResourceAsStream("/reports/isrMain.jrxml");
       isrReport = JasperCompileManager.compileReport(report);
     } catch (JRException e) {
