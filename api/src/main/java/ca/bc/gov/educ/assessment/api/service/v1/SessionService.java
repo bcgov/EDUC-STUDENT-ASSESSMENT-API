@@ -77,8 +77,12 @@ public class SessionService {
         switch (reportTypeCode) {
             case ALL_SESSION_REGISTRATIONS:
                 var currentDate = LocalDateTime.now();
+                log.info("Updating download date for all non-exempted assessment students in session {}", sessionID);
                 assessmentStudentRepository.updateDownloadDataAllByAssessmentSessionAndNoExemption(sessionID, currentDate, userID, currentDate);
+                log.info("Completed updating download date for session {}", sessionID);
+                log.info("Inserting history records for all non-exempted assessment students in session {}", sessionID);
                 assessmentStudentHistoryRepository.insertHistoryForDownloadDateUpdate(sessionID, userID, currentDate);
+                log.info("Completed updating download date and inserting history records for session {}", sessionID);
                 session.setAssessmentRegistrationsExportUserID(userID);
                 session.setAssessmentRegistrationsExportDate(LocalDateTime.now());
                 break;
