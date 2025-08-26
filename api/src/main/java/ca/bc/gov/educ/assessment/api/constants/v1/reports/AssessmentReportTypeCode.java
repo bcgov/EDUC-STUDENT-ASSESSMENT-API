@@ -28,6 +28,13 @@ public enum AssessmentReportTypeCode {
     LTP10_DETAILED_DOAR("ltp10-detailed-doar"),
     LTP12_DETAILED_DOAR("ltp12-detailed-doar"),
     LTF12_DETAILED_DOAR("ltf12-detailed-doar"),
+    NME_KEY_SUMMARY("nme-key-summary"),
+    NMF_KEY_SUMMARY("nmf-key-summary"),
+    LTE10_KEY_SUMMARY("lte10-key-summary"),
+    LTE12_KEY_SUMMARY("lte12-key-summary"),
+    LTP10_KEY_SUMMARY("ltp10-key-summary"),
+    LTP12_KEY_SUMMARY("ltp12-key-summary"),
+    LTF12_KEY_SUMMARY("ltf12-key-summary"),
     DOAR_SUMMARY("doar-summary"),
     ;
     private final String code;
