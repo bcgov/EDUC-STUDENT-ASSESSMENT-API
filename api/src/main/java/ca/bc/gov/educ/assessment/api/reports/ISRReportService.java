@@ -112,6 +112,7 @@ public class ISRReportService extends BaseReportGenerationService {
         assessmentSummary.setSession(assessmentStudent.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + "/" + assessmentStudent.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth());
         assessmentSummary.setScore(assessmentStudent.getProficiencyScore() == null ? StringUtils.isNotBlank(assessmentStudent.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(assessmentStudent.getProvincialSpecialCaseCode()).get().getDescription() : "" : assessmentStudent.getProficiencyScore().toString());
         assessmentSummary.setAssessment(assessmentTypes.get(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()));
+        assessmentSummary.setAssessmentCode(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode());
         reportNode.getAssessments().add(assessmentSummary);
 
         var questions = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentFormEntity_AssessmentFormID(assessmentStudent.getAssessmentFormID());
@@ -172,14 +173,6 @@ public class ISRReportService extends BaseReportGenerationService {
   private Pair<String, String> getResultSummaryForQuestionsWithAssessmentSectionStartsWith(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String assessmentSection){
     var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getAssessmentSection().startsWith(assessmentSection) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
     return getTotals(filteredQuestions, answers, questionType);
-  }
-  
-  private AssessmentStudentComponentEntity getAssessmentComponent(List<AssessmentComponentEntity> assessmentComponents, Set<AssessmentStudentComponentEntity> studentComponents, String componentTypeCode, String componentTypeSubCode) {
-    var component = assessmentComponents.stream().filter(assessmentComponentEntity -> assessmentComponentEntity.getComponentTypeCode().equals(componentTypeCode) && assessmentComponentEntity.getComponentSubTypeCode().equalsIgnoreCase(componentTypeSubCode)).findFirst();
-    if(!component.isEmpty()) {
-      return studentComponents.stream().filter(assessmentStudentComponentEntity -> assessmentStudentComponentEntity.getAssessmentComponentID().equals(component.get().getAssessmentComponentID())).findFirst().orElse(null);
-    }
-    return null;
   }
   
   private Pair<String, String> getTotals(List<AssessmentQuestionEntity> filteredQuestions, List<AssessmentStudentAnswerEntity> answers, String questionType){
