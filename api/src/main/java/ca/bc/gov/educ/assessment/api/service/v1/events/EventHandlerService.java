@@ -6,6 +6,7 @@ import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.NumeracyAssessmentCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentAlgorithmMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
@@ -14,6 +15,7 @@ import ca.bc.gov.educ.assessment.api.orchestrator.StudentResultProcessingOrchest
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
@@ -40,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventStatus.MESSAGE_PUBLISHED;
 import static ca.bc.gov.educ.assessment.api.constants.EventType.ASSESSMENT_STUDENT_UPDATE;
@@ -65,6 +68,7 @@ public class EventHandlerService {
      */
     public static final String EVENT_PAYLOAD = "event is :: {}";
     private static final AssessmentStudentMapper assessmentStudentMapper = AssessmentStudentMapper.mapper;
+    private static final AssessmentStudentAlgorithmMapper assessmentStudentAlgorithmMapper = AssessmentStudentAlgorithmMapper.mapper;
     private static final SessionMapper sessionMapper = SessionMapper.mapper;
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentEventRepository assessmentEventRepository;
@@ -72,6 +76,7 @@ public class EventHandlerService {
     private final AssessmentService assessmentService;
     private final SagaService sagaService;
     private final StudentResultProcessingOrchestrator studentResultProcessingOrchestrator;
+    private final AssessmentStudentRepository assessmentStudentRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<byte[], AssessmentEventEntity> handleProcessStudentRegistrationEvent(Event event) throws JsonProcessingException {
@@ -132,6 +137,17 @@ public class EventHandlerService {
         event.setEventOutcome(EventOutcome.SESSIONS_FOUND);
         val studentEvent = createEventRecord(event);
         return createResponseEvent(studentEvent);
+    }
+
+    public byte[] handleGetAssessmentStudentsEvent(Event event) throws JsonProcessingException {
+        val assessmentStudentEntityList = assessmentStudentRepository.findByStudentID(UUID.fromString(event.getEventPayload()));
+        log.info("Found :: {} assessment student records for student ID :: {}", assessmentStudentEntityList.size(), UUID.fromString(event.getEventPayload()));
+        if (!assessmentStudentEntityList.isEmpty()) {
+            var assessmentStudentList = assessmentStudentEntityList.stream().map(assessmentStudentAlgorithmMapper::toStructure).collect(Collectors.toList());
+            return JsonUtil.getJsonBytesFromObject(assessmentStudentList);
+        } else {
+            return new byte[0];
+        }
     }
 
     public byte[] handleGetStudentAssessmentDetailEvent(Event event) throws JsonProcessingException {
