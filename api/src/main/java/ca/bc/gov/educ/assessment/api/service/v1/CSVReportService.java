@@ -10,6 +10,7 @@ import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeExcept
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByFormQueryResponse;
@@ -218,7 +219,8 @@ public class CSVReportService {
 
             for (AssessmentStudentLightEntity result : students) {
                 Optional<SchoolTombstone> school = (result.getSchoolAtWriteSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getSchoolAtWriteSchoolID().toString()) : Optional.empty();
-                List<String> csvRowData = prepareRegistrationDetailsDataForCsv(result, school);
+                Optional<District> district = (school.isPresent() && school.get().getDistrictId() != null) ? restUtils.getDistrictByDistrictID(school.get().getDistrictId()) : Optional.empty();
+                List<String> csvRowData = prepareRegistrationDetailsDataForCsv(result, school, district);
                 csvPrinter.printRecord(csvRowData);
             }
             csvPrinter.flush();
@@ -577,7 +579,7 @@ public class CSVReportService {
         ));
     }
 
-    private List<String> prepareRegistrationDetailsDataForCsv(AssessmentStudentLightEntity student, Optional<SchoolTombstone> school) {
+    private List<String> prepareRegistrationDetailsDataForCsv(AssessmentStudentLightEntity student, Optional<SchoolTombstone> school, Optional<District> district) {
         return new ArrayList<>(Arrays.asList(
                 student.getPen(),
                 student.getGradeAtRegistration(),
@@ -585,8 +587,8 @@ public class CSVReportService {
                 student.getAssessmentEntity().getAssessmentTypeCode(),
                 student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 school.isPresent() ? school.get().getMincode(): "",
-                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
-                student.getProvincialSpecialCaseCode()
+                district.isPresent() ? district.get().getDistrictNumber(): "",
+                school.isPresent() ? school.get().getSchoolCategoryCode(): ""
         ));
     }
 
