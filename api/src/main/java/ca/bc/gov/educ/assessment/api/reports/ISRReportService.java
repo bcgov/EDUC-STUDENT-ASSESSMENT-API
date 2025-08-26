@@ -192,22 +192,22 @@ public class ISRReportService extends BaseReportGenerationService {
   }
   
   private Pair<String, String> getResultSummaryForQuestionsWithTaskCode(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String taskCode){
-    var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getTaskCode().equals(taskCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
+    var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getTaskCode()) && assessmentQuestionEntity.getTaskCode().equals(taskCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
     return getTotals(filteredQuestions, answers, questionType);
   }
 
   private Pair<String, String> getResultSummaryForQuestionsWithClaimCode(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String claimCode){
-    var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getClaimCode().equals(claimCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
+    var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getClaimCode()) && assessmentQuestionEntity.getClaimCode().equals(claimCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
     return getTotals(filteredQuestions, answers, questionType);
   }
 
   private Pair<String, String> getResultSummaryForQuestionsWithConceptsCode(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String conceptsCode){
-    var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getConceptCode().equals(conceptsCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
+    var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getConceptCode()) && assessmentQuestionEntity.getConceptCode().equals(conceptsCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
     return getTotals(filteredQuestions, answers, questionType);
   }
 
   private Pair<String, String> getResultSummaryForQuestionsWithAssessmentSectionStartsWith(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String assessmentSection){
-    var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getAssessmentSection().startsWith(assessmentSection) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
+    var filteredQuestions = questions.stream().filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getAssessmentSection()) && assessmentQuestionEntity.getAssessmentSection().startsWith(assessmentSection) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();
     return getTotals(filteredQuestions, answers, questionType);
   }
   
