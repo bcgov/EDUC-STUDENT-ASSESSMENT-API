@@ -46,8 +46,12 @@ public class ReportsController implements ReportsEndpoint {
 
         switch (code.get()) {
             case ALL_SESSION_REGISTRATIONS:
+                log.info("Generating All Session Registrations Report for sessionID :: {}", sessionID);
                 var registrations = csvReportService.generateSessionRegistrationsReport(sessionID);
+                log.info("Generated All Session Registrations Report for sessionID :: {}", sessionID);
+                log.info("Recording transfer registrations user for sessionID :: {}", sessionID);
                 sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS);
+                log.info("Recorded All Session Registrations Report for sessionID :: {}", sessionID);
                 return registrations;
             case ATTEMPTS:
                 sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.ATTEMPTS);

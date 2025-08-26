@@ -5,12 +5,12 @@ import lombok.Getter;
 @Getter
 public enum AllStudentRegistrationsHeader {
 
-    SCHOOL_MINCODE("School Number"),
+    SCHOOL_MINCODE("School"),
     PEN("PEN"),
     GIVEN_NAME("Given Name"),
     SURNAME("Surname"),
-    ASSESSMENT_CENTRE("Assessment Centre"),
-    ASSESSMENT_CODE("Assessment Code");
+    ASSESSMENT_CENTRE("Assmt Centre"),
+    ASSESSMENT_CODE("Assmt Code");
 
     private final String code;
     AllStudentRegistrationsHeader(String code) { this.code = code; }

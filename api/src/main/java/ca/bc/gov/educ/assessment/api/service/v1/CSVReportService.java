@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 
+import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.PenStatusCodeDesc;
 import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
@@ -472,8 +473,10 @@ public class CSVReportService {
     }
 
     private List<String> prepareNumberOfAttemptsDataForCsv(AssessmentStudentEntity student) {
+        String normalizedAssessmentTypeCode = student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NME10.getCode())
+                || student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NMF10.getCode()) ? "NM" : student.getAssessmentEntity().getAssessmentTypeCode();
         return new ArrayList<>(Arrays.asList(
-                student.getAssessmentEntity().getAssessmentTypeCode(),
+                normalizedAssessmentTypeCode,
                 student.getPen(),
                 student.getNumberOfAttempts() != null ? Integer.toString(student.getNumberOfAttempts()) : null
         ));
