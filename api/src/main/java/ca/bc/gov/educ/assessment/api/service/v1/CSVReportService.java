@@ -645,11 +645,11 @@ public class CSVReportService {
                 getComponentType(question.getAssessmentComponentEntity()),
                 question.getItemNumber().toString(),
                 "Mark",
-                question.getQuestionNumber().toString(),
-                question.getQuestionValue().toString(),
-                question.getScaleFactor().toString(),
-                question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor())).divide(new BigDecimal(100), 2, RoundingMode.HALF_UP).toString(),
-                question.getMaxQuestionValue().toString(),
+                question.getQuestionNumber() != null ? question.getQuestionNumber().toString() : "",
+                question.getQuestionValue() != null ? question.getQuestionValue().toString() : "",
+                question.getScaleFactor() != null ? String.valueOf(question.getScaleFactor()/100) : "",
+                calculateScaledValue(question),
+                question.getMaxQuestionValue() != null ? question.getMaxQuestionValue().toString() : "",
                 question.getCognitiveLevelCode(),
                 question.getTaskCode(),
                 question.getClaimCode(),
@@ -657,6 +657,13 @@ public class CSVReportService {
                 question.getConceptCode(),
                 question.getAssessmentSection()
         ));
+    }
+
+    private String calculateScaledValue(AssessmentQuestionEntity question) {
+        if(question.getQuestionValue() != null && question.getScaleFactor() != null) {
+            return String.valueOf(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor())).divide(new BigDecimal(100), 2, RoundingMode.HALF_UP));
+        }
+        return "";
     }
 
     private String getComponentType(AssessmentComponentEntity component) {
