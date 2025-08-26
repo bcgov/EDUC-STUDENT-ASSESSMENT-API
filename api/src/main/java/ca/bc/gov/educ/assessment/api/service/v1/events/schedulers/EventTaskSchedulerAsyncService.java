@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.service.v1.events.schedulers;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.helpers.LogHelper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.TransferStudentProcessingOrchestrator;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.Orchestrator;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
@@ -12,6 +13,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.StagedStudentResultRepository
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SessionService;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
+import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -167,20 +169,26 @@ public class EventTaskSchedulerAsyncService {
         }
 
         int batchSize = Integer.parseInt(numberOfStudentsToProcess);
-        final var transferStudentIds = assessmentStudentService.findBatchOfTransferStudentIds(batchSize);
-        log.debug("Found :: {} students marked for transfer in this batch", transferStudentIds.size());
+        final var transferStudents = assessmentStudentService.findBatchOfTransferStudentIds(batchSize);
+        log.debug("Found :: {} students marked for transfer in this batch", transferStudents.size());
 
-        if (!transferStudentIds.isEmpty()) {
+        if (!transferStudents.isEmpty()) {
             int sagasCreated = 0;
 
-            for (UUID studentId : transferStudentIds) {
+            for (StagedAssessmentStudentEntity student : transferStudents) {
+                var studentId = student.getAssessmentStudentID();
                 try {
                     int updated = assessmentStudentService.markStudentAsTransferInProgress(studentId);
 
                     if (updated > 0) {
                         // Create individual saga for each student
                         log.debug("Creating transfer processing saga for student: {}", studentId);
-                        transferStudentProcessingOrchestrator.startStudentTransferProcessingSaga(studentId);
+                        var transferOnApprovalStudent = TransferOnApprovalSagaData.builder()
+                                .stagedStudentAssessmentID(String.valueOf(student.getAssessmentStudentID()))
+                                .studentID(String.valueOf(student.getStudentID()))
+                                .assessmentID(String.valueOf(student.getAssessmentEntity().getAssessmentID()))
+                                .build();
+                        transferStudentProcessingOrchestrator.startStudentTransferProcessingSaga(transferOnApprovalStudent);
                         sagasCreated++;
                     } else {
                         log.debug("Student {} may have already been processed by another thread", studentId);
