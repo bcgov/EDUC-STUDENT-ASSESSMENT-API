@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -462,6 +464,38 @@ public class CSVReportService {
         }
     }
 
+    public DownloadableReportResponse generateKeyReport(UUID sessionID, String assessmentTypeCode) {
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+        AssessmentEntity assessmentEntity = session.getAssessments().stream().filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode)).findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentTypeCode", assessmentTypeCode));
+
+        List<AssessmentQuestionEntity> questions = assessmentEntity.getAssessmentForms().stream()
+                .flatMap(assessmentFormEntity -> assessmentFormEntity.getAssessmentComponentEntities().stream())
+                .flatMap(assessmentComponentEntity -> assessmentComponentEntity.getAssessmentQuestionEntities().stream()).toList();
+        List<String> headers = Arrays.stream(KeySummaryHeader.values()).map(KeySummaryHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+            var sessionString = session.getCourseYear() +"/"+ session.getCourseMonth();
+            for (AssessmentQuestionEntity question : questions) {
+                List<String> csvRowData = prepareKeySummaryForCsv(question, assessmentTypeCode, sessionString);
+                csvPrinter.printRecord(csvRowData);
+            }
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(assessmentTypeCode + "-key-summary");
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
     private List<String> getDOARHeaders(String assessmentTypeCode) {
         return switch (assessmentTypeCode) {
             case "NME10" -> Arrays.stream(NMEDoarHeader.values()).map(NMEDoarHeader::getCode).toList();
@@ -601,6 +635,44 @@ public class CSVReportService {
                 student.getMergedPen(),
                 PenStatusCodeDesc.valueOf(student.getStagedAssessmentStudentStatus()).getCode()
         ));
+    }
+
+    private List<String> prepareKeySummaryForCsv(AssessmentQuestionEntity question, String assessmentTypeCode, String session) {
+        return new ArrayList<>(Arrays.asList(
+                assessmentTypeCode,
+                session,
+                question.getAssessmentComponentEntity().getAssessmentFormEntity().getFormCode(),
+                getComponentType(question.getAssessmentComponentEntity()),
+                question.getItemNumber().toString(),
+                "Mark",
+                question.getQuestionNumber() != null ? question.getQuestionNumber().toString() : "",
+                question.getQuestionValue() != null ? question.getQuestionValue().toString() : "",
+                question.getScaleFactor() != null ? String.valueOf(question.getScaleFactor()/100) : "",
+                calculateScaledValue(question),
+                question.getMaxQuestionValue() != null ? question.getMaxQuestionValue().toString() : "",
+                question.getCognitiveLevelCode(),
+                question.getTaskCode(),
+                question.getClaimCode(),
+                question.getContextCode(),
+                question.getConceptCode(),
+                question.getAssessmentSection()
+        ));
+    }
+
+    private String calculateScaledValue(AssessmentQuestionEntity question) {
+        if(question.getQuestionValue() != null && question.getScaleFactor() != null) {
+            return String.valueOf(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor())).divide(new BigDecimal(100), 2, RoundingMode.HALF_UP));
+        }
+        return "";
+    }
+
+    private String getComponentType(AssessmentComponentEntity component) {
+        if(component.getComponentTypeCode().equalsIgnoreCase("MUL_CHOICE")) {
+            return "Selected Response";
+        } else if(component.getComponentTypeCode().equalsIgnoreCase("OPEN_ENDED") && component.getComponentSubTypeCode().equalsIgnoreCase("ORAL")) {
+            return "Constructed Response - Oral";
+        }
+        return "Constructed Response - Written";
     }
 
     private List<String> prepareAssessmentRegistrationTotalsBySchoolForCsv(Map<String, String> result, List<String> headers) {

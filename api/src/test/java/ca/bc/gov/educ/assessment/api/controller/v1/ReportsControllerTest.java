@@ -1257,4 +1257,42 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         assertThat(summary).isNotNull();
         assertThat(summary.getDocumentData()).isNotBlank();
     }
+
+    @Test
+    void testGetDownloadableReport_KeySummary_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "NMF10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/nmf-key-summary/download/" + "TESTUSER")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("NMF10-key-summary");
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
 }
