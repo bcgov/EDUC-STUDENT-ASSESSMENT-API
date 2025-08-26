@@ -4,9 +4,13 @@ import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
-import ca.bc.gov.educ.assessment.api.model.v1.*;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentAnswerEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
-import ca.bc.gov.educ.assessment.api.repository.v1.*;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentComponentRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentQuestionRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentAnswerRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
@@ -39,7 +43,6 @@ import static ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes.OPEN
 @Slf4j
 public class ISRReportService extends BaseReportGenerationService {
 
-  private final AssessmentComponentRepository assessmentComponentRepository;
   private final AssessmentQuestionRepository assessmentQuestionRepository;
   private final AssessmentStudentAnswerRepository assessmentStudentAnswerRepository;
   private final AssessmentStudentRepository assessmentStudentRepository;
@@ -47,9 +50,8 @@ public class ISRReportService extends BaseReportGenerationService {
   private final CodeTableService codeTableService;
   private JasperReport isrReport;
 
-  public ISRReportService(AssessmentComponentRepository assessmentComponentRepository, AssessmentQuestionRepository assessmentQuestionRepository, AssessmentStudentAnswerRepository assessmentStudentAnswerRepository, AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils, CodeTableService codeTableService) {
+  public ISRReportService(AssessmentQuestionRepository assessmentQuestionRepository, AssessmentStudentAnswerRepository assessmentStudentAnswerRepository, AssessmentStudentRepository assessmentStudentRepository, RestUtils restUtils, CodeTableService codeTableService) {
     super(restUtils);
-    this.assessmentComponentRepository = assessmentComponentRepository;
     this.assessmentQuestionRepository = assessmentQuestionRepository;
     this.assessmentStudentAnswerRepository = assessmentStudentAnswerRepository;
     this.assessmentStudentRepository = assessmentStudentRepository;
@@ -137,7 +139,7 @@ public class ISRReportService extends BaseReportGenerationService {
         assessmentSummary.setSession(assessmentStudent.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + "/" + assessmentStudent.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth());
         assessmentSummary.setScore(assessmentStudent.getProficiencyScore() == null ? StringUtils.isNotBlank(assessmentStudent.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(assessmentStudent.getProvincialSpecialCaseCode()).get().getDescription() : "" : assessmentStudent.getProficiencyScore().toString());
         assessmentSummary.setAssessment(assessmentTypes.get(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()));
-        assessmentSummary.setAssessmentCode(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode());
+        assessmentSummary.setAssessmentCode(getAssessmentCodeValue(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()));
         reportNode.getAssessments().add(assessmentSummary);
 
         var questions = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentFormEntity_AssessmentFormID(assessmentStudent.getAssessmentFormID());
@@ -178,6 +180,15 @@ public class ISRReportService extends BaseReportGenerationService {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
     }
+  }
+  
+  private String getAssessmentCodeValue(String assessmentCode){
+    if(assessmentCode.equalsIgnoreCase("NME")){
+      return "NME10";
+    }else if(assessmentCode.equalsIgnoreCase("NMF")){
+      return "NMF10";
+    }
+    return assessmentCode;
   }
   
   private Pair<String, String> getResultSummaryForQuestionsWithTaskCode(List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String taskCode){
