@@ -175,6 +175,7 @@
 	</subDataset>
 	<subDataset name="AssessmentDetailsSet" uuid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="isrMain"/>
+		<parameter name="SUBREPORT_DIR" class="java.lang.String"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -507,6 +508,7 @@
 			<fieldDescription><![CDATA[partOralPart3OutOf]]></fieldDescription>
 		</field>
 	</subDataset>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String"/>
 	<queryString language="JSON">
 		<![CDATA[report]]>
 	</queryString>
@@ -801,6 +803,9 @@
 				<reportElement x="0" y="2" width="752" height="57" uuid="11223344-5566-7788-9900-aabbccddeeff"/>
 				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
 					<datasetRun subDataset="AssessmentDetailsSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
+						<datasetParameter name="SUBREPORT_DIR">
+							<datasetParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></datasetParameterExpression>
+						</datasetParameter>
 						<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("assessmentDetails")]]></dataSourceExpression>
 					</datasetRun>
 					<jr:listContents height="530" width="752">
@@ -859,7 +864,7 @@
 							<subreportParameter name="partBWrittenResponseUnderstandingOutOf">
 								<subreportParameterExpression><![CDATA[$F{partBWrittenResponseUnderstandingOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportExpression><![CDATA["lte10summary.jasper"]]></subreportExpression>
+							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "lte10summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport overflowType="Stretch">
 							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeefa">
@@ -916,7 +921,7 @@
 							<subreportParameter name="partBWrittenResponseUnderstandingOutOf">
 								<subreportParameterExpression><![CDATA[$F{partBWrittenResponseUnderstandingOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportExpression><![CDATA["lte12summary.jasper"]]></subreportExpression>
+							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "lte12summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
 							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
@@ -964,7 +969,7 @@
 							<subreportParameter name="writtenReasonedEstimatesOutOf">
 								<subreportParameterExpression><![CDATA[$F{writtenReasonedEstimatesOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportExpression><![CDATA["nme10summary.jasper"]]></subreportExpression>
+							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "nme10summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
 							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
@@ -1051,7 +1056,7 @@
 							<subreportParameter name="partOralPart3OutOf">
 								<subreportParameterExpression><![CDATA[$F{partOralPart3OutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportExpression><![CDATA["ltp10summary.jasper"]]></subreportExpression>
+							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "ltp10summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
 							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
@@ -1132,7 +1137,7 @@
 							<subreportParameter name="partCOralResponsePart3OutOf">
 								<subreportParameterExpression><![CDATA[$F{partCOralResponsePart3OutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportExpression><![CDATA["ltp12summary.jasper"]]></subreportExpression>
+							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "ltp12summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
 							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
@@ -1234,7 +1239,7 @@
 							<subreportParameter name="partCOralResponsePart2DiscourseOralOutOf">
 								<subreportParameterExpression><![CDATA[$F{partCOralResponsePart2DiscourseOralOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportExpression><![CDATA["ltf12summary.jasper"]]></subreportExpression>
+							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "ltf12summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
 							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
@@ -1285,7 +1290,7 @@
 							<subreportParameter name="writtenPlanningOutOf">
 								<subreportParameterExpression><![CDATA[$F{writtenPlanningOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
-							<subreportExpression><![CDATA["nmf10summary.jasper"]]></subreportExpression>
+							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "nmf10summary.jasper"]]></subreportExpression>
 						</subreport>
 					</jr:listContents>
 				</jr:list>

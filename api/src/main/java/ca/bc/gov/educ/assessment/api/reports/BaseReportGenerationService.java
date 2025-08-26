@@ -45,6 +45,8 @@ public abstract class BaseReportGenerationService {
     try{
       var params = getJasperParams();
       InputStream targetStream = new ByteArrayInputStream(reportJSON.getBytes());
+      String tempDir = System.getProperty("java.io.tmpdir") + "/jasper-reports/";
+      params.put("SUBREPORT_DIR", tempDir);
       params.put(JsonQueryExecuterFactory.JSON_INPUT_STREAM, targetStream);
 
       JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
