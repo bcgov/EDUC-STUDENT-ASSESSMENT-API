@@ -100,6 +100,9 @@ public class ISRReportService extends BaseReportGenerationService {
       InputStream report = getClass().getResourceAsStream("/reports/isrMain.jrxml");
       isrReport = JasperCompileManager.compileReport(report);
     } catch (JRException e) {
+      log.error("JRException: ", e);
+      log.error("JRException: ", e.getMessage());
+      e.printStackTrace();
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
   }
