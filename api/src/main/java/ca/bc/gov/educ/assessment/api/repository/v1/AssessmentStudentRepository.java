@@ -45,7 +45,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     select stud from AssessmentStudentEntity as stud
     where stud.studentID = :studentID
     and ((stud.proficiencyScore is not null and stud.proficiencyScore != 0)
-    or stud.provincialSpecialCaseCode in ('AEG', 'NC', 'DSQ'))""")
+    or stud.provincialSpecialCaseCode in ('A', 'X', 'Q'))""")
     List<AssessmentStudentEntity> findAllWrittenAssessmentsForStudent(UUID studentID);
 
     @Query(value="""
