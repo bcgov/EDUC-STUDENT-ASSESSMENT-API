@@ -175,7 +175,7 @@ public class StudentAssessmentResultService {
         stagedStudent.setAssessmentFormID(assessmentFormID);
         stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
         stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
-        stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
+        stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
         stagedStudent.setMarkingSession(studentResult.getMarkingSession());
         stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : stagedStudent.getSchoolOfRecordSchoolID());
         stagedStudent.setGradeAtRegistration(gradStudent != null ? gradStudent.getStudentGrade() : null);
@@ -203,7 +203,7 @@ public class StudentAssessmentResultService {
         stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
         stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
         stagedStudent.setNumberOfAttempts(noOfAttempts);
-        stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
+        stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
         stagedStudent.setIrtScore(studentResult.getIrtScore());
         stagedStudent.setMarkingSession(studentResult.getMarkingSession());
         stagedStudent.setCreateUser(studentResult.getCreateUser());
