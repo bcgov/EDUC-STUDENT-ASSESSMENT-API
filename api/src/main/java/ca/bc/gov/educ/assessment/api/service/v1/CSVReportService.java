@@ -736,6 +736,16 @@ public class CSVReportService {
         List<String> enrolledPrograms = new ArrayList<>();
         String sdcStudentNativeAcnestry = "0";
         String sdcStudentGender = "NA";
+        String mincode = "";
+
+        if (student.getSchoolAtWriteSchoolID() != null) {
+            Optional<SchoolTombstone> school = restUtils.getSchoolBySchoolID(student.getSchoolAtWriteSchoolID().toString());
+            if (school.isPresent()) {
+                mincode = school.get().getMincode();
+            } else {
+                mincode = student.getSchoolAtWriteSchoolID().toString();
+            }
+        }
 
         if (sdcStudent != null) {
             if (sdcStudent.getEnrolledProgramCode() != null && !sdcStudent.getEnrolledProgramCode().isEmpty()) {
@@ -762,7 +772,7 @@ public class CSVReportService {
                 student.getPen(),
                 session,
                 student.getGradeAtRegistration(),
-                student.getSchoolAtWriteSchoolID() != null ? student.getSchoolAtWriteSchoolID().toString() : null, //todo should be mincode
+                mincode,
                 assessmentTypeCode,
                 formCodes,
                 sdcStudentGender,
