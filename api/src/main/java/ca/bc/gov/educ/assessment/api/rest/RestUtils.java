@@ -546,33 +546,33 @@ public class RestUtils {
         int pageSize = 1500;
 
         ExecutorService executor = Executors.newFixedThreadPool(8); // Adjust thread pool size as needed
-        try {
-            List<CompletableFuture<List<SdcSchoolCollectionStudent>>> futures = new ArrayList<>();
+        List<CompletableFuture<List<SdcSchoolCollectionStudent>>> futures = new ArrayList<>();
 
-            for (int i = 0; i < assignedStudentIds.size(); i += maxPensPerBatch) {
-                int end = Math.min(i + maxPensPerBatch, assignedStudentIds.size());
-                List<String> assigendStudentIdsSubList = new ArrayList<>(assignedStudentIds.subList(i, end));
+        for (int i = 0; i < assignedStudentIds.size(); i += maxPensPerBatch) {
+            int start = i;
+            int end = Math.min(i + maxPensPerBatch, assignedStudentIds.size());
+            List<String> assigendStudentIdsSubList = new ArrayList<>(assignedStudentIds.subList(start, end));
 
-                CompletableFuture<List<SdcSchoolCollectionStudent>> future = CompletableFuture.supplyAsync(() -> {
-                    try {
-                        List<Map<String, Object>> searchCriteriaList = SearchCriteriaBuilder.getSDCStudentsByCollectionIdAndAssignedPENs(collectionID, assigendStudentIdsSubList);
-                        return fetchStudentsForBatch(pageSize, searchCriteriaList);
-                    } catch (Exception e) {
-                        log.error("Batch fetch failed", e);
-                        return Collections.emptyList();
-                    }
-                }, executor);
+            CompletableFuture<List<SdcSchoolCollectionStudent>> future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    List<Map<String, Object>> searchCriteriaList = SearchCriteriaBuilder.getSDCStudentsByCollectionIdAndAssignedPENs(collectionID, assigendStudentIdsSubList);
+                    return fetchStudentsForBatch(pageSize, searchCriteriaList);
+                } catch (Exception e) {
+                    log.error("Batch fetch failed", e);
+                    return Collections.emptyList();
+                }
+            }, executor);
 
-                futures.add(future);
-            }
-
-            return futures.stream()
-                    .map(CompletableFuture::join)
-                    .flatMap(List::stream)
-                    .toList();
-        } finally {
-            executor.shutdown();
+            futures.add(future);
         }
+
+        List<SdcSchoolCollectionStudent> allStudents = futures.stream()
+                .map(CompletableFuture::join)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        executor.shutdown();
+        return allStudents;
     }
 
     private List<SdcSchoolCollectionStudent> fetchStudentsForBatch(int pageSize, List<Map<String, Object>> searchCriteriaList) throws JsonProcessingException {

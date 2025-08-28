@@ -56,6 +56,7 @@ public class CSVReportService {
     private static final String STUDENTS_KEY = "students";
     private static final String STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY = "studentToCollectionSnapshotDateMap";
     private static final String COLLECTION_TYPE_KEY = "collectionType";
+    private static final String SEPTEMBER = "SEPTEMBER";
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentFormRepository assessmentFormRepository;
@@ -829,13 +830,13 @@ public class CSVReportService {
     private List<String> getSDCCollectionPriorityOrder(String courseMonth) {
         return switch (courseMonth) {
             case "01", "11" ->
-                    List.of("SEPTEMBER");
+                    List.of(SEPTEMBER);
             case "04" ->
-                    List.of("SEPTEMBER", "FEBRUARY");
+                    List.of(SEPTEMBER, "FEBRUARY");
             case "06" ->
-                    List.of("SEPTEMBER", "FEBRUARY", "JULY");
+                    List.of(SEPTEMBER, "FEBRUARY", "JULY");
             default ->
-                    List.of("SEPTEMBER");
+                    List.of(SEPTEMBER);
         };
     }
 
