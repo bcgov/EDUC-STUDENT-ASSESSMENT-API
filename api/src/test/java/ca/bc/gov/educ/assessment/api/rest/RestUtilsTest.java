@@ -3,17 +3,25 @@ package ca.bc.gov.educ.assessment.api.rest;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
+import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.Collection;
+import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.SdcSchoolCollectionStudent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -306,5 +314,315 @@ class RestUtilsTest {
                 StudentAssessmentAPIRuntimeException.class,
                 () -> restUtils.getMergedStudentsForDateRange(correlationID, createStartDate, createEndDate)
         );
+    }
+
+    @Test
+    void testGetLastFourCollections_WhenApiCallSucceeds_ShouldReturnCollections() throws JsonProcessingException {
+        // Given
+        Collection collection1 = new Collection();
+        collection1.setCollectionID(String.valueOf(UUID.randomUUID()));
+        collection1.setSnapshotDate(String.valueOf(LocalDateTime.now()));
+
+        Collection collection2 = new Collection();
+        collection2.setCollectionID(String.valueOf(UUID.randomUUID()));
+        collection2.setSnapshotDate(String.valueOf(LocalDateTime.now().minusDays(30)));
+
+        PaginatedResponse<Collection> expectedResponse = new PaginatedResponse<>(
+                Arrays.asList(collection1, collection2),
+                PageRequest.of(0, 4),
+                2L
+        );
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class))).thenReturn(Mono.just(expectedResponse));
+
+        when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
+
+        // When
+        PaginatedResponse<Collection> result = restUtils.getLastFourCollections();
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(collection1.getCollectionID(), result.getContent().get(0).getCollectionID());
+        assertEquals(collection2.getCollectionID(), result.getContent().get(1).getCollectionID());
+        assertEquals(2L, result.getTotalElements());
+        assertEquals(0, result.getNumber());
+        assertEquals(1, result.getTotalPages());
+        verify(webClient).get();
+    }
+
+    @Test
+    void testGetLastFourCollections_WhenApiCallFails_ShouldReturnNull() throws JsonProcessingException {
+        // Given
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class))).thenThrow(new RuntimeException("API Error"));
+
+        when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
+
+        // When
+        PaginatedResponse<Collection> result = restUtils.getLastFourCollections();
+
+        // Then
+        assertNull(result);
+        verify(webClient).get();
+    }
+
+    @Test
+    void testGet1701DataForStudents_WhenApiCallSucceeds_ShouldReturnStudents() {
+        // Given
+        String collectionID = UUID.randomUUID().toString();
+        List<String> assignedStudentIds = Arrays.asList("123456789", "987654321", "555444333");
+
+        SdcSchoolCollectionStudent student1 = new SdcSchoolCollectionStudent();
+        student1.setSdcSchoolCollectionStudentID(String.valueOf(UUID.randomUUID()));
+        student1.setAssignedStudentId("123456789");
+
+        SdcSchoolCollectionStudent student2 = new SdcSchoolCollectionStudent();
+        student2.setSdcSchoolCollectionStudentID(String.valueOf(UUID.randomUUID()));
+        student2.setAssignedStudentId("987654321");
+
+        PaginatedResponse<SdcSchoolCollectionStudent> mockResponse = new PaginatedResponse<>(
+                Arrays.asList(student1, student2),
+                PageRequest.of(0, 1500),
+                2L
+        );
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class))).thenReturn(Mono.just(mockResponse));
+
+        when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
+
+        // When
+        List<SdcSchoolCollectionStudent> result = restUtils.get1701DataForStudents(collectionID, assignedStudentIds);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("123456789", result.get(0).getAssignedStudentId());
+        assertEquals("987654321", result.get(1).getAssignedStudentId());
+
+        // Verify that the WebClient was called
+        verify(webClient, atLeastOnce()).get();
+    }
+
+    @Test
+    void testGet1701DataForStudents_WithLargeStudentList_ShouldBatchRequests() {
+        // Given
+        String collectionID = UUID.randomUUID().toString();
+
+        List<String> assignedStudentIds = new ArrayList<>();
+        for (int i = 0; i < 2000; i++) {
+            assignedStudentIds.add("PEN" + String.format("%06d", i));
+        }
+
+        SdcSchoolCollectionStudent student1 = new SdcSchoolCollectionStudent();
+        student1.setSdcSchoolCollectionStudentID(String.valueOf(UUID.randomUUID()));
+        student1.setAssignedStudentId("PEN000001");
+
+        PaginatedResponse<SdcSchoolCollectionStudent> mockResponse = new PaginatedResponse<>(
+                List.of(student1),
+                PageRequest.of(0, 1500),
+                1L
+        );
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class))).thenReturn(Mono.just(mockResponse));
+
+        when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
+
+        // When
+        List<SdcSchoolCollectionStudent> result = restUtils.get1701DataForStudents(collectionID, assignedStudentIds);
+
+        // Then
+        assertNotNull(result);
+
+        // Verify that WebClient was called multiple times for batching (2000 students / 1500 batch size = 2 batches)
+        verify(webClient, atLeast(2)).get();
+    }
+
+    @Test
+    void testGet1701DataForStudents_WhenBatchFails_ShouldReturnPartialResults() {
+        // Given
+        String collectionID = UUID.randomUUID().toString();
+        List<String> assignedStudentIds = Arrays.asList("123456789", "987654321");
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class))).thenThrow(new RuntimeException("API Error"));
+
+        when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
+
+        // When
+        List<SdcSchoolCollectionStudent> result = restUtils.get1701DataForStudents(collectionID, assignedStudentIds);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testFetchStudentsForBatch_WhenApiCallSucceeds_ShouldReturnStudents() throws Exception {
+        // Given
+        int pageSize = 100;
+        List<Map<String, Object>> searchCriteriaList = List.of(
+                Map.of("key", "collectionID", "operation", "eq", "value", "test-collection")
+        );
+
+        SdcSchoolCollectionStudent student1 = new SdcSchoolCollectionStudent();
+        student1.setSdcSchoolCollectionStudentID(String.valueOf(UUID.randomUUID()));
+        student1.setAssignedStudentId("123456789");
+
+        SdcSchoolCollectionStudent student2 = new SdcSchoolCollectionStudent();
+        student2.setSdcSchoolCollectionStudentID(String.valueOf(UUID.randomUUID()));
+        student2.setAssignedStudentId("987654321");
+
+        PaginatedResponse<SdcSchoolCollectionStudent> mockResponse = new PaginatedResponse<>(
+                Arrays.asList(student1, student2),
+                PageRequest.of(0, pageSize),
+                2L
+        );
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class))).thenReturn(Mono.just(mockResponse));
+
+        when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
+
+        // When
+        List<SdcSchoolCollectionStudent> result = (List<SdcSchoolCollectionStudent>) ReflectionTestUtils.invokeMethod(restUtils, "fetchStudentsForBatch", pageSize, searchCriteriaList);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("123456789", result.get(0).getAssignedStudentId());
+        assertEquals("987654321", result.get(1).getAssignedStudentId());
+    }
+
+    @Test
+    void testFetchStudentsForBatch_WithMultiplePages_ShouldReturnAllStudents() throws Exception {
+        // Given
+        int pageSize = 1;
+        List<Map<String, Object>> searchCriteriaList = Arrays.asList(
+                Map.of("key", "collectionID", "operation", "eq", "value", "test-collection")
+        );
+
+        SdcSchoolCollectionStudent student1 = new SdcSchoolCollectionStudent();
+        student1.setSdcSchoolCollectionStudentID(String.valueOf(UUID.randomUUID()));
+        student1.setAssignedStudentId("123456789");
+
+        SdcSchoolCollectionStudent student2 = new SdcSchoolCollectionStudent();
+        student2.setSdcSchoolCollectionStudentID(String.valueOf(UUID.randomUUID()));
+        student2.setAssignedStudentId("987654321");
+
+        // First page response
+        PaginatedResponse<SdcSchoolCollectionStudent> page1Response = new PaginatedResponse<>(
+                Arrays.asList(student1),
+                PageRequest.of(0, pageSize),
+                2L
+        );
+
+        // Second page response
+        PaginatedResponse<SdcSchoolCollectionStudent> page2Response = new PaginatedResponse<>(
+                Arrays.asList(student2),
+                PageRequest.of(1, pageSize),
+                2L
+        );
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class)))
+                .thenReturn(Mono.just(page1Response))
+                .thenReturn(Mono.just(page2Response));
+
+        when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
+
+        // When
+        List<SdcSchoolCollectionStudent> result = (List<SdcSchoolCollectionStudent>)
+                ReflectionTestUtils.invokeMethod(restUtils, "fetchStudentsForBatch", pageSize, searchCriteriaList);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("123456789", result.get(0).getAssignedStudentId());
+        assertEquals("987654321", result.get(1).getAssignedStudentId());
+
+        // Verify that the API was called twice (for both pages)
+        verify(responseSpec, times(2)).bodyToMono(any(ParameterizedTypeReference.class));
+    }
+
+    @Test
+    void testFetchStudentsForBatch_WhenApiCallFails_ShouldReturnEmptyList() throws Exception {
+        // Given
+        int pageSize = 100;
+        List<Map<String, Object>> searchCriteriaList = Arrays.asList(
+                Map.of("key", "collectionID", "operation", "eq", "value", "test-collection")
+        );
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class))).thenThrow(new RuntimeException("API Error"));
+
+        when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
+
+        // When
+        List<SdcSchoolCollectionStudent> result = (List<SdcSchoolCollectionStudent>)
+                ReflectionTestUtils.invokeMethod(restUtils, "fetchStudentsForBatch", pageSize, searchCriteriaList);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 }
