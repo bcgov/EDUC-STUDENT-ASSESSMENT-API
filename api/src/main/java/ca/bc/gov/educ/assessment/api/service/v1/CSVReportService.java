@@ -11,8 +11,11 @@ import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeExcept
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.Collection;
+import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.SdcSchoolCollectionStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByFormQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
@@ -36,6 +39,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.*;
 
@@ -46,6 +53,10 @@ import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentRepor
 public class CSVReportService {
     private static final String SCHOOL_ID = "schoolID";
     private static final String SESSION_ID = "sessionID";
+    private static final String STUDENTS_KEY = "students";
+    private static final String STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY = "studentToCollectionSnapshotDateMap";
+    private static final String COLLECTION_TYPE_KEY = "collectionType";
+    private static final String SEPTEMBER = "SEPTEMBER";
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentFormRepository assessmentFormRepository;
@@ -496,6 +507,72 @@ public class CSVReportService {
         }
     }
 
+    public DownloadableReportResponse generateDataForItemAnalysis(UUID sessionID, String assessmentTypeCode) {
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+
+        List<AssessmentStudentLightEntity> students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
+        List<String> assignedStudentIds = students.stream().map(AssessmentStudentLightEntity::getPen).toList();
+
+        List<String> headers = Arrays.stream(DataItemAnalysisHeader.values()).map(DataItemAnalysisHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+
+            // Get the last four collections and find appropriate SDC data based on session month
+            var lastFourCollections = restUtils.getLastFourCollections();
+            var sdcData = findAppropriateSDCData(lastFourCollections, assignedStudentIds, session.getCourseMonth());
+
+            // Extract data from the result map
+            Object studentsObj = sdcData.get(STUDENTS_KEY);
+            Object snapshotDateMapObj = sdcData.get(STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY);
+            var usedCollectionType = (String) sdcData.get(COLLECTION_TYPE_KEY);
+
+            if (!(studentsObj instanceof List<?> studentsList) ||
+                !(snapshotDateMapObj instanceof Map<?, ?> snapshotDateMap)) {
+                throw new StudentAssessmentAPIRuntimeException("Invalid SDC data structure received");
+            }
+
+            List<SdcSchoolCollectionStudent> sdcStudents = studentsList.stream()
+                    .filter(SdcSchoolCollectionStudent.class::isInstance)
+                    .map(SdcSchoolCollectionStudent.class::cast)
+                    .toList();
+
+            Map<String, String> studentToCollectionSnapshotDateMap = snapshotDateMap.entrySet().stream()
+                    .filter(entry -> entry.getKey() instanceof String && entry.getValue() instanceof String)
+                    .collect(Collectors.toMap(
+                            entry -> (String) entry.getKey(),
+                            entry -> (String) entry.getValue()
+                    ));
+
+            Map<String, SdcSchoolCollectionStudent> studentMap = sdcStudents.stream().collect(Collectors.toMap(SdcSchoolCollectionStudent::getAssignedPen, Function.identity()));
+
+            log.info("Generating item analysis report for session {}/{} using {} collection with {} students", session.getCourseYear(), session.getCourseMonth(), usedCollectionType, sdcStudents.size());
+
+            var sessionString = session.getCourseYear() +"/"+ session.getCourseMonth();
+            for (AssessmentStudentLightEntity student : students) {
+                SdcSchoolCollectionStudent sdcStudent = studentMap.get(student.getPen());
+                String collectionSnapshotDate = studentToCollectionSnapshotDateMap.get(student.getPen());
+
+                List<String> csvRowData = prepareStudentForItemAnalysis(student, sdcStudent, assessmentTypeCode, sessionString, collectionSnapshotDate);
+                csvPrinter.printRecord(csvRowData);
+            }
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(assessmentTypeCode + "-data-item-analysis");
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
     private List<String> getDOARHeaders(String assessmentTypeCode) {
         return switch (assessmentTypeCode) {
             case "NME10" -> Arrays.stream(NMEDoarHeader.values()).map(NMEDoarHeader::getCode).toList();
@@ -659,6 +736,63 @@ public class CSVReportService {
         ));
     }
 
+    private List<String> prepareStudentForItemAnalysis(AssessmentStudentLightEntity student, SdcSchoolCollectionStudent sdcStudent, String assessmentTypeCode, String session, String collectionSnapshotDate) {
+        List<String> enrolledPrograms = new ArrayList<>();
+        String sdcStudentNativeAcnestry = "0";
+        String sdcStudentGender = "NA";
+        String mincode = "";
+
+        if (student.getSchoolAtWriteSchoolID() != null) {
+            Optional<SchoolTombstone> school = restUtils.getSchoolBySchoolID(student.getSchoolAtWriteSchoolID().toString());
+            if (school.isPresent()) {
+                mincode = school.get().getMincode();
+            } else {
+                mincode = student.getSchoolAtWriteSchoolID().toString();
+            }
+        }
+
+        if (sdcStudent != null) {
+            if (sdcStudent.getEnrolledProgramCode() != null && !sdcStudent.getEnrolledProgramCode().isEmpty()) {
+                Pattern pattern = Pattern.compile(".{2}");
+                Matcher matcher = pattern.matcher(sdcStudent.getEnrolledProgramCode());
+
+                while (matcher.find()) {
+                    enrolledPrograms.add(matcher.group());
+                }
+            }
+
+            sdcStudentNativeAcnestry = sdcStudent.getNativeAncestryInd() != null && sdcStudent.getNativeAncestryInd().equalsIgnoreCase("Y") ? "1" : "0";
+            sdcStudentGender = sdcStudent.getGender() != null ? sdcStudent.getGender() : "NA";
+        }
+
+        String formCodes = null;
+        if (student.getAssessmentEntity().getAssessmentForms() != null && !student.getAssessmentEntity().getAssessmentForms().isEmpty()) {
+            formCodes = student.getAssessmentEntity().getAssessmentForms().stream()
+                    .map(AssessmentFormEntity::getFormCode)
+                    .collect(Collectors.joining(","));
+        }
+
+        return new ArrayList<>(Arrays.asList(
+                student.getPen(),
+                session,
+                student.getGradeAtRegistration(),
+                mincode,
+                assessmentTypeCode,
+                formCodes,
+                sdcStudentGender,
+                enrolledPrograms.contains("05") ? "1" : "0", //Francophone
+                enrolledPrograms.contains("11") ? "1" : "0", // Early French Immersion
+                enrolledPrograms.contains("14") ? "1" : "0", // Late French Immersion
+                enrolledPrograms.contains("17") ? "1" : "0", // ELL
+                sdcStudentNativeAcnestry, //Indigenous Ancestry
+                collectionSnapshotDate,
+                student.getMcTotal() != null ? student.getMcTotal().toString() : null,
+                student.getOeTotal() != null ? student.getOeTotal().toString() : null,
+                student.getRawScore() != null ? student.getRawScore().toString() : null,
+                student.getIrtScore()
+        ));
+    }
+
     private String calculateScaledValue(AssessmentQuestionEntity question) {
         if(question.getQuestionValue() != null && question.getScaleFactor() != null) {
             return String.valueOf(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor())).divide(new BigDecimal(100), 2, RoundingMode.HALF_UP));
@@ -685,5 +819,108 @@ public class CSVReportService {
             toReturn.add(result.get(header));
         }
         return toReturn;
+    }
+
+    /**
+     * Determines the ordered list of SDC collection types to use based on the assessment session month.
+     *
+     * @param courseMonth The course month from the session (01, 04, 06, 11)
+     * @return List of collection types in order of preference
+     */
+    private List<String> getSDCCollectionPriorityOrder(String courseMonth) {
+        return switch (courseMonth) {
+            case "01", "11" ->
+                    List.of(SEPTEMBER);
+            case "04" ->
+                    List.of(SEPTEMBER, "FEBRUARY");
+            case "06" ->
+                    List.of(SEPTEMBER, "FEBRUARY", "JULY");
+            default ->
+                    List.of(SEPTEMBER);
+        };
+    }
+
+    /**
+     * Finds the appropriate SDC collection and students based on the session month and fallback logic.
+     * Blends data from multiple collections, prioritizing September data but using fallback collections
+     * to fill in missing students. Stops fetching once all students have SDC data.
+     *
+     * @param lastFourCollections The available collections
+     * @param assignedStudentIds The assigned student IDs to search for
+     * @param courseMonth The course month from the assessment session
+     * @return A map containing the selected collection and blended student data with collection mapping
+     */
+    private Map<String, Object> findAppropriateSDCData(PaginatedResponse<Collection> lastFourCollections, List<String> assignedStudentIds, String courseMonth) {
+        List<String> collectionPriority = getSDCCollectionPriorityOrder(courseMonth);
+
+        Map<String, SdcSchoolCollectionStudent> blendedStudentMap = new HashMap<>();
+        Map<String, String> studentToCollectionSnapshotDateMap = new HashMap<>();
+        Collection primaryCollection = null;
+        List<String> collectionsUsed = new ArrayList<>();
+
+        // Process collections in priority order, blending data
+        for (String collectionType : collectionPriority) {
+            var collection = lastFourCollections.getContent().stream()
+                    .filter(c -> collectionType.equals(c.getCollectionTypeCode()))
+                    .findFirst();
+
+            if (collection.isPresent()) {
+                log.info("Checking {} collection (ID: {}, Snapshot Date: {}) for SDC students", collectionType, collection.get().getCollectionID(), collection.get().getSnapshotDate());
+                var sdcStudents = restUtils.get1701DataForStudents(collection.get().getCollectionID(), assignedStudentIds);
+
+                if (!sdcStudents.isEmpty()) {
+                    // Set primary collection to the first one we find with data
+                    if (primaryCollection == null) {
+                        primaryCollection = collection.get();
+                    }
+
+                    collectionsUsed.add(collectionType);
+
+                    // Add students from this collection, but don't overwrite higher priority data
+                    for (SdcSchoolCollectionStudent student : sdcStudents) {
+                        if (!blendedStudentMap.containsKey(student.getAssignedPen())) {
+                            blendedStudentMap.put(student.getAssignedPen(), student);
+                            studentToCollectionSnapshotDateMap.put(student.getAssignedPen(), collection.get().getSnapshotDate());
+                        }
+                    }
+
+                    log.info("Added {} students from {} collection (total unique students now: {})",
+                            sdcStudents.size(), collectionType, blendedStudentMap.size());
+
+                    // Early exit: If we have SDC data for all students, no need to check further collections
+                    if (blendedStudentMap.size() >= assignedStudentIds.size()) {
+                        log.info("Found SDC data for all {} students after checking {} collection(s). Stopping search early.",
+                                assignedStudentIds.size(), collectionsUsed.size());
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Return blended data if any students were found
+        if (!blendedStudentMap.isEmpty()) {
+            List<SdcSchoolCollectionStudent> blendedStudentList = new ArrayList<>(blendedStudentMap.values());
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("collection", primaryCollection);
+            result.put(STUDENTS_KEY, blendedStudentList);
+            result.put(STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY, studentToCollectionSnapshotDateMap);
+            result.put(COLLECTION_TYPE_KEY, collectionsUsed.getFirst());
+            result.put("collectionsUsed", collectionsUsed);
+
+            log.info("Using blended data for course month {} with {} unique students from collections: {}",
+                    courseMonth, blendedStudentList.size(), String.join(", ", collectionsUsed));
+            return result;
+        }
+
+        // No students found in any collection - return empty result
+        log.warn("No SDC students found in any available collections for course month {}", courseMonth);
+        Map<String, Object> result = new HashMap<>();
+        result.put("collection", null);
+        result.put(STUDENTS_KEY, Collections.emptyList());
+        result.put(STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY, Collections.emptyMap());
+        result.put(COLLECTION_TYPE_KEY, "NONE");
+        result.put("collectionsUsed", Collections.emptyList());
+        return result;
     }
 }
