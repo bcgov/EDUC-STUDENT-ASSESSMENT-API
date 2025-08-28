@@ -53,6 +53,9 @@ import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentRepor
 public class CSVReportService {
     private static final String SCHOOL_ID = "schoolID";
     private static final String SESSION_ID = "sessionID";
+    private static final String STUDENTS_KEY = "students";
+    private static final String STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY = "studentToCollectionSnapshotDateMap";
+    private static final String COLLECTION_TYPE_KEY = "collectionType";
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentFormRepository assessmentFormRepository;
@@ -507,7 +510,7 @@ public class CSVReportService {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
         List<AssessmentStudentLightEntity> students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
-        List<String> assignedStudentIds = students.stream().map(AssessmentStudentLightEntity::getPen).collect(Collectors.toList());
+        List<String> assignedStudentIds = students.stream().map(AssessmentStudentLightEntity::getPen).toList();
 
         List<String> headers = Arrays.stream(DataItemAnalysisHeader.values()).map(DataItemAnalysisHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
@@ -524,9 +527,9 @@ public class CSVReportService {
             var sdcData = findAppropriateSDCData(lastFourCollections, assignedStudentIds, session.getCourseMonth());
 
             // Extract data from the result map
-            Object studentsObj = sdcData.get("students");
-            Object snapshotDateMapObj = sdcData.get("studentToCollectionSnapshotDateMap");
-            var usedCollectionType = (String) sdcData.get("collectionType");
+            Object studentsObj = sdcData.get(STUDENTS_KEY);
+            Object snapshotDateMapObj = sdcData.get(STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY);
+            var usedCollectionType = (String) sdcData.get(COLLECTION_TYPE_KEY);
 
             if (!(studentsObj instanceof List<?> studentsList) ||
                 !(snapshotDateMapObj instanceof Map<?, ?> snapshotDateMap)) {
@@ -899,9 +902,9 @@ public class CSVReportService {
 
             Map<String, Object> result = new HashMap<>();
             result.put("collection", primaryCollection);
-            result.put("students", blendedStudentList);
-            result.put("studentToCollectionSnapshotDateMap", studentToCollectionSnapshotDateMap);
-            result.put("collectionType", collectionsUsed.getFirst());
+            result.put(STUDENTS_KEY, blendedStudentList);
+            result.put(STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY, studentToCollectionSnapshotDateMap);
+            result.put(COLLECTION_TYPE_KEY, collectionsUsed.getFirst());
             result.put("collectionsUsed", collectionsUsed);
 
             log.info("Using blended data for course month {} with {} unique students from collections: {}",
@@ -913,9 +916,9 @@ public class CSVReportService {
         log.warn("No SDC students found in any available collections for course month {}", courseMonth);
         Map<String, Object> result = new HashMap<>();
         result.put("collection", null);
-        result.put("students", Collections.emptyList());
-        result.put("studentToCollectionSnapshotDateMap", Collections.emptyMap());
-        result.put("collectionType", "NONE");
+        result.put(STUDENTS_KEY, Collections.emptyList());
+        result.put(STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY, Collections.emptyMap());
+        result.put(COLLECTION_TYPE_KEY, "NONE");
         result.put("collectionsUsed", Collections.emptyList());
         return result;
     }
