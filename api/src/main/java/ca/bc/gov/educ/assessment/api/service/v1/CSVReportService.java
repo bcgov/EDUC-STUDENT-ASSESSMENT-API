@@ -221,7 +221,7 @@ public class CSVReportService {
             csvPrinter.printRecord(headers);
 
             for (AssessmentStudentLightEntity result : students) {
-                Optional<SchoolTombstone> school = (result.getSchoolAtWriteSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getSchoolAtWriteSchoolID().toString()) : Optional.empty();
+                Optional<SchoolTombstone> school = (result.getSchoolOfRecordSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getSchoolOfRecordSchoolID().toString()) : Optional.empty();
                 Optional<District> district = (school.isPresent() && school.get().getDistrictId() != null) ? restUtils.getDistrictByDistrictID(school.get().getDistrictId()) : Optional.empty();
                 List<String> csvRowData = prepareRegistrationDetailsDataForCsv(result, school, district);
                 csvPrinter.printRecord(csvRowData);
