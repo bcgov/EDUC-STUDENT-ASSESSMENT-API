@@ -87,6 +87,20 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generateKeyReport(sessionID, "LTP12");
             case LTF12_KEY_SUMMARY:
                 return csvReportService.generateKeyReport(sessionID, "LTF12");
+            case NME_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, "NME10");
+            case NMF_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, "NMF10");
+            case LTE10_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, "LTE10");
+            case LTE12_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, "LTE12");
+            case LTP10_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, "LTP10");
+            case LTP12_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, "LTP12");
+            case LTF12_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, "LTF12");
             default:
                 return new DownloadableReportResponse();
         }
