@@ -30,8 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.STUDENT_ASSESSMENT_EVENTS_TOPIC;
-import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.PEN_SERVICES_EVENTS_TOPIC;
+import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.*;
 import static ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher.PUBLISHER_STREAM_NAME;
 
 /**
@@ -61,11 +60,14 @@ public class Subscriber {
     private void initializeStreamTopicMap() {
         final List<String> studentAssessmentEventTopics = new ArrayList<>();
         final List<String> penServicesEventTopics = new ArrayList<>();
+        final List<String> gradStatusEventTopics = new ArrayList<>();
         studentAssessmentEventTopics.add(STUDENT_ASSESSMENT_EVENTS_TOPIC.toString());
         penServicesEventTopics.add(PEN_SERVICES_EVENTS_TOPIC.toString());
+        gradStatusEventTopics.add(GRAD_STATUS_EVENT_TOPIC.toString());
 
         this.streamTopicsMap.put(PUBLISHER_STREAM_NAME, studentAssessmentEventTopics);
         this.streamTopicsMap.put("PEN_SERVICES_EVENTS", penServicesEventTopics);
+        this.streamTopicsMap.put("GRAD_STATUS_EVENTS", gradStatusEventTopics);
     }
 
     @PostConstruct
