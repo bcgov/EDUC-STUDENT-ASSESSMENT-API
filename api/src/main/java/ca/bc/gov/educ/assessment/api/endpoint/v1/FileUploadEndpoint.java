@@ -38,4 +38,5 @@ public interface FileUploadEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     List<AssessmentResultsSummary> getAssessmentResultsUploadSummary(@PathVariable UUID sessionID);
+
 }

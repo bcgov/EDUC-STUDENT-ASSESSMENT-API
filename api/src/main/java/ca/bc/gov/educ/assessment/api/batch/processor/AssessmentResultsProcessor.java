@@ -38,7 +38,7 @@ public class AssessmentResultsProcessor {
         this.assessmentResultService = assessmentResultService;
     }
 
-    public void processAssessmentResults(AssessmentResultFileUpload fileUpload, UUID assessmentSessionID) {
+    public void processAssessmentResults(AssessmentResultFileUpload fileUpload, UUID assessmentSessionID, boolean isSingleResult) {
         val stopwatch = Stopwatch.createStarted();
         final var correlationID = UUID.randomUUID().toString();
         Optional<Reader> batchFileReaderOptional = Optional.empty();
@@ -49,7 +49,7 @@ public class AssessmentResultsProcessor {
             final DataSet ds = DefaultParserFactory.getInstance().newFixedLengthParser(mapperReader, batchFileReaderOptional.get()).setStoreRawDataToDataError(true).setStoreRawDataToDataSet(true).setNullEmptyStrings(true).parse();
 
             resultsFileValidator.validateFileForFormatAndLength(correlationID, ds, "SHOULD BE 486");
-            assessmentResultService.populateBatchFileAndLoadData(correlationID, ds, assessmentSessionID, fileUpload);
+            assessmentResultService.populateBatchFileAndLoadData(correlationID, ds, assessmentSessionID, fileUpload, isSingleResult);
         } catch (final ResultsFileUnProcessableException resultsFileUnProcessableException) {
             log.error("File could not be processed exception :: {}", resultsFileUnProcessableException);
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message(INVALID_PAYLOAD_MSG).status(BAD_REQUEST).build();

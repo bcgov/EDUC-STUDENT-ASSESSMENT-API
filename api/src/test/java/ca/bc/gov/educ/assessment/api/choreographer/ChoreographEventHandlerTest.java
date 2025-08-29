@@ -5,13 +5,11 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentMergeService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.StudentForAssessmentUpdate;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentHistory;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -43,6 +41,8 @@ class ChoreographEventHandlerTest extends BaseAssessmentAPITest {
     @Autowired
     AssessmentRepository assessmentRepository;
     @Autowired
+    AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+    @Autowired
     private AssessmentEventRepository assessmentEventRepository;
 
     @MockBean
@@ -50,6 +50,7 @@ class ChoreographEventHandlerTest extends BaseAssessmentAPITest {
 
     @AfterEach
     void tearDown() {
+        assessmentStudentHistoryRepository.deleteAll();
         this.studentRepository.deleteAll();
         this.assessmentEventRepository.deleteAll();
         this.assessmentRepository.deleteAll();

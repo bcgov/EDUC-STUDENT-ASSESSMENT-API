@@ -113,6 +113,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .createUser("ABC")
                 .updateUser("ABC")
                 .fileName("202406_RESULTS_LTE10.TXT")
+                .isSingleUpload("N")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + UUID.randomUUID() + "/results-file")
@@ -358,6 +359,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .createUser("ABC")
                 .updateUser("ABC")
                 .fileName("202406_RESULTS_LTP10.TXT")
+                .isSingleUpload("N")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
@@ -409,6 +411,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .createUser("ENHANCED_TEST_USER")
                 .updateUser("ENHANCED_TEST_USER")
                 .fileName("202406_RESULTS_LTP10.TXT")
+                .isSingleUpload("N")
                 .build();
 
         String correlationId = UUID.randomUUID().toString();
