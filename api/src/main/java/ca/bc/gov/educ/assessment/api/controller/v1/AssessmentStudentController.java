@@ -58,7 +58,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, false));
     RequestUtil.setAuditColumnsForUpdate(assessmentStudent);
     var pair = studentService.updateStudent(mapper.toModel(assessmentStudent), allowRuleOverride);
-    if(pair.getLeft().getAssessmentStudentValidationIssues().isEmpty()){
+    if(pair.getRight() != null) {
       publisher.dispatchChoreographyEvent(pair.getRight());  
     }
     return pair.getLeft();
@@ -70,7 +70,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     RequestUtil.setAuditColumnsForCreate(assessmentStudent);
     AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
     var pair = studentService.createStudent(assessmentStudentEntity, allowRuleOverride);
-    if(pair.getLeft().getAssessmentStudentValidationIssues().isEmpty()) {
+    if(pair.getRight() != null) {
       publisher.dispatchChoreographyEvent(pair.getRight());
     }
     return pair.getLeft();
