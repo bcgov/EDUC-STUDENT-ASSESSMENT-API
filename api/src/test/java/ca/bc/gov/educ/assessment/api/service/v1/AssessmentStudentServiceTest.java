@@ -61,6 +61,15 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   @Autowired
   AssessmentStudentService assessmentStudentService;
 
+  @Autowired
+  private AssessmentFormRepository assessmentFormRepository;
+
+  @Autowired
+  private AssessmentComponentRepository assessmentComponentRepository;
+
+  @Autowired
+  private AssessmentQuestionRepository assessmentQuestionRepository;
+
   @AfterEach
   public void after() {
     stagedAssessmentStudentRepository.deleteAll();
@@ -888,5 +897,131 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity unchangedStudent = stagedAssessmentStudentRepository.findById(savedStudent.getAssessmentStudentID()).orElse(null);
     assertThat(unchangedStudent).isNotNull();
     assertThat(unchangedStudent.getStagedAssessmentStudentStatus()).isEqualTo("LOADED");
+  }
+
+  @Test
+  void testGetStudentWithAssessmentDetailsByID_WhenStudentAndAssessmentExist_ShouldReturnStudentWithFullAssessmentDetails() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    
+    AssessmentFormEntity formEntity = createMockAssessmentFormEntity(assessmentEntity, "A");
+    AssessmentFormEntity savedForm = assessmentFormRepository.save(formEntity);
+    
+    AssessmentComponentEntity componentEntity = createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE");
+    AssessmentComponentEntity savedComponent = assessmentComponentRepository.save(componentEntity);
+    
+    AssessmentQuestionEntity question1 = createMockAssessmentQuestionEntity(savedComponent, 1, 1);
+    AssessmentQuestionEntity question2 = createMockAssessmentQuestionEntity(savedComponent, 2, 2);
+    assessmentQuestionRepository.save(question1);
+    assessmentQuestionRepository.save(question2);
+
+    AssessmentStudentEntity assessmentStudentEntity = assessmentStudentRepository.save(createMockStudentEntity(assessmentEntity));
+
+    AssessmentStudentEntity student = assessmentStudentService.getStudentWithAssessmentDetailsByID(
+        assessmentStudentEntity.getAssessmentStudentID(), 
+        assessmentEntity.getAssessmentID()
+    );
+
+    assertNotNull(student);
+    assertThat(student.getAssessmentStudentID()).isEqualTo(assessmentStudentEntity.getAssessmentStudentID());
+    
+    assertNotNull(student.getAssessmentEntity());
+    assertThat(student.getAssessmentEntity().getAssessmentID()).isEqualTo(assessmentEntity.getAssessmentID());
+    
+    assertNotNull(student.getAssessmentEntity().getAssessmentSessionEntity());
+    assertThat(student.getAssessmentEntity().getAssessmentSessionEntity().getSessionID())
+        .isEqualTo(assessmentSessionEntity.getSessionID());
+    
+    assertThat(student.getAssessmentEntity().getAssessmentForms()).hasSize(1);
+    AssessmentFormEntity loadedForm = student.getAssessmentEntity().getAssessmentForms().iterator().next();
+    assertThat(loadedForm.getAssessmentFormID()).isEqualTo(savedForm.getAssessmentFormID());
+    
+    assertThat(loadedForm.getAssessmentComponentEntities()).hasSize(1);
+    AssessmentComponentEntity loadedComponent = loadedForm.getAssessmentComponentEntities().iterator().next();
+    assertThat(loadedComponent.getAssessmentComponentID()).isEqualTo(savedComponent.getAssessmentComponentID());
+    
+    assertThat(loadedComponent.getAssessmentQuestionEntities()).hasSize(2);
+    List<Integer> questionNumbers = loadedComponent.getAssessmentQuestionEntities().stream()
+        .map(AssessmentQuestionEntity::getQuestionNumber)
+        .sorted()
+        .toList();
+    assertThat(questionNumbers).containsExactly(1, 2);
+  }
+
+  @Test
+  void testGetStudentWithAssessmentDetailsByID_WhenStudentExistsButAssessmentIDDoesNotMatch_ShouldThrowException() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentStudentEntity assessmentStudentEntity = assessmentStudentRepository.save(createMockStudentEntity(assessmentEntity));
+
+    UUID differentAssessmentID = UUID.randomUUID();
+
+    assertThrows(EntityNotFoundException.class, () ->
+        assessmentStudentService.getStudentWithAssessmentDetailsByID(
+            assessmentStudentEntity.getAssessmentStudentID(),
+            differentAssessmentID
+        )
+    );
+  }
+
+  @Test
+  void testGetStudentWithAssessmentDetailsByID_WhenStudentDoesNotExist_ShouldThrowException() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    UUID nonExistentStudentID = UUID.randomUUID();
+
+    assertThrows(EntityNotFoundException.class, () ->
+        assessmentStudentService.getStudentWithAssessmentDetailsByID(
+            nonExistentStudentID,
+            assessmentEntity.getAssessmentID()
+        )
+    );
+  }
+
+  @Test
+  void testGetStudentWithAssessmentDetailsByID_WhenAssessmentHasMultipleForms_ShouldLoadAllFormsWithComponentsAndQuestions() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    AssessmentFormEntity form1 = createMockAssessmentFormEntity(assessmentEntity, "A");
+    AssessmentFormEntity savedForm1 = assessmentFormRepository.save(form1);
+
+    AssessmentFormEntity form2 = createMockAssessmentFormEntity(assessmentEntity, "B");
+    AssessmentFormEntity savedForm2 = assessmentFormRepository.save(form2);
+
+    AssessmentComponentEntity component1 = createMockAssessmentComponentEntity(savedForm1, "MUL_CHOICE", "NONE");
+    AssessmentComponentEntity savedComponent1 = assessmentComponentRepository.save(component1);
+
+    AssessmentComponentEntity component2 = createMockAssessmentComponentEntity(savedForm2, "OPEN_ENDED", "NONE");
+    AssessmentComponentEntity savedComponent2 = assessmentComponentRepository.save(component2);
+
+    AssessmentQuestionEntity question1 = createMockAssessmentQuestionEntity(savedComponent1, 1, 1);
+    AssessmentQuestionEntity question2 = createMockAssessmentQuestionEntity(savedComponent2, 2, 2);
+    assessmentQuestionRepository.save(question1);
+    assessmentQuestionRepository.save(question2);
+
+    AssessmentStudentEntity assessmentStudentEntity = assessmentStudentRepository.save(createMockStudentEntity(assessmentEntity));
+
+    AssessmentStudentEntity student = assessmentStudentService.getStudentWithAssessmentDetailsByID(
+        assessmentStudentEntity.getAssessmentStudentID(),
+        assessmentEntity.getAssessmentID()
+    );
+
+    assertNotNull(student);
+    assertThat(student.getAssessmentEntity().getAssessmentForms()).hasSize(2);
+
+    List<String> formCodes = student.getAssessmentEntity().getAssessmentForms().stream()
+        .map(AssessmentFormEntity::getFormCode)
+        .sorted()
+        .toList();
+    assertThat(formCodes).containsExactly("A", "B");
+
+    for (AssessmentFormEntity form : student.getAssessmentEntity().getAssessmentForms()) {
+      assertThat(form.getAssessmentComponentEntities()).hasSize(1);
+      for (AssessmentComponentEntity component : form.getAssessmentComponentEntities()) {
+        assertThat(component.getAssessmentQuestionEntities()).hasSize(1);
+      }
+    }
   }
 }
