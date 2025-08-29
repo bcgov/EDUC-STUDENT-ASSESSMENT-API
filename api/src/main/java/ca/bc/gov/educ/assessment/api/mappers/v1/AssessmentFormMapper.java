@@ -8,12 +8,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class})
+@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, AssessmentComponentMapper.class})
 public interface AssessmentFormMapper {
 
     AssessmentFormMapper mapper = Mappers.getMapper(AssessmentFormMapper.class);
 
     @Mapping(target = "assessmentID", source = "assessmentEntity.assessmentID")
+    @Mapping(target = "assessmentComponents", source = "assessmentComponentEntities")
     AssessmentForm toStructure(AssessmentFormEntity entity);
 
 }

@@ -6,9 +6,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.URL;
 import ca.bc.gov.educ.assessment.api.filter.FilterOperation;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
@@ -26,10 +24,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
 import static ca.bc.gov.educ.assessment.api.struct.v1.Condition.AND;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,6 +64,12 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
   
   @Autowired
   private AssessmentFormRepository assessmentFormRepository;
+
+  @Autowired
+  private AssessmentComponentRepository assessmentComponentRepository;
+
+  @Autowired
+  private AssessmentQuestionRepository assessmentQuestionRepository;
 
   private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
 
@@ -716,4 +722,144 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
             .andExpect(status().isConflict());
   }
 
+  @Test
+  void testReadStudentResults_GivenValidIDs_ShouldReturnStudentWithAssessmentDetails() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+
+    AssessmentFormEntity formEntity = createMockAssessmentFormEntity(assessment, "A");
+    AssessmentFormEntity savedForm = assessmentFormRepository.save(formEntity);
+
+    AssessmentComponentEntity componentEntity = createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE");
+    AssessmentComponentEntity savedComponent = assessmentComponentRepository.save(componentEntity);
+
+    AssessmentQuestionEntity question1 = createMockAssessmentQuestionEntity(savedComponent, 1, 1);
+    question1.setCognitiveLevelCode("P");
+    AssessmentQuestionEntity question2 = createMockAssessmentQuestionEntity(savedComponent, 2, 2);
+    question2.setCognitiveLevelCode("Q");
+    assessmentQuestionRepository.save(question1);
+    assessmentQuestionRepository.save(question2);
+
+    AssessmentStudentEntity student = createMockStudentEntity(assessment);
+    student.setRawScore(new BigDecimal("85.5"));
+    student.setMcTotal(new BigDecimal("75.0"));
+    student.setOeTotal(new BigDecimal("10.5"));
+    UUID assessmentStudentID = studentRepository.save(student).getAssessmentStudentID();
+
+    this.mockMvc.perform(
+                    get(URL.BASE_URL_STUDENT + "/" + assessmentStudentID + "/assessment/" + assessment.getAssessmentID()).with(mockAuthority))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentStudentID", equalTo(assessmentStudentID.toString())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentID", equalTo(assessment.getAssessmentID().toString())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.sessionID", equalTo(session.getSessionID().toString())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentTypeCode", equalTo(AssessmentTypeCodes.LTF12.getCode())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.courseMonth", equalTo(session.getCourseMonth())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.courseYear", equalTo(session.getCourseYear())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.rawScore", equalTo(85.5)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.mcTotal", equalTo(75.0)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.oeTotal", equalTo(10.5)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentID", equalTo(assessment.getAssessmentID().toString())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.sessionID", equalTo(session.getSessionID().toString())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentTypeCode", equalTo(AssessmentTypeCodes.LTF12.getCode())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms").isArray())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms", hasSize(1)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[0].formCode", equalTo("A")))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[0].assessmentComponents").isArray())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[0].assessmentComponents", hasSize(1)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[0].assessmentComponents[0].componentTypeCode", equalTo("MUL_CHOICE")))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[0].assessmentComponents[0].assessmentQuestions").isArray())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[0].assessmentComponents[0].assessmentQuestions", hasSize(2)));
+  }
+
+  @Test
+  void testReadStudentResults_GivenInvalidAssessmentStudentID_ShouldReturn404() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    UUID invalidStudentID = UUID.randomUUID();
+    UUID invalidAssessmentID = UUID.randomUUID();
+
+    this.mockMvc.perform(
+                    get(URL.BASE_URL_STUDENT + "/" + invalidStudentID + "/assessment/" + invalidAssessmentID).with(mockAuthority))
+            .andDo(print())
+            .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testReadStudentResults_GivenValidStudentIDButWrongAssessmentID_ShouldReturn404() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+
+    UUID differentAssessmentID = UUID.randomUUID();
+
+    this.mockMvc.perform(
+                    get(URL.BASE_URL_STUDENT + "/" + assessmentStudentID + "/assessment/" + differentAssessmentID).with(mockAuthority))
+            .andDo(print())
+            .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testReadStudentResults_GivenIncorrectScope_ShouldReturn403() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_SDC_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+
+    this.mockMvc.perform(
+                    get(URL.BASE_URL_STUDENT + "/" + assessmentStudentID + "/assessment/" + assessment.getAssessmentID()).with(mockAuthority))
+            .andDo(print())
+            .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void testReadStudentResults_GivenAssessmentWithMultipleForms_ShouldReturnAllFormsAndComponents() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+
+    AssessmentFormEntity form1 = createMockAssessmentFormEntity(assessment, "A");
+    AssessmentFormEntity savedForm1 = assessmentFormRepository.save(form1);
+
+    AssessmentFormEntity form2 = createMockAssessmentFormEntity(assessment, "B");
+    AssessmentFormEntity savedForm2 = assessmentFormRepository.save(form2);
+
+    AssessmentComponentEntity component1 = createMockAssessmentComponentEntity(savedForm1, "MUL_CHOICE", "NONE");
+    component1.setQuestionCount(30);
+    AssessmentComponentEntity savedComponent1 = assessmentComponentRepository.save(component1);
+
+    AssessmentComponentEntity component2 = createMockAssessmentComponentEntity(savedForm2, "OPEN_ENDED", "NONE");
+    component2.setOeItemCount(5);
+    AssessmentComponentEntity savedComponent2 = assessmentComponentRepository.save(component2);
+
+    AssessmentQuestionEntity question1 = createMockAssessmentQuestionEntity(savedComponent1, 1, 1);
+    assessmentQuestionRepository.save(question1);
+
+    AssessmentQuestionEntity question2 = createMockAssessmentQuestionEntity(savedComponent2, 2, 2);
+    assessmentQuestionRepository.save(question2);
+
+    UUID assessmentStudentID = studentRepository.save(createMockStudentEntity(assessment)).getAssessmentStudentID();
+
+    this.mockMvc.perform(
+                    get(URL.BASE_URL_STUDENT + "/" + assessmentStudentID + "/assessment/" + assessment.getAssessmentID()).with(mockAuthority))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms", hasSize(2)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[*].formCode").value(containsInAnyOrder("A", "B")))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[*].assessmentComponents[*].componentTypeCode").value(containsInAnyOrder("MUL_CHOICE", "OPEN_ENDED")))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[0].assessmentComponents[0].assessmentQuestions", hasSize(1)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[1].assessmentComponents[0].assessmentQuestions", hasSize(1)));
+  }
 }

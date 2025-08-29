@@ -7,24 +7,26 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.ReadOnlyProperty;
 
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AssessmentForm extends BaseRequest implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class AssessmentStudentShowItem extends AssessmentStudentDetails {
+
     @ReadOnlyProperty
-    private String assessmentFormID;
+    private String sessionID;
+
     @ReadOnlyProperty
-    private String assessmentID;
+    private String assessmentTypeCode;
+
     @ReadOnlyProperty
-    private String formCode;
+    private String courseMonth;
+
     @ReadOnlyProperty
-    private List<AssessmentComponent> assessmentComponents;
+    private String courseYear;
+
+    @ReadOnlyProperty
+    private AssessmentDetails assessmentDetails;
+
 }
