@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.assessment.api.mappers.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentHistoryEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentHistorySearchEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentHistoryListItem;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentListItem;

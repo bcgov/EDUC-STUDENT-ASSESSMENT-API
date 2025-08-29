@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.controller.v1;
 import ca.bc.gov.educ.assessment.api.endpoint.v1.AssessmentStudentEndpoint;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
+import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentShowItemMapper;
 import ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
@@ -10,6 +11,7 @@ import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentSearchService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentListItem;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentShowItem;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import ca.bc.gov.educ.assessment.api.util.RequestUtil;
 import ca.bc.gov.educ.assessment.api.util.ValidationUtil;
@@ -37,8 +39,9 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
 
   private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
   private static final AssessmentStudentListItemMapper listItemMapper = AssessmentStudentListItemMapper.mapper;
+    private static final AssessmentStudentShowItemMapper showItemMapper = AssessmentStudentShowItemMapper.mapper;
 
-  @Autowired
+    @Autowired
   public AssessmentStudentController(AssessmentStudentService assessmentStudentService, AssessmentStudentValidator validator, AssessmentStudentSearchService searchService, Publisher publisher) {
     this.studentService = assessmentStudentService;
     this.validator = validator;
@@ -52,6 +55,11 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     assessmentStudentItem.setNumberOfAttempts(studentService.getNumberOfAttempts(assessmentStudentItem.getAssessmentID(), UUID.fromString(assessmentStudentItem.getStudentID())));
     return assessmentStudentItem;
   }
+
+    @Override
+    public AssessmentStudentShowItem readStudentResults(UUID assessmentStudentID, UUID assessmentID) {
+        return showItemMapper.toStructure(studentService.getStudentWithAssessmentDetailsByID(assessmentStudentID, assessmentID));
+    }
 
   @Override
   public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID, boolean allowRuleOverride) throws JsonProcessingException {
