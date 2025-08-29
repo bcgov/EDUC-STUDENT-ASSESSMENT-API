@@ -510,7 +510,7 @@ public class CSVReportService {
     public DownloadableReportResponse generateDataForItemAnalysis(UUID sessionID, String assessmentTypeCode) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
-        List<AssessmentStudentLightEntity> students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
+        List<AssessmentStudentLightEntity> students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentTypeCodeAndAssessmentEntity_AssessmentSessionEntity_SessionID(assessmentTypeCode, sessionID);
         List<String> assignedStudentIds = students.stream().map(AssessmentStudentLightEntity::getPen).toList();
 
         List<String> headers = Arrays.stream(DataItemAnalysisHeader.values()).map(DataItemAnalysisHeader::getCode).toList();
@@ -558,7 +558,7 @@ public class CSVReportService {
                 SdcSchoolCollectionStudent sdcStudent = studentMap.get(student.getPen());
                 String collectionSnapshotDate = studentToCollectionSnapshotDateMap.get(student.getPen());
 
-                List<String> csvRowData = prepareStudentForItemAnalysis(student, sdcStudent, assessmentTypeCode, sessionString, collectionSnapshotDate);
+                List<String> csvRowData = prepareStudentForItemAnalysis(student, sdcStudent, sessionString, collectionSnapshotDate);
                 csvPrinter.printRecord(csvRowData);
             }
             csvPrinter.flush();
@@ -736,7 +736,7 @@ public class CSVReportService {
         ));
     }
 
-    private List<String> prepareStudentForItemAnalysis(AssessmentStudentLightEntity student, SdcSchoolCollectionStudent sdcStudent, String assessmentTypeCode, String session, String collectionSnapshotDate) {
+    private List<String> prepareStudentForItemAnalysis(AssessmentStudentLightEntity student, SdcSchoolCollectionStudent sdcStudent, String session, String collectionSnapshotDate) {
         List<String> enrolledPrograms = new ArrayList<>();
         String sdcStudentNativeAcnestry = "0";
         String sdcStudentGender = "NA";
@@ -777,7 +777,7 @@ public class CSVReportService {
                 session,
                 student.getGradeAtRegistration(),
                 mincode,
-                assessmentTypeCode,
+                student.getAssessmentEntity().getAssessmentTypeCode(),
                 formCodes,
                 sdcStudentGender,
                 enrolledPrograms.contains("05") ? "1" : "0", //Francophone
