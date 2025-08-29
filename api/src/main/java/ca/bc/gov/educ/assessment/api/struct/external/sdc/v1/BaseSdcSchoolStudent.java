@@ -73,8 +73,8 @@ public class BaseSdcSchoolStudent extends BaseRequest {
     private String enrolledGradeCode;
 
     @Size(max = 10)
-    @NotNull(message = "enrolledProgramCode cannot be null")
-    private String enrolledProgramCode;
+    @NotNull(message = "enrolledProgramCodes cannot be null")
+    private String enrolledProgramCodes;
 
     private String schoolID;
 

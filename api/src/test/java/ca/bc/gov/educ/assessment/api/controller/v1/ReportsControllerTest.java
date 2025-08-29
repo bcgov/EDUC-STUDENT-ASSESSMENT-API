@@ -1478,7 +1478,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         sdcStudent.setAssignedPen("123456789");
         sdcStudent.setGender("M");
         sdcStudent.setNativeAncestryInd("N");
-        sdcStudent.setEnrolledProgramCode("1705");
+        sdcStudent.setEnrolledProgramCodes("1705");
         return sdcStudent;
     }
 
