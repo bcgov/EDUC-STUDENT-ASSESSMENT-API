@@ -103,7 +103,7 @@ public class AssessmentStudentService {
         var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity, false, allowRuleOverride);
 
         AssessmentEventEntity event = null;
-        if(student.getAssessmentStudentValidationIssues().isEmpty()){
+        if(student.getAssessmentStudentValidationIssues() != null) {
             event = generateStudentUpdatedEvent(student.getStudentID());
             assessmentEventRepository.save(event);
         }
@@ -128,7 +128,7 @@ public class AssessmentStudentService {
         var student = processStudent(assessmentStudentEntity, null, true, allowRuleOverride);
 
         AssessmentEventEntity event = null;
-        if(student.getAssessmentStudentValidationIssues().isEmpty()) {
+        if(student.getAssessmentStudentValidationIssues() != null) {
             event = generateStudentUpdatedEvent(student.getStudentID());
             assessmentEventRepository.save(event);
         }

@@ -22,4 +22,5 @@ public class AssessmentResultFileUpload extends BaseRequest implements Serializa
     @ToString.Exclude
     String fileContents;
     String replaceResultsFlag;//Y or N
+    String isSingleUpload;//Y or N
 }
