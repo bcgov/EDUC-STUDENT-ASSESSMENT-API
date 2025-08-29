@@ -67,7 +67,7 @@ public class Subscriber {
 
         this.streamTopicsMap.put(PUBLISHER_STREAM_NAME, studentAssessmentEventTopics);
         this.streamTopicsMap.put("PEN_SERVICES_EVENTS", penServicesEventTopics);
-        this.streamTopicsMap.put("GRAD_STATUS_EVENTS", gradStatusEventTopics);
+        this.streamTopicsMap.put("GRAD_STATUS_EVENT_STREAM", gradStatusEventTopics);
     }
 
     @PostConstruct
