@@ -130,11 +130,14 @@ public class AssessmentResultService {
 
         for(val studentResult : batchFile.getAssessmentResultData()) {
             var formEntity = formMap.get(studentResult.getFormCode());
-            createStudentRecordForCorrectionFile(correlationID, studentResult, fileUpload, validSession, assessmentEntity, formEntity);
+            if (formEntity == null) {
+                throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
+            }
+            createStudentRecordForCorrectionFile(studentResult, fileUpload, validSession, assessmentEntity, formEntity);
         }
     }
 
-    private void createStudentRecordForCorrectionFile(@NonNull final String correlationID, AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, AssessmentSessionEntity validSession, AssessmentEntity assessmentEntity, AssessmentFormEntity formEntity) throws ResultsFileUnProcessableException {
+    private void createStudentRecordForCorrectionFile(AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, AssessmentSessionEntity validSession, AssessmentEntity assessmentEntity, AssessmentFormEntity formEntity) throws ResultsFileUnProcessableException {
         var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
         if (StringUtils.isNotBlank(validSession.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(validSession.getApprovalAssessmentDesignUserID()) && StringUtils.isNotBlank(validSession.getApprovalAssessmentAnalysisUserID())) {
             //approved session
@@ -154,10 +157,6 @@ public class AssessmentResultService {
                 student.ifPresent(assessmentStudentEntity -> assessmentStudentRepository.deleteById(assessmentStudentEntity.getAssessmentStudentID()));
 
                 var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentID)).orElse(null);
-
-                if (formEntity == null) {
-                    throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
-                }
                 assessmentStudentRepository.save(createResultForApprovedSession(studentResult, fileUpload, gradStudent, studentApiRecord, formEntity, assessmentEntity));
             }
         } else {
@@ -168,9 +167,6 @@ public class AssessmentResultService {
                 optStagedStudent.ifPresent(stagedAssessmentStudentEntity -> stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID()));
             }
             StagedStudentResultEntity resultEntity = assessmentResultsBatchFileMapper.toStagedStudentResultEntity(studentResult, assessmentEntity, fileUpload);
-            if (formEntity == null) {
-                throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
-            }
             resultEntity.setAssessmentFormID(formEntity.getAssessmentFormID());
             resultEntity.setStagedStudentResultStatus("LOADED");
             stagedStudentResultRepository.save(resultEntity);
