@@ -16,6 +16,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import ca.bc.gov.educ.assessment.api.util.PenUtil;
@@ -128,72 +129,80 @@ public class AssessmentResultService {
         }
 
         for(val studentResult : batchFile.getAssessmentResultData()) {
-            var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
-            if (StringUtils.isNotBlank(validSession.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(validSession.getApprovalAssessmentDesignUserID()) && StringUtils.isNotBlank(validSession.getApprovalAssessmentAnalysisUserID())) {
-                //approved session
-                if (optStudent.isPresent()) {
-                    Student studentApiStudent = optStudent.get();
-                    boolean isMergedRecord = false;
-                    Student trueStudentApiStudentRecord = null;
-                    if(optStudent.get().getStatusCode().equalsIgnoreCase("M")) {
-                        List<Student> mergedStudent = restUtils.getStudents(UUID.randomUUID(), Set.of(optStudent.get().getTrueStudentID()));
-                        trueStudentApiStudentRecord = mergedStudent.getFirst();
-                        isMergedRecord = true;
-                    }
-                    var studentID = isMergedRecord ? trueStudentApiStudentRecord.getStudentID() : studentApiStudent.getStudentID();
-                    var studentApiRecord = isMergedRecord ? trueStudentApiStudentRecord : studentApiStudent;
-                    Optional<AssessmentStudentEntity> student = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentID));
-                    //delete existing student from assessment student table
-                    student.ifPresent(assessmentStudentEntity -> assessmentStudentRepository.deleteById(assessmentStudentEntity.getAssessmentStudentID()));
+            var formEntity = formMap.get(studentResult.getFormCode());
+            createStudentRecordForCorrectionFile(correlationID, studentResult, fileUpload, validSession, assessmentEntity, formEntity);
+        }
+    }
 
-                    var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentID)).orElse(null);
-                    var formEntity = formMap.get(studentResult.getFormCode());
-                    if (formEntity == null) {
-                        throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
-                    }
-
-                    var assessmentStudent = studentAssessmentResultService.createNewAssessmentStudentEntity(studentResult, studentApiRecord, gradStudent, formEntity.getAssessmentFormID(), assessmentEntity);
-                    assessmentStudent.setCreateDate(LocalDateTime.now());
-                    assessmentStudent.setCreateUser(fileUpload.getCreateUser());
-                    assessmentStudent.setUpdateUser(fileUpload.getUpdateUser());
-                    assessmentStudent.setUpdateDate(LocalDateTime.now());
-
-                    switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
-                        case MUL_CHOICE -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-                        case OPEN_ENDED -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-                        case ORAL -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
-                        case BOTH -> {
-                            studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-                            studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-                        }
-                    }
-
-                    var mcTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, formEntity);
-                    var oeTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, formEntity);
-                    var oralTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL, formEntity);
-
-                    assessmentStudent.setMcTotal(mcTotal);
-                    assessmentStudent.setOeTotal(oeTotal.add(oralTotal));
-                    assessmentStudent.setRawScore(mcTotal.add(oralTotal).add(oeTotal));
-                    assessmentStudentRepository.save(assessmentStudent);
+    private void createStudentRecordForCorrectionFile(@NonNull final String correlationID, AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, AssessmentSessionEntity validSession, AssessmentEntity assessmentEntity, AssessmentFormEntity formEntity) throws ResultsFileUnProcessableException {
+        var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
+        if (StringUtils.isNotBlank(validSession.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(validSession.getApprovalAssessmentDesignUserID()) && StringUtils.isNotBlank(validSession.getApprovalAssessmentAnalysisUserID())) {
+            //approved session
+            if (optStudent.isPresent()) {
+                Student studentApiStudent = optStudent.get();
+                boolean isMergedRecord = false;
+                Student trueStudentApiStudentRecord = null;
+                if(optStudent.get().getStatusCode().equalsIgnoreCase("M")) {
+                    List<Student> mergedStudent = restUtils.getStudents(UUID.randomUUID(), Set.of(optStudent.get().getTrueStudentID()));
+                    trueStudentApiStudentRecord = mergedStudent.getFirst();
+                    isMergedRecord = true;
                 }
-            } else {
-                //on-going session, delete student from staging table and load in the result upload table
-                if (optStudent.isPresent()) {
-                    Student studentApiStudent = optStudent.get();
-                    Optional<StagedAssessmentStudentEntity> optStagedStudent = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
-                    optStagedStudent.ifPresent(stagedAssessmentStudentEntity -> stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID()));
-                }
-                StagedStudentResultEntity resultEntity = assessmentResultsBatchFileMapper.toStagedStudentResultEntity(studentResult, assessmentEntity, fileUpload);
-                var formEntity = formMap.get(studentResult.getFormCode());
+                var studentID = isMergedRecord ? trueStudentApiStudentRecord.getStudentID() : studentApiStudent.getStudentID();
+                var studentApiRecord = isMergedRecord ? trueStudentApiStudentRecord : studentApiStudent;
+                Optional<AssessmentStudentEntity> student = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentID));
+                //delete existing student from assessment student table
+                student.ifPresent(assessmentStudentEntity -> assessmentStudentRepository.deleteById(assessmentStudentEntity.getAssessmentStudentID()));
+
+                var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentID)).orElse(null);
+
                 if (formEntity == null) {
                     throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
                 }
-                resultEntity.setAssessmentFormID(formEntity.getAssessmentFormID());
-                resultEntity.setStagedStudentResultStatus("LOADED");
-                stagedStudentResultRepository.save(resultEntity);
+                assessmentStudentRepository.save(createResultForApprovedSession(studentResult, fileUpload, gradStudent, studentApiRecord, formEntity, assessmentEntity));
+            }
+        } else {
+            //on-going session, delete student from staging table and load in the result upload table
+            if (optStudent.isPresent()) {
+                Student studentApiStudent = optStudent.get();
+                Optional<StagedAssessmentStudentEntity> optStagedStudent = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
+                optStagedStudent.ifPresent(stagedAssessmentStudentEntity -> stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID()));
+            }
+            StagedStudentResultEntity resultEntity = assessmentResultsBatchFileMapper.toStagedStudentResultEntity(studentResult, assessmentEntity, fileUpload);
+            if (formEntity == null) {
+                throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
+            }
+            resultEntity.setAssessmentFormID(formEntity.getAssessmentFormID());
+            resultEntity.setStagedStudentResultStatus("LOADED");
+            stagedStudentResultRepository.save(resultEntity);
+        }
+    }
+
+    private AssessmentStudentEntity createResultForApprovedSession(AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, GradStudentRecord gradStudent, Student studentApiRecord, AssessmentFormEntity formEntity, AssessmentEntity assessmentEntity) {
+        var assessmentStudent = studentAssessmentResultService.createNewAssessmentStudentEntity(studentResult, studentApiRecord, gradStudent, formEntity.getAssessmentFormID(), assessmentEntity);
+        assessmentStudent.setCreateDate(LocalDateTime.now());
+        assessmentStudent.setCreateUser(fileUpload.getCreateUser());
+        assessmentStudent.setUpdateUser(fileUpload.getUpdateUser());
+        assessmentStudent.setUpdateDate(LocalDateTime.now());
+
+        switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
+            case MUL_CHOICE -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+            case OPEN_ENDED -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+            case ORAL -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
+            case BOTH -> {
+                studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+                studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
             }
         }
+
+        var mcTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, formEntity);
+        var oeTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, formEntity);
+        var oralTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL, formEntity);
+
+        assessmentStudent.setMcTotal(mcTotal);
+        assessmentStudent.setOeTotal(oeTotal.add(oralTotal));
+        assessmentStudent.setRawScore(mcTotal.add(oralTotal).add(oeTotal));
+
+        return assessmentStudent;
     }
 
     private AssessmentResultDetails getAssessmentResultDetailRecordFromFile(final DataSet ds, final String guid, final String lineNumber) throws ResultsFileUnProcessableException {

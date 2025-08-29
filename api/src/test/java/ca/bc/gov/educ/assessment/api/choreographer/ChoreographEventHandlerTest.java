@@ -9,7 +9,6 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentMergeService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.StudentForAssessmentUpdate;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentHistory;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
