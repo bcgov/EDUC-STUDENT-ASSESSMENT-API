@@ -752,9 +752,9 @@ public class CSVReportService {
         }
 
         if (sdcStudent != null) {
-            if (sdcStudent.getEnrolledProgramCode() != null && !sdcStudent.getEnrolledProgramCode().isEmpty()) {
+            if (sdcStudent.getEnrolledProgramCodes() != null && !sdcStudent.getEnrolledProgramCodes().isEmpty()) {
                 Pattern pattern = Pattern.compile(".{2}");
-                Matcher matcher = pattern.matcher(sdcStudent.getEnrolledProgramCode());
+                Matcher matcher = pattern.matcher(sdcStudent.getEnrolledProgramCodes());
 
                 while (matcher.find()) {
                     enrolledPrograms.add(matcher.group());
