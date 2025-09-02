@@ -765,11 +765,13 @@ public class CSVReportService {
             sdcStudentGender = sdcStudent.getGender() != null ? sdcStudent.getGender() : "NA";
         }
 
-        String formCodes = null;
-        if (student.getAssessmentEntity().getAssessmentForms() != null && !student.getAssessmentEntity().getAssessmentForms().isEmpty()) {
-            formCodes = student.getAssessmentEntity().getAssessmentForms().stream()
+        String formCode = null;
+        if (student.getAssessmentFormID() != null && student.getAssessmentEntity().getAssessmentForms() != null && !student.getAssessmentEntity().getAssessmentForms().isEmpty()) {
+            formCode = student.getAssessmentEntity().getAssessmentForms().stream()
+                    .filter(assessmentFormEntity -> assessmentFormEntity.getAssessmentFormID().equals(student.getAssessmentFormID()))
+                    .findFirst()
                     .map(AssessmentFormEntity::getFormCode)
-                    .collect(Collectors.joining(","));
+                    .orElse(null);
         }
 
         return new ArrayList<>(Arrays.asList(
@@ -778,7 +780,7 @@ public class CSVReportService {
                 student.getGradeAtRegistration(),
                 mincode,
                 student.getAssessmentEntity().getAssessmentTypeCode(),
-                formCodes,
+                formCode,
                 sdcStudentGender,
                 enrolledPrograms.contains("05") ? "1" : "0", //Francophone
                 enrolledPrograms.contains("11") ? "1" : "0", // Early French Immersion
@@ -786,6 +788,7 @@ public class CSVReportService {
                 enrolledPrograms.contains("17") ? "1" : "0", // ELL
                 sdcStudentNativeAcnestry, //Indigenous Ancestry
                 collectionSnapshotDate,
+                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null,
                 student.getMcTotal() != null ? student.getMcTotal().toString() : null,
                 student.getOeTotal() != null ? student.getOeTotal().toString() : null,
                 student.getRawScore() != null ? student.getRawScore().toString() : null,
