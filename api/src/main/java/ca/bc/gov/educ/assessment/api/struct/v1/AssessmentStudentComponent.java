@@ -15,18 +15,13 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AssessmentComponent extends BaseRequest implements Serializable {
+public class AssessmentStudentComponent extends BaseRequest implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private String assessmentStudentComponentID;
+    private String assessmentStudentID;
     private String assessmentComponentID;
-    private String assessmentFormID;
-    private String componentTypeCode;
-    private String componentSubTypeCode;
-    private Integer questionCount;
-    private Integer numOmits;
-    private Integer oeItemCount;
-    private Integer oeMarkCount;
-    private List<AssessmentQuestion> assessmentQuestions;
+    private String choicePath;
     private List<AssessmentAnswer> assessmentAnswers;
 }
