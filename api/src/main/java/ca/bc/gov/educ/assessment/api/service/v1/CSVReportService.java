@@ -786,6 +786,7 @@ public class CSVReportService {
                 enrolledPrograms.contains("17") ? "1" : "0", // ELL
                 sdcStudentNativeAcnestry, //Indigenous Ancestry
                 collectionSnapshotDate,
+                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null,
                 student.getMcTotal() != null ? student.getMcTotal().toString() : null,
                 student.getOeTotal() != null ? student.getOeTotal().toString() : null,
                 student.getRawScore() != null ? student.getRawScore().toString() : null,
