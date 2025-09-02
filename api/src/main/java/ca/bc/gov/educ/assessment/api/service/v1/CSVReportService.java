@@ -781,6 +781,7 @@ public class CSVReportService {
                 mincode,
                 student.getAssessmentEntity().getAssessmentTypeCode(),
                 formCode,
+                sdcStudentGender,
                 enrolledPrograms.contains("05") ? "1" : "0", //Francophone
                 enrolledPrograms.contains("11") ? "1" : "0", // Early French Immersion
                 enrolledPrograms.contains("14") ? "1" : "0", // Late French Immersion
