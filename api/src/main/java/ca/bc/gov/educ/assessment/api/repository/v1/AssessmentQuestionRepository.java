@@ -15,6 +15,8 @@ public interface AssessmentQuestionRepository extends JpaRepository<AssessmentQu
 
     int countAllByAssessmentComponentEntity_AssessmentComponentIDAndQuestionNumber(UUID assessmentComponentID, Integer questionNumber);
 
+    List<AssessmentQuestionEntity> findByAssessmentComponentEntity_AssessmentFormEntity_AssessmentFormID(UUID assessmentFormID);
+
     List<AssessmentQuestionEntity> findByAssessmentComponentEntity_AssessmentComponentID(UUID assessmentComponentID);
 
 }

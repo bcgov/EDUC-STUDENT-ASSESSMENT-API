@@ -51,11 +51,11 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
     int updateStagedAssessmentStudentStatusByIds(List<UUID> studentIds, String currentStatus, String newStatus, String updateUser, LocalDateTime updateDate);
 
     @Query(value = """
-        SELECT s.assessmentStudentID 
+        SELECT s
         FROM StagedAssessmentStudentEntity s 
         WHERE s.stagedAssessmentStudentStatus = :status 
         ORDER BY s.updateDate DESC""")
-    List<UUID> findStudentIdsByStatusOrderByUpdateDate(String status, Pageable pageable);
+    List<StagedAssessmentStudentEntity> findStudentIdsByStatusOrderByUpdateDate(String status, Pageable pageable);
 
     List<StagedAssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatusIn(UUID sessionID, List<String> studentStatuses);
 }

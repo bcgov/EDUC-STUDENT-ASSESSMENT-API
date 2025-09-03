@@ -51,10 +51,13 @@ public abstract class BaseAssessmentAPITest {
   private ContextCodeRepository contextCodeRepository;
   @Autowired
   private TaskCodeRepository taskCodeRepository;
+  @Autowired
+  private AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository;
 
   @BeforeEach
   public void before() {
     // Setup test data - Flyway migrations will have already run during app startup
+    assessmentStudentDOARCalculationRepository.deleteAll();
     claimCodeRepository.saveAll(List.of(createClaimCode("C"), createClaimCode("W"), createClaimCode("O")));
     cognitiveLevelCodeRepository.saveAll(List.of(createCognitiveCode("7"), createCognitiveCode("8"), createCognitiveCode("9")));
     var conceptsList = List.of(createConceptsCode("WRB"),
