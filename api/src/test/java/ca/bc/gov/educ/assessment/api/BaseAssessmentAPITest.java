@@ -105,6 +105,22 @@ public abstract class BaseAssessmentAPITest {
             .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
   }
 
+  public AssessmentStudentEntity createMockAssessmentStudentEntity(AssessmentEntity assessment, UUID studentId) {
+    return AssessmentStudentEntity.builder()
+        .assessmentStudentID(UUID.randomUUID())
+        .assessmentEntity(assessment)
+        .studentID(studentId)
+        .givenName("John")
+        .surname("Doe")
+        .pen("123456789")
+        .schoolOfRecordSchoolID(UUID.randomUUID())
+        .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+        .createDate(LocalDateTime.now())
+        .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+        .updateDate(LocalDateTime.now())
+        .build();
+  }
+
   public AssessmentSessionEntity createMockSessionEntity() {
     LocalDateTime currentDate = LocalDateTime.now();
     return AssessmentSessionEntity.builder()

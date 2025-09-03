@@ -6,7 +6,7 @@ import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.NumeracyAssessmentCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
-import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentAlgorithmMapper;
+import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
@@ -68,7 +68,7 @@ public class EventHandlerService {
      */
     public static final String EVENT_PAYLOAD = "event is :: {}";
     private static final AssessmentStudentMapper assessmentStudentMapper = AssessmentStudentMapper.mapper;
-    private static final AssessmentStudentAlgorithmMapper assessmentStudentAlgorithmMapper = AssessmentStudentAlgorithmMapper.mapper;
+    private final AssessmentStudentListItemMapper assessmentStudentListItemMapper = AssessmentStudentListItemMapper.mapper;
     private static final SessionMapper sessionMapper = SessionMapper.mapper;
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentEventRepository assessmentEventRepository;
@@ -143,7 +143,7 @@ public class EventHandlerService {
         val assessmentStudentEntityList = assessmentStudentRepository.findByStudentID(UUID.fromString(event.getEventPayload()));
         log.info("Found :: {} assessment student records for student ID :: {}", assessmentStudentEntityList.size(), UUID.fromString(event.getEventPayload()));
         if (!assessmentStudentEntityList.isEmpty()) {
-            var assessmentStudentList = assessmentStudentEntityList.stream().map(assessmentStudentAlgorithmMapper::toStructure).collect(Collectors.toList());
+            var assessmentStudentList = assessmentStudentEntityList.stream().map(assessmentStudentListItemMapper::toStructure).collect(Collectors.toList());
             return JsonUtil.getJsonBytesFromObject(assessmentStudentList);
         } else {
             return new byte[0];

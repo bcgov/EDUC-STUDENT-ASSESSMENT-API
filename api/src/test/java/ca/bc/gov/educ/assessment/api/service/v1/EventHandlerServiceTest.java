@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,12 @@ import java.io.IOException;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.util.List;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentListItem;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -200,5 +208,197 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
     assertThat(studentResponseEvent).isNotNull();
     assertThat(studentResponseEvent.isHasPriorRegistration()).isTrue();
     assertThat(Integer.parseInt(studentResponseEvent.getNumberOfAttempts())).isEqualTo(2);
+  }
+
+  @Nested
+  @DisplayName("GET_ASSESSMENT_STUDENTS Event Tests")
+  class GetAssessmentStudentsEventTests {
+
+    @Test
+    @DisplayName("Should return list when multiple students exist for same student ID")
+    void testHandleEvent_givenEventTypeGET_ASSESSMENT_STUDENTS_whenStudentsExist_shouldReturnStudentList() throws IOException {
+      // Given
+      AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+      AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+      
+      // Create multiple assessment students for the same student
+      UUID studentId = UUID.randomUUID();
+      AssessmentStudentEntity student1 = createMockAssessmentStudentEntity(assessment, studentId);
+      AssessmentStudentEntity student2 = createMockAssessmentStudentEntity(assessment, studentId);
+      
+      assessmentStudentRepository.save(student1);
+      assessmentStudentRepository.save(student2);
+
+      var sagaId = UUID.randomUUID();
+      final Event event = Event.builder()
+          .eventType(EventType.GET_ASSESSMENT_STUDENTS)
+          .sagaId(sagaId)
+          .replyTo(ASSESSMENT_API_TOPIC)
+          .eventPayload(studentId.toString())
+          .build();
+
+      // When
+      byte[] response = eventHandlerServiceUnderTest.handleGetAssessmentStudentsEvent(event);
+
+      // Then
+      assertThat(response).isNotEmpty();
+      List<AssessmentStudentListItem> studentList = deserializeStudentList(response);
+      assertThat(studentList.size()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Should return empty byte array when no students exist")
+    void testHandleEvent_givenEventTypeGET_ASSESSMENT_STUDENTS_whenNoStudentsExist_shouldReturnEmptyByteArray() throws IOException {
+      // Given
+      UUID studentId = UUID.randomUUID();
+      var sagaId = UUID.randomUUID();
+      final Event event = Event.builder()
+          .eventType(EventType.GET_ASSESSMENT_STUDENTS)
+          .sagaId(sagaId)
+          .replyTo(ASSESSMENT_API_TOPIC)
+          .eventPayload(studentId.toString())
+          .build();
+
+      // When
+      byte[] response = eventHandlerServiceUnderTest.handleGetAssessmentStudentsEvent(event);
+
+      // Then
+      assertThat(response).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should return single student when one student exists")
+    void testHandleEvent_givenEventTypeGET_ASSESSMENT_STUDENTS_whenSingleStudentExists_shouldReturnStudentList() throws IOException {
+      // Given
+      AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+      AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+      
+      UUID studentId = UUID.randomUUID();
+      AssessmentStudentEntity student = createMockAssessmentStudentEntity(assessment, studentId);
+      assessmentStudentRepository.save(student);
+
+      var sagaId = UUID.randomUUID();
+      final Event event = Event.builder()
+          .eventType(EventType.GET_ASSESSMENT_STUDENTS)
+          .sagaId(sagaId)
+          .replyTo(ASSESSMENT_API_TOPIC)
+          .eventPayload(studentId.toString())
+          .build();
+
+      // When
+      byte[] response = eventHandlerServiceUnderTest.handleGetAssessmentStudentsEvent(event);
+
+      // Then
+      assertThat(response).isNotEmpty();
+      List<AssessmentStudentListItem> studentList = deserializeStudentList(response);
+      assertThat(studentList.size()).isEqualTo(1);
+      
+      AssessmentStudentListItem returnedStudent = studentList.getFirst();
+      assertThat(returnedStudent.getStudentID()).isEqualTo(studentId.toString());
+      assertThat(returnedStudent.getAssessmentID()).isEqualTo(assessment.getAssessmentID().toString());
+      assertThat(returnedStudent.getAssessmentTypeCode()).isEqualTo(assessment.getAssessmentTypeCode());
+      assertThat(returnedStudent.getSessionID()).isEqualTo(session.getSessionID().toString());
+      assertThat(returnedStudent.getCourseYear()).isEqualTo(session.getCourseYear());
+      assertThat(returnedStudent.getCourseMonth()).isEqualTo(session.getCourseMonth());
+    }
+
+    @Test
+    @DisplayName("Should return all assessments when multiple assessments exist for same student")
+    void testHandleEvent_givenEventTypeGET_ASSESSMENT_STUDENTS_whenMultipleAssessmentsForSameStudent_shouldReturnAllAssessments() throws IOException {
+      // Given
+      AssessmentSessionEntity session1 = assessmentSessionRepository.save(createMockSessionEntity());
+      AssessmentSessionEntity session2 = assessmentSessionRepository.save(createMockSessionEntity());
+      
+      AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(session1, AssessmentTypeCodes.LTF12.getCode()));
+      AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(session2, AssessmentTypeCodes.LTP10.getCode()));
+      
+      UUID studentId = UUID.randomUUID();
+      AssessmentStudentEntity student1 = createMockAssessmentStudentEntity(assessment1, studentId);
+      AssessmentStudentEntity student2 = createMockAssessmentStudentEntity(assessment2, studentId);
+      
+      assessmentStudentRepository.save(student1);
+      assessmentStudentRepository.save(student2);
+
+      var sagaId = UUID.randomUUID();
+      final Event event = Event.builder()
+          .eventType(EventType.GET_ASSESSMENT_STUDENTS)
+          .sagaId(sagaId)
+          .replyTo(ASSESSMENT_API_TOPIC)
+          .eventPayload(studentId.toString())
+          .build();
+
+      // When
+      byte[] response = eventHandlerServiceUnderTest.handleGetAssessmentStudentsEvent(event);
+
+      // Then
+      assertThat(response).isNotEmpty();
+      List<AssessmentStudentListItem> studentList = deserializeStudentList(response);
+      assertThat(studentList.size()).isEqualTo(2);
+      
+      // Verify both assessments are returned
+      List<String> assessmentIds = studentList.stream()
+          .map(AssessmentStudentListItem::getAssessmentID)
+          .toList();
+      assertThat(assessmentIds.contains(assessment1.getAssessmentID().toString())).isTrue();
+      assertThat(assessmentIds.contains(assessment2.getAssessmentID().toString())).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when event payload is invalid UUID")
+    void testHandleEvent_givenEventTypeGET_ASSESSMENT_STUDENTS_whenInvalidUUID_shouldThrowException() {
+      // Given
+      var sagaId = UUID.randomUUID();
+      final Event event = Event.builder()
+          .eventType(EventType.GET_ASSESSMENT_STUDENTS)
+          .sagaId(sagaId)
+          .replyTo(ASSESSMENT_API_TOPIC)
+          .eventPayload("invalid-uuid")
+          .build();
+
+      // When & Then
+      assertThatThrownBy(() -> eventHandlerServiceUnderTest.handleGetAssessmentStudentsEvent(event))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("Should throw NullPointerException when event payload is null")
+    void testHandleEvent_givenEventTypeGET_ASSESSMENT_STUDENTS_whenNullEventPayload_shouldThrowException() {
+      // Given
+      var sagaId = UUID.randomUUID();
+      final Event event = Event.builder()
+          .eventType(EventType.GET_ASSESSMENT_STUDENTS)
+          .sagaId(sagaId)
+          .replyTo(ASSESSMENT_API_TOPIC)
+          .eventPayload(null)
+          .build();
+
+      // When & Then
+      assertThatThrownBy(() -> eventHandlerServiceUnderTest.handleGetAssessmentStudentsEvent(event))
+          .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when event payload is empty string")
+    void testHandleEvent_givenEventTypeGET_ASSESSMENT_STUDENTS_whenEmptyEventPayload_shouldThrowException() {
+      // Given
+      var sagaId = UUID.randomUUID();
+      final Event event = Event.builder()
+          .eventType(EventType.GET_ASSESSMENT_STUDENTS)
+          .sagaId(sagaId)
+          .replyTo(ASSESSMENT_API_TOPIC)
+          .eventPayload("")
+          .build();
+
+      // When & Then
+      assertThatThrownBy(() -> eventHandlerServiceUnderTest.handleGetAssessmentStudentsEvent(event))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+  }
+
+  // Helper method to properly deserialize generic lists
+  private List<AssessmentStudentListItem> deserializeStudentList(byte[] response) throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper.readValue(response, new TypeReference<>() {
+    });
   }
 }
