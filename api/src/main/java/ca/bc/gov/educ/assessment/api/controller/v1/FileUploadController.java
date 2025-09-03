@@ -35,7 +35,7 @@ public class FileUploadController implements FileUploadEndpoint {
 
     @Override
     public ResponseEntity<Void> processAssessmentResultsFile(AssessmentResultFileUpload fileUpload, String session) {
-        assessmentResultsProcessor.processAssessmentResults(fileUpload, UUID.fromString(session));
+        assessmentResultsProcessor.processAssessmentResults(fileUpload, UUID.fromString(session), fileUpload.getIsSingleUpload().equalsIgnoreCase("Y"));
         return ResponseEntity.noContent().build();
     }
 

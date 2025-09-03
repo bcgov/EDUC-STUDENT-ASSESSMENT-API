@@ -64,11 +64,11 @@ public class DOARReportService {
         List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolID(assessmentEntity.getAssessmentID(), schoolID);
 
         for (AssessmentStudentEntity result : results) {
-            var selectedAssessmentForm = assessmentEntity.getAssessmentForms().stream()
-                    .filter(assessmentFormEntity -> Objects.equals(assessmentFormEntity.getAssessmentFormID(), result.getAssessmentFormID()))
-                    .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "assessmentFormID", result.getAssessmentFormID().toString()));
-            List<String> csvRowData = prepareDOARForCsv(result, selectedAssessmentForm, schoolTombstone.getMincode(), assessmentTypeCode);
-            csvRecords.add(csvRowData);
+            var studentDOARCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentIDAndAssessmentID(result.getAssessmentStudentID(), result.getAssessmentEntity().getAssessmentID());
+            if(studentDOARCalc.isPresent()) {
+                List<String> csvRowData = prepareDOARForCsv(result, studentDOARCalc.get(), schoolTombstone.getMincode(), assessmentTypeCode);
+                csvRecords.add(csvRowData);
+            }
         }
         return csvRecords;
     }
@@ -138,13 +138,13 @@ public class DOARReportService {
         }
     }
 
-    private List<String> prepareDOARForCsv(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String mincode, String assessmentTypeCode) {
+    private List<String> prepareDOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode, String assessmentTypeCode) {
         return switch (assessmentTypeCode) {
-            case "NME10", "NMF10" -> prepareNMEDOARForCsv(student, selectedAssessmentForm, mincode);
-            case "LTE10", "LTE12" -> prepareLTEDOARForCsv(student, selectedAssessmentForm, mincode);
-            case LTP12 -> prepareLTP12DOARForCsv(student, selectedAssessmentForm, mincode);
-            case LTP10 -> prepareLTP10DOARForCsv(student, selectedAssessmentForm, mincode);
-            case LTF12 -> prepareLTF12DOARForCsv(student, selectedAssessmentForm, mincode);
+            case "NME10", "NMF10" -> prepareNMEDOARForCsv(student, studentDOARCalc, mincode);
+            case "LTE10", "LTE12" -> prepareLTEDOARForCsv(student, studentDOARCalc, mincode);
+            case LTP12 -> prepareLTP12DOARForCsv(student, studentDOARCalc, mincode);
+            case LTP10 -> prepareLTP10DOARForCsv(student, studentDOARCalc, mincode);
+            case LTF12 -> prepareLTF12DOARForCsv(student, studentDOARCalc, mincode);
             default -> Collections.emptyList();
         };
     }
@@ -191,27 +191,27 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTEDOARForCsv(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String mincode) {
+    private List<String> prepareLTEDOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
                 student.getPen(),
                 student.getLocalID(),
                 student.getSurname(),
                 student.getGivenName(),
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 student.getProvincialSpecialCaseCode(),
-                getStudentTotals(MUL_CHOICE, "C", selectedAssessmentForm, student, "LTE", true),
-                getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, "LTE", true),
-                getStudentTotals(MUL_CHOICE, "A", selectedAssessmentForm, student, "LTE", true),
-                getStudentTotals(MUL_CHOICE, "B", selectedAssessmentForm, student, "LTE", true),
-                getStudentTotals(OPEN_ENDED, "GO", selectedAssessmentForm, student, "LTE", true),
-                getStudentTotals(OPEN_ENDED, "WRA", selectedAssessmentForm, student, "LTE", true),
-                getStudentTotals(OPEN_ENDED, "WRB", selectedAssessmentForm, student, "LTE", true),
-                getStudentTotals("BOTH", "7", selectedAssessmentForm, student, "LTE", true),
-                getStudentTotals("BOTH", "8", selectedAssessmentForm, student, "LTE", true),
-                getStudentTotals("BOTH", "9", selectedAssessmentForm, student, "LTE", true)
+                studentDOARCalc.getTaskComprehend().toString(),
+                studentDOARCalc.getTaskCommunicate().toString(),
+                studentDOARCalc.getComprehendPartA().toString(),
+                studentDOARCalc.getComprehendPartB().toString(),
+                studentDOARCalc.getCommunicateGraphicOrg().toString(),
+                studentDOARCalc.getCommunicateUnderstanding().toString(),
+                studentDOARCalc.getCommunicatePersonalConn().toString(),
+                studentDOARCalc.getDok1().toString(),
+                studentDOARCalc.getDok2().toString(),
+                studentDOARCalc.getDok3().toString()
         ));
     }
 
@@ -255,31 +255,31 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTP12DOARForCsv(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String mincode) {
+    private List<String> prepareLTP12DOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
                 student.getPen(),
                 student.getLocalID(),
                 student.getSurname(),
                 student.getGivenName(),
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 student.getProvincialSpecialCaseCode(),
-                getStudentTotals(MUL_CHOICE, "C", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(OPEN_ENDED, "O", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(MUL_CHOICE, "A", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(MUL_CHOICE, "B", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(OPEN_ENDED, "GO", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(OPEN_ENDED, "WRA", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(OPEN_ENDED, "WRB", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(OPEN_ENDED, "O1", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(OPEN_ENDED, "O2", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(OPEN_ENDED, "O3", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(BOTH, "7", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(BOTH, "8", selectedAssessmentForm, student, LTP12, true),
-                getStudentTotals(BOTH, "9", selectedAssessmentForm, student, LTP12, true)
+                studentDOARCalc.getTaskComprehend().toString(),
+                studentDOARCalc.getTaskCommunicate().toString(),
+                studentDOARCalc.getTaskOral().toString(),
+                studentDOARCalc.getComprehendPartA().toString(),
+                studentDOARCalc.getComprehendPartB().toString(),
+                studentDOARCalc.getCommunicateGraphicOrg().toString(),
+                studentDOARCalc.getCommunicateUnderstanding().toString(),
+                studentDOARCalc.getCommunicatePersonalConn().toString(),
+                studentDOARCalc.getCommunicateOralPart1().toString(),
+                studentDOARCalc.getCommunicateOralPart2().toString(),
+                studentDOARCalc.getCommunicateOralPart3().toString(),
+                studentDOARCalc.getDok1().toString(),
+                studentDOARCalc.getDok2().toString(),
+                studentDOARCalc.getDok3().toString()
         ));
     }
 
@@ -325,32 +325,32 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTP10DOARForCsv(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String mincode) {
+    private List<String> prepareLTP10DOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
                 student.getPen(),
                 student.getLocalID(),
                 student.getSurname(),
                 student.getGivenName(),
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 student.getProvincialSpecialCaseCode(),
-                getStudentTotals(MUL_CHOICE, "C", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(OPEN_ENDED, "O", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(MUL_CHOICE, "A", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(MUL_CHOICE, "B", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(OPEN_ENDED, "WRS", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(OPEN_ENDED, "GO", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(OPEN_ENDED, "WRA", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(OPEN_ENDED, "WRB", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(OPEN_ENDED, "O1", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(OPEN_ENDED, "O2", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(OPEN_ENDED, "O3", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(BOTH, "7", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(BOTH, "8", selectedAssessmentForm, student, LTP10, true),
-                getStudentTotals(BOTH, "9", selectedAssessmentForm, student, LTP10, true)
+                studentDOARCalc.getTaskComprehend().toString(),
+                studentDOARCalc.getTaskCommunicate().toString(),
+                studentDOARCalc.getTaskOral().toString(),
+                studentDOARCalc.getComprehendPartA().toString(),
+                studentDOARCalc.getComprehendPartB().toString(),
+                studentDOARCalc.getComprehendPartAShort().toString(),
+                studentDOARCalc.getCommunicateGraphicOrg().toString(),
+                studentDOARCalc.getCommunicateUnderstanding().toString(),
+                studentDOARCalc.getCommunicatePersonalConn().toString(),
+                studentDOARCalc.getCommunicateOralPart1().toString(),
+                studentDOARCalc.getCommunicateOralPart2().toString(),
+                studentDOARCalc.getCommunicateOralPart3().toString(),
+                studentDOARCalc.getDok1().toString(),
+                studentDOARCalc.getDok2().toString(),
+                studentDOARCalc.getDok3().toString()
         ));
     }
 
@@ -403,35 +403,35 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTF12DOARForCsv(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String mincode) {
+    private List<String> prepareLTF12DOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
                 student.getPen(),
                 student.getLocalID(),
                 student.getSurname(),
                 student.getGivenName(),
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 student.getProvincialSpecialCaseCode(),
-                getStudentTotals(MUL_CHOICE, "C", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "O", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(MUL_CHOICE, "A", selectedAssessmentForm, student, LTF12, false),
-                getStudentTotals(MUL_CHOICE, "I", selectedAssessmentForm, student, LTF12, false),
-                getStudentTotals(MUL_CHOICE, "E", selectedAssessmentForm, student, LTF12, false),
-                getStudentTotals(OPEN_ENDED, "WRS", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "WRD", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "WRF", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "O1D", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "O1F", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "O1E", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "O2D", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "O2F", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(OPEN_ENDED, "O2E", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(BOTH, "7", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(BOTH, "8", selectedAssessmentForm, student, LTF12, true),
-                getStudentTotals(BOTH, "9", selectedAssessmentForm, student, LTF12, true)
+                studentDOARCalc.getTaskComprehend().toString(),
+                studentDOARCalc.getTaskCommunicate().toString(),
+                studentDOARCalc.getTaskOral().toString(),
+                studentDOARCalc.getComprehendPartATask().toString(),
+                studentDOARCalc.getComprehendPartBInfo().toString(),
+                studentDOARCalc.getComprehendPartBExp().toString(),
+                studentDOARCalc.getComprehendPartAShort().toString(),
+                studentDOARCalc.getDissertationBackground().toString(),
+                studentDOARCalc.getDissertationForm().toString(),
+                studentDOARCalc.getCommunicateOralPart1Background().toString(),
+                studentDOARCalc.getCommunicateOralPart1Form().toString(),
+                studentDOARCalc.getCommunicateOralPart1Expression().toString(),
+                studentDOARCalc.getCommunicateOralPart2Background().toString(),
+                studentDOARCalc.getCommunicateOralPart2Form().toString(),
+                studentDOARCalc.getCommunicateOralPart2Expression().toString(),
+                studentDOARCalc.getDok1().toString(),
+                studentDOARCalc.getDok2().toString(),
+                studentDOARCalc.getDok3().toString()
         ));
     }
 
@@ -467,28 +467,28 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareNMEDOARForCsv(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String mincode) {
+    private List<String> prepareNMEDOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + selectedAssessmentForm.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
-                selectedAssessmentForm.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
                 student.getPen(),
                 student.getLocalID(),
                 student.getSurname(),
                 student.getGivenName(),
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 student.getProvincialSpecialCaseCode(),
-                getStudentTotals(BOTH, "P", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(BOTH, "R", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(BOTH, "F", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(BOTH, "M", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(MUL_CHOICE, "I", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(MUL_CHOICE, "P", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(MUL_CHOICE, "S", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(MUL_CHOICE, "N", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(BOTH, "7", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(BOTH, "8", selectedAssessmentForm, student, "NME", false),
-                getStudentTotals(BOTH, "9", selectedAssessmentForm, student, "NME", false)
+                studentDOARCalc.getTaskPlan().toString(),
+                studentDOARCalc.getTaskEstimate().toString(),
+                studentDOARCalc.getTaskFair().toString(),
+                studentDOARCalc.getTaskModel().toString(),
+                studentDOARCalc.getNumeracyInterpret().toString(),
+                studentDOARCalc.getNumeracyApply().toString(),
+                studentDOARCalc.getNumeracySolve().toString(),
+                studentDOARCalc.getNumeracyAnalyze().toString(),
+                studentDOARCalc.getDok1().toString(),
+                studentDOARCalc.getDok2().toString(),
+                studentDOARCalc.getDok3().toString()
         ));
     }
 

@@ -11,8 +11,8 @@ public enum RegistrationDetailsHeader {
     ASSESSMENT("Assessment"),
     SESSION("Session"),
     MINCODE("School"),
-    SCORE("Score"),
-    SPECIAL_CASE("Special Case"),
+    DISTRICT_NUMBER("District"),
+    SCHOOL_CATEGORY("School Category"),
     ;
 
     private final String code;

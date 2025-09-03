@@ -1,12 +1,14 @@
 package ca.bc.gov.educ.assessment.api.controller.v1;
 
 
+import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndpoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.reports.ISRReportService;
+import ca.bc.gov.educ.assessment.api.reports.DOARSummaryReportService;
 import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsByAssessmentReportService;
 import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsInSessionReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.*;
@@ -34,6 +36,7 @@ public class ReportsController implements ReportsEndpoint {
     private final XAMFileService xamFileService;
     private final SummaryReportService summaryReportService;
     private final SessionService sessionService;
+    private final DOARSummaryReportService doarSummaryReportService;
 
     @Override
     public DownloadableReportResponse getDownloadableReport(UUID sessionID, String type, String updateUser) {
@@ -46,8 +49,12 @@ public class ReportsController implements ReportsEndpoint {
 
         switch (code.get()) {
             case ALL_SESSION_REGISTRATIONS:
+                log.info("Generating All Session Registrations Report for sessionID :: {}", sessionID);
                 var registrations = csvReportService.generateSessionRegistrationsReport(sessionID);
+                log.info("Generated All Session Registrations Report for sessionID :: {}", sessionID);
+                log.info("Recording transfer registrations user for sessionID :: {}", sessionID);
                 sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS);
+                log.info("Recorded All Session Registrations Report for sessionID :: {}", sessionID);
                 return registrations;
             case ATTEMPTS:
                 sessionService.recordTransferRegistrationsUser(sessionID, updateUser, AssessmentReportTypeCode.ATTEMPTS);
@@ -67,6 +74,34 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generatePenIssuesReport(sessionID);
             case REGISTRATION_SUMMARY_BY_SCHOOL:
                 return csvReportService.generateAssessmentRegistrationTotalsBySchoolReport(sessionID);
+            case NME_KEY_SUMMARY:
+                return csvReportService.generateKeyReport(sessionID, AssessmentTypeCodes.NME10.getCode());
+            case NMF_KEY_SUMMARY:
+                return csvReportService.generateKeyReport(sessionID, AssessmentTypeCodes.NMF10.getCode());
+            case LTE10_KEY_SUMMARY:
+                return csvReportService.generateKeyReport(sessionID, AssessmentTypeCodes.LTE10.getCode());
+            case LTE12_KEY_SUMMARY:
+                return csvReportService.generateKeyReport(sessionID, AssessmentTypeCodes.LTE12.getCode());
+            case LTP10_KEY_SUMMARY:
+                return csvReportService.generateKeyReport(sessionID, AssessmentTypeCodes.LTP10.getCode());
+            case LTP12_KEY_SUMMARY:
+                return csvReportService.generateKeyReport(sessionID, AssessmentTypeCodes.LTP12.getCode());
+            case LTF12_KEY_SUMMARY:
+                return csvReportService.generateKeyReport(sessionID, AssessmentTypeCodes.LTF12.getCode());
+            case NME_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.NME10.getCode());
+            case NMF_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.NMF10.getCode());
+            case LTE10_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.LTE10.getCode());
+            case LTE12_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.LTE12.getCode());
+            case LTP10_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.LTP10.getCode());
+            case LTP12_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.LTP12.getCode());
+            case LTF12_ITEM_ANALYSIS:
+                return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.LTF12.getCode());
             default:
                 return new DownloadableReportResponse();
         }
@@ -97,19 +132,21 @@ public class ReportsController implements ReportsEndpoint {
             case SCHOOL_STUDENTS_BY_ASSESSMENT:
                 return schoolStudentsByAssessmentReportService.generateSchoolStudentsByAssessmentReport(sessionID, schoolID);
             case NME_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, "NME10");
+                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, AssessmentTypeCodes.NME10.getCode());
             case NMF_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, "NMF10");
+                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, AssessmentTypeCodes.NMF10.getCode());
             case LTE10_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, "LTE10");
+                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, AssessmentTypeCodes.LTE10.getCode());
             case LTE12_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, "LTE12");
+                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, AssessmentTypeCodes.LTE12.getCode());
             case LTP10_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, "LTP10");
+                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, AssessmentTypeCodes.LTP10.getCode());
             case LTP12_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, "LTP12");
+                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, AssessmentTypeCodes.LTP12.getCode());
             case LTF12_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, "LTF12");
+                return csvReportService.generateDetailedDOARBySchool(sessionID, schoolID, AssessmentTypeCodes.LTF12.getCode());
+            case DOAR_SUMMARY:
+                return doarSummaryReportService.generateDOARSummaryReport(sessionID, schoolID);
             default:
                 return new DownloadableReportResponse();
         }

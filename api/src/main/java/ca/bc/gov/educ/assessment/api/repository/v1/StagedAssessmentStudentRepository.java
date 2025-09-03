@@ -57,5 +57,5 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
         ORDER BY s.updateDate DESC""")
     List<StagedAssessmentStudentEntity> findStudentIdsByStatusOrderByUpdateDate(String status, Pageable pageable);
 
-    List<StagedAssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatusIn(UUID sessionID, List<String> studentStatuses);
+    Optional<StagedAssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentID(UUID assessmentID, UUID studentID);
 }

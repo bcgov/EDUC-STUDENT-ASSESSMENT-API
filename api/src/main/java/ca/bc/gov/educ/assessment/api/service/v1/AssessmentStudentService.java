@@ -12,6 +12,7 @@ import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentRulesProcessor;
+import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
@@ -101,8 +102,11 @@ public class AssessmentStudentService {
 
         var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity, false, allowRuleOverride);
 
-        var event = generateStudentUpdatedEvent(student.getStudentID());
-        assessmentEventRepository.save(event);
+        AssessmentEventEntity event = null;
+        if(student.getAssessmentStudentValidationIssues() != null) {
+            event = generateStudentUpdatedEvent(student.getStudentID());
+            assessmentEventRepository.save(event);
+        }
 
         return Pair.of(student, event);
     }
@@ -122,8 +126,12 @@ public class AssessmentStudentService {
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
         assessmentStudentEntity.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
         var student = processStudent(assessmentStudentEntity, null, true, allowRuleOverride);
-        var event = generateStudentUpdatedEvent(student.getStudentID());
-        assessmentEventRepository.save(event);
+
+        AssessmentEventEntity event = null;
+        if(student.getAssessmentStudentValidationIssues() != null) {
+            event = generateStudentUpdatedEvent(student.getStudentID());
+            assessmentEventRepository.save(event);
+        }
 
         return Pair.of(student, event);
     }
@@ -227,8 +235,10 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateSchoolOfRecord(List<AssessmentStudentEntity> students, String schoolOfRecordID, AssessmentEventEntity event) {
-        students.forEach(student -> student.setSchoolOfRecordSchoolID(UUID.fromString(schoolOfRecordID)));
-        assessmentStudentRepository.saveAll(students);
+        students.forEach(student -> {
+            student.setSchoolOfRecordSchoolID(UUID.fromString(schoolOfRecordID));
+            saveAssessmentStudentWithHistoryInCurrentTransaction(student);
+        });
 
         this.assessmentEventRepository.findByEventId(event.getEventId()).ifPresent(existingEvent -> {
             existingEvent.setEventStatus(EventStatus.PROCESSED.toString());

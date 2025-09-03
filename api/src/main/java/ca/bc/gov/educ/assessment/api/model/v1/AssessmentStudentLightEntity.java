@@ -39,6 +39,9 @@ public class AssessmentStudentLightEntity {
   @Column(name = "SCHOOL_OF_RECORD_AT_WRITE_SCHOOL_ID", columnDefinition = "BINARY(16)")
   private UUID schoolAtWriteSchoolID;
 
+  @Column(name = "SCHOOL_OF_RECORD_SCHOOL_ID", nullable = false, columnDefinition = "BINARY(16)")
+  private UUID schoolOfRecordSchoolID;
+
   @Column(name = "SURNAME", nullable = false, length = 25)
   private String surname;
 

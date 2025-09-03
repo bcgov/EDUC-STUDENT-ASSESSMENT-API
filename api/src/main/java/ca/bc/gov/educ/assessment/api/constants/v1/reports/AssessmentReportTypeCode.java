@@ -28,6 +28,21 @@ public enum AssessmentReportTypeCode {
     LTP10_DETAILED_DOAR("ltp10-detailed-doar"),
     LTP12_DETAILED_DOAR("ltp12-detailed-doar"),
     LTF12_DETAILED_DOAR("ltf12-detailed-doar"),
+    NME_KEY_SUMMARY("nme-key-summary"),
+    NMF_KEY_SUMMARY("nmf-key-summary"),
+    LTE10_KEY_SUMMARY("lte10-key-summary"),
+    LTE12_KEY_SUMMARY("lte12-key-summary"),
+    LTP10_KEY_SUMMARY("ltp10-key-summary"),
+    LTP12_KEY_SUMMARY("ltp12-key-summary"),
+    LTF12_KEY_SUMMARY("ltf12-key-summary"),
+    NME_ITEM_ANALYSIS("NME10"),
+    NMF_ITEM_ANALYSIS("NMF10"),
+    LTE10_ITEM_ANALYSIS("LTE10"),
+    LTE12_ITEM_ANALYSIS("LTE12"),
+    LTP10_ITEM_ANALYSIS("LTP10"),
+    LTP12_ITEM_ANALYSIS("LTP12"),
+    LTF12_ITEM_ANALYSIS("LTF12"),
+    DOAR_SUMMARY("doar-summary"),
     ;
     private final String code;
     AssessmentReportTypeCode(String code) { this.code = code; }

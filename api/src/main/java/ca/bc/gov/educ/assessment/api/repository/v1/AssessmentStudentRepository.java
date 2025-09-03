@@ -30,9 +30,8 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     set stud.downloadDate = :downloadDate,
         stud.updateUser = :updateUser,
         stud.updateDate = :updateDate
-    where exists(select stud from AssessmentEntity as a, AssessmentStudentEntity as stud
-    where a.assessmentSessionEntity.sessionID = :assessmentSessionID
-    and stud.provincialSpecialCaseCode not in ('E'))""")
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
+    and stud.provincialSpecialCaseCode not in ('E')""")
     void updateDownloadDataAllByAssessmentSessionAndNoExemption(UUID assessmentSessionID, LocalDateTime downloadDate, String updateUser, LocalDateTime updateDate);
 
     List<AssessmentStudentEntity> findByStudentID(UUID studentID);
@@ -45,7 +44,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     select stud from AssessmentStudentEntity as stud
     where stud.studentID = :studentID
     and ((stud.proficiencyScore is not null and stud.proficiencyScore != 0)
-    or stud.provincialSpecialCaseCode in ('AEG', 'NC', 'DSQ'))""")
+    or stud.provincialSpecialCaseCode in ('A', 'X', 'Q'))""")
     List<AssessmentStudentEntity> findAllWrittenAssessmentsForStudent(UUID studentID);
 
     @Query(value="""

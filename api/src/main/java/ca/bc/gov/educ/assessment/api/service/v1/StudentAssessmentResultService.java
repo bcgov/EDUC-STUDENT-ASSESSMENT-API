@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
+import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentResultDetails;
 import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.TopicsEnum;
@@ -17,6 +18,7 @@ import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
 import ca.bc.gov.educ.assessment.api.util.AssessmentUtil;
@@ -34,6 +36,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 @Service
 @Slf4j
@@ -138,9 +141,9 @@ public class StudentAssessmentResultService {
             }
         }
 
-        var mcTotal = setTotals(stagedStudent, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, formEntity);
-        var oeTotal = setTotals(stagedStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, formEntity);
-        var oralTotal = setTotals(stagedStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL, formEntity);
+        var mcTotal = setStagedStudentTotals(stagedStudent, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, formEntity);
+        var oeTotal = setStagedStudentTotals(stagedStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, formEntity);
+        var oralTotal = setStagedStudentTotals(stagedStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL, formEntity);
 
         stagedStudent.setMcTotal(mcTotal);
         stagedStudent.setOeTotal(oeTotal.add(oralTotal));
@@ -154,18 +157,59 @@ public class StudentAssessmentResultService {
 
     }
 
-    private BigDecimal setTotals(StagedAssessmentStudentEntity stagedStudent, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, AssessmentFormEntity formEntity) {
+    private BigDecimal setStagedStudentTotals(StagedAssessmentStudentEntity stagedStudent, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, AssessmentFormEntity formEntity) {
+        return setTotals(
+                stagedStudent,
+                componentType,
+                componentSubType,
+                formEntity,
+                StagedAssessmentStudentEntity::getStagedAssessmentStudentComponentEntities,
+                StagedAssessmentStudentComponentEntity::getAssessmentComponentID,
+                StagedAssessmentStudentComponentEntity::getStagedAssessmentStudentAnswerEntities,
+                StagedAssessmentStudentAnswerEntity::getScore
+        );
+    }
+
+    public BigDecimal setAssessmentStudentTotals(AssessmentStudentEntity assessmentStudent, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, AssessmentFormEntity formEntity) {
+        return setTotals(
+                assessmentStudent,
+                componentType,
+                componentSubType,
+                formEntity,
+                AssessmentStudentEntity::getAssessmentStudentComponentEntities,
+                AssessmentStudentComponentEntity::getAssessmentComponentID,
+                AssessmentStudentComponentEntity::getAssessmentStudentAnswerEntities,
+                AssessmentStudentAnswerEntity::getScore
+        );
+    }
+
+    private <T, C, A> BigDecimal setTotals(
+            T student,
+            ComponentTypeCodes componentType,
+            ComponentSubTypeCodes componentSubType,
+            AssessmentFormEntity formEntity,
+            Function<T, Collection<C>> getComponentEntities,
+            Function<C, UUID> getComponentId,
+            Function<C, Collection<A>> getAnswerEntities,
+            Function<A, BigDecimal> getScore) {
+
         var component = formEntity.getAssessmentComponentEntities().stream()
-                .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode()) && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
+                .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode())
+                        && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
                 .findFirst();
-        if(component.isPresent()) {
-            var componentEntity = stagedStudent.getStagedAssessmentStudentComponentEntities().stream()
-                    .filter(comp -> Objects.equals(comp.getAssessmentComponentID(), component.get().getAssessmentComponentID()))
+
+        if (component.isPresent()) {
+            var componentEntity = getComponentEntities.apply(student).stream()
+                    .filter(comp -> Objects.equals(getComponentId.apply(comp), component.get().getAssessmentComponentID()))
                     .findFirst();
-            return componentEntity.map(stagedAssessmentStudentComponentEntity -> stagedAssessmentStudentComponentEntity.getStagedAssessmentStudentAnswerEntities().stream()
-                    .map(StagedAssessmentStudentAnswerEntity::getScore)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)).orElse(BigDecimal.ZERO);
+
+            return componentEntity
+                    .map(comp -> getAnswerEntities.apply(comp).stream()
+                            .map(getScore)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add))
+                    .orElse(BigDecimal.ZERO);
         }
+
         return BigDecimal.ZERO;
     }
 
@@ -175,7 +219,7 @@ public class StudentAssessmentResultService {
         stagedStudent.setAssessmentFormID(assessmentFormID);
         stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
         stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
-        stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
+        stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
         stagedStudent.setMarkingSession(studentResult.getMarkingSession());
         stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : stagedStudent.getSchoolOfRecordSchoolID());
         stagedStudent.setGradeAtRegistration(gradStudent != null ? gradStudent.getStudentGrade() : null);
@@ -203,7 +247,7 @@ public class StudentAssessmentResultService {
         stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
         stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
         stagedStudent.setNumberOfAttempts(noOfAttempts);
-        stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
+        stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
         stagedStudent.setIrtScore(studentResult.getIrtScore());
         stagedStudent.setMarkingSession(studentResult.getMarkingSession());
         stagedStudent.setCreateUser(studentResult.getCreateUser());
@@ -293,6 +337,114 @@ public class StudentAssessmentResultService {
         }
         assessmentStudent.getStagedAssessmentStudentComponentEntities().add(studentComponent);
     }
+
+    public AssessmentStudentEntity createNewAssessmentStudentEntity(AssessmentResultDetails studentResult, Student studentApiStudent, GradStudentRecord gradStudent, UUID assessmentFormID, AssessmentEntity assessmentEntity) {
+        var school = this.restUtils.getSchoolByMincode(studentResult.getMincode());
+        AssessmentStudentEntity student = new AssessmentStudentEntity();
+        var noOfAttempts = studentApiStudent != null
+                ? assessmentStudentRepository.findNumberOfAttemptsForStudent(UUID.fromString(studentApiStudent.getStudentID()), AssessmentUtil.getAssessmentTypeCodeList(assessmentEntity.getAssessmentTypeCode()))
+                : 0;
+        student.setAssessmentEntity(assessmentEntity);
+        student.setAssessmentFormID(assessmentFormID);
+        student.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.get().getSchoolId()));
+        student.setSchoolOfRecordSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.get().getSchoolId()));
+        student.setStudentID(studentApiStudent != null ? UUID.fromString(studentApiStudent.getStudentID()) : null);
+        student.setGivenName(studentApiStudent != null ? studentApiStudent.getLegalFirstName() : null);
+        student.setSurname(studentApiStudent != null ? studentApiStudent.getLegalLastName(): null);
+        student.setPen(studentApiStudent != null ? studentApiStudent.getPen(): studentResult.getPen());
+        student.setLocalID(studentApiStudent != null ? studentApiStudent.getLocalID() : null);
+        student.setGradeAtRegistration(gradStudent != null ? gradStudent.getStudentGrade() : null);
+        student.setProficiencyScore(Integer.valueOf(studentResult.getProficiencyScore()));
+        student.setProvincialSpecialCaseCode(studentResult.getSpecialCaseCode());
+        student.setNumberOfAttempts(noOfAttempts);
+        student.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator()));
+        student.setIrtScore(studentResult.getIrtScore());
+        student.setMarkingSession(studentResult.getMarkingSession());
+
+        return student;
+    }
+
+    public void addAssessmentStudentComponent(AssessmentFormEntity formEntity, AssessmentStudentEntity assessmentStudent, AssessmentResultFileUpload fileUpload, AssessmentResultDetails studentResult, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType) {
+        var studentComponent = new AssessmentStudentComponentEntity();
+        studentComponent.setAssessmentStudentEntity(assessmentStudent);
+
+        var component = formEntity.getAssessmentComponentEntities().stream()
+                .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode()) && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
+                .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentComponentEntity.class, componentType.getCode()));
+
+        studentComponent.setAssessmentComponentID(component.getAssessmentComponentID());
+        studentComponent.setCreateUser(fileUpload.getCreateUser());
+        studentComponent.setCreateDate(LocalDateTime.now());
+        studentComponent.setUpdateUser(fileUpload.getUpdateUser());
+        studentComponent.setUpdateDate(LocalDateTime.now());
+
+        if(componentType == ComponentTypeCodes.MUL_CHOICE) {
+            studentComponent.setChoicePath(studentResult.getChoicePath());
+            var multiChoiceMarks = TransformUtil.splitStringEveryNChars(studentResult.getMultiChoiceMarks(), 4);
+            AtomicInteger questionCounter = new AtomicInteger(1);
+            AtomicInteger itemCounter = new AtomicInteger(1);
+            for(var multiChoiceMark: multiChoiceMarks){
+                var answer = new AssessmentStudentAnswerEntity();
+                answer.setAssessmentStudentComponentEntity(studentComponent);
+                var question = component.getAssessmentQuestionEntities().stream()
+                        .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
+                        .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
+                questionCounter.getAndIncrement();
+                itemCounter.getAndIncrement();
+                answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
+                answer.setScore(new BigDecimal(multiChoiceMark));
+                answer.setCreateUser(fileUpload.getCreateUser());
+                answer.setCreateDate(LocalDateTime.now());
+                answer.setUpdateUser(fileUpload.getUpdateUser());
+                answer.setUpdateDate(LocalDateTime.now());
+                studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+            }
+        }else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
+            var openEndedMarks = TransformUtil.splitStringEveryNChars(studentResult.getOpenEndedMarks(), 4);
+            int questionCounter = 1;
+            AtomicInteger itemCounter = new AtomicInteger(1);
+            int answerForChoiceCounter = 0;
+            int choiceQuestionNumber = 0;
+            for(var openEndedMark: openEndedMarks){
+                Optional<AssessmentQuestionEntity> question;
+                var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
+                question = component.getAssessmentQuestionEntities().stream()
+                        .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
+                        .findFirst();
+
+                itemCounter.getAndIncrement();
+                if(answerForChoiceCounter != 0) {
+                    answerForChoiceCounter--;
+                }
+
+                if(question.isEmpty()){
+                    //It's a choice!
+                    //Value in 4 chars is the question number
+                    var questionNumber = getQuestionNumberFromString(openEndedMark);
+                    //Pull the number of rows that have this question number in this component
+                    answerForChoiceCounter = component.getAssessmentQuestionEntities().stream()
+                            .filter(q -> q.getQuestionNumber().equals(questionNumber))
+                            .toList().size();
+                    //Based on number of rows returned, we know how many answers are coming
+                    //Item numbers are sequential, while skipping the choice records
+                    choiceQuestionNumber = questionNumber;
+                }else {
+                    var answer = new AssessmentStudentAnswerEntity();
+                    answer.setAssessmentStudentComponentEntity(studentComponent);
+                    answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
+                    answer.setScore(new BigDecimal(openEndedMark));
+                    answer.setCreateUser(fileUpload.getCreateUser());
+                    answer.setCreateDate(LocalDateTime.now());
+                    answer.setUpdateUser(fileUpload.getUpdateUser());
+                    answer.setUpdateDate(LocalDateTime.now());
+                    studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+                }
+            }
+        }
+        assessmentStudent.getAssessmentStudentComponentEntities().add(studentComponent);
+    }
+
+
 
     private int getQuestionNumberFromString(String s) {
         try {
