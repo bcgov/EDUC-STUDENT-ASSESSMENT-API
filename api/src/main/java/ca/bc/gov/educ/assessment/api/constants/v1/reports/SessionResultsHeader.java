@@ -13,7 +13,7 @@ public enum SessionResultsHeader {
     STUDENT_GIVEN("Student Given"),
     ASSESSMENT_PROFICIENCY_SCORE("Student Proficiency Score"),
     SPECIAL_CASE("Special Case"),
-    MINCODE_ASSESSMENT("Mincode Assessment");
+    ASSESSMENT_CENTRE_SCHOOL_CODE("Assessment Centre School Code");
 
     private final String code;
     SessionResultsHeader(String code) { this.code = code; }
