@@ -34,7 +34,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.IOException;
 import java.util.UUID;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
@@ -243,7 +243,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
       // Then
       assertThat(response).isNotEmpty();
       List<AssessmentStudentListItem> studentList = deserializeStudentList(response);
-      assertThat(studentList.size()).isEqualTo(2);
+      assertThat(studentList).hasSize(2);
     }
 
     @Test
@@ -291,7 +291,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
       // Then
       assertThat(response).isNotEmpty();
       List<AssessmentStudentListItem> studentList = deserializeStudentList(response);
-      assertThat(studentList.size()).isEqualTo(1);
+      assertThat(studentList).hasSize(1);
       
       AssessmentStudentListItem returnedStudent = studentList.getFirst();
       assertThat(returnedStudent.getStudentID()).isEqualTo(studentId.toString());
@@ -333,14 +333,14 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
       // Then
       assertThat(response).isNotEmpty();
       List<AssessmentStudentListItem> studentList = deserializeStudentList(response);
-      assertThat(studentList.size()).isEqualTo(2);
+      assertThat(studentList).hasSize(2);
       
       // Verify both assessments are returned
       List<String> assessmentIds = studentList.stream()
           .map(AssessmentStudentListItem::getAssessmentID)
           .toList();
-      assertThat(assessmentIds.contains(assessment1.getAssessmentID().toString())).isTrue();
-      assertThat(assessmentIds.contains(assessment2.getAssessmentID().toString())).isTrue();
+      assertThat(assessmentIds).contains(assessment1.getAssessmentID().toString());
+      assertThat(assessmentIds).contains(assessment2.getAssessmentID().toString());
     }
 
     @Test

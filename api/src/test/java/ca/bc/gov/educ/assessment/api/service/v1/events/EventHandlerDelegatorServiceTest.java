@@ -117,8 +117,9 @@ class EventHandlerDelegatorServiceTest extends BaseAssessmentAPITest {
       
       // Verify the response contains the expected student data
       String responseJson = new String(payloadCaptor.getValue());
-      assertThat(responseJson).contains(studentId.toString());
-      assertThat(responseJson).contains(assessment.getAssessmentID().toString());
+      assertThat(responseJson)
+          .contains(studentId.toString())
+          .contains(assessment.getAssessmentID().toString());
     }
 
     @Test
@@ -221,8 +222,9 @@ class EventHandlerDelegatorServiceTest extends BaseAssessmentAPITest {
       
       // Verify response contains both students
       String responseJson = new String(response);
-      assertThat(responseJson).contains(studentId.toString());
-      assertThat(responseJson).contains(assessment.getAssessmentID().toString());
+      assertThat(responseJson)
+          .contains(studentId.toString())
+          .contains(assessment.getAssessmentID().toString());
     }
 
     @Test

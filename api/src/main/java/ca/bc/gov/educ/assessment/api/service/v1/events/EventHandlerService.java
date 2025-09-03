@@ -68,7 +68,7 @@ public class EventHandlerService {
      */
     public static final String EVENT_PAYLOAD = "event is :: {}";
     private static final AssessmentStudentMapper assessmentStudentMapper = AssessmentStudentMapper.mapper;
-    private final AssessmentStudentListItemMapper assessmentStudentListItemMapper = AssessmentStudentListItemMapper.mapper;
+    private static final AssessmentStudentListItemMapper assessmentStudentListItemMapper = AssessmentStudentListItemMapper.mapper;
     private static final SessionMapper sessionMapper = SessionMapper.mapper;
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentEventRepository assessmentEventRepository;
