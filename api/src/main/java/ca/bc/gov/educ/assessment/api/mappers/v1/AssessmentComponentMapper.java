@@ -9,13 +9,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, AssessmentQuestionMapper.class, AssessmentAnswerMapper.class})
+@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, AssessmentQuestionMapper.class, AssessmentChoiceMapper.class})
 @DecoratedWith(AssessmentComponentMapperDecorator.class)
 public interface AssessmentComponentMapper {
     AssessmentComponentMapper mapper = Mappers.getMapper(AssessmentComponentMapper.class);
 
     @Mapping(target = "assessmentFormID", source = "assessmentFormEntity.assessmentFormID")
     @Mapping(target = "assessmentQuestions", source = "assessmentQuestionEntities")
-    @Mapping(target = "assessmentAnswers", ignore = true)
+    @Mapping(target = "assessmentChoices", source = "assessmentChoiceEntities")
     AssessmentComponent toStructure(AssessmentComponentEntity entity);
 }

@@ -25,8 +25,10 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         LEFT JOIN FETCH a.assessmentForms af
         LEFT JOIN FETCH af.assessmentComponentEntities ac
         LEFT JOIN FETCH ac.assessmentQuestionEntities
+        LEFT JOIN FETCH ac.assessmentChoiceEntities
         LEFT JOIN FETCH s.assessmentStudentComponentEntities asc
         LEFT JOIN FETCH asc.assessmentStudentAnswerEntities
+        LEFT JOIN FETCH asc.assessmentStudentChoiceEntities
         WHERE s.assessmentStudentID = :assessmentStudentID
         AND a.assessmentID = :assessmentID
     """)

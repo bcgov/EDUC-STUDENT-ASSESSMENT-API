@@ -8,21 +8,18 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AssessmentStudentComponent extends BaseRequest implements Serializable {
+public class AssessmentChoice extends BaseRequest implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private String assessmentStudentComponentID;
-    private String assessmentStudentID;
+    private String assessmentChoiceID;
     private String assessmentComponentID;
-    private String choicePath;
-    private List<AssessmentAnswer> assessmentAnswers;
-    private List<AssessmentStudentChoice> assessmentStudentChoices;
+    private Integer itemNumber;
+    private Integer masterQuestionNumber;
 }

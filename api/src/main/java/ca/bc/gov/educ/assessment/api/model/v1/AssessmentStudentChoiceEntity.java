@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.assessment.api.model.v1;
 
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;

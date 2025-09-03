@@ -13,7 +13,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class})
+@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, AssessmentStudentComponentMapper.class})
 @DecoratedWith(AssessmentStudentMapperDecorator.class)
 public interface AssessmentStudentMapper {
 

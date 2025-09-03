@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.springframework.data.annotation.ReadOnlyProperty;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -93,4 +94,7 @@ public class AssessmentStudentDetails extends BaseRequest implements Serializabl
     private BigDecimal mcTotal;
 
     private BigDecimal oeTotal;
+
+    @ReadOnlyProperty
+    private List<AssessmentStudentComponent> assessmentStudentComponents;
 }

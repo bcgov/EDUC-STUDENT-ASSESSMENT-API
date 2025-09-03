@@ -19,14 +19,9 @@ public abstract class AssessmentStudentShowItemMapperDecorator implements Assess
         AssessmentStudentMapperUtils.setWroteFlag(entity, assessmentStudentShowItem);
 
         if (entity.getAssessmentEntity() != null) {
-            AssessmentComponentMapperDecorator.setCurrentStudentEntity(entity);
-            try {
-                assessmentStudentShowItem.setAssessmentDetails(
-                    assessmentDetailsMapper.toStructure(entity.getAssessmentEntity())
-                );
-            } finally {
-                AssessmentComponentMapperDecorator.clearCurrentStudentEntity();
-            }
+            assessmentStudentShowItem.setAssessmentDetails(
+                assessmentDetailsMapper.toStructure(entity.getAssessmentEntity())
+            );
         }
 
         return assessmentStudentShowItem;

@@ -28,5 +28,5 @@ public class AssessmentComponent extends BaseRequest implements Serializable {
     private Integer oeItemCount;
     private Integer oeMarkCount;
     private List<AssessmentQuestion> assessmentQuestions;
-    private List<AssessmentAnswer> assessmentAnswers;
+    private List<AssessmentChoice> assessmentChoices;
 }

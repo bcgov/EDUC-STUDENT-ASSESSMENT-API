@@ -6,7 +6,6 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -57,11 +56,23 @@ public class AssessmentStudentComponentEntity {
     @OneToMany(mappedBy = "assessmentStudentComponentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = AssessmentStudentAnswerEntity.class)
     Set<AssessmentStudentAnswerEntity> assessmentStudentAnswerEntities;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "assessmentStudentComponentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = AssessmentStudentChoiceEntity.class)
+    Set<AssessmentStudentChoiceEntity> assessmentStudentChoiceEntities;
+
     public Set<AssessmentStudentAnswerEntity> getAssessmentStudentAnswerEntities() {
         if (this.assessmentStudentAnswerEntities == null) {
             this.assessmentStudentAnswerEntities = new HashSet<>();
         }
         return this.assessmentStudentAnswerEntities;
+    }
+
+    public Set<AssessmentStudentChoiceEntity> getAssessmentStudentChoiceEntities() {
+        if (this.assessmentStudentChoiceEntities == null) {
+            this.assessmentStudentChoiceEntities = new HashSet<>();
+        }
+        return this.assessmentStudentChoiceEntities;
     }
 
 }

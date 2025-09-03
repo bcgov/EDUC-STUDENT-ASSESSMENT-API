@@ -66,10 +66,22 @@ public class AssessmentComponentEntity {
     @OneToMany(mappedBy = "assessmentComponentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = AssessmentQuestionEntity.class)
     Set<AssessmentQuestionEntity> assessmentQuestionEntities;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "assessmentComponentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = AssessmentChoiceEntity.class)
+    Set<AssessmentChoiceEntity> assessmentChoiceEntities;
+
     public Set<AssessmentQuestionEntity> getAssessmentQuestionEntities() {
         if (this.assessmentQuestionEntities == null) {
             this.assessmentQuestionEntities = new HashSet<>();
         }
         return this.assessmentQuestionEntities;
+    }
+
+    public Set<AssessmentChoiceEntity> getAssessmentChoiceEntities() {
+        if (this.assessmentChoiceEntities == null) {
+            this.assessmentChoiceEntities = new HashSet<>();
+        }
+        return this.assessmentChoiceEntities;
     }
 }
