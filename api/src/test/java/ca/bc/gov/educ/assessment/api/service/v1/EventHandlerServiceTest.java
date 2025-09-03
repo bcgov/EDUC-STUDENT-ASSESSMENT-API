@@ -339,8 +339,9 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
       List<String> assessmentIds = studentList.stream()
           .map(AssessmentStudentListItem::getAssessmentID)
           .toList();
-      assertThat(assessmentIds).contains(assessment1.getAssessmentID().toString());
-      assertThat(assessmentIds).contains(assessment2.getAssessmentID().toString());
+      assertThat(assessmentIds)
+          .contains(assessment1.getAssessmentID().toString())
+          .contains(assessment2.getAssessmentID().toString());
     }
 
     @Test
