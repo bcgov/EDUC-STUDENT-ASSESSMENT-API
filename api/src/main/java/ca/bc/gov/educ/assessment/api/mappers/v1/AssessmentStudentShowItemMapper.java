@@ -9,7 +9,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, AssessmentStudentComponentMapper.class})
+@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class})
 @DecoratedWith(AssessmentStudentShowItemMapperDecorator.class)
 public interface AssessmentStudentShowItemMapper {
     AssessmentStudentShowItemMapper mapper = Mappers.getMapper(AssessmentStudentShowItemMapper.class);
@@ -25,6 +25,5 @@ public interface AssessmentStudentShowItemMapper {
     @Mapping(target = "rawScore", source = "rawScore")
     @Mapping(target = "mcTotal", source = "mcTotal")
     @Mapping(target = "oeTotal", source = "oeTotal")
-    @Mapping(target = "assessmentStudentComponents", source = "assessmentStudentComponentEntities")
     AssessmentStudentShowItem toStructure(AssessmentStudentEntity entity);
 }

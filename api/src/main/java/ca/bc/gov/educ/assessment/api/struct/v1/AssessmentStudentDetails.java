@@ -93,6 +93,4 @@ public class AssessmentStudentDetails extends BaseRequest implements Serializabl
     private BigDecimal mcTotal;
 
     private BigDecimal oeTotal;
-
-    private List<AssessmentStudentComponent> assessmentStudentComponents;
 }
