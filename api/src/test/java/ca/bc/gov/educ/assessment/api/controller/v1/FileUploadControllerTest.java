@@ -113,6 +113,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .createUser("ABC")
                 .updateUser("ABC")
                 .fileName("202406_RESULTS_LTE10.TXT")
+                .isSingleUpload("N")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + UUID.randomUUID() + "/results-file")
@@ -358,6 +359,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .createUser("ABC")
                 .updateUser("ABC")
                 .fileName("202406_RESULTS_LTP10.TXT")
+                .isSingleUpload("N")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
@@ -365,6 +367,150 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                         .header("correlationID", UUID.randomUUID().toString())
                         .content(JsonUtil.getJsonStringFromObject(file))
                         .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testProcessSingleAssessmentResultsFile_givenTxtFile_InOngoingSession_ShouldReturnOK() throws Exception {
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTP10"));
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTP10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.TXT");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
+        var student = this.createMockStudentAPIStudent();
+        when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
+        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(createMockGradStudentAPIRecord()));
+
+        var file = AssessmentResultFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ABC")
+                .updateUser("ABC")
+                .fileName("202406_RESULTS_LTP10.TXT")
+                .isSingleUpload("Y")
+                .build();
+
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .content(JsonUtil.getJsonStringFromObject(file))
+                .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testProcessSingleAssessmentResultsFile_givenTxtFile_InApprovedSession_ShouldReturnOK() throws Exception {
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTP10"));
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+        savedSession.get().setApprovalStudentCertUserID("ABC");
+        savedSession.get().setApprovalAssessmentDesignUserID("ABC");
+        savedSession.get().setApprovalAssessmentAnalysisUserID("BCD");
+
+        var updatedSessionEntity = assessmentSessionRepository.save(savedSession.get());
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(updatedSessionEntity, "LTP10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.TXT");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
+        var student = this.createMockStudentAPIStudent();
+        student.setStatusCode("A");
+        when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
+        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(createMockGradStudentAPIRecord()));
+
+        var file = AssessmentResultFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ABC")
+                .updateUser("ABC")
+                .fileName("202406_RESULTS_LTP10.TXT")
+                .isSingleUpload("Y")
+                .build();
+
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .content(JsonUtil.getJsonStringFromObject(file))
+                .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testProcessSingleAssessmentResultsFile_givenTxtFile_InApprovedSession_WithMergedStudent_ShouldReturnOK() throws Exception {
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTP10"));
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+        savedSession.get().setApprovalStudentCertUserID("ABC");
+        savedSession.get().setApprovalAssessmentDesignUserID("ABC");
+        savedSession.get().setApprovalAssessmentAnalysisUserID("BCD");
+
+        var updatedSessionEntity = assessmentSessionRepository.save(savedSession.get());
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(updatedSessionEntity, "LTP10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10.TXT");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
+        var student = this.createMockStudentAPIStudent();
+        student.setStatusCode("M");
+        student.setTrueStudentID(UUID.randomUUID().toString());
+        when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
+        when(this.restUtils.getStudents(any(), any())).thenReturn(List.of(student));
+
+        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(createMockGradStudentAPIRecord()));
+
+        var file = AssessmentResultFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ABC")
+                .updateUser("ABC")
+                .fileName("202406_RESULTS_LTP10.TXT")
+                .isSingleUpload("Y")
+                .build();
+
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .content(JsonUtil.getJsonStringFromObject(file))
+                .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
     }
 
     @Test
@@ -409,6 +555,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .createUser("ENHANCED_TEST_USER")
                 .updateUser("ENHANCED_TEST_USER")
                 .fileName("202406_RESULTS_LTP10.TXT")
+                .isSingleUpload("N")
                 .build();
 
         String correlationId = UUID.randomUUID().toString();
