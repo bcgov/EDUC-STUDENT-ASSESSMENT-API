@@ -48,6 +48,6 @@ public class AssessmentChoiceEntity {
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
 
-//    @Column(name = "MASTER_QUESTION_NUMBER")
-//    private Integer masterQuestionNumber;
+    @Column(name = "MASTER_QUESTION_NUMBER")
+    private Integer masterQuestionNumber;
 }
