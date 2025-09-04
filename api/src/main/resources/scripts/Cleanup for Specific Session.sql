@@ -73,4 +73,17 @@ delete from assessment_form form
 where form.assessment_id = assess.assessment_id
   and assess.session_id = '<REPLACE_ME>';
 
-
+update assessment_session
+set assessment_registrations_export_date = null,
+    assessment_registrations_export_user_id = null,
+    approval_student_cert_sign_date = null,
+    approval_student_cert_user_id = null,
+    approval_assessment_analysis_sign_date = null,
+    approval_assessment_analysis_user_id = null,
+    approval_assessment_design_sign_date = null,
+    approval_assessment_design_user_id = null,
+    session_writing_attempts_export_date = null,
+    session_writing_attempts_export_user_id = null,
+    pen_merges_export_date = null,
+    pen_merges_export_user_id = null
+where session_id = '<REPLACE_ME>';
