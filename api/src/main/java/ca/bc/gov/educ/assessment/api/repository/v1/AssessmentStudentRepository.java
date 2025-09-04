@@ -18,6 +18,22 @@ import java.util.UUID;
 public interface AssessmentStudentRepository extends JpaRepository<AssessmentStudentEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentEntity> {
     Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentID(UUID assessmentID, UUID studentID);
 
+    @Query("""
+        SELECT DISTINCT s FROM AssessmentStudentEntity s
+        LEFT JOIN FETCH s.assessmentEntity a
+        LEFT JOIN FETCH a.assessmentSessionEntity
+        LEFT JOIN FETCH a.assessmentForms af
+        LEFT JOIN FETCH af.assessmentComponentEntities ac
+        LEFT JOIN FETCH ac.assessmentQuestionEntities
+        LEFT JOIN FETCH ac.assessmentChoiceEntities
+        LEFT JOIN FETCH s.assessmentStudentComponentEntities asc
+        LEFT JOIN FETCH asc.assessmentStudentAnswerEntities
+        LEFT JOIN FETCH asc.assessmentStudentChoiceEntities
+        WHERE s.assessmentStudentID = :assessmentStudentID
+        AND a.assessmentID = :assessmentID
+    """)
+    Optional<AssessmentStudentEntity> findByIdWithAssessmentDetails(UUID assessmentStudentID, UUID assessmentID);
+
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolID(UUID sessionID, UUID schoolAtWriteSchoolID);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDInAndStudentID(List<UUID> assessmentIDs, UUID studentID);

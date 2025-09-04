@@ -12,7 +12,6 @@ import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentRulesProcessor;
-import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
@@ -59,6 +58,13 @@ public class AssessmentStudentService {
 
     public AssessmentStudentEntity getStudentByID(UUID assessmentStudentID) {
         return assessmentStudentRepository.findById(assessmentStudentID).orElseThrow(() ->
+                new EntityNotFoundException(AssessmentStudent.class, "assessmentStudentID", assessmentStudentID.toString())
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public AssessmentStudentEntity getStudentWithAssessmentDetailsByID(UUID assessmentStudentID, UUID assessmentID) {
+        return assessmentStudentRepository.findByIdWithAssessmentDetails(assessmentStudentID, assessmentID).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudent.class, "assessmentStudentID", assessmentStudentID.toString())
         );
     }
