@@ -14,7 +14,7 @@ public interface AssessmentFormMapper {
     AssessmentFormMapper mapper = Mappers.getMapper(AssessmentFormMapper.class);
 
     @Mapping(target = "assessmentID", source = "assessmentEntity.assessmentID")
-    @Mapping(target = "assessmentComponents", source = "assessmentComponentEntities")
+    //@Mapping(target = "assessmentComponents", source = "assessmentComponentEntities")
     AssessmentForm toStructure(AssessmentFormEntity entity);
 
 }
