@@ -21,5 +21,5 @@ public class AssessmentChoice extends BaseRequest implements Serializable {
     private String assessmentChoiceID;
     private String assessmentComponentID;
     private Integer itemNumber;
-    private Integer masterQuestionNumber;
+    //private Integer masterQuestionNumber;
 }
