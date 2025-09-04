@@ -46,9 +46,8 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     set stud.downloadDate = :downloadDate,
         stud.updateUser = :updateUser,
         stud.updateDate = :updateDate
-    where exists(select stud from AssessmentEntity as a, AssessmentStudentEntity as stud
-    where a.assessmentSessionEntity.sessionID = :assessmentSessionID
-    and stud.provincialSpecialCaseCode not in ('E'))""")
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
+    and stud.provincialSpecialCaseCode not in ('E')""")
     void updateDownloadDataAllByAssessmentSessionAndNoExemption(UUID assessmentSessionID, LocalDateTime downloadDate, String updateUser, LocalDateTime updateDate);
 
     List<AssessmentStudentEntity> findByStudentID(UUID studentID);
