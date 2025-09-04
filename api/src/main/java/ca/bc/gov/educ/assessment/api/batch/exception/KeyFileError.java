@@ -17,36 +17,12 @@ public enum KeyFileError {
   MISSING_MANDATORY_HEADER("Missing required header $?."),
 
   /**
-   * The Invalid transaction code student details.
-   */
-  INVALID_TRANSACTION_CODE_STUDENT_DETAILS_DEM("Invalid transaction code on Detail record $? for student with Local ID $?. Must be one of \"D02\" or \"E02\"."),
-
-  INVALID_TRANSACTION_CODE_STUDENT_DETAILS_CRS("Invalid transaction code on Detail record $? for student with Local ID $?. Must be one of \"D08\" or \"E08\"."),
-
-  INVALID_TRANSACTION_CODE_STUDENT_DETAILS_XAM("Invalid transaction code on Detail record $? for student with Local ID $?. Must be one of \"E06\" or \"D06\"."),
-
-  /**
    * The filetype ended in the wrong extension and may be the wrong filetype.
    */
-  INVALID_FILE_EXTENSION("File extension invalid. Files must be of type \".dem\" or \".crs\" or \".xam\"."),
+  INVALID_FILE_EXTENSION("File extension invalid. Files must be of type \".txt\" or \".tab\"."),
 
-  NO_FILE_EXTENSION("No file extension provided. Files must be of type \".dem\" or \".crs\" or \".xam\"."),
+  NO_FILE_EXTENSION("No file extension provided. Files must be of type \".txt\" or \".tab\"."),
 
-  CONFLICT_FILE_ALREADY_IN_FLIGHT("File is already being processed for this school. School ministry code is: $?."),
-
-  /**
-   * No record for the provided school ID was found.
-   */
-  INVALID_SCHOOL("Unable to find a school record for school ministry code $?."),
-
-  INVALID_FILENAME("File not processed due to invalid filename. Must be the school ministry code."),
-
-  /**
-   * The mincode on the uploaded document does not match the collection record.
-   */
-  MINCODE_MISMATCH("The school codes in your file do not match your school's code. Please ensure that all school codes in the file correspond to your school code."),
-
-  DISTRICT_MINCODE_MISMATCH("The school codes in the file must match. Please verify the school codes supplied."),
   /**
    * Invalid row length file error.
    * This will be thrown when any row in the given file is longer or shorter than expected.

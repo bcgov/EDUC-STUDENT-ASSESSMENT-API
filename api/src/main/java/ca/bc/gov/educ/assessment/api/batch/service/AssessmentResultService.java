@@ -218,8 +218,17 @@ public class AssessmentResultService {
         }
 
         final var adaptedAssessmentIndicator = StringMapper.trimAndUppercase(ds.getString(ADAPTED_ASSESSMENT_INDICATOR.getName()));
-        if(StringUtils.isNotBlank(adaptedAssessmentIndicator) && codeTableService.getAdaptedAssessmentIndicatorCodes().stream().noneMatch(code -> code.getLegacyCode().equalsIgnoreCase(adaptedAssessmentIndicator))) {
+        if(StringUtils.isBlank(adaptedAssessmentIndicator) && StringUtils.isNotBlank(StringMapper.trimAndUppercase(ds.getString(MARKING_SESSION.getName())))) {
+            throw new ResultsFileUnProcessableException(BLANK_ADAPTED_ASSESSMENT_CODE, guid, lineNumber);
+        } else if(StringUtils.isNotBlank(adaptedAssessmentIndicator) && codeTableService.getAdaptedAssessmentIndicatorCodes().stream().noneMatch(code -> code.getLegacyCode().equalsIgnoreCase(adaptedAssessmentIndicator))) {
             throw new ResultsFileUnProcessableException(INVALID_ADAPTED_ASSESSMENT_CODE, guid, lineNumber);
+        }
+
+        final var markingSession = StringMapper.trimAndUppercase(ds.getString(MARKING_SESSION.getName()));
+        if(StringUtils.isBlank(markingSession) && StringUtils.isNotBlank(adaptedAssessmentIndicator)) {
+            throw new ResultsFileUnProcessableException(BLANK_MARKING_SESSION, guid, lineNumber);
+        } else if(StringUtils.isNotBlank(markingSession) && codeTableService.getAllAssessmentSessionCodes().stream().noneMatch(code -> (code.getCourseYear() + code.getCourseMonth()).equalsIgnoreCase(markingSession))) {
+            throw new ResultsFileUnProcessableException(INVALID_MARKING_SESSION, guid, lineNumber);
         }
 
         final var assessmentCode = StringMapper.trimAndUppercase(ds.getString(ASSESSMENT_CODE.getName()));
@@ -259,11 +268,6 @@ public class AssessmentResultService {
         final var pen = StringMapper.trimAndUppercase(ds.getString(PEN.getName()));
         if (StringUtils.isNotEmpty(pen) && !PenUtil.validCheckDigit(pen)) {
             throw new ResultsFileUnProcessableException(INVALID_PEN, guid, lineNumber);
-        }
-
-        final var markingSession = StringMapper.trimAndUppercase(ds.getString(MARKING_SESSION.getName()));
-        if(StringUtils.isNotBlank(markingSession) && codeTableService.getAllAssessmentSessionCodes().stream().noneMatch(code -> (code.getCourseYear() + code.getCourseMonth()).equalsIgnoreCase(markingSession))) {
-            throw new ResultsFileUnProcessableException(INVALID_MARKING_SESSION, guid, lineNumber);
         }
 
         final var openEndedMarks = StringMapper.trimAndUppercase(ds.getString(OPEN_ENDED_MARKS.getName()));

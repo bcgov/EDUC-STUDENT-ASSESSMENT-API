@@ -33,9 +33,7 @@ public class KeyFileValidator {
         }
         return bytes;
     }
-    public void validateFileForFormatAndLength(@NonNull final String guid, @NonNull final DataSet ds) throws KeyFileUnProcessableException {
-        this.processDataSetForRowLengthErrors(guid, ds, LENGTH);
-    }
+
     private static boolean isMalformedRowError(DataError error, String lengthError) {
         String description = error.getErrorDesc();
         return description.contains(lengthError);
@@ -94,7 +92,7 @@ public class KeyFileValidator {
 
         String extension = fileName.substring(lastIndex);
 
-        if (!extension.equalsIgnoreCase(".txt")) {
+        if (!extension.equalsIgnoreCase(".txt") && !extension.equalsIgnoreCase(".tab")) {
             throw new KeyFileUnProcessableException(KeyFileError.INVALID_FILE_EXTENSION, guid, LOAD_FAIL);
         }
     }
