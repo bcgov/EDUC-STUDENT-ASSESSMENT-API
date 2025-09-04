@@ -25,6 +25,6 @@ public class AssessmentForm extends BaseRequest implements Serializable {
     private String assessmentID;
     @ReadOnlyProperty
     private String formCode;
-    @ReadOnlyProperty
-    private List<AssessmentComponent> assessmentComponents;
+//    @ReadOnlyProperty
+//    private List<AssessmentComponent> assessmentComponents;
 }
