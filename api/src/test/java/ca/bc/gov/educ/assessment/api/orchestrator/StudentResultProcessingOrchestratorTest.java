@@ -78,6 +78,8 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
     AssessmentStudentRepository assessmentStudentRepository;
     @Autowired
     private AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+    @Autowired
+    AssessmentChoiceRepository  assessmentChoiceRepository;
 
     @BeforeEach
     void setUp() {
@@ -106,6 +108,9 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         // Setup open-ended questions (4 questions)
         var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedAssessmentFormEntity, "OPEN_ENDED", "NONE"));
+        assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(savedOpenEndedComp, 2, 1));
+        assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(savedOpenEndedComp, 4, 4));
+
         assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
         assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
         assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
@@ -221,7 +226,7 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
                 .pen("123456789")
                 .mincode("07965039")
                 .stagedStudentResultStatus("LOADED")
-                .componentType("1")
+                .componentType("3")
                 .oeMarks("03.003.004.003.003.003.0")
                 .mcMarks("00.000.000.001.001.000.001.001.001.001.000.001.001.000.000.000.001.001.000.001.001.000.001.000.001.001.000.001")
                 .choicePath(null)

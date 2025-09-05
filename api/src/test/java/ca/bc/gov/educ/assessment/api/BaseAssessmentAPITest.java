@@ -174,6 +174,18 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
+  public AssessmentChoiceEntity createMockAssessmentChoiceEntity(AssessmentComponentEntity assessmentComponentEntity, Integer masterQuestionNumber, Integer itemNumber) {
+    return AssessmentChoiceEntity.builder()
+            .assessmentComponentEntity(assessmentComponentEntity)
+            .itemNumber(itemNumber)
+            .masterQuestionNumber(masterQuestionNumber)
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
   public List<AssessmentSessionCriteriaEntity> createMockAssessmentSessionCriteriaEntities() {
     List<AssessmentSessionCriteriaEntity> sessionCriteriaEntities = new ArrayList<>();
 
