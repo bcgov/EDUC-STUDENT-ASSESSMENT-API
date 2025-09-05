@@ -109,9 +109,29 @@ public class AssessmentResultService {
             if(formEntity == null) {
                 throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
             }
+            checkChoicePathValue(studentResult, formEntity, correlationID);
             resultEntity.setAssessmentFormID(formEntity.getAssessmentFormID());
             resultEntity.setStagedStudentResultStatus("LOADED");
             stagedStudentResultRepository.save(resultEntity);
+        }
+    }
+
+    private void checkChoicePathValue(AssessmentResultDetails studentResult, AssessmentFormEntity formEntity, final String correlationID) throws ResultsFileUnProcessableException {
+        final var choicePath = studentResult.getChoicePath();
+        final var mcComponent = formEntity.getAssessmentComponentEntities().stream()
+                .filter(component -> component.getComponentTypeCode().equalsIgnoreCase("MUL_CHOICE")).toList();
+        if(StringUtils.isNotBlank(choicePath) && mcComponent.isEmpty()) {
+            throw new ResultsFileUnProcessableException(BLANK_CHOICE_PATH, correlationID, studentResult.getLineNumber());
+        } else if(StringUtils.isNotBlank(choicePath) && !mcComponent.isEmpty()) {
+            var hasTaskCodes = mcComponent.getFirst()
+                    .getAssessmentQuestionEntities()
+                    .stream()
+                    .anyMatch(questionEntity ->
+                            questionEntity.getTaskCode().equalsIgnoreCase("I") || questionEntity.getTaskCode().equalsIgnoreCase("E"));
+
+            if(hasTaskCodes && Arrays.stream(validChoicePaths).noneMatch(choicePath::equalsIgnoreCase)) {
+                throw new ResultsFileUnProcessableException(INVALID_CHOICE_PATH, correlationID, studentResult.getLineNumber());
+            }
         }
     }
 
@@ -133,6 +153,7 @@ public class AssessmentResultService {
             if (formEntity == null) {
                 throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
             }
+            checkChoicePathValue(studentResult, formEntity, correlationID);
             createStudentRecordForCorrectionFile(studentResult, fileUpload, validSession, assessmentEntity, formEntity);
         }
     }
@@ -260,11 +281,6 @@ public class AssessmentResultService {
             }
         }
 
-        final var choicePath = StringMapper.trimAndUppercase(ds.getString(CHOICE_PATH.getName()));
-        if(StringUtils.isNotBlank(choicePath) && Arrays.stream(validChoicePaths).noneMatch(choicePath::equalsIgnoreCase)) {
-            throw new ResultsFileUnProcessableException(INVALID_CHOICE_PATH, guid, lineNumber);
-        }
-
         final var pen = StringMapper.trimAndUppercase(ds.getString(PEN.getName()));
         if (StringUtils.isNotEmpty(pen) && !PenUtil.validCheckDigit(pen)) {
             throw new ResultsFileUnProcessableException(INVALID_PEN, guid, lineNumber);
@@ -296,6 +312,7 @@ public class AssessmentResultService {
                 .irtScore(StringMapper.trimAndUppercase(ds.getString(IRT_SCORE.getName())))
                 .adaptedAssessmentIndicator(StringMapper.trimAndUppercase(ds.getString(ADAPTED_ASSESSMENT_INDICATOR.getName())))
                 .markingSession(StringMapper.trimAndUppercase(ds.getString(MARKING_SESSION.getName())))
+                .lineNumber(lineNumber)
                 .build();
     }
 }

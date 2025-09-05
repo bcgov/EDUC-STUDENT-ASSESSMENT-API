@@ -29,6 +29,7 @@ public enum ResultFileError {
   INVALID_MINCODE("Invalid school ministry code on line $?."),
   INVALID_PROFICIENCY_SCORE("Invalid proficiency score on line $?."),
   INVALID_IRT_SCORE("Invalid IRT score on line $?."),
+  BLANK_CHOICE_PATH("Choice path must be blank on line $?."),
   INVALID_CHOICE_PATH("Invalid choice path on line $?."),
   INVALID_PEN("Invalid personal education number (PEN) on line $?."),
   INVALID_FORM_CODE("Invalid form code provided on line $?."),

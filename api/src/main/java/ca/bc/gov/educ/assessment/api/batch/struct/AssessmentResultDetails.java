@@ -25,4 +25,5 @@ public class AssessmentResultDetails {
     private String irtScore;
     private String adaptedAssessmentIndicator;
     private String markingSession;
+    private String lineNumber;
 }
