@@ -56,11 +56,23 @@ public class StagedAssessmentStudentComponentEntity {
     @OneToMany(mappedBy = "stagedAssessmentStudentComponentEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = StagedAssessmentStudentAnswerEntity.class)
     Set<StagedAssessmentStudentAnswerEntity> stagedAssessmentStudentAnswerEntities;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "stagedAssessmentStudentComponentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = StagedAssessmentStudentChoiceEntity.class)
+    Set<StagedAssessmentStudentChoiceEntity> stagedAssessmentStudentChoiceEntities;
+
     public Set<StagedAssessmentStudentAnswerEntity> getStagedAssessmentStudentAnswerEntities() {
         if (this.stagedAssessmentStudentAnswerEntities == null) {
             this.stagedAssessmentStudentAnswerEntities = new HashSet<>();
         }
         return this.stagedAssessmentStudentAnswerEntities;
+    }
+
+    public Set<StagedAssessmentStudentChoiceEntity> getStagedAssessmentStudentChoiceEntities() {
+        if (this.stagedAssessmentStudentChoiceEntities == null) {
+            this.stagedAssessmentStudentChoiceEntities = new HashSet<>();
+        }
+        return this.stagedAssessmentStudentChoiceEntities;
     }
 
 }

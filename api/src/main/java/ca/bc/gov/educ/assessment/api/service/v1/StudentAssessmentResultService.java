@@ -27,6 +27,7 @@ import ca.bc.gov.educ.assessment.api.util.TransformUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -49,6 +50,7 @@ public class StudentAssessmentResultService {
     private final StagedStudentResultRepository stagedStudentResultRepository;
     private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
     private final AssessmentRepository assessmentRepository;
+    private final AssessmentChoiceRepository assessmentChoiceRepository;
     private static final String EVENT_EMPTY_MSG = "Event String is empty, skipping the publish to topic :: {}";
 
     @Async("publisherExecutor")
@@ -132,12 +134,12 @@ public class StudentAssessmentResultService {
         }
 
         switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
-            case MUL_CHOICE -> addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-            case OPEN_ENDED -> addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-            case ORAL -> addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
+            case MUL_CHOICE -> addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+            case OPEN_ENDED -> addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+            case ORAL -> addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
             case BOTH -> {
-                addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-                addStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+                addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+                addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
             }
         }
 
@@ -258,7 +260,7 @@ public class StudentAssessmentResultService {
         return stagedStudent;
     }
 
-    private void addStudentComponent(AssessmentFormEntity formEntity, StagedAssessmentStudentEntity assessmentStudent, StudentResult studentResult, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType) {
+    private void addStagedStudentComponent(AssessmentFormEntity formEntity, StagedAssessmentStudentEntity assessmentStudent, StudentResult studentResult, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType) {
         var studentComponent = new StagedAssessmentStudentComponentEntity();
         studentComponent.setStagedAssessmentStudentEntity(assessmentStudent);
 
@@ -293,45 +295,59 @@ public class StudentAssessmentResultService {
                 answer.setUpdateDate(LocalDateTime.now());
                 studentComponent.getStagedAssessmentStudentAnswerEntities().add(answer);
             }
-        }else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
+        } else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
             var openEndedMarks = TransformUtil.splitStringEveryNChars(studentResult.getOeMarks(), 4);
             int questionCounter = 1;
             AtomicInteger itemCounter = new AtomicInteger(1);
             int answerForChoiceCounter = 0;
             int choiceQuestionNumber = 0;
-            for(var openEndedMark: openEndedMarks){
-                Optional<AssessmentQuestionEntity> question;
-                var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
-                question = component.getAssessmentQuestionEntities().stream()
-                        .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
-                        .findFirst();
+            for(var openEndedMark: openEndedMarks) {
+                if (StringUtils.isNotBlank(openEndedMark) && !openEndedMark.equalsIgnoreCase("9999")) {
+                    Optional<AssessmentQuestionEntity> question;
+                    var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
+                    question = component.getAssessmentQuestionEntities().stream()
+                            .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
+                            .findFirst();
+                    var optAssessmentChoice = assessmentChoiceRepository.findByItemNumberAndAssessmentComponentEntity_AssessmentComponentID(itemCounter.get(), component.getAssessmentComponentID());
 
-                itemCounter.getAndIncrement();
-                if(answerForChoiceCounter != 0) {
-                    answerForChoiceCounter--;
-                }
+                    itemCounter.getAndIncrement();
+                    if (answerForChoiceCounter != 0) {
+                        answerForChoiceCounter--;
+                    }
 
-                if(question.isEmpty()){
-                    //It's a choice!
-                    //Value in 4 chars is the question number
-                    var questionNumber = getQuestionNumberFromString(openEndedMark);
-                    //Pull the number of rows that have this question number in this component
-                    answerForChoiceCounter = component.getAssessmentQuestionEntities().stream()
-                            .filter(q -> q.getQuestionNumber().equals(questionNumber))
-                            .toList().size();
-                    //Based on number of rows returned, we know how many answers are coming
-                    //Item numbers are sequential, while skipping the choice records
-                    choiceQuestionNumber = questionNumber;
-                }else {
-                    var answer = new StagedAssessmentStudentAnswerEntity();
-                    answer.setStagedAssessmentStudentComponentEntity(studentComponent);
-                    answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
-                    answer.setScore(new BigDecimal(openEndedMark));
-                    answer.setCreateUser(studentResult.getCreateUser());
-                    answer.setCreateDate(LocalDateTime.now());
-                    answer.setUpdateUser(studentResult.getUpdateUser());
-                    answer.setUpdateDate(LocalDateTime.now());
-                    studentComponent.getStagedAssessmentStudentAnswerEntities().add(answer);
+                    if (question.isEmpty()) {
+                        //It's a choice!
+                        //Value in 4 chars is the question number
+                        var questionNumber = getQuestionNumberFromString(openEndedMark);
+                        //Pull the number of rows that have this question number in this component
+                        answerForChoiceCounter = component.getAssessmentQuestionEntities().stream()
+                                .filter(q -> q.getQuestionNumber().equals(questionNumber))
+                                .toList().size();
+                        //Based on number of rows returned, we know how many answers are coming
+                        //Item numbers are sequential, while skipping the choice records
+                        choiceQuestionNumber = questionNumber;
+
+                        if(optAssessmentChoice.isPresent()) {
+                            var choice = new StagedAssessmentStudentChoiceEntity();
+                            choice.setStagedAssessmentStudentComponentEntity(studentComponent);
+                            choice.setAssessmentChoiceEntity(optAssessmentChoice.get());
+                            choice.setCreateUser(studentResult.getCreateUser());
+                            choice.setCreateDate(LocalDateTime.now());
+                            choice.setUpdateUser(studentResult.getUpdateUser());
+                            choice.setUpdateDate(LocalDateTime.now());
+                            studentComponent.getStagedAssessmentStudentChoiceEntities().add(choice);
+                        }
+                    } else {
+                        var answer = new StagedAssessmentStudentAnswerEntity();
+                        answer.setStagedAssessmentStudentComponentEntity(studentComponent);
+                        answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
+                        answer.setScore(new BigDecimal(openEndedMark));
+                        answer.setCreateUser(studentResult.getCreateUser());
+                        answer.setCreateDate(LocalDateTime.now());
+                        answer.setUpdateUser(studentResult.getUpdateUser());
+                        answer.setUpdateDate(LocalDateTime.now());
+                        studentComponent.getStagedAssessmentStudentAnswerEntities().add(answer);
+                    }
                 }
             }
         }
@@ -399,49 +415,63 @@ public class StudentAssessmentResultService {
                 answer.setUpdateDate(LocalDateTime.now());
                 studentComponent.getAssessmentStudentAnswerEntities().add(answer);
             }
-        }else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
+        } else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
             var openEndedMarks = TransformUtil.splitStringEveryNChars(studentResult.getOpenEndedMarks(), 4);
             int questionCounter = 1;
             AtomicInteger itemCounter = new AtomicInteger(1);
             int answerForChoiceCounter = 0;
             int choiceQuestionNumber = 0;
             for(var openEndedMark: openEndedMarks){
-                Optional<AssessmentQuestionEntity> question;
-                var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
-                question = component.getAssessmentQuestionEntities().stream()
-                        .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
-                        .findFirst();
+                if(StringUtils.isNotBlank(openEndedMark) && !openEndedMark.equalsIgnoreCase("9999")) {
+                    Optional<AssessmentQuestionEntity> question;
+                    var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
+                    question = component.getAssessmentQuestionEntities().stream()
+                            .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
+                            .findFirst();
+                    var optAssessmentChoice = assessmentChoiceRepository.findByItemNumberAndAssessmentComponentEntity_AssessmentComponentID(itemCounter.get(), component.getAssessmentComponentID());
 
-                itemCounter.getAndIncrement();
-                if(answerForChoiceCounter != 0) {
-                    answerForChoiceCounter--;
-                }
+                    itemCounter.getAndIncrement();
+                    if(answerForChoiceCounter != 0) {
+                        answerForChoiceCounter--;
+                    }
 
-                if(question.isEmpty()){
-                    //It's a choice!
-                    //Value in 4 chars is the question number
-                    var questionNumber = getQuestionNumberFromString(openEndedMark);
-                    //Pull the number of rows that have this question number in this component
-                    answerForChoiceCounter = component.getAssessmentQuestionEntities().stream()
-                            .filter(q -> q.getQuestionNumber().equals(questionNumber))
-                            .toList().size();
-                    //Based on number of rows returned, we know how many answers are coming
-                    //Item numbers are sequential, while skipping the choice records
-                    choiceQuestionNumber = questionNumber;
-                }else {
-                    var answer = new AssessmentStudentAnswerEntity();
-                    answer.setAssessmentStudentComponentEntity(studentComponent);
-                    answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
-                    answer.setScore(new BigDecimal(openEndedMark));
-                    answer.setCreateUser(fileUpload.getCreateUser());
-                    answer.setCreateDate(LocalDateTime.now());
-                    answer.setUpdateUser(fileUpload.getUpdateUser());
-                    answer.setUpdateDate(LocalDateTime.now());
-                    studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+                    if(question.isEmpty()){
+                        //It's a choice!
+                        //Value in 4 chars is the question number
+                        var questionNumber = getQuestionNumberFromString(openEndedMark);
+                        //Pull the number of rows that have this question number in this component
+                        answerForChoiceCounter = component.getAssessmentQuestionEntities().stream()
+                                .filter(q -> q.getQuestionNumber().equals(questionNumber))
+                                .toList().size();
+                        //Based on number of rows returned, we know how many answers are coming
+                        //Item numbers are sequential, while skipping the choice records
+                        choiceQuestionNumber = questionNumber;
+
+                        if(optAssessmentChoice.isPresent()) {
+                            var choice = new AssessmentStudentChoiceEntity();
+                            choice.setAssessmentStudentComponentEntity(studentComponent);
+                            choice.setAssessmentChoiceEntity(optAssessmentChoice.get());
+                            choice.setCreateUser(fileUpload.getCreateUser());
+                            choice.setCreateDate(LocalDateTime.now());
+                            choice.setUpdateUser(fileUpload.getUpdateUser());
+                            choice.setUpdateDate(LocalDateTime.now());
+                            studentComponent.getAssessmentStudentChoiceEntities().add(choice);
+                        }
+                    } else {
+                        var answer = new AssessmentStudentAnswerEntity();
+                        answer.setAssessmentStudentComponentEntity(studentComponent);
+                        answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
+                        answer.setScore(new BigDecimal(openEndedMark));
+                        answer.setCreateUser(fileUpload.getCreateUser());
+                        answer.setCreateDate(LocalDateTime.now());
+                        answer.setUpdateUser(fileUpload.getUpdateUser());
+                        answer.setUpdateDate(LocalDateTime.now());
+                        studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+                    }
                 }
             }
+            assessmentStudent.getAssessmentStudentComponentEntities().add(studentComponent);
         }
-        assessmentStudent.getAssessmentStudentComponentEntities().add(studentComponent);
     }
 
 
