@@ -15,8 +15,10 @@ import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
@@ -58,7 +60,27 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<String> {
             .step(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER, GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
             .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_GRAD_OF_UPDATED_STUDENTS, this::notifyGradOfUpdatedStudents)
             .step(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
-            .end(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED);
+            .step(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED, MARK_SESSION_COMPLETION_DATE, this::markSessionCompletionDate)
+            .end(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET);
+    }
+
+    private void markSessionCompletionDate(Event event, AssessmentSagaEntity saga, String payload) throws JsonProcessingException {
+        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
+        saga.setSagaState(MARK_SESSION_COMPLETION_DATE.toString());
+        saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
+        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
+
+        UUID sessionID = UUID.fromString(payload);
+        var savedSession = sessionApprovalOrchestrationService.updateSessionCompletionDate(sessionID);
+
+        final Event nextEvent = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(MARK_SESSION_COMPLETION_DATE)
+                .eventOutcome(COMPLETION_DATE_SET)
+                .eventPayload(JsonUtil.getJsonStringFromObject(savedSession.getCompletionDate().toString()))
+                .build();
+        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
+        log.debug("Posted completion message for saga step generateXAMFilesAndUpload: {}", saga.getSagaId());
     }
 
     private void markStagedStudentsReadyForTransfer(Event event, AssessmentSagaEntity saga, String payload) throws JsonProcessingException {

@@ -175,6 +175,26 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.MARK_SESSION_COMPLETION_DATE);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.COMPLETION_DATE_SET);
+    }
+
+    @SneakyThrows
+    @Test
+    void testOrchestratorHandlesEventAndDelegatesStep4ToService() {
+        String payload = sagaPayload;
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.MARK_SESSION_COMPLETION_DATE)
+                .eventOutcome(EventOutcome.COMPLETION_DATE_SET)
+                .eventPayload(payload)
+                .build();
+
+        sessionApprovalOrchestrator.handleEvent(event);
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
         assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.MARK_SAGA_COMPLETE);
         assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.SAGA_COMPLETED);
     }

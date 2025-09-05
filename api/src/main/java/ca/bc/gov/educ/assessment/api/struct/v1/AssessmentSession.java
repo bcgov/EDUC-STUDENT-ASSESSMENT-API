@@ -59,6 +59,8 @@ public class AssessmentSession extends BaseRequest implements Serializable {
 
   private String penMergesExportDate;
 
+  private String completionDate;
+
   @NotNull(message = "activeFromDate cannot be null")
   private String activeFromDate;
 
