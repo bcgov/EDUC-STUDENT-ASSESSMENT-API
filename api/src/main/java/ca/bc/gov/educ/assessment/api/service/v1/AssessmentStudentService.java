@@ -380,7 +380,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(readOnly = true)
-    public AssessmentStudentShowItem getStudentWithAssessmentDetailsDtoById(UUID assessmentStudentID, UUID assessmentID) {
+    public AssessmentStudentShowItem getStudentWithAssessmentDetailsById(UUID assessmentStudentID, UUID assessmentID) {
         AssessmentStudentEntity entity = assessmentStudentRepository.findByIdWithAssessmentDetails(assessmentStudentID, assessmentID)
                 .orElseThrow(() -> new EntityNotFoundException(AssessmentStudent.class, "assessmentStudentID", assessmentStudentID.toString()));
 

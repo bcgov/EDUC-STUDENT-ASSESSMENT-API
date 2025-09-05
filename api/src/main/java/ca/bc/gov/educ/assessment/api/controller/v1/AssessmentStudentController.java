@@ -58,7 +58,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
 
     @Override
     public AssessmentStudentShowItem readStudentResults(UUID assessmentStudentID, UUID assessmentID) {
-        return studentService.getStudentWithAssessmentDetailsDtoById(assessmentStudentID, assessmentID);
+        return studentService.getStudentWithAssessmentDetailsById(assessmentStudentID, assessmentID);
     }
 
   @Override
