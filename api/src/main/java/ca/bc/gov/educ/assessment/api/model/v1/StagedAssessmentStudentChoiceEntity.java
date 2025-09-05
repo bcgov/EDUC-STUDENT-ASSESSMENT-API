@@ -25,9 +25,9 @@ public class StagedAssessmentStudentChoiceEntity {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentStudentComponentEntity.class)
+    @ManyToOne(optional = false, targetEntity = StagedAssessmentStudentComponentEntity.class)
     @JoinColumn(name = "ASSESSMENT_STUDENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_STUDENT_COMPONENT_ID", updatable = false)
-    StagedAssessmentStudentComponentEntity assessmentStudentComponentEntity;
+    StagedAssessmentStudentComponentEntity stagedAssessmentStudentComponentEntity;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
