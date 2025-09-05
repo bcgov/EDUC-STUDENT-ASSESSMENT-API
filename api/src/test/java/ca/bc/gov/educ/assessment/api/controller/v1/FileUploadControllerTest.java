@@ -66,6 +66,9 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     protected static final ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
     private AssessmentEntity savedAssessmentEntity;
 
+    @Autowired
+    AssessmentChoiceRepository  assessmentChoiceRepository;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -431,6 +434,9 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         }
 
         var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(savedOpenEndedComp, 2, 1));
+        assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(savedOpenEndedComp, 4, 4));
+
         assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
         assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
         assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
