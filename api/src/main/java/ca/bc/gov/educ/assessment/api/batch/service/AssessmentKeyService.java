@@ -193,6 +193,12 @@ public class AssessmentKeyService {
                 setOpenEndedWrittenQuestionEntityColumns(quesEntity, ques, questionGroups);
                 setItemNumber(quesEntity, index, i, itemType, itemNumberCounter, repeatCounter);
                 openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
+                if(i == 0 && itemType[2].equalsIgnoreCase("C1")) {
+                    final var choiceEntity = createChoiceEntity(openEndedComponentEntity);
+                    choiceEntity.setItemNumber(itemNumberCounter.getAndIncrement());
+                    choiceEntity.setMasterQuestionNumber(quesEntity.getMasterQuestionNumber());
+                    openEndedComponentEntity.getAssessmentChoiceEntities().add(choiceEntity);
+                }
             }
         });
         return openEndedComponentEntity;
@@ -208,10 +214,7 @@ public class AssessmentKeyService {
 
         if(choiceType.equalsIgnoreCase("C0")) {
             setItemNumberAndIncrement(questionEntity, itemNumberCounter);
-        } else if(choiceType.equalsIgnoreCase("C1")) {
-            if(i == 0) {
-                itemNumberCounter.getAndIncrement();
-            }
+        } else if(choiceType.equalsIgnoreCase("C1") && i > 0) {
             setItemNumberAndIncrement(questionEntity, itemNumberCounter);
         } else {
             if(i == 0) {
@@ -220,6 +223,17 @@ public class AssessmentKeyService {
             questionEntity.setItemNumber(repeatCounter.get());
             repeatCounter.getAndIncrement();
         }
+    }
+
+    private AssessmentChoiceEntity createChoiceEntity(AssessmentComponentEntity openEndedComponentEntity) {
+        return AssessmentChoiceEntity
+                .builder()
+                .assessmentComponentEntity(openEndedComponentEntity)
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .createUser(openEndedComponentEntity.getCreateUser())
+                .updateUser(openEndedComponentEntity.getUpdateUser())
+                .build();
     }
 
     private AssessmentComponentEntity createAssessmentComponentEntity(final AssessmentFormEntity assessmentFormEntity, final String type, int quesCount, int numOmits, int markCount, int itemCount) {
