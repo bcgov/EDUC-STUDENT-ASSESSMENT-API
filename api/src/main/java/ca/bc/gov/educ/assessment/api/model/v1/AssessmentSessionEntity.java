@@ -34,6 +34,9 @@ public class AssessmentSessionEntity {
   @Column(name = "COURSE_MONTH", nullable = false, length = 2)
   private String courseMonth;
 
+  @Column(name = "COMPLETION_DATE", nullable = false)
+  private LocalDateTime completionDate;
+
   @Column(name = "ACTIVE_FROM_DATE", nullable = false)
   private LocalDateTime activeFromDate;
 
