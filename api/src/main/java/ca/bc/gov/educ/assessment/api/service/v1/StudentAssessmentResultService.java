@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -160,69 +161,58 @@ public class StudentAssessmentResultService {
     }
 
     private BigDecimal setStagedStudentTotals(StagedAssessmentStudentEntity stagedStudent, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, AssessmentFormEntity formEntity) {
-        return setTotals(
-                stagedStudent,
-                componentType,
-                componentSubType,
-                formEntity,
-                StagedAssessmentStudentEntity::getStagedAssessmentStudentComponentEntities,
-                StagedAssessmentStudentComponentEntity::getAssessmentComponentID,
-                StagedAssessmentStudentComponentEntity::getStagedAssessmentStudentAnswerEntities,
-                StagedAssessmentStudentAnswerEntity::getScore
-        );
+        var component = formEntity.getAssessmentComponentEntities().stream()
+                .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode()) && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
+                .findFirst();
+        if(component.isPresent()) {
+            var componentEntity = stagedStudent.getStagedAssessmentStudentComponentEntities().stream()
+                    .filter(comp -> Objects.equals(comp.getAssessmentComponentID(), component.get().getAssessmentComponentID()))
+                    .findFirst();
+            var totalStudentScore = componentEntity.map(stagedAssessmentStudentComponentEntity -> stagedAssessmentStudentComponentEntity.getStagedAssessmentStudentAnswerEntities().stream()
+                    .map(StagedAssessmentStudentAnswerEntity::getScore)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)).orElse(BigDecimal.ZERO);
+
+            var totalScale = component.get().getAssessmentQuestionEntities()
+                    .stream()
+                    .map(AssessmentQuestionEntity::getScaleFactor)
+                    .reduce(0, Integer::sum);
+            return (totalStudentScore.multiply(BigDecimal.valueOf(totalScale))).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        }
+        return BigDecimal.ZERO;
     }
 
     public BigDecimal setAssessmentStudentTotals(AssessmentStudentEntity assessmentStudent, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, AssessmentFormEntity formEntity) {
-        return setTotals(
-                assessmentStudent,
-                componentType,
-                componentSubType,
-                formEntity,
-                AssessmentStudentEntity::getAssessmentStudentComponentEntities,
-                AssessmentStudentComponentEntity::getAssessmentComponentID,
-                AssessmentStudentComponentEntity::getAssessmentStudentAnswerEntities,
-                AssessmentStudentAnswerEntity::getScore
-        );
-    }
-
-    private <T, C, A> BigDecimal setTotals(
-            T student,
-            ComponentTypeCodes componentType,
-            ComponentSubTypeCodes componentSubType,
-            AssessmentFormEntity formEntity,
-            Function<T, Collection<C>> getComponentEntities,
-            Function<C, UUID> getComponentId,
-            Function<C, Collection<A>> getAnswerEntities,
-            Function<A, BigDecimal> getScore) {
-
         var component = formEntity.getAssessmentComponentEntities().stream()
-                .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode())
-                        && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
+                .filter(ac -> ac.getComponentTypeCode().equals(componentType.getCode()) && ac.getComponentSubTypeCode().equals(componentSubType.getCode()))
                 .findFirst();
-
-        if (component.isPresent()) {
-            var componentEntity = getComponentEntities.apply(student).stream()
-                    .filter(comp -> Objects.equals(getComponentId.apply(comp), component.get().getAssessmentComponentID()))
+        if(component.isPresent()) {
+            var componentEntity = assessmentStudent.getAssessmentStudentComponentEntities().stream()
+                    .filter(comp -> Objects.equals(comp.getAssessmentComponentID(), component.get().getAssessmentComponentID()))
                     .findFirst();
+            var totalStudentScore = componentEntity.map(stagedAssessmentStudentComponentEntity -> stagedAssessmentStudentComponentEntity.getAssessmentStudentAnswerEntities().stream()
+                    .map(AssessmentStudentAnswerEntity::getScore)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)).orElse(BigDecimal.ZERO);
 
-            return componentEntity
-                    .map(comp -> getAnswerEntities.apply(comp).stream()
-                            .map(getScore)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add))
-                    .orElse(BigDecimal.ZERO);
+            var totalScale = component.get().getAssessmentQuestionEntities()
+                    .stream()
+                    .map(AssessmentQuestionEntity::getScaleFactor)
+                    .reduce(0, Integer::sum);
+            return (totalStudentScore.multiply(BigDecimal.valueOf(totalScale))).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         }
-
         return BigDecimal.ZERO;
     }
 
     private StagedAssessmentStudentEntity createFromExistingStudentEntity(StudentResult studentResult, GradStudentRecord gradStudent, AssessmentStudentEntity existingStudent, UUID assessmentFormID) {
         StagedAssessmentStudentEntity stagedStudent = AssessmentStudentMapper.mapper.toStagingStudent(existingStudent);
-        stagedStudent.setIrtScore(studentResult.getIrtScore());
+        if(studentResult.getComponentType().equalsIgnoreCase("1") || studentResult.getComponentType().equalsIgnoreCase("3")) {
+            stagedStudent.setIrtScore(studentResult.getIrtScore());
+            stagedStudent.setMarkingSession(studentResult.getMarkingSession());
+            stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
+        }
+
         stagedStudent.setAssessmentFormID(assessmentFormID);
         stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
         stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
-        stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
-        stagedStudent.setMarkingSession(studentResult.getMarkingSession());
         stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : stagedStudent.getSchoolOfRecordSchoolID());
         stagedStudent.setGradeAtRegistration(gradStudent != null ? gradStudent.getStudentGrade() : null);
         stagedStudent.setUpdateDate(LocalDateTime.now());
@@ -236,6 +226,12 @@ public class StudentAssessmentResultService {
         var noOfAttempts = studentApiStudent != null
                 ? assessmentStudentRepository.findNumberOfAttemptsForStudent(UUID.fromString(studentApiStudent.getStudentID()), AssessmentUtil.getAssessmentTypeCodeList(assessmentEntity.getAssessmentTypeCode()))
                 : 0;
+        if(studentResult.getComponentType().equalsIgnoreCase("1") || studentResult.getComponentType().equalsIgnoreCase("3")) {
+            stagedStudent.setIrtScore(studentResult.getIrtScore());
+            stagedStudent.setMarkingSession(studentResult.getMarkingSession());
+            stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
+        }
+
         stagedStudent.setAssessmentEntity(assessmentEntity);
         stagedStudent.setAssessmentFormID(assessmentFormID);
         stagedStudent.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.getSchoolId()));
@@ -249,9 +245,6 @@ public class StudentAssessmentResultService {
         stagedStudent.setProficiencyScore(studentResult.getProficiencyScore());
         stagedStudent.setProvincialSpecialCaseCode(studentResult.getProvincialSpecialCaseCode());
         stagedStudent.setNumberOfAttempts(noOfAttempts);
-        stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
-        stagedStudent.setIrtScore(studentResult.getIrtScore());
-        stagedStudent.setMarkingSession(studentResult.getMarkingSession());
         stagedStudent.setCreateUser(studentResult.getCreateUser());
         stagedStudent.setCreateDate(LocalDateTime.now());
         stagedStudent.setUpdateUser(studentResult.getUpdateUser());
@@ -280,20 +273,22 @@ public class StudentAssessmentResultService {
             AtomicInteger questionCounter = new AtomicInteger(1);
             AtomicInteger itemCounter = new AtomicInteger(1);
             for(var multiChoiceMark: multiChoiceMarks){
-                var answer = new StagedAssessmentStudentAnswerEntity();
-                answer.setStagedAssessmentStudentComponentEntity(studentComponent);
-                var question = component.getAssessmentQuestionEntities().stream()
-                        .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
-                        .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
-                questionCounter.getAndIncrement();
-                itemCounter.getAndIncrement();
-                answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
-                answer.setScore(new BigDecimal(multiChoiceMark));
-                answer.setCreateUser(studentResult.getCreateUser());
-                answer.setCreateDate(LocalDateTime.now());
-                answer.setUpdateUser(studentResult.getUpdateUser());
-                answer.setUpdateDate(LocalDateTime.now());
-                studentComponent.getStagedAssessmentStudentAnswerEntities().add(answer);
+                if (StringUtils.isNotBlank(multiChoiceMark) && !multiChoiceMark.equalsIgnoreCase("9999")) {
+                    var answer = new StagedAssessmentStudentAnswerEntity();
+                    answer.setStagedAssessmentStudentComponentEntity(studentComponent);
+                    var question = component.getAssessmentQuestionEntities().stream()
+                            .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
+                            .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
+                    questionCounter.getAndIncrement();
+                    itemCounter.getAndIncrement();
+                    answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
+                    answer.setScore(new BigDecimal(multiChoiceMark));
+                    answer.setCreateUser(studentResult.getCreateUser());
+                    answer.setCreateDate(LocalDateTime.now());
+                    answer.setUpdateUser(studentResult.getUpdateUser());
+                    answer.setUpdateDate(LocalDateTime.now());
+                    studentComponent.getStagedAssessmentStudentAnswerEntities().add(answer);
+                }
             }
         } else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
             var openEndedMarks = TransformUtil.splitStringEveryNChars(studentResult.getOeMarks(), 4);
@@ -360,6 +355,11 @@ public class StudentAssessmentResultService {
         var noOfAttempts = studentApiStudent != null
                 ? assessmentStudentRepository.findNumberOfAttemptsForStudent(UUID.fromString(studentApiStudent.getStudentID()), AssessmentUtil.getAssessmentTypeCodeList(assessmentEntity.getAssessmentTypeCode()))
                 : 0;
+        if(studentResult.getComponentType().equalsIgnoreCase("1") || studentResult.getComponentType().equalsIgnoreCase("3")) {
+            student.setIrtScore(studentResult.getIrtScore());
+            student.setMarkingSession(studentResult.getMarkingSession());
+            student.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator()));
+        }
         student.setAssessmentEntity(assessmentEntity);
         student.setAssessmentFormID(assessmentFormID);
         student.setSchoolAtWriteSchoolID(gradStudent != null ? UUID.fromString(gradStudent.getSchoolOfRecordId()) : UUID.fromString(school.get().getSchoolId()));
@@ -373,9 +373,6 @@ public class StudentAssessmentResultService {
         student.setProficiencyScore(Integer.valueOf(studentResult.getProficiencyScore()));
         student.setProvincialSpecialCaseCode(studentResult.getSpecialCaseCode());
         student.setNumberOfAttempts(noOfAttempts);
-        student.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator()));
-        student.setIrtScore(studentResult.getIrtScore());
-        student.setMarkingSession(studentResult.getMarkingSession());
 
         return student;
     }
@@ -400,20 +397,22 @@ public class StudentAssessmentResultService {
             AtomicInteger questionCounter = new AtomicInteger(1);
             AtomicInteger itemCounter = new AtomicInteger(1);
             for(var multiChoiceMark: multiChoiceMarks){
-                var answer = new AssessmentStudentAnswerEntity();
-                answer.setAssessmentStudentComponentEntity(studentComponent);
-                var question = component.getAssessmentQuestionEntities().stream()
-                        .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
-                        .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
-                questionCounter.getAndIncrement();
-                itemCounter.getAndIncrement();
-                answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
-                answer.setScore(new BigDecimal(multiChoiceMark));
-                answer.setCreateUser(fileUpload.getCreateUser());
-                answer.setCreateDate(LocalDateTime.now());
-                answer.setUpdateUser(fileUpload.getUpdateUser());
-                answer.setUpdateDate(LocalDateTime.now());
-                studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+                if (StringUtils.isNotBlank(multiChoiceMark) && !multiChoiceMark.equalsIgnoreCase("9999")) {
+                    var answer = new AssessmentStudentAnswerEntity();
+                    answer.setAssessmentStudentComponentEntity(studentComponent);
+                    var question = component.getAssessmentQuestionEntities().stream()
+                            .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
+                            .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
+                    questionCounter.getAndIncrement();
+                    itemCounter.getAndIncrement();
+                    answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
+                    answer.setScore(new BigDecimal(multiChoiceMark));
+                    answer.setCreateUser(fileUpload.getCreateUser());
+                    answer.setCreateDate(LocalDateTime.now());
+                    answer.setUpdateUser(fileUpload.getUpdateUser());
+                    answer.setUpdateDate(LocalDateTime.now());
+                    studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+                }
             }
         } else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
             var openEndedMarks = TransformUtil.splitStringEveryNChars(studentResult.getOpenEndedMarks(), 4);
