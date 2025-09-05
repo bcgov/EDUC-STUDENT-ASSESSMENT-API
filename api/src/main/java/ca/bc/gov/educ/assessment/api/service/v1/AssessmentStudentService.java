@@ -7,6 +7,8 @@ import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
+import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentShowItemMapper;
+import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentComponentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
@@ -34,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.ASSESSMENT_STUDENT_UPDATED;
 import static ca.bc.gov.educ.assessment.api.constants.EventType.ASSESSMENT_STUDENT_UPDATE;
@@ -374,5 +377,40 @@ public class AssessmentStudentService {
         return stagedAssessmentStudentRepository.findById(stagedStudentId).orElseThrow(() ->
                 new EntityNotFoundException(StagedAssessmentStudentEntity.class, "stagedStudentId", stagedStudentId.toString())
         );
+    }
+
+    @Transactional(readOnly = true)
+    public AssessmentStudentShowItem getStudentWithAssessmentDetailsDtoById(UUID assessmentStudentID, UUID assessmentID) {
+        AssessmentStudentEntity entity = assessmentStudentRepository.findByIdWithAssessmentDetails(assessmentStudentID, assessmentID)
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentStudent.class, "assessmentStudentID", assessmentStudentID.toString()));
+
+        // Map the main DTO while we're inside the transaction so Hibernate Session is open
+        AssessmentStudentShowItem dto = AssessmentStudentShowItemMapper.mapper.toStructure(entity);
+
+        // Explicitly populate form -> components only for this DTO
+        if (entity.getAssessmentEntity() != null && dto.getAssessmentDetails() != null && dto.getAssessmentDetails().getAssessmentForms() != null) {
+            // build lookup by form id (string) for DTO forms
+            var formDtoMap = dto.getAssessmentDetails().getAssessmentForms().stream()
+                    .filter(f -> f.getAssessmentFormID() != null)
+                    .collect(Collectors.toMap(AssessmentForm::getAssessmentFormID, f -> f));
+
+            // map components from entities to DTOs and set them on matching DTO form
+            for (var formEntity : entity.getAssessmentEntity().getAssessmentForms()) {
+                if (formEntity == null) continue;
+                var formId = formEntity.getAssessmentFormID() == null ? null : formEntity.getAssessmentFormID().toString();
+                if (formId == null) continue;
+                AssessmentForm formDto = formDtoMap.get(formId);
+                if (formDto == null) continue;
+
+                if (formEntity.getAssessmentComponentEntities() != null && !formEntity.getAssessmentComponentEntities().isEmpty()) {
+                    List<AssessmentComponent> comps = formEntity.getAssessmentComponentEntities().stream()
+                            .map(AssessmentComponentMapper.mapper::toStructure)
+                            .toList();
+                    formDto.setAssessmentComponents(comps);
+                }
+            }
+        }
+
+        return dto;
     }
 }
