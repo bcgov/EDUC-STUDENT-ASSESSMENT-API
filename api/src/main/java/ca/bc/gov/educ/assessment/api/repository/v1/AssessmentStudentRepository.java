@@ -38,7 +38,13 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDInAndStudentID(List<UUID> assessmentIDs, UUID studentID);
 
-    Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentIDAndAssessmentStudentIDIsNot(UUID AssessmentID, UUID studentID, UUID assessmentStudentID);
+    @Query("""
+        SELECT s FROM AssessmentStudentEntity s
+        WHERE s.assessmentEntity.assessmentID = :AssessmentID
+        AND s.studentID = :studentID
+        AND (:assessmentStudentID IS NULL OR s.assessmentStudentID <> :assessmentStudentID)
+    """)
+    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentIDAndAssessmentStudentIDIsNot(UUID AssessmentID, UUID studentID, UUID assessmentStudentID);
 
     @Modifying
     @Query(value="""
