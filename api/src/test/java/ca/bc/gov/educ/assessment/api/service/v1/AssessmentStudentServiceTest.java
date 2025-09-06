@@ -148,7 +148,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
 
     //when creating an assessment student
-    var pair = assessmentStudentService.createStudent(assessmentStudentEntity, false, null );
+    var pair = assessmentStudentService.createStudent(assessmentStudentEntity, false, "UNKNOWN" );
     AssessmentStudent student = pair.getLeft();
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
     //then assessment student is created
@@ -159,7 +159,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     assertThat(studentHistory).hasSize(1);
 
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.empty());
-    var pair2 = assessmentStudentService.createStudent(assessmentStudentEntity, false, null);
+    var pair2 = assessmentStudentService.createStudent(assessmentStudentEntity, false, "UNKNOWN");
     AssessmentStudent student2 = pair2.getLeft();
     assertNotNull(student2);
     assertThat(student2.getGradeAtRegistration()).isNotEqualTo(gradStudentRecord.getStudentGrade());
@@ -201,10 +201,10 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setStudentGrade("10");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(studentEntity, false, null);
+    var pair = assessmentStudentService.createStudent(studentEntity, false, "UNKNOWN");
     AssessmentStudent assessmentStudent = pair.getLeft();
     //when updating the student
-    var pair2 = assessmentStudentService.updateStudent(mapper.toModel(assessmentStudent), false, null);
+    var pair2 = assessmentStudentService.updateStudent(mapper.toModel(assessmentStudent), false, "UNKNOWN");
     var student = pair2.getLeft();
     assertNotNull(student);
     List<AssessmentStudentHistoryEntity> studentHistory = assessmentStudentHistoryRepository.findAllByAssessmentIDAndAssessmentStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(student.getAssessmentStudentID()));
@@ -227,7 +227,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity student = AssessmentStudentEntity.builder().assessmentStudentID(UUID.randomUUID()).pen("120164447").schoolOfRecordSchoolID(UUID.randomUUID()).studentID(UUID.randomUUID()).assessmentEntity(assessmentEntity).build();
 
     //then throw exception
-    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(student, false, null));
+    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(student, false, "UNKNOWN"));
   }
 
   @Test
@@ -241,7 +241,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity student = createMockStudentEntity(assessmentEntity);
 
     //then throw exception
-    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(student, false, null));
+    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(student, false, "UNKNOWN"));
   }
 
   @Test
@@ -270,7 +270,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setGraduated("Y");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(assessmentStudentEntity, false, null);
+    var pair = assessmentStudentService.createStudent(assessmentStudentEntity, false, "UNKNOWN");
     AssessmentStudent student = pair.getLeft();
     assertThat(student.getAssessmentStudentValidationIssues()).hasSize(2);
   }
@@ -677,14 +677,14 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setGraduated("Y");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(currentStudentEntity, false, null);
+    var pair = assessmentStudentService.createStudent(currentStudentEntity, false, "UNKNOWN");
     AssessmentStudent createdStudent = pair.getLeft();
 
     //when updating student with same assessment ID
     AssessmentStudentEntity updateStudentEntity = mapper.toModel(createdStudent);
     updateStudentEntity.getAssessmentEntity().setAssessmentID(currentAssessmentEntity.getAssessmentID());
 
-    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity, false, null);
+    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity, false, "UNKNOWN");
     AssessmentStudent updatedStudent = updatePair.getLeft();
 
     //then current assessment entity should be used
@@ -721,7 +721,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setGraduated("Y");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(currentStudentEntity, false, null);
+    var pair = assessmentStudentService.createStudent(currentStudentEntity, false, "UNKNOWN");
     AssessmentStudent createdStudent = pair.getLeft();
 
     //when updating student with different assessment ID
@@ -730,7 +730,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     updateStudentEntity.getAssessmentEntity().setAssessmentID(newAssessmentId);
 
     //then should throw exception for non-existent assessment
-    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(updateStudentEntity, false, null));
+    assertThrows(EntityNotFoundException.class, () -> assessmentStudentService.updateStudent(updateStudentEntity, false, "UNKNOWN"));
   }
 
   @Test
@@ -763,14 +763,14 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     gradStudentRecord.setGraduated("Y");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
-    var pair = assessmentStudentService.createStudent(currentStudentEntity, false, null);
+    var pair = assessmentStudentService.createStudent(currentStudentEntity, false, "UNKNOWN");
     AssessmentStudent createdStudent = pair.getLeft();
 
     //when updating student with new assessment ID
     AssessmentStudentEntity updateStudentEntity = mapper.toModel(createdStudent);
     updateStudentEntity.getAssessmentEntity().setAssessmentID(newAssessmentEntity.getAssessmentID());
 
-    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity, false, null);
+    var updatePair = assessmentStudentService.updateStudent(updateStudentEntity, false, "UNKNOWN");
     AssessmentStudent updatedStudent = updatePair.getLeft();
 
     //then new assessment entity should be used
