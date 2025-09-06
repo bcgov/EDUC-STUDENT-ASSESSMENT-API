@@ -40,13 +40,15 @@ public interface AssessmentStudentEndpoint {
     @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_STUDENT')")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND"), @ApiResponse(responseCode = "400", description = "BAD REQUEST"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
     AssessmentStudent updateStudent(@Validated({Default.class, OnUpdate.class}) @RequestBody AssessmentStudent assessmentStudent, @PathVariable UUID assessmentStudentID,
-                                    @RequestParam(name = "allowRuleOverride", defaultValue = "false") boolean allowRuleOverride) throws JsonProcessingException;
+                                    @RequestParam(name = "allowRuleOverride", defaultValue = "false") boolean allowRuleOverride,
+                                    @RequestParam(name="source", defaultValue = "UNKNOWN") String source) throws JsonProcessingException;
 
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_STUDENT')")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND"), @ApiResponse(responseCode = "400", description = "BAD REQUEST"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
     AssessmentStudent createStudent(@Validated({Default.class, OnCreate.class}) @RequestBody AssessmentStudent assessmentStudent,
-                                    @RequestParam(name = "allowRuleOverride", defaultValue = "false") boolean allowRuleOverride) throws JsonProcessingException;
+                                    @RequestParam(name = "allowRuleOverride", defaultValue = "false") boolean allowRuleOverride,
+                                    @RequestParam(name="source", defaultValue = "UNKNOWN") String source) throws JsonProcessingException;
 
     @GetMapping(URL.PAGINATED)
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_STUDENT')")

@@ -62,10 +62,10 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     }
 
   @Override
-  public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID, boolean allowRuleOverride) throws JsonProcessingException {
+  public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID, boolean allowRuleOverride, String source) throws JsonProcessingException {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, false));
     RequestUtil.setAuditColumnsForUpdate(assessmentStudent);
-    var pair = studentService.updateStudent(mapper.toModel(assessmentStudent), allowRuleOverride);
+    var pair = studentService.updateStudent(mapper.toModel(assessmentStudent), allowRuleOverride, source);
     if(pair.getRight() != null) {
       publisher.dispatchChoreographyEvent(pair.getRight());  
     }
@@ -73,11 +73,11 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public AssessmentStudent createStudent(AssessmentStudent assessmentStudent, boolean allowRuleOverride) throws JsonProcessingException {
+  public AssessmentStudent createStudent(AssessmentStudent assessmentStudent, boolean allowRuleOverride, String source) throws JsonProcessingException {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
     RequestUtil.setAuditColumnsForCreate(assessmentStudent);
     AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
-    var pair = studentService.createStudent(assessmentStudentEntity, allowRuleOverride);
+    var pair = studentService.createStudent(assessmentStudentEntity, allowRuleOverride, source);
     if(pair.getRight() != null) {
       publisher.dispatchChoreographyEvent(pair.getRight());
     }
