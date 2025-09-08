@@ -838,7 +838,7 @@ public class CSVReportService {
         return questions
                 .stream()
                 .filter(questionEntity -> Objects.equals(questionEntity.getAssessmentComponentEntity().getAssessmentComponentID(), choice.getAssessmentComponentEntity().getAssessmentComponentID())
-                        && questionEntity.getMasterQuestionNumber() == choice.getMasterQuestionNumber())
+                        && Objects.equals(questionEntity.getMasterQuestionNumber(), choice.getMasterQuestionNumber()))
                 .map(AssessmentQuestionEntity::getQuestionNumber)
                 .distinct()
                 .map(String::valueOf)
