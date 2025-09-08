@@ -90,7 +90,8 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
           studentNode.setName(student.getSurname() + ", " + student.getGivenName());
           SchoolStudentGradAssessmentNode studentGradAssessmentNode = new SchoolStudentGradAssessmentNode();
           studentGradAssessmentNode.setName(assessmentTypes.get(student.getAssessmentEntity().getAssessmentTypeCode()));
-          studentGradAssessmentNode.setScore(student.getProficiencyScore() == null ? StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : "" : student.getProficiencyScore().toString());
+          studentGradAssessmentNode.setProficiencyScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "");
+          studentGradAssessmentNode.setSpecialCase(student.getProficiencyScore() == null && StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : "");
           studentNode.setGradAssessments(new ArrayList<>());
           studentNode.getGradAssessments().add(studentGradAssessmentNode);
           studentList.put(student.getStudentID(), studentNode);
@@ -98,7 +99,8 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
           var loadedStudent = studentList.get(student.getStudentID());
           SchoolStudentGradAssessmentNode studentGradAssessmentNode = new SchoolStudentGradAssessmentNode();
           studentGradAssessmentNode.setName(assessmentTypes.get(student.getAssessmentEntity().getAssessmentTypeCode()));
-          studentGradAssessmentNode.setScore(student.getProficiencyScore() == null ? StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : "" : student.getProficiencyScore().toString());
+          studentGradAssessmentNode.setProficiencyScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "");
+          studentGradAssessmentNode.setSpecialCase(student.getProficiencyScore() == null && StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : "");
           loadedStudent.getGradAssessments().add(studentGradAssessmentNode);
         }
       });
