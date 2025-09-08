@@ -479,9 +479,14 @@ public class CSVReportService {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         AssessmentEntity assessmentEntity = session.getAssessments().stream().filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode)).findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentTypeCode", assessmentTypeCode));
 
+        List<AssessmentChoiceEntity> choices = assessmentEntity.getAssessmentForms().stream()
+                .flatMap(assessmentFormEntity -> assessmentFormEntity.getAssessmentComponentEntities().stream())
+                .flatMap(assessmentComponentEntity -> assessmentComponentEntity.getAssessmentChoiceEntities().stream()).toList();
         List<AssessmentQuestionEntity> questions = assessmentEntity.getAssessmentForms().stream()
                 .flatMap(assessmentFormEntity -> assessmentFormEntity.getAssessmentComponentEntities().stream())
                 .flatMap(assessmentComponentEntity -> assessmentComponentEntity.getAssessmentQuestionEntities().stream()).toList();
+
+
         List<String> headers = Arrays.stream(KeySummaryHeader.values()).map(KeySummaryHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
         try {
@@ -492,7 +497,11 @@ public class CSVReportService {
             csvPrinter.printRecord(headers);
             var sessionString = session.getCourseYear() +"/"+ session.getCourseMonth();
             for (AssessmentQuestionEntity question : questions) {
-                List<String> csvRowData = prepareKeySummaryForCsv(question, assessmentTypeCode, sessionString);
+                List<String> csvRowData = prepareKeySummaryWithQuesForCsv(question, assessmentTypeCode, sessionString);
+                csvPrinter.printRecord(csvRowData);
+            }
+            for (AssessmentChoiceEntity choice : choices) {
+                List<String> csvRowData = prepareKeySummaryWithChoicesForCsv(choice, assessmentTypeCode, sessionString, questions);
                 csvPrinter.printRecord(csvRowData);
             }
             csvPrinter.flush();
@@ -714,7 +723,7 @@ public class CSVReportService {
         ));
     }
 
-    private List<String> prepareKeySummaryForCsv(AssessmentQuestionEntity question, String assessmentTypeCode, String session) {
+    private List<String> prepareKeySummaryWithQuesForCsv(AssessmentQuestionEntity question, String assessmentTypeCode, String session) {
         return new ArrayList<>(Arrays.asList(
                 assessmentTypeCode,
                 session,
@@ -733,6 +742,28 @@ public class CSVReportService {
                 question.getContextCode(),
                 question.getConceptCode(),
                 question.getAssessmentSection()
+        ));
+    }
+
+    private List<String> prepareKeySummaryWithChoicesForCsv(AssessmentChoiceEntity choice, String assessmentTypeCode, String session, List<AssessmentQuestionEntity> questions) {
+        return new ArrayList<>(Arrays.asList(
+                assessmentTypeCode,
+                session,
+                choice.getAssessmentComponentEntity().getAssessmentFormEntity().getFormCode(),
+                getComponentType(choice.getAssessmentComponentEntity()),
+                choice.getItemNumber().toString(),
+                "Choice",
+                getQuestionNumbers(choice, questions),
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
         ));
     }
 
@@ -801,6 +832,17 @@ public class CSVReportService {
             return String.valueOf(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor())).divide(new BigDecimal(100), 2, RoundingMode.HALF_UP));
         }
         return "";
+    }
+
+    private String getQuestionNumbers(AssessmentChoiceEntity choice, List<AssessmentQuestionEntity> questions) {
+        return questions
+                .stream()
+                .filter(questionEntity -> Objects.equals(questionEntity.getAssessmentComponentEntity().getAssessmentComponentID(), choice.getAssessmentComponentEntity().getAssessmentComponentID())
+                        && Objects.equals(questionEntity.getMasterQuestionNumber(), choice.getMasterQuestionNumber()))
+                .map(AssessmentQuestionEntity::getQuestionNumber)
+                .distinct()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
     }
 
     private String getComponentType(AssessmentComponentEntity component) {
