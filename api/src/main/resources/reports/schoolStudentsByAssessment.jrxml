@@ -176,10 +176,14 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="localID"/>
 			<fieldDescription><![CDATA[students.localID]]></fieldDescription>
 		</field>
-		<field name="score" class="java.lang.String">
-			<property name="net.sf.jasperreports.json.field.expression" value="score"/>
-			<fieldDescription><![CDATA[students.score]]></fieldDescription>
+		<field name="proficiencyScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="proficiencyScore"/>
+			<fieldDescription><![CDATA[students.proficiencyScore]]></fieldDescription>
 		</field>
+        <field name="specialCase" class="java.lang.String">
+            <property name="net.sf.jasperreports.json.field.expression" value="specialCase"/>
+            <fieldDescription><![CDATA[students.specialCase]]></fieldDescription>
+        </field>
 		<field name="isHeading" class="java.lang.String">
 			<property name="net.sf.jasperreports.json.field.expression" value="isHeading"/>
 			<fieldDescription><![CDATA[students.isHeading]]></fieldDescription>
@@ -343,7 +347,7 @@
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Local ID]]></text>
+										<text><![CDATA[Student Local ID]]></text>
 									</staticText>
 								</jr:columnHeader>
 								<jr:detailCell height="20">
@@ -359,33 +363,60 @@
 									</textField>
 								</jr:detailCell>
 							</jr:column>
-						</jr:columnGroup>
-						<jr:column width="294" uuid="28232cfb-c180-4536-85cb-1375d812c148">
-							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-								<staticText>
-									<reportElement x="0" y="0" width="294" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="6f4c8296-e16d-4954-8e08-adb0bc39b822">
-										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
-									</reportElement>
-									<textElement textAlignment="Left" verticalAlignment="Middle">
-										<font fontName="BCSans" size="7"/>
-										<paragraph leftIndent="5"/>
-									</textElement>
-									<text><![CDATA[Assessment Score]]></text>
-								</staticText>
-							</jr:columnHeader>
-							<jr:detailCell style="Table 2_TD" height="20">
-								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="294" height="20" uuid="b789d08d-0512-4fce-9a5c-8c52a9400460">
-										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
-									</reportElement>
-									<textElement textAlignment="Left" verticalAlignment="Top">
-										<font fontName="BCSans" size="8" isBold="false"/>
-										<paragraph leftIndent="5" spacingBefore="3"/>
-									</textElement>
-									<textFieldExpression><![CDATA[$F{score}]]></textFieldExpression>
-								</textField>
-							</jr:detailCell>
-						</jr:column>
+                        </jr:columnGroup>
+
+                        <jr:column width="91" uuid="28232cfb-c180-4536-85cb-1375d812c141">
+                            <jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
+                                <staticText>
+                                    <reportElement x="0" y="0" width="91" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="6f4c8296-e16d-4954-8e08-adb0bc39b821">
+                                        <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                                    </reportElement>
+                                    <textElement textAlignment="Left" verticalAlignment="Middle">
+                                        <font fontName="BCSans" size="7"/>
+                                        <paragraph leftIndent="5"/>
+                                    </textElement>
+                                    <text><![CDATA[Proficiency Score]]></text>
+                                </staticText>
+                            </jr:columnHeader>
+                            <jr:detailCell style="Table 2_TD" height="20">
+                                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                                    <reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="91" height="20" uuid="b789d08d-0512-4fce-9a5c-8c52a9400461">
+                                        <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                                    </reportElement>
+                                    <textElement textAlignment="Left" verticalAlignment="Top">
+                                        <font fontName="BCSans" size="8" isBold="false"/>
+                                        <paragraph leftIndent="5" spacingBefore="3"/>
+                                    </textElement>
+                                    <textFieldExpression><![CDATA[$F{proficiencyScore}]]></textFieldExpression>
+                                </textField>
+                            </jr:detailCell>
+                        </jr:column>
+                        <jr:column width="203" uuid="28232cfb-c180-4536-85cb-1375d812c148">
+                            <jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
+                                <staticText>
+                                    <reportElement x="0" y="0" width="203" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="6f4c8296-e16d-4954-8e08-adb0bc39b822">
+                                        <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                                    </reportElement>
+                                    <textElement textAlignment="Left" verticalAlignment="Middle">
+                                        <font fontName="BCSans" size="7"/>
+                                        <paragraph leftIndent="5"/>
+                                    </textElement>
+                                    <text><![CDATA[Special Case]]></text>
+                                </staticText>
+                            </jr:columnHeader>
+                            <jr:detailCell style="Table 2_TD" height="20">
+                                <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                                    <reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="203" height="20" uuid="b789d08d-0512-4fce-9a5c-8c52a9400460">
+                                        <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                                    </reportElement>
+                                    <textElement textAlignment="Left" verticalAlignment="Top">
+                                        <font fontName="BCSans" size="8" isBold="false"/>
+                                        <paragraph leftIndent="5" spacingBefore="3"/>
+                                    </textElement>
+                                    <textFieldExpression><![CDATA[$F{specialCase}]]></textFieldExpression>
+                                </textField>
+                            </jr:detailCell>
+                        </jr:column>
 					</jr:table>
 				</componentElement>
 				<staticText>
@@ -393,7 +424,7 @@
 					<textElement>
 						<font size="8"/>
 					</textElement>
-					<text><![CDATA[Assessment Scores]]></text>
+					<text><![CDATA[Legend]]></text>
 				</staticText>
 				<rectangle>
 					<reportElement x="33" y="94" width="669" height="31" backcolor="#EDEDED" uuid="686d5055-93e3-4fef-b3c8-46fb68292717"/>
