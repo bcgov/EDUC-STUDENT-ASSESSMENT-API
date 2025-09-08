@@ -96,7 +96,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<AssessmentStudent, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride) {
+    public Pair<AssessmentStudent, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
         );
@@ -109,7 +109,7 @@ public class AssessmentStudentService {
             assessmentStudentEntity.setAssessmentEntity(updatedAssessmentEntity);
         }
 
-        var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity, false, allowRuleOverride);
+        var student = processStudent(assessmentStudentEntity, currentAssessmentStudentEntity, false, allowRuleOverride, source);
 
         AssessmentEventEntity event = null;
         if(student.getAssessmentStudentValidationIssues() != null) {
@@ -128,13 +128,13 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride) {
+    public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
         assessmentStudentEntity.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
-        var student = processStudent(assessmentStudentEntity, null, true, allowRuleOverride);
+        var student = processStudent(assessmentStudentEntity, null, true, allowRuleOverride, source);
 
         AssessmentEventEntity event = null;
         if(student.getAssessmentStudentValidationIssues() != null) {
@@ -145,7 +145,7 @@ public class AssessmentStudentService {
         return Pair.of(student, event);
     }
 
-    private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity, boolean newAssessmentStudentRegistration, boolean allowRuleOverride) {
+    private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity, boolean newAssessmentStudentRegistration, boolean allowRuleOverride, String source) {
         SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID().toString()).orElse(null);
 
         UUID studentCorrelationID = UUID.randomUUID();
@@ -153,7 +153,7 @@ public class AssessmentStudentService {
         Student studentApiStudent = restUtils.getStudentByPEN(studentCorrelationID, assessmentStudentEntity.getPen()).orElseThrow(() ->
                 new EntityNotFoundException(Student.class, "Student", assessmentStudentEntity.getPen()));
 
-        List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, studentApiStudent, allowRuleOverride);
+        List<AssessmentStudentValidationIssue> validationIssues = runValidationRules(assessmentStudentEntity, schoolTombstone, studentApiStudent, allowRuleOverride, source);
 
         if (newAssessmentStudentRegistration) {
             UUID gradStudentRecordCorrelationID = UUID.randomUUID();
@@ -192,13 +192,13 @@ public class AssessmentStudentService {
         return savedEntity;
     }
 
-    public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, Student studentApiStudent, boolean allowRuleOverride) {
+    public List<AssessmentStudentValidationIssue> runValidationRules(AssessmentStudentEntity assessmentStudentEntity, SchoolTombstone schoolTombstone, Student studentApiStudent, boolean allowRuleOverride, String source) {
         StudentRuleData studentRuleData = new StudentRuleData();
         studentRuleData.setAssessmentStudentEntity(assessmentStudentEntity);
         studentRuleData.setSchool(schoolTombstone);
         studentRuleData.setStudentApiStudent(studentApiStudent);
         studentRuleData.setAllowRuleOverride(allowRuleOverride);
-
+        studentRuleData.setSource(source);
         return this.assessmentStudentRulesProcessor.processRules(studentRuleData);
     }
 

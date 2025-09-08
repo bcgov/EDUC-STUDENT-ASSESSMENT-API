@@ -45,12 +45,16 @@ public class V002StudentSchool implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V001 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
 
-        if(studentRuleData.getSchool() == null || !RuleUtil.isSchoolValid(studentRuleData.getSchool())){
+        if(studentRuleData.getSchool() == null || (!skipClosedSchoolCheck(studentRuleData) && !RuleUtil.isSchoolValid(studentRuleData.getSchool()))){
             log.debug("V002: School is not valid for student with PEN :: {}", student.getPen());
             errors.add(createValidationIssue(AssessmentStudentValidationFieldCode.SCHOOL, AssessmentStudentValidationIssueTypeCode.SCHOOL_INVALID));
         }
 
         return errors;
+    }
+
+    private boolean skipClosedSchoolCheck(StudentRuleData studentRuleData) {
+        return "GRAD".equalsIgnoreCase(studentRuleData.getSource());
     }
 
 }

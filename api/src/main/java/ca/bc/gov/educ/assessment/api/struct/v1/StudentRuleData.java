@@ -21,4 +21,5 @@ public class StudentRuleData {
     private SchoolTombstone assessmentCentre;
     private Student studentApiStudent;
     private boolean allowRuleOverride;
+    private String source;
 }
