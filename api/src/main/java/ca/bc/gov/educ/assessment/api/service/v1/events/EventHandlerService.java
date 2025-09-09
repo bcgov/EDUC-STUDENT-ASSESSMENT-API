@@ -103,7 +103,16 @@ public class EventHandlerService {
             assessmentStudentService.saveAssessmentStudentWithHistory(createStudentEntity);
             dataChangedForStudent = true;
         } else {
-            log.info("Student already exists in assessment {} ", assessmentStudent);
+            AssessmentStudentEntity existingStudentEntity = student.get();
+            if (assessmentStudent.getSchoolOfRecordSchoolID() != null) {
+                existingStudentEntity.setSchoolOfRecordSchoolID(UUID.fromString(assessmentStudent.getSchoolOfRecordSchoolID()));
+            }
+            existingStudentEntity.setLocalID(assessmentStudent.getLocalID());
+            existingStudentEntity.setLocalAssessmentID(assessmentStudent.getLocalAssessmentID());
+            if (assessmentStudent.getAssessmentCenterSchoolID() != null) {
+                existingStudentEntity.setAssessmentCenterSchoolID(UUID.fromString(assessmentStudent.getAssessmentCenterSchoolID()));
+            }
+            log.info("Student already exists in assessment {} updating school or record school id, local id, local assessment id, assessment center school id", assessmentStudent);
         }
 
         AssessmentEventEntity assessmentEventEntity = null;
