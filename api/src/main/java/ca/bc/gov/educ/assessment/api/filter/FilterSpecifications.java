@@ -34,6 +34,9 @@ public class FilterSpecifications<E, T extends Comparable<T>> {
                 if(splits.length == 2) {
                     return criteriaBuilder.equal(root.join(splits[0]).get(splits[1]), filterCriteria.getConvertedSingleValue());
                 } else {
+                    if(filterCriteria.getConvertedSingleValue() == null) {
+                        return criteriaBuilder.isNull(root.get(splits[0]).get(splits[1]).get(splits[2]));
+                    }
                     return criteriaBuilder.equal(root.join(splits[0]).get(splits[1]).get(splits[2]), filterCriteria.getConvertedSingleValue());
                 }
 
