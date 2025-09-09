@@ -172,6 +172,10 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="score"/>
 			<fieldDescription><![CDATA[assessments.score]]></fieldDescription>
 		</field>
+		<field name="specialCase" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="specialCase"/>
+			<fieldDescription><![CDATA[assessments.specialCase]]></fieldDescription>
+		</field>
 	</subDataset>
 	<subDataset name="AssessmentDetailsSet" uuid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="isrMain"/>
@@ -545,7 +549,7 @@
 	<pageHeader>
 		<band height="72" splitType="Stretch">
 			<staticText>
-				<reportElement x="287" y="20" width="209" height="14" forecolor="#003366" uuid="8ef7f15d-0e1e-47ce-862d-01e8577c31eb"/>
+				<reportElement x="287" y="20" width="209" height="14" forecolor="#030303" uuid="8ef7f15d-0e1e-47ce-862d-01e8577c31eb"/>
 				<textElement>
 					<font fontName="BC Sans"/>
 				</textElement>
@@ -558,7 +562,7 @@
 				<textElement textAlignment="Right">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{schoolDetail}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["School Name: " + $F{schoolDetail}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="520" y="50" width="222" height="15" uuid="bd23ceca-07d5-4e6a-a266-8dda73c09239">
@@ -583,7 +587,7 @@
 				<textElement>
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{studentName}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Student Name: " + $F{studentName}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="0" y="55" width="280" height="15" uuid="5e29d86f-8976-4bf4-8822-22fadb4759de">
@@ -592,7 +596,7 @@
 				<textElement>
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{studentPEN}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Personal Education Number: " + $F{studentPEN}]]></textFieldExpression>
 			</textField>
 			<image>
 				<reportElement x="-9" y="-17" width="100" height="44" uuid="c139017e-89b8-438d-b893-49e771231c44"/>
@@ -601,15 +605,15 @@
 		</band>
 	</pageHeader>
 	<detail>
-		<band height="134">
+		<band height="150">
 			<componentElement>
 				<reportElement x="33" y="21" width="669" height="39" uuid="f4a9dd19-5486-48d6-b224-82292deeed42"/>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
 					<datasetRun subDataset="AssessmentSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
 						<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("assessments")]]></dataSourceExpression>
 					</datasetRun>
-					<jr:columnGroup width="664" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
-						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Columns [3]"/>
+					<jr:columnGroup width="669" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Columns [4]"/>
 						<jr:column width="185" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 							<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
@@ -638,11 +642,11 @@
 								</textField>
 							</jr:detailCell>
 						</jr:column>
-						<jr:column width="195" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
+						<jr:column width="295" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 							<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column2"/>
 							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
 								<staticText>
-									<reportElement style="Table 2_CH" x="0" y="0" width="195" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
+									<reportElement style="Table 2_CH" x="0" y="0" width="295" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
 										<font fontName="BC Sans" size="7"/>
 										<paragraph leftIndent="5"/>
@@ -652,7 +656,7 @@
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="195" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
+									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="295" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
@@ -663,21 +667,21 @@
 								</textField>
 							</jr:detailCell>
 						</jr:column>
-						<jr:column width="284" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
+						<jr:column width="90" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 							<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column3"/>
 							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
 								<staticText>
-									<reportElement style="Table 2_CH" x="0" y="0" width="284" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
+									<reportElement style="Table 2_CH" x="0" y="0" width="90" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
 										<font fontName="BC Sans" size="7"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
-									<text><![CDATA[Assessment Score]]></text>
+									<text><![CDATA[Proficiency Score]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="284" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
+									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="90" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
@@ -685,6 +689,31 @@
 										<paragraph leftIndent="5" spacingBefore="3"/>
 									</textElement>
 									<textFieldExpression><![CDATA[$F{score}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="99" uuid="f8fd3c06-acd9-4db6-b810-4ce5e82cc998">
+							<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column4"/>
+							<jr:columnHeader style="Table 2_CH" height="20">
+								<staticText>
+									<reportElement style="Table 2_CH" x="0" y="0" width="99" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="ebff00d1-1363-4fcd-9c22-924599830329"/>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="BC Sans" size="7"/>
+										<paragraph leftIndent="5"/>
+									</textElement>
+									<text><![CDATA[Special Case]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell height="20">
+								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="99" height="20" uuid="1ea246c1-bb79-49eb-ae38-9b55db220212">
+										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+									</reportElement>
+									<textElement textAlignment="Left" verticalAlignment="Top">
+										<font fontName="BC Sans" size="8" isBold="false"/>
+										<paragraph leftIndent="5" spacingBefore="3"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{specialCase}]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
 						</jr:column>
@@ -696,7 +725,7 @@
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[Assessment Scores]]></text>
+				<text><![CDATA[Legend]]></text>
 			</staticText>
 			<rectangle>
 				<reportElement positionType="Float" x="33" y="83" width="669" height="31" backcolor="#EDEDED" uuid="686d5055-93e3-4fef-b3c8-46fb68292717"/>
@@ -779,28 +808,29 @@
 				</graphicElement>
 			</line>
 			<staticText>
-				<reportElement x="33" y="7" width="209" height="14" forecolor="#003366" uuid="6e6ca833-ae3e-4883-b402-35f9df2ed8bf"/>
+				<reportElement x="33" y="7" width="209" height="14" forecolor="#030303" uuid="6e6ca833-ae3e-4883-b402-35f9df2ed8bf"/>
 				<textElement>
 					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<text><![CDATA[Summary of Assessment Results]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="Float" x="33" y="120" width="507" height="14" forecolor="#000000" uuid="57c90b68-fb64-41cf-a2d9-a7109fb5a74f"/>
+				<reportElement positionType="Float" x="33" y="120" width="661" height="30" forecolor="#000000" uuid="57c90b68-fb64-41cf-a2d9-a7109fb5a74f"/>
 				<textElement>
 					<font fontName="BC Sans" size="8" isItalic="true"/>
 				</textElement>
-				<text><![CDATA[If you have achieved a proficiency score of 1, 2, 3, 4, or AEG you have met the graduation requirement.]]></text>
+				<text><![CDATA[If you have achieved a proficiency score of 1, 2, 3, 4, or AEG you have met the graduation requirement. 
+Note that proficiency scores for the Grade 10 Literacy Assessment do not appear on transcripts.]]></text>
 			</staticText>
 		</band>
 		<band height="600" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<printWhenExpression><![CDATA[$F{assessmentDetails} != null]]></printWhenExpression>
 			<break>
-				<reportElement x="0" y="0" width="100" height="1" uuid="a1a2a3a4-b5b6-c7c8-d9d0-e1e2e3e4e5e6"/>
+				<reportElement x="0" y="19" width="100" height="1" uuid="a1a2a3a4-b5b6-c7c8-d9d0-e1e2e3e4e5e6"/>
 			</break>
 			<componentElement>
-				<reportElement x="0" y="2" width="752" height="57" uuid="11223344-5566-7788-9900-aabbccddeeff"/>
+				<reportElement x="0" y="21" width="752" height="57" uuid="11223344-5566-7788-9900-aabbccddeeff"/>
 				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
 					<datasetRun subDataset="AssessmentDetailsSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
 						<datasetParameter name="SUBREPORT_DIR">

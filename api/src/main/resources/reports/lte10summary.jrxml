@@ -18,7 +18,7 @@
 	<parameter name="partBWrittenResponseUnderstandingScore" class="java.lang.String"/>
 	<parameter name="partBWrittenResponseUnderstandingOutOf" class="java.lang.String"/>
 	<title>
-		<band height="526" splitType="Stretch">
+		<band height="497" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<rectangle>
 				<reportElement mode="Opaque" x="535" y="74" width="175" height="224" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
@@ -44,10 +44,10 @@
 				</reportElement>
 			</rectangle>
 			<break>
-				<reportElement positionType="Float" x="0" y="525" width="80" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
+				<reportElement positionType="Float" x="0" y="496" width="79" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
 			</break>
 			<textField>
-				<reportElement x="1" y="-19" width="559" height="18" forecolor="#003366" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
+				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement>
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -432,7 +432,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<font fontName="BC Sans" size="8" isBold="false"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
-				<text><![CDATA[Select-response questions (machine-scored)]]></text>
+				<text><![CDATA[Selected-response questions (machine-scored)]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="480" y="417" width="100" height="12" uuid="7d4b9114-5343-4611-956f-50838e525215"/>
@@ -718,13 +718,6 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
 			</textField>
-			<staticText>
-				<reportElement x="2" y="506" width="683" height="19" uuid="947f1d2d-184a-44e9-a95c-0ecf5c77eac1"/>
-				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
-				</textElement>
-				<text><![CDATA[<b>Further Information about the Grade 10 Literacy Assessment:</b> <a style="color: blue" href="https://curriculum.gov.bc.ca/assessment/literacy-assessment/grade-10-literacy-assessment">https://curriculum.gov.bc.ca/assessment/literacy-assessment/grade-10-literacy-assessment</a>]]></text>
-			</staticText>
 		</band>
 	</title>
 </jasperReport>

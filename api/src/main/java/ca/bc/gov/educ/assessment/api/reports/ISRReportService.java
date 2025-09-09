@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api.reports;
 
+import ca.bc.gov.educ.assessment.api.constants.v1.LanguageCode;
 import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
@@ -7,7 +8,6 @@ import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeExcept
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentAnswerEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentComponentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentQuestionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentAnswerRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
@@ -137,38 +137,41 @@ public class ISRReportService extends BaseReportGenerationService {
       studentAssessments.forEach((assessmentStudent) -> {
         ISRAssessmentSummary assessmentSummary = new ISRAssessmentSummary();
         assessmentSummary.setSession(assessmentStudent.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + "/" + assessmentStudent.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth());
-        assessmentSummary.setScore(assessmentStudent.getProficiencyScore() == null ? StringUtils.isNotBlank(assessmentStudent.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(assessmentStudent.getProvincialSpecialCaseCode()).get().getDescription() : "" : assessmentStudent.getProficiencyScore().toString());
+        assessmentSummary.setScore(getProficiencyScore(assessmentStudent.getProficiencyScore(), getReportLanguage(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode())));
+        assessmentSummary.setSpecialCase(StringUtils.isNotBlank(assessmentStudent.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(assessmentStudent.getProvincialSpecialCaseCode()).get().getDescription() : "");
         assessmentSummary.setAssessment(assessmentTypes.get(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()));
         assessmentSummary.setAssessmentCode(getAssessmentCodeValue(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()));
         reportNode.getAssessments().add(assessmentSummary);
 
-        var questions = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentFormEntity_AssessmentFormID(assessmentStudent.getAssessmentFormID());
-        var studentAnswers = assessmentStudentAnswerRepository.findAllByAssessmentStudentComponentEntity_AssessmentStudentEntity_AssessmentStudentID_AndAssessmentQuestionIDIsNotNull(assessmentStudent.getAssessmentStudentID());
-        
-        switch(assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()){
-          case "LTE10":
-            reportNode.getAssessmentDetails().add(populateLTE10Assessment(assessmentSummary, questions, studentAnswers));
-            break;
-          case "LTE12":
-            reportNode.getAssessmentDetails().add(populateLTE12Assessment(assessmentSummary, questions, studentAnswers));
-            break;
-          case "LTF12":
-            reportNode.getAssessmentDetails().add(populateLTF12Assessment(assessmentSummary, questions, studentAnswers));
-            break;
-          case "LTP10":
-            reportNode.getAssessmentDetails().add(populateLTP10Assessment(assessmentSummary, questions, studentAnswers));
-            break;
-          case "LTP12":
-            reportNode.getAssessmentDetails().add(populateLTP12Assessment(assessmentSummary, questions, studentAnswers));
-            break;
-          case "NME":
-          case "NME10":
-            reportNode.getAssessmentDetails().add(populateNME10Assessment(assessmentSummary, questions, studentAnswers));
-            break;
-          case "NMF":
-          case "NMF10":
-            reportNode.getAssessmentDetails().add(populateNMF10Assessment(assessmentSummary, questions, studentAnswers));
-            break;
+        if(assessmentStudent.getProficiencyScore() != null) {
+          var questions = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentFormEntity_AssessmentFormID(assessmentStudent.getAssessmentFormID());
+          var studentAnswers = assessmentStudentAnswerRepository.findAllByAssessmentStudentComponentEntity_AssessmentStudentEntity_AssessmentStudentID_AndAssessmentQuestionIDIsNotNull(assessmentStudent.getAssessmentStudentID());
+
+          switch (assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()) {
+            case "LTE10":
+              reportNode.getAssessmentDetails().add(populateLTE10Assessment(assessmentSummary, questions, studentAnswers));
+              break;
+            case "LTE12":
+              reportNode.getAssessmentDetails().add(populateLTE12Assessment(assessmentSummary, questions, studentAnswers));
+              break;
+            case "LTF12":
+              reportNode.getAssessmentDetails().add(populateLTF12Assessment(assessmentSummary, questions, studentAnswers));
+              break;
+            case "LTP10":
+              reportNode.getAssessmentDetails().add(populateLTP10Assessment(assessmentSummary, questions, studentAnswers));
+              break;
+            case "LTP12":
+              reportNode.getAssessmentDetails().add(populateLTP12Assessment(assessmentSummary, questions, studentAnswers));
+              break;
+            case "NME":
+            case "NME10":
+              reportNode.getAssessmentDetails().add(populateNME10Assessment(assessmentSummary, questions, studentAnswers));
+              break;
+            case "NMF":
+            case "NMF10":
+              reportNode.getAssessmentDetails().add(populateNMF10Assessment(assessmentSummary, questions, studentAnswers));
+              break;
+          }
         }
       });
       
@@ -180,6 +183,14 @@ public class ISRReportService extends BaseReportGenerationService {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
     }
+  }
+  
+  private LanguageCode getReportLanguage(String assessmentTypeCode){
+      return switch (assessmentTypeCode) {
+          case "LTE10", "LTE12", "NME", "NME10" -> LanguageCode.ENGLISH;
+          case "LTF12", "LTP10", "LTP12", "NMF", "NMF10" -> LanguageCode.FRENCH;
+          default -> LanguageCode.ENGLISH;
+      };
   }
   
   private String getAssessmentCodeValue(String assessmentCode){
@@ -539,5 +550,33 @@ public class ISRReportService extends BaseReportGenerationService {
     assessmentLTF12.setPartCOralResponsePart2DiscourseOralOutOf(partCOralResponsePart2DiscourseOralResponse.getRight());
     
     return assessmentLTF12;
+  }
+  
+  private String getProficiencyScore(Integer proficiencyScore, LanguageCode language){
+    if(proficiencyScore == null){
+      return "";
+    }
+    if(language.equals(LanguageCode.ENGLISH)){
+      if(proficiencyScore == 1){
+        return "1 - Emerging";
+      }else if(proficiencyScore == 2){
+        return "2 - Developing";
+      }else if(proficiencyScore == 3){
+        return "3 - Proficient";
+      }else if(proficiencyScore == 4){
+        return "4 - Extending";
+      }
+    }else{
+      if(proficiencyScore == 1){
+        return "1 - Émergente";
+      }else if(proficiencyScore == 2){
+        return "2 - En voie d’acquisition";
+      }else if(proficiencyScore == 3){
+        return "3 - Acquise";
+      }else if(proficiencyScore == 4){
+        return "4 - Approfondie";
+      }    
+    }
+    return "";
   }
 }

@@ -34,36 +34,36 @@
 	<parameter name="partCOralResponsePart2DiscourseOralScore" class="java.lang.String"/>
 	<parameter name="partCOralResponsePart2DiscourseOralOutOf" class="java.lang.String"/>
 	<title>
-		<band height="752" splitType="Stretch">
+		<band height="724" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<rectangle>
 				<reportElement mode="Opaque" x="535" y="92" width="175" height="321" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<printWhenExpression><![CDATA[$P{score}.equals("4 - Extending")]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$P{score}.equals("4 - Approfondie")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
 				<reportElement mode="Opaque" x="360" y="92" width="175" height="321" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b90587e-7fee-4b7f-99a8-8538b65a05c7">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<printWhenExpression><![CDATA[$P{score}.equals("3 - Proficient")]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$P{score}.equals("3 - Acquise")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
 				<reportElement mode="Opaque" x="0" y="92" width="190" height="321" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="e34cd20d-59fd-4469-8aea-20727e814ecd">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<printWhenExpression><![CDATA[$P{score}.equals("1 - Emerging")]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$P{score}.equals("1 - Émergente")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
 				<reportElement mode="Opaque" x="180" y="92" width="180" height="322" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="dfe961e3-e1af-4582-a5c1-027dbd0ac1c6">
-					<printWhenExpression><![CDATA[$P{score}.equals("2 - Developing")]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$P{score}.equals("2 - En voie d’acquisition")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<break>
-				<reportElement positionType="Float" x="0" y="751" width="76" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
+				<reportElement positionType="Float" x="0" y="723" width="75" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
 			</break>
 			<textField>
-				<reportElement x="1" y="-19" width="559" height="18" forecolor="#003366" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
+				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement>
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -640,13 +640,6 @@ This report describes your overall result on the Évaluation de littératie de l
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partBWrittenResponseAnalyzeScore}]]></textFieldExpression>
 			</textField>
-			<staticText>
-				<reportElement x="2" y="725" width="683" height="26" uuid="947f1d2d-184a-44e9-a95c-0ecf5c77eac1"/>
-				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
-				</textElement>
-				<text><![CDATA[<b>Pour en savoir plus sur l’Évaluation de littératie de la 12e année – Français langue seconde – immersion: </b><br><a style="color: blue" href="https://curriculum.gov.bc.ca/fr/provincial/evaluation-de-litteratie-francais-langue-seconde-immersion-12">https://curriculum.gov.bc.ca/fr/provincial/evaluation-de-litteratie-francais-langue-seconde-immersion-12</a>]]></text>
-			</staticText>
 			<staticText>
 				<reportElement mode="Transparent" x="1" y="518" width="479" height="22" backcolor="#FFFFFF" uuid="e104dc09-2c34-46ff-a636-0265d28f451f">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
