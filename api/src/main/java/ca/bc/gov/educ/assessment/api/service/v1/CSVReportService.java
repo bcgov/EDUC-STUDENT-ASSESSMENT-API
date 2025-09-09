@@ -618,7 +618,7 @@ public class CSVReportService {
     private List<String> prepareResultsDataForCsv(AssessmentStudentEntity student, AssessmentSessionEntity assessmentSession, SchoolTombstone school, Optional<SchoolTombstone> assessmentCenter) {
         return new ArrayList<>(Arrays.asList(
                 "%s%s".formatted(assessmentSession.getCourseYear(), assessmentSession.getCourseMonth()),
-                school.getMincode(),
+                Optional.ofNullable(school).map(s -> "=\"%s\"".formatted(s.getMincode())).orElse(""),
                 student.getAssessmentEntity().getAssessmentTypeCode(),
                 student.getPen(),
                 student.getLocalID(),
@@ -626,7 +626,7 @@ public class CSVReportService {
                 student.getGivenName(),
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 student.getProvincialSpecialCaseCode(),
-                assessmentCenter.isPresent() ? assessmentCenter.get().getMincode() : ""
+                assessmentCenter.map(s -> "=\"%s\"".formatted(s.getMincode())).orElse("")
         ));
     }
 
