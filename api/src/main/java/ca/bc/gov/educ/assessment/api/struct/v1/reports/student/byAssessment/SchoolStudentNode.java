@@ -19,5 +19,7 @@ public class SchoolStudentNode implements Serializable {
 
   private String localID;
 
-  private String score;
+  private String proficiencyScore;
+
+  private String specialCase;
 }

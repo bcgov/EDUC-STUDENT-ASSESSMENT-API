@@ -15,5 +15,7 @@ public class SchoolStudentGradAssessmentNode implements Serializable {
 
   private String name;
 
-  private String score;
+  private String proficiencyScore;
+
+  private String specialCase;
 }
