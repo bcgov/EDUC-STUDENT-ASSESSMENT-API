@@ -396,6 +396,59 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
     }
   }
 
+    @Test
+    void testHandleEvent_givenExistingStudent_whenUpdateArrives_shouldUpdateAllowedFieldsAndKeepSOROnInvalidUUID() throws IOException {
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+
+        UUID sorOriginal = UUID.randomUUID();
+        AssessmentStudent initial = createMockStudent();
+        initial.setAssessmentID(assessment.getAssessmentID().toString());
+        initial.setSchoolOfRecordSchoolID(sorOriginal.toString());
+        initial.setLocalID("OLD_LOCAL_ID");
+        initial.setLocalAssessmentID("OLD_LOCAL_ASSESS_ID");
+
+        var sagaId = UUID.randomUUID();
+        final Event createEvent = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_REGISTRATION)
+                .sagaId(sagaId)
+                .replyTo(ASSESSMENT_API_TOPIC)
+                .eventPayload(JsonUtil.getJsonStringFromObject(initial))
+                .build();
+
+        var createResponse = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(createEvent);
+        assertThat(createResponse.getLeft()).isNotEmpty();
+        Event createResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, createResponse.getLeft());
+        assertThat(createResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
+
+        UUID newAssessmentCenter = UUID.randomUUID();
+        AssessmentStudent update = createMockStudent();
+        update.setAssessmentID(assessment.getAssessmentID().toString());
+        update.setStudentID(initial.getStudentID());
+        update.setSchoolOfRecordSchoolID("not-a-uuid");
+        update.setLocalID("NEW_LOCAL_ID");
+        update.setLocalAssessmentID("NEW_LOCAL_ASSESS_ID");
+        update.setAssessmentCenterSchoolID(newAssessmentCenter.toString());
+
+        final Event updateEvent = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_REGISTRATION)
+                .sagaId(sagaId)
+                .replyTo(ASSESSMENT_API_TOPIC)
+                .eventPayload(JsonUtil.getJsonStringFromObject(update))
+                .build();
+
+        var updateResponse = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(updateEvent);
+        assertThat(updateResponse.getLeft()).isNotEmpty();
+        Event updateResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, updateResponse.getLeft());
+        assertThat(updateResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
+
+        AssessmentStudentEntity persisted = assessmentStudentRepository.findAll().getFirst();
+        assertThat(persisted.getSchoolOfRecordSchoolID()).isEqualTo(sorOriginal);
+        assertThat(persisted.getLocalID()).isEqualTo("NEW_LOCAL_ID");
+        assertThat(persisted.getLocalAssessmentID()).isEqualTo("NEW_LOCAL_ASSESS_ID");
+        assertThat(persisted.getAssessmentCenterSchoolID()).isEqualTo(newAssessmentCenter);
+    }
+
   // Helper method to properly deserialize generic lists
   private List<AssessmentStudentListItem> deserializeStudentList(byte[] response) throws IOException {
     ObjectMapper mapper = new ObjectMapper();
