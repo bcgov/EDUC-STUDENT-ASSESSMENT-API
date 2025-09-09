@@ -105,9 +105,7 @@ public class EventHandlerService {
         } else {
             AssessmentStudentEntity existingStudentEntity = student.get();
             final String schoolOfRecordSchoolID = assessmentStudent.getSchoolOfRecordSchoolID();
-            if (StringUtils.isBlank(schoolOfRecordSchoolID)) {
-                existingStudentEntity.setSchoolOfRecordSchoolID(null);
-            } else {
+            if (StringUtils.isNotBlank(schoolOfRecordSchoolID)) {
                 try {
                     existingStudentEntity.setSchoolOfRecordSchoolID(UUID.fromString(schoolOfRecordSchoolID));
                 } catch (IllegalArgumentException e) {
