@@ -81,12 +81,21 @@ public class SummaryReportService {
         resultsTable.setRows(rows);
 
         var headerList = new ArrayList<String>();
+
         for (String totalKey : totalRow.keySet()) {
             if(!totalRow.get(totalKey).equalsIgnoreCase("0")){
-                headerList.add(totalKey);    
+                headerList.add(totalKey);
             }
         }
-        resultsTable.setHeaders(headerList);
+
+        var finalHeaderList = new ArrayList<String>();
+        for (RegistrationSummaryHeader header : RegistrationSummaryHeader.values()) {
+            if(headerList.contains(header.getCode())) {
+                finalHeaderList.add(header.getCode());
+            }
+        }
+
+        resultsTable.setHeaders(finalHeaderList);
 
         return resultsTable;
     }
