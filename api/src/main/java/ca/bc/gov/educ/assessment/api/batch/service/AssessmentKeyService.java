@@ -195,7 +195,8 @@ public class AssessmentKeyService {
                 openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
                 if(i == 0 && itemType[2].equalsIgnoreCase("C1")) {
                     final var choiceEntity = createChoiceEntity(openEndedComponentEntity);
-                    choiceEntity.setItemNumber(itemNumberCounter.getAndIncrement());
+                    itemNumberCounter.getAndIncrement();
+                    choiceEntity.setItemNumber(itemNumberCounter.get());
                     choiceEntity.setMasterQuestionNumber(quesEntity.getMasterQuestionNumber());
                     openEndedComponentEntity.getAssessmentChoiceEntities().add(choiceEntity);
                 }
