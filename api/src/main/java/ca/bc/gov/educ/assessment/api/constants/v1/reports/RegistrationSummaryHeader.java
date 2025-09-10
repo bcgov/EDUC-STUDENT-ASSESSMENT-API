@@ -6,6 +6,10 @@ import lombok.Getter;
 public enum RegistrationSummaryHeader {
 
     ASSESSMENT_TYPE("Assessment"),
+    GRADE_04_COUNT("Grade 4"),
+    GRADE_05_COUNT("Grade 5"),
+    GRADE_06_COUNT("Grade 6"),
+    GRADE_07_COUNT("Grade 7"),
     GRADE_08_COUNT("Grade 8"),
     GRADE_09_COUNT("Grade 9"),
     GRADE_10_COUNT("Grade 10"),

@@ -81,6 +81,10 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     @Query(value="""
         select stud.assessmentEntity.assessmentID as assessmentID,
+        count(case when stud.gradeAtRegistration = '04' then 1 end) as grade4Count,
+        count(case when stud.gradeAtRegistration = '05' then 1 end) as grade5Count,
+        count(case when stud.gradeAtRegistration = '06' then 1 end) as grade6Count,
+        count(case when stud.gradeAtRegistration = '07' then 1 end) as grade7Count,
         count(case when stud.gradeAtRegistration = '08' then 1 end) as grade8Count,
         count(case when stud.gradeAtRegistration = '09' then 1 end) as grade9Count,
         count(case when stud.gradeAtRegistration = '10' then 1 end) as grade10Count,
@@ -101,6 +105,10 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     @Query(value="""
         select stud.assessmentEntity.assessmentID as assessmentID,
+        count(case when stud.gradeAtRegistration = '04' then 1 end) as grade4Count,
+        count(case when stud.gradeAtRegistration = '05' then 1 end) as grade5Count,
+        count(case when stud.gradeAtRegistration = '06' then 1 end) as grade6Count,
+        count(case when stud.gradeAtRegistration = '07' then 1 end) as grade7Count,
         count(case when stud.gradeAtRegistration = '08' then 1 end) as grade8Count,
         count(case when stud.gradeAtRegistration = '09' then 1 end) as grade9Count,
         count(case when stud.gradeAtRegistration = '10' then 1 end) as grade10Count,

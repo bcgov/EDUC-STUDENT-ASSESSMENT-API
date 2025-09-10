@@ -17,6 +17,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -50,11 +51,6 @@ public class SummaryReportService {
         }
 
         SimpleHeadcountResultsTable resultsTable = new SimpleHeadcountResultsTable();
-        var headerList = new ArrayList<String>();
-        for (RegistrationSummaryHeader header : RegistrationSummaryHeader.values()) {
-            headerList.add(header.getCode());
-        }
-        resultsTable.setHeaders(headerList);
 
         var rows = new ArrayList<Map<String, String>>();
 
@@ -64,6 +60,10 @@ public class SummaryReportService {
             Optional<AssessmentEntity> assessment = validSession.getAssessments().stream().filter(
                     assessmentEntity -> Objects.equals(assessmentEntity.getAssessmentID().toString(), result.getAssessmentID())).findFirst();
             rowMap.put(ASSESSMENT_TYPE.getCode(), assessment.get().getAssessmentTypeCode());
+            rowMap.put(GRADE_04_COUNT.getCode(), result.getGrade4Count());
+            rowMap.put(GRADE_05_COUNT.getCode(), result.getGrade5Count());
+            rowMap.put(GRADE_06_COUNT.getCode(), result.getGrade6Count());
+            rowMap.put(GRADE_07_COUNT.getCode(), result.getGrade7Count());
             rowMap.put(GRADE_08_COUNT.getCode(), result.getGrade8Count());
             rowMap.put(GRADE_09_COUNT.getCode(), result.getGrade9Count());
             rowMap.put(GRADE_10_COUNT.getCode(), result.getGrade10Count());
@@ -76,8 +76,18 @@ public class SummaryReportService {
             rowMap.put(TOTAL.getCode(), result.getTotal());
             rows.add(rowMap);
         });
-        rows.add(createTotalRow(rows));
+        var totalRow = createTotalRow(rows);
+        rows.add(totalRow);
         resultsTable.setRows(rows);
+
+        var headerList = new ArrayList<String>();
+        for (String totalKey : totalRow.keySet()) {
+            if(!totalRow.get(totalKey).equalsIgnoreCase("0")){
+                headerList.add(totalKey);    
+            }
+        }
+        resultsTable.setHeaders(headerList);
+
         return resultsTable;
     }
 
@@ -120,6 +130,10 @@ public class SummaryReportService {
     private HashMap<String, String> createTotalRow(ArrayList<Map<String, String>> rows) {
         var rowMap = new HashMap<String, String>();
         rowMap.put(ASSESSMENT_TYPE.getCode(), "TOTAL");
+        rowMap.put(GRADE_04_COUNT.getCode(), getTotalByGrade(GRADE_04_COUNT.getCode(), rows));
+        rowMap.put(GRADE_05_COUNT.getCode(), getTotalByGrade(GRADE_05_COUNT.getCode(), rows));
+        rowMap.put(GRADE_06_COUNT.getCode(), getTotalByGrade(GRADE_06_COUNT.getCode(), rows));
+        rowMap.put(GRADE_07_COUNT.getCode(), getTotalByGrade(GRADE_07_COUNT.getCode(), rows));
         rowMap.put(GRADE_08_COUNT.getCode(), getTotalByGrade(GRADE_08_COUNT.getCode(), rows));
         rowMap.put(GRADE_09_COUNT.getCode(), getTotalByGrade(GRADE_09_COUNT.getCode(), rows));
         rowMap.put(GRADE_10_COUNT.getCode(), getTotalByGrade(GRADE_10_COUNT.getCode(), rows));
@@ -132,6 +146,12 @@ public class SummaryReportService {
         rowMap.put(TOTAL.getCode(), getTotalByGrade(TOTAL.getCode(), rows));
 
         return rowMap;
+    }
+    
+    private void addTotalIfNotZero(HashMap<String, String> rowMap, String totalByGrade, RegistrationSummaryHeader grade){
+        if(StringUtils.isNotBlank(totalByGrade) && !totalByGrade.equals("0")){
+            rowMap.put(grade.getCode(), totalByGrade);
+        }
     }
 
     private String getTotalByGrade(String grade, ArrayList<Map<String, String>> rows) {
