@@ -103,7 +103,30 @@ public class EventHandlerService {
             assessmentStudentService.saveAssessmentStudentWithHistory(createStudentEntity);
             dataChangedForStudent = true;
         } else {
-            log.info("Student already exists in assessment {} ", assessmentStudent);
+            log.info("Student already exists in assessment {} updating school or record school id, local id, local assessment id, assessment center school id", assessmentStudent);
+
+            AssessmentStudentEntity existingStudentEntity = student.get();
+            final String schoolOfRecordSchoolID = assessmentStudent.getSchoolOfRecordSchoolID();
+            if (StringUtils.isNotBlank(schoolOfRecordSchoolID)) {
+                try {
+                    existingStudentEntity.setSchoolOfRecordSchoolID(UUID.fromString(schoolOfRecordSchoolID));
+                } catch (IllegalArgumentException e) {
+                    // ignore invalid UUID; keep existing value
+                }
+            }
+            existingStudentEntity.setLocalID(assessmentStudent.getLocalID());
+            existingStudentEntity.setLocalAssessmentID(assessmentStudent.getLocalAssessmentID());
+            final String assessmentCenterSchoolID = assessmentStudent.getAssessmentCenterSchoolID();
+            if (StringUtils.isNotBlank(assessmentCenterSchoolID)) {
+                try {
+                    existingStudentEntity.setAssessmentCenterSchoolID(UUID.fromString(assessmentCenterSchoolID));
+                } catch (IllegalArgumentException e) {
+                    // ignore invalid UUID; keep existing value
+                }
+            }
+
+            assessmentStudentService.saveAssessmentStudentWithHistory(existingStudentEntity);
+            dataChangedForStudent = true;
         }
 
         AssessmentEventEntity assessmentEventEntity = null;
