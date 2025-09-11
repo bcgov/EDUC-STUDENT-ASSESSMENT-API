@@ -841,6 +841,7 @@ public class CSVReportService {
                         && Objects.equals(questionEntity.getMasterQuestionNumber(), choice.getMasterQuestionNumber()))
                 .map(AssessmentQuestionEntity::getQuestionNumber)
                 .distinct()
+                .sorted()
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
     }
