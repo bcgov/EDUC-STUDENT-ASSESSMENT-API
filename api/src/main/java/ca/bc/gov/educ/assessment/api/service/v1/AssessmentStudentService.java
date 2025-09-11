@@ -6,7 +6,7 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
-import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
+import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentShowItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentComponentMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
@@ -47,7 +47,7 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 @RequiredArgsConstructor
 public class AssessmentStudentService {
 
-    private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
+    private static final AssessmentStudentListItemMapper assessmentStudentListItemMapper = AssessmentStudentListItemMapper.mapper;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
     private final AssessmentEventRepository assessmentEventRepository;
@@ -96,7 +96,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<AssessmentStudent, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
+    public Pair<AssessmentStudentListItem, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
         );
@@ -128,7 +128,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<AssessmentStudent, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
+    public Pair<AssessmentStudentListItem, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
@@ -145,7 +145,7 @@ public class AssessmentStudentService {
         return Pair.of(student, event);
     }
 
-    private AssessmentStudent processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity, boolean newAssessmentStudentRegistration, boolean allowRuleOverride, String source) {
+    private AssessmentStudentListItem processStudent(AssessmentStudentEntity assessmentStudentEntity, AssessmentStudentEntity currentAssessmentStudentEntity, boolean newAssessmentStudentRegistration, boolean allowRuleOverride, String source) {
         SchoolTombstone schoolTombstone = restUtils.getSchoolBySchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID().toString()).orElse(null);
 
         UUID studentCorrelationID = UUID.randomUUID();
@@ -172,15 +172,15 @@ public class AssessmentStudentService {
                 BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "schoolID", "studentID", "givenName", "surName", "pen", "localID", "courseStatusCode", "createUser", "createDate");
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
                 currentAssessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), currentAssessmentStudentEntity.getStudentID())));
-                return mapper.toStructure(saveAssessmentStudentWithHistory(currentAssessmentStudentEntity));
+                return assessmentStudentListItemMapper.toStructure(saveAssessmentStudentWithHistory(currentAssessmentStudentEntity));
             } else {
                 assessmentStudentEntity.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
                 assessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), assessmentStudentEntity.getStudentID())));
-                return mapper.toStructure(saveAssessmentStudentWithHistory(assessmentStudentEntity));
+                return assessmentStudentListItemMapper.toStructure(saveAssessmentStudentWithHistory(assessmentStudentEntity));
             }
         }
 
-        AssessmentStudent studentWithValidationIssues = mapper.toStructure(assessmentStudentEntity);
+        AssessmentStudentListItem studentWithValidationIssues = assessmentStudentListItemMapper.toStructure(assessmentStudentEntity);
         studentWithValidationIssues.setAssessmentStudentValidationIssues(validationIssues);
 
         return studentWithValidationIssues;
