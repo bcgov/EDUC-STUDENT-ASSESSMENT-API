@@ -62,7 +62,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     }
 
   @Override
-  public AssessmentStudent updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID, boolean allowRuleOverride, String source) throws JsonProcessingException {
+  public AssessmentStudentListItem updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID, boolean allowRuleOverride, String source) throws JsonProcessingException {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, false));
     RequestUtil.setAuditColumnsForUpdate(assessmentStudent);
     var pair = studentService.updateStudent(mapper.toModel(assessmentStudent), allowRuleOverride, source);
@@ -73,7 +73,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public AssessmentStudent createStudent(AssessmentStudent assessmentStudent, boolean allowRuleOverride, String source) throws JsonProcessingException {
+  public AssessmentStudentListItem createStudent(AssessmentStudent assessmentStudent, boolean allowRuleOverride, String source) throws JsonProcessingException {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
     RequestUtil.setAuditColumnsForCreate(assessmentStudent);
     AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
