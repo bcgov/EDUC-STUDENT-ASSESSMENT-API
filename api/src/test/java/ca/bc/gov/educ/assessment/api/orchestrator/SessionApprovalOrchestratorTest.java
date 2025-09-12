@@ -16,6 +16,7 @@ import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
+import ca.bc.gov.educ.assessment.api.struct.v1.ApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import lombok.SneakyThrows;
@@ -71,7 +72,7 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
 
     @Captor 
     private ArgumentCaptor<byte[]> eventCaptor;
-    UUID sagaData;
+    ApprovalSagaData sagaData;
     String sagaPayload;
     private AssessmentSagaEntity saga;
 
@@ -93,10 +94,10 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
         AssessmentStudent student = createMockStudent();
         student.setAssessmentID(assessment.getAssessmentID().toString());
-        sagaData = session.getSessionID();
+        sagaData = ApprovalSagaData.builder().sessionID(String.valueOf(session.getSessionID())).build();
         MockitoAnnotations.openMocks(this);
         sagaPayload = JsonUtil.getJsonString(sagaData).get();
-        saga = this.sagaService.createSagaRecordInDB(SagaEnum.GENERATE_XAM_FILES.name(), "test", sagaPayload, session.getSessionID(), null);
+        saga = this.sagaService.createSagaRecordInDB(SagaEnum.GENERATE_XAM_FILES.name(), "test", sagaPayload, UUID.fromString(sagaData.getSessionID()), null);
     }
 
     @SneakyThrows
@@ -202,7 +203,7 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
     @SneakyThrows
     @Test
     void testStartXamFileGenerationSagaCreatesSagaRecord() {
-        UUID newSessionID = UUID.randomUUID();
+        UUID newSessionID = UUID.fromString(sagaData.getSessionID());
         sessionApprovalOrchestrator.startXamFileGenerationSaga(newSessionID);
         AssessmentSagaEntity newSaga = sagaService.findByAssessmentStudentIDAndSagaNameAndStatusNot(newSessionID, SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.IN_PROGRESS.toString()).orElse(null);
         assertThat(newSaga).isNotNull();
@@ -212,12 +213,12 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
     @SneakyThrows
     @Test
     void testGenerateXamFilesAndUpload_invalidPayload_directCall() {
-        String invalidPayload = "not-a-valid-uuid";
+        var approvalSagaData = ApprovalSagaData.builder().sessionID("not-a-valid-uuid").build();
         Event event = Event.builder()
                 .sagaId(saga.getSagaId())
                 .eventType(EventType.GENERATE_XAM_FILES_AND_UPLOAD)
                 .eventOutcome(EventOutcome.XAM_FILES_GENERATED_AND_UPLOADED)
-                .eventPayload(invalidPayload)
+                .eventPayload(JsonUtil.getJsonStringFromObject(approvalSagaData))
                 .build();
 
         AssessmentStudentRepository dummyStudentRepo = Mockito.mock(AssessmentStudentRepository.class);
@@ -230,10 +231,10 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         ReflectionTestUtils.setField(sessionApprovalOrchestrator, "xamFileService", spyService);
 
         Method method = SessionApprovalOrchestrator.class
-                .getDeclaredMethod("generateXAMFilesAndUpload", Event.class, AssessmentSagaEntity.class, String.class);
+                .getDeclaredMethod("generateXAMFilesAndUpload", Event.class, AssessmentSagaEntity.class, ApprovalSagaData.class);
         method.setAccessible(true);
         Exception thrown = assertThrows(Exception.class, () -> {
-            method.invoke(sessionApprovalOrchestrator, event, saga, invalidPayload);
+            method.invoke(sessionApprovalOrchestrator, event, saga, approvalSagaData);
         });
         assertThat(thrown.getCause()).isInstanceOf(IllegalArgumentException.class);
     }
