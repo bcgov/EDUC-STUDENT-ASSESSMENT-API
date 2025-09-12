@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
-import ca.bc.gov.educ.assessment.api.constants.EventStatus;
 import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
@@ -247,12 +246,6 @@ public class AssessmentStudentService {
         students.forEach(student -> {
             student.setSchoolOfRecordSchoolID(UUID.fromString(schoolOfRecordID));
             saveAssessmentStudentWithHistoryInCurrentTransaction(student);
-        });
-
-        this.assessmentEventRepository.findByEventId(event.getEventId()).ifPresent(existingEvent -> {
-            existingEvent.setEventStatus(EventStatus.PROCESSED.toString());
-            existingEvent.setUpdateDate(LocalDateTime.now());
-            this.assessmentEventRepository.save(existingEvent);
         });
     }
 
