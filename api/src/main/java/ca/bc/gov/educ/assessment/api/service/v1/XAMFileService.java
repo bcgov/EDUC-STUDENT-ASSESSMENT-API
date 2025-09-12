@@ -22,9 +22,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -100,11 +102,13 @@ public class XAMFileService {
         String content = sb.toString();
 
         if (asFile) {
-            File file = new File("./" + fileName);
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(content);
-                return (T) file;
-            } catch (Exception e) {
+            try {
+                Path outputDir = Paths.get("xam");
+                var dir = !Files.exists(outputDir) ?  Files.createDirectories(outputDir): outputDir;
+                Path file = dir.resolve("fileName");
+                Files.write(file, content.getBytes(StandardCharsets.UTF_8));
+                return (T) file.toFile();
+            } catch (IOException e) {
                 log.error("Failed to write XAM file", e);
                 throw new StudentAssessmentAPIRuntimeException("Failed to write XAM file: " + e.getMessage());
             }
