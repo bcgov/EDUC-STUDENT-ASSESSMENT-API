@@ -269,15 +269,12 @@ public class AssessmentStudentService {
                 .orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
 
         List<AssessmentEntity> assessments = session.getAssessments().stream().toList();
-        boolean isSessionOpen = StringUtils.isBlank(session.getApprovalAssessmentAnalysisUserID())
-                && StringUtils.isBlank(session.getApprovalAssessmentDesignUserID())
-                && StringUtils.isBlank(session.getApprovalStudentCertUserID());
 
         List<AssessmentResultsSummary> rowData = new ArrayList<>();
         for (AssessmentEntity assessment : assessments) {
             if(!assessment.getAssessmentForms().isEmpty()) {
                 List<UUID> formIds = assessment.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
-                if(isSessionOpen) {
+                if(session.getCompletionDate() == null) {
                     rowData.add(getSummaryForOpenSession(assessment, formIds));
                 } else {
                     rowData.add(getSummaryForApprovedSession(assessment, formIds));
