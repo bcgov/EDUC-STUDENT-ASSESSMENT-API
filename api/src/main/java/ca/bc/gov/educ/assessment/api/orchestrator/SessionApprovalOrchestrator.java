@@ -55,13 +55,12 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
     @Override
     public void populateStepsToExecuteMap() {
         this.stepBuilder()
-            .begin(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)// todo transfer last
-            .step(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER, GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload) // todo point at staging
+            .begin(GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload) // todo point at staging
             .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_GRAD_OF_UPDATED_STUDENTS, this::notifyGradOfUpdatedStudents)
             .step(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
             .step(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED, MARK_SESSION_COMPLETION_DATE, this::markSessionCompletionDate)
-                // mark students for transfer
-            .end(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET);
+            .step(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, COMPLETION_DATE_SET, MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
+            .end(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER);
     }
 
     private void markSessionCompletionDate(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
