@@ -18,6 +18,7 @@ import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.micrometer.common.util.StringUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -206,22 +207,20 @@ public class EventTaskSchedulerAsyncService {
             log.debug("Created {} new transfer sagas", sagasCreated);
         } else {
             List<AssessmentSessionEntity> activeSessions = this.sessionService.getActiveSessions();
-            List<AssessmentSessionEntity> approvedSessionList = activeSessions.stream()
-                .filter(s -> s.getApprovalAssessmentDesignUserID() != null
-                    && s.getApprovalAssessmentAnalysisUserID() != null
-                    && s.getApprovalStudentCertUserID() != null
+            Optional<AssessmentSessionEntity> approvedSession = activeSessions.stream()
+                .filter(s -> StringUtils.isNotBlank(s.getApprovalAssessmentDesignUserID())
+                    && StringUtils.isNotBlank(s.getApprovalAssessmentAnalysisUserID())
+                    && StringUtils.isNotBlank(s.getApprovalStudentCertUserID())
                     && s.getCompletionDate() == null)
-                .toList();
-            if (approvedSessionList.size() == 1) {
-                AssessmentSessionEntity approvedSession = approvedSessionList.getFirst();
-                log.info("All three signoffs present for session {}. Triggering generate XAM file saga.", approvedSession.getSessionID());
+                .findFirst();
+            // todo also check that there are no approval sagas already
+            if (approvedSession.isPresent()) {
+                log.info("All three signoffs present for session {}. Triggering generate XAM file saga.", approvedSession.get().getSessionID());
                 try {
-                    sessionApprovalOrchestrator.startXamFileGenerationSaga(approvedSession.getSessionID());
+                    sessionApprovalOrchestrator.startXamFileGenerationSaga(approvedSession.get().getSessionID());
                 } catch (JsonProcessingException e) {
-                    log.debug("Error starting XAM file generation saga for session {}: {}", approvedSession.getSessionID(), e.getMessage());
+                    log.debug("Error starting XAM file generation saga for session {}: {}", approvedSession.get().getSessionID(), e.getMessage());
                 }
-            } else {
-                log.warn("No sessions or multiple sessions with all three signoffs found. Approved session list: {}", approvedSessionList);
             }
         }
     }
