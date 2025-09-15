@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -177,9 +178,11 @@ public class AssessmentKeyService {
                 nonChoiceInt = Integer.parseInt(String.valueOf(marker[1]));
                 nonChoiceItemCount = nonChoiceInt + Integer.parseInt(String.valueOf(choiceType[1]));
             }
-            markCount.set(choiceInt + nonChoiceInt);
-            itemCount.set(choiceInt + nonChoiceItemCount);
+            markCount.getAndAdd(nonChoiceInt);
+            itemCount.getAndAdd(nonChoiceItemCount);
         });
+        markCount.getAndAdd(choiceInt);
+        itemCount.getAndAdd(choiceInt);
         AssessmentComponentEntity openEndedComponentEntity = createAssessmentComponentEntity(assessmentFormEntity, type, openEnded.size(), 0, markCount.get(), itemCount.get());
 
         AtomicInteger itemNumberCounter = new AtomicInteger(1);
@@ -191,14 +194,15 @@ public class AssessmentKeyService {
             for(int i = 0; i < index; i++) {
                 final var quesEntity = mapper.toQuestionEntity(ques, openEndedComponentEntity);
                 setOpenEndedWrittenQuestionEntityColumns(quesEntity, ques, questionGroups);
-                setItemNumber(quesEntity, index, i, itemType, itemNumberCounter, repeatCounter);
-                openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
                 if(i == 0 && itemType[2].equalsIgnoreCase("C1")) {
                     final var choiceEntity = createChoiceEntity(openEndedComponentEntity);
-                    choiceEntity.setItemNumber(itemNumberCounter.getAndIncrement());
+                    choiceEntity.setItemNumber(itemNumberCounter.get());
+                    itemNumberCounter.getAndIncrement();
                     choiceEntity.setMasterQuestionNumber(quesEntity.getMasterQuestionNumber());
                     openEndedComponentEntity.getAssessmentChoiceEntities().add(choiceEntity);
                 }
+                setItemNumber(quesEntity, index, i, itemType, itemNumberCounter, repeatCounter);
+                openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
             }
         });
         return openEndedComponentEntity;
@@ -211,12 +215,11 @@ public class AssessmentKeyService {
 
     private void setItemNumber(AssessmentQuestionEntity questionEntity, int index, int i, String[] itemType, AtomicInteger itemNumberCounter, AtomicInteger repeatCounter) {
         var choiceType = itemType[2];
+        var choiceNumber = Integer.parseInt(String.valueOf(choiceType.toCharArray()[1]));
 
-        if(choiceType.equalsIgnoreCase("C0")) {
+        if(choiceType.equalsIgnoreCase("C0") || choiceType.equalsIgnoreCase("C1")) {
             setItemNumberAndIncrement(questionEntity, itemNumberCounter);
-        } else if(choiceType.equalsIgnoreCase("C1") && i > 0) {
-            setItemNumberAndIncrement(questionEntity, itemNumberCounter);
-        } else {
+        } else if (choiceNumber > 1) {
             if(i == 0) {
                 repeatCounter.set(itemNumberCounter.get() - index);
             }
@@ -265,20 +268,20 @@ public class AssessmentKeyService {
 
     private void setOpenEndedWrittenQuestionEntityColumns(AssessmentQuestionEntity keyEntity, AssessmentKeyDetails value, List<List<AssessmentKeyDetails>> quesGroup) {
         var itemType = value.getItemType().split("-");
-        var question = itemType[1].toCharArray();
+        var question = extractQuestionNumber(itemType[1]);
         var choiceType = itemType[2];
         var marker = itemType[3].toCharArray();
 
-        keyEntity.setQuestionNumber(StringUtils.isNotBlank(String.valueOf(question[1])) ? Integer.parseInt(String.valueOf(question[1])) : null);
+        keyEntity.setQuestionNumber(question);
         keyEntity.setMaxQuestionValue(new BigDecimal(value.getMark()).multiply(new BigDecimal(value.getScaleFactor())).multiply(new BigDecimal(String.valueOf(marker[1]))));
 
         if(choiceType.equalsIgnoreCase("C0")) {
-            keyEntity.setMasterQuestionNumber(StringUtils.isNotBlank(String.valueOf(question[1])) ? Integer.parseInt(String.valueOf(question[1])) : null);
+            keyEntity.setMasterQuestionNumber(question);
         } else {
             var sublistWithMatchedItemType = quesGroup.stream().filter(subList -> subList.stream().anyMatch(v -> v.getItemType().equalsIgnoreCase(value.getItemType()))).toList();
             var lowestQues = sublistWithMatchedItemType.getFirst().stream().map(AssessmentKeyDetails::getItemType).map(v -> {
-                var typeSplit = v.split("-")[1].toCharArray();
-                return String.valueOf(typeSplit[1]);
+                var ques = extractQuestionNumber(v.split("-")[1]);
+                return String.valueOf(ques);
             }).mapToInt(Integer::parseInt).min();
             keyEntity.setMasterQuestionNumber(lowestQues.getAsInt());
         }
@@ -291,6 +294,17 @@ public class AssessmentKeyService {
                 .mapToObj(j -> j == indexList.size() - 1 ? questions.subList(indexList.get(j), questions.size())
                         : questions.subList(indexList.get(j), indexList.get(j + 1)))
                 .toList();
+    }
+
+    private int extractQuestionNumber(String questionNumber) {
+        Pattern pattern = Pattern.compile("([a-zA-Z]+)(\\d+)");
+        Matcher matcher = pattern.matcher(questionNumber);
+
+        if (matcher.find() && StringUtils.isNotBlank(matcher.group(2))) {
+            String numbers = matcher.group(2);
+            return Integer.parseInt(numbers);
+        }
+        return 0;
     }
 
     private AssessmentKeyDetails getAssessmentKeyDetailRecordFromFile(final DataSet ds, final String guid, final long index) throws KeyFileUnProcessableException {

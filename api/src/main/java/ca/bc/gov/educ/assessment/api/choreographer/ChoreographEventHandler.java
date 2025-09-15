@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,6 +58,7 @@ public class ChoreographEventHandler {
                             } else {
                                 log.info("Student does not exist in assessment-api :: {}", event.getEventId());
                             }
+                            updateEvent(event);
                             break;
                         default:
                             log.warn("Silently ignoring event: {}", event);
@@ -68,5 +70,13 @@ public class ChoreographEventHandler {
                 }
             }
         }
+    }
+
+    private void updateEvent(AssessmentEventEntity event) {
+        this.assessmentEventRepository.findByEventId(event.getEventId()).ifPresent(existingEvent -> {
+            existingEvent.setEventStatus(EventStatus.PROCESSED.toString());
+            existingEvent.setUpdateDate(LocalDateTime.now());
+            this.assessmentEventRepository.save(existingEvent);
+        });
     }
 }
