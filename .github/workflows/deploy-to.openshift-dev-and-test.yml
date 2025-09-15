@@ -178,7 +178,7 @@ jobs:
         oc process -f tools/openshift/student-assessment-api.yaml -p APP_NAME=${{ env.APP_NAME }} -p REPO_NAME=${{ env.REPO_NAME }} -p BRANCH=${{ env.BRANCH }} -p NAMESPACE=${{ env.OPENSHIFT_NAMESPACE_DEV }} -p TAG=${{ env.TAG }} -p MIN_REPLICAS=${{ env.MIN_REPLICAS_DEV }} -p MAX_REPLICAS=${{ env.MAX_REPLICAS_DEV }} -p MIN_CPU=${{ env.MIN_CPU }} -p MAX_CPU=${{ env.MAX_CPU }} -p MIN_MEM=${{ env.MIN_MEM }} -p MAX_MEM=${{ env.MAX_MEM }} \
         | oc apply -f -
         
-        curl -s https://raw.githubusercontent.com/bcgov/${{ env.REPO_NAME }}/master/tools/config/update-configmap.sh | bash /dev/stdin dev ${{ env.APP_NAME }} ${{ env.NAMESPACE }} ${{ env.COMMON_NAMESPACE }} ${{ env.DB_JDBC_CONNECT_STRING }} ${{ env.DB_PWD }} ${{ env.DB_USER }} ${{ env.SPLUNK_TOKEN }} ${{ env.CHES_CLIENT_ID }} ${{ env.CHES_CLIENT_SECRET }} ${{ env.CHES_TOKEN_URL }} ${{ env.CHES_ENDPOINT_URL }} ${{ env.S3_ACCESS_KEY_ID }} ${{ env.S3_ACCESS_SECRET_KEY }} ${{ env.S3_BUCKET_NAME }} ${{ env.S3_ENDPOINT_URL }} ${{ env.SDC_NAMESPACE }}
+        curl -s https://raw.githubusercontent.com/bcgov/${{ env.REPO_NAME }}/master/tools/config/update-configmap.sh | bash /dev/stdin dev ${{ env.APP_NAME }} ${{ env.NAMESPACE }} ${{ env.COMMON_NAMESPACE }} ${{ env.DB_JDBC_CONNECT_STRING }} '${{ env.DB_PWD }}' ${{ env.DB_USER }} ${{ env.SPLUNK_TOKEN }} ${{ env.CHES_CLIENT_ID }} ${{ env.CHES_CLIENT_SECRET }} ${{ env.CHES_TOKEN_URL }} ${{ env.CHES_ENDPOINT_URL }} ${{ env.S3_ACCESS_KEY_ID }} ${{ env.S3_ACCESS_SECRET_KEY }} ${{ env.S3_BUCKET_NAME }} ${{ env.S3_ENDPOINT_URL }} ${{ env.SDC_NAMESPACE }}
         
         # Start rollout (if necessary) and follow it
         oc rollout restart deployment/${{ env.SPRING_BOOT_IMAGE_NAME }}        
@@ -258,7 +258,7 @@ jobs:
           oc process -f tools/openshift/student-assessment-api.yaml -p APP_NAME=${{ env.APP_NAME }} -p REPO_NAME=${{ env.REPO_NAME }} -p BRANCH=${{ env.BRANCH }} -p NAMESPACE=${{ env.OPENSHIFT_NAMESPACE_TEST }} -p TAG=${{ env.TAG }} -p MIN_REPLICAS=${{ env.MIN_REPLICAS_TEST }} -p MAX_REPLICAS=${{ env.MAX_REPLICAS_TEST }} -p MIN_CPU=${{ env.MIN_CPU }} -p MAX_CPU=${{ env.MAX_CPU }} -p MIN_MEM=${{ env.MIN_MEM }} -p MAX_MEM=${{ env.MAX_MEM }} \
           | oc apply -f -
 
-          curl -s https://raw.githubusercontent.com/bcgov/${{ env.REPO_NAME }}/master/tools/config/update-configmap.sh | bash /dev/stdin test ${{ env.APP_NAME }} ${{ env.NAMESPACE }} ${{ env.COMMON_NAMESPACE }} ${{ env.DB_JDBC_CONNECT_STRING }} ${{ env.DB_PWD }} ${{ env.DB_USER }} ${{ env.SPLUNK_TOKEN }} ${{ env.CHES_CLIENT_ID }} ${{ env.CHES_CLIENT_SECRET }} ${{ env.CHES_TOKEN_URL }} ${{ env.CHES_ENDPOINT_URL }} ${{ env.S3_ACCESS_KEY_ID }} ${{ env.S3_ACCESS_SECRET_KEY }} ${{ env.S3_BUCKET_NAME }} ${{ env.S3_ENDPOINT_URL }} ${{ env.SDC_NAMESPACE }}
+          curl -s https://raw.githubusercontent.com/bcgov/${{ env.REPO_NAME }}/master/tools/config/update-configmap.sh | bash /dev/stdin test ${{ env.APP_NAME }} ${{ env.NAMESPACE }} ${{ env.COMMON_NAMESPACE }} ${{ env.DB_JDBC_CONNECT_STRING }} '${{ env.DB_PWD }}' ${{ env.DB_USER }} ${{ env.SPLUNK_TOKEN }} ${{ env.CHES_CLIENT_ID }} ${{ env.CHES_CLIENT_SECRET }} ${{ env.CHES_TOKEN_URL }} ${{ env.CHES_ENDPOINT_URL }} ${{ env.S3_ACCESS_KEY_ID }} ${{ env.S3_ACCESS_SECRET_KEY }} ${{ env.S3_BUCKET_NAME }} ${{ env.S3_ENDPOINT_URL }} ${{ env.SDC_NAMESPACE }}
 
           # Start rollout (if necessary) and follow it
           # Restart the deployment to recreate pods
