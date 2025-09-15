@@ -64,6 +64,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
 
         UUID studentId = UUID.fromString(transferOnApprovalSagaData.getStagedStudentAssessmentID());
         log.debug("Processing transfer for student: {}", studentId);
+        log.info("Processing transfer for student: {}", studentId);
 
         // Transfer student data from staging to main tables
         transferStagedStudentToMainTables(studentId);
@@ -71,6 +72,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         // Mark the student as TRANSFERRED in the staging table (same transaction)
         int updatedCount = markStudentAsTransferredInTransaction(studentId);
         log.debug("Marked student {} as TRANSFERRED (updated: {} records)", studentId, updatedCount);
+        log.info("Marked student {} as TRANSFERRED (updated: {} records)", studentId, updatedCount);
 
         final Event nextEvent = Event.builder()
                 .sagaId(saga.getSagaId())
@@ -80,6 +82,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("Posted completion message for saga step processStudentTransfer: {}", saga.getSagaId());
+        log.info("Posted completion message for saga step processStudentTransfer: {}", saga.getSagaId());
     }
 
     protected void createAndPopulateDOARCalculations(Event event, AssessmentSagaEntity saga, TransferOnApprovalSagaData transferOnApprovalSagaData) throws JsonProcessingException {
@@ -114,6 +117,8 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
                 stagedStudent.getStudentID()
             );
 
+        log.info("Transferring student {} for assessment {}", stagedStudent.getStudentID(), stagedStudent.getAssessmentEntity().getAssessmentID());
+        log.info("existing student present: {}", existingStudent.isPresent());
         if (existingStudent.isPresent()) {
             log.debug("Updating existing student {} for assessment {}", stagedStudent.getStudentID(), stagedStudent.getAssessmentEntity().getAssessmentID());
             updateExistingStudentFromStaged(existingStudent.get(), stagedStudent);
@@ -140,14 +145,17 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
 
         AssessmentStudentEntity savedStudent = assessmentStudentService.saveAssessmentStudentWithHistoryInCurrentTransaction(existingStudent);
         log.debug("Updated existing student {} to main student {}", stagedStudent.getAssessmentStudentID(), savedStudent.getAssessmentStudentID());
+        log.info("Updated existing student {} to main student {}", stagedStudent.getAssessmentStudentID(), savedStudent.getAssessmentStudentID());
     }
 
     private void createNewStudentFromStaged(StagedAssessmentStudentEntity stagedStudent) {
         AssessmentStudentEntity mainStudent = createMainStudentFromStaged(stagedStudent);
+        log.info("main student created from staged student {}", mainStudent.getAssessmentStudentID());
 
         AssessmentStudentEntity savedMainStudent = assessmentStudentService.saveAssessmentStudentWithHistoryInCurrentTransaction(mainStudent);
 
         log.debug("Created new student {} from staged student {}", savedMainStudent.getAssessmentStudentID(), stagedStudent.getAssessmentStudentID());
+        log.info("Created new student {} from staged student {}", savedMainStudent.getAssessmentStudentID(), stagedStudent.getAssessmentStudentID());
     }
 
     private void updateMainStudentFromStaged(AssessmentStudentEntity existing, StagedAssessmentStudentEntity staged) {

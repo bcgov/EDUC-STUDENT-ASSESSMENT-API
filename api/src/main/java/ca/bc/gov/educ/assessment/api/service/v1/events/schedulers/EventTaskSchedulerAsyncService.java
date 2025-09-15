@@ -3,7 +3,9 @@ package ca.bc.gov.educ.assessment.api.service.v1.events.schedulers;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.helpers.LogHelper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.orchestrator.SessionApprovalOrchestrator;
 import ca.bc.gov.educ.assessment.api.orchestrator.TransferStudentProcessingOrchestrator;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.Orchestrator;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
@@ -15,6 +17,8 @@ import ca.bc.gov.educ.assessment.api.service.v1.SessionService;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,11 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 import static lombok.AccessLevel.PRIVATE;
@@ -56,6 +56,9 @@ public class EventTaskSchedulerAsyncService {
     @Getter(PRIVATE)
     private final SessionService sessionService;
 
+    @Getter(AccessLevel.PRIVATE)
+    private final SessionApprovalOrchestrator sessionApprovalOrchestrator;
+
     private final StagedStudentResultRepository stagedStudentResultRepository;
     private final StudentAssessmentResultService studentAssessmentResultService;
     private final TransferStudentProcessingOrchestrator transferStudentProcessingOrchestrator;
@@ -67,7 +70,7 @@ public class EventTaskSchedulerAsyncService {
     @Setter
     private List<String> statusFilters;
 
-    public EventTaskSchedulerAsyncService(final List<Orchestrator> orchestrators, SagaRepository sagaRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentService assessmentStudentService, SessionService sessionService, StagedStudentResultRepository stagedStudentResultRepository, StudentAssessmentResultService studentAssessmentResultService, TransferStudentProcessingOrchestrator transferStudentProcessingOrchestrator) {
+    public EventTaskSchedulerAsyncService(final List<Orchestrator> orchestrators, SagaRepository sagaRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentService assessmentStudentService, SessionService sessionService, StagedStudentResultRepository stagedStudentResultRepository, StudentAssessmentResultService studentAssessmentResultService, TransferStudentProcessingOrchestrator transferStudentProcessingOrchestrator, SessionApprovalOrchestrator sessionApprovalOrchestrator) {
         this.sagaRepository = sagaRepository;
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentSessionRepository = assessmentSessionRepository;
@@ -76,6 +79,7 @@ public class EventTaskSchedulerAsyncService {
         this.stagedStudentResultRepository = stagedStudentResultRepository;
         this.studentAssessmentResultService = studentAssessmentResultService;
         this.transferStudentProcessingOrchestrator = transferStudentProcessingOrchestrator;
+        this.sessionApprovalOrchestrator = sessionApprovalOrchestrator;
         orchestrators.forEach(orchestrator -> this.sagaOrchestrators.put(orchestrator.getSagaName(), orchestrator));
     }
 
@@ -200,6 +204,25 @@ public class EventTaskSchedulerAsyncService {
             }
 
             log.debug("Created {} new transfer sagas", sagasCreated);
+        } else {
+            List<AssessmentSessionEntity> activeSessions = this.sessionService.getActiveSessions();
+            List<AssessmentSessionEntity> approvedSessionList = activeSessions.stream()
+                .filter(s -> s.getApprovalAssessmentDesignUserID() != null
+                    && s.getApprovalAssessmentAnalysisUserID() != null
+                    && s.getApprovalStudentCertUserID() != null
+                    && s.getCompletionDate() == null)
+                .toList();
+            if (approvedSessionList.size() == 1) {
+                AssessmentSessionEntity approvedSession = approvedSessionList.getFirst();
+                log.info("All three signoffs present for session {}. Triggering generate XAM file saga.", approvedSession.getSessionID());
+                try {
+                    sessionApprovalOrchestrator.startXamFileGenerationSaga(approvedSession.getSessionID());
+                } catch (JsonProcessingException e) {
+                    log.debug("Error starting XAM file generation saga for session {}: {}", approvedSession.getSessionID(), e.getMessage());
+                }
+            } else {
+                log.warn("No sessions or multiple sessions with all three signoffs found. Approved session list: {}", approvedSessionList);
+            }
         }
     }
 

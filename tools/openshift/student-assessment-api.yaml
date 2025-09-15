@@ -163,6 +163,8 @@ objects:
                 secretName: "${APP_NAME}-cert"
             - name: log-storage
               emptyDir: {}
+            - name: app-storage
+              emptyDir: {}
             - name: flb-sc-config-volume
               configMap:
                 name: "${APP_NAME}-flb-sc-config-map"

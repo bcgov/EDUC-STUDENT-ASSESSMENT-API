@@ -54,10 +54,13 @@ public class SessionService {
     @Getter(AccessLevel.PRIVATE)
     private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
+    @Getter(AccessLevel.PRIVATE)
+    private final AssessmentStudentService assessmentStudentService;
+
     private static final String ASSESSMENT_API = "ASSESSMENT_API";
 
     @Autowired
-    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository) {
+    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository, AssessmentStudentService assessmentStudentService) {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentSessionCriteriaRepository = assessmentSessionCriteriaRepository;
         this.assessmentRepository = assessmentRepository;
@@ -65,6 +68,7 @@ public class SessionService {
         this.sessionApprovalOrchestrator = sessionApprovalOrchestrator;
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentStudentHistoryRepository = assessmentStudentHistoryRepository;
+        this.assessmentStudentService = assessmentStudentService;
     }
 
     public List<AssessmentSessionEntity> getAllSessions() {
@@ -125,12 +129,8 @@ public class SessionService {
         if(StringUtils.isNotBlank(session.getApprovalStudentCertUserID())
                 && StringUtils.isNotBlank(session.getApprovalAssessmentDesignUserID())
                 && StringUtils.isNotBlank(session.getApprovalAssessmentAnalysisUserID())) {
-            log.info("All three signoffs present for session {}. Triggering generate XAM file saga.", session.getSessionID());
-            try {
-                sessionApprovalOrchestrator.startXamFileGenerationSaga(session.getSessionID());
-            } catch (JsonProcessingException e) {
-                log.debug("Error starting XAM file generation saga for session {}: {}", session.getSessionID(), e.getMessage());
-            }
+            log.info("All three signoffs present for session {}. Marking students ready for transfer", session.getSessionID());
+            assessmentStudentService.markStagedStudentsReadyForTransfer();
         }
         session.setActiveUntilDate(LocalDateTime.now());
         return assessmentSessionRepository.save(session);
