@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import com.nimbusds.jose.util.Pair;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,14 @@ public class TransferStudentOrchestrationService {
         this.sagaService = sagaService;
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentEventRepository = assessmentEventRepository;
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Pair<List<AssessmentEventEntity>, List<UUID>> getStudentRegistrationEvents(UUID studentID) {
+        var events = List.of(assessmentStudentService.generateStudentUpdatedEvent(studentID.toString()));
+        assessmentEventRepository.saveAll(events);
+        return Pair.of(events, List.of(studentID));
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

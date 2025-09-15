@@ -2,6 +2,7 @@ package ca.bc.gov.educ.assessment.api.orchestrator;
 
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
+import ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.BaseOrchestrator;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
@@ -34,13 +35,15 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
     private final SagaService sagaService;
     private final DOARReportService doarReportService;
     private final TransferStudentOrchestrationService transferStudentOrchestrationService;
+    private final Publisher publisher;
 
-    protected TransferStudentProcessingOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, final AssessmentStudentService assessmentStudentService, DOARReportService doarReportService, TransferStudentOrchestrationService transferStudentOrchestrationService) {
+    protected TransferStudentProcessingOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, final AssessmentStudentService assessmentStudentService, DOARReportService doarReportService, TransferStudentOrchestrationService transferStudentOrchestrationService, Publisher publisher) {
         super(sagaService, messagePublisher, TransferOnApprovalSagaData.class, PROCESS_STUDENT_TRANSFER.toString(), STUDENT_TRANSFER_PROCESSING_TOPIC.toString());
         this.assessmentStudentService = assessmentStudentService;
         this.sagaService = sagaService;
         this.doarReportService = doarReportService;
         this.transferStudentOrchestrationService = transferStudentOrchestrationService;
+        this.publisher = publisher;
     }
 
     @Override
@@ -48,7 +51,8 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         this.stepBuilder()
             .begin(PROCESS_STUDENT_TRANSFER_EVENT, this::processStudentTransfer)
             .step(PROCESS_STUDENT_TRANSFER_EVENT, STUDENT_TRANSFER_PROCESSED, CALCULATE_STUDENT_DOAR, this::createAndPopulateDOARCalculations)
-            .end(CALCULATE_STUDENT_DOAR, STUDENT_DOAR_CALCULATED);
+            .step(CALCULATE_STUDENT_DOAR, STUDENT_DOAR_CALCULATED, NOTIFY_GRAD_OF_UPDATED_STUDENTS, this::notifyGradOfUpdatedStudents)
+            .end(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -89,6 +93,22 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         val nextEvent = eventBuilder.build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("message sent to {} for {} Event. :: {}", this.getTopicToSubscribe(), nextEvent, saga.getSagaId());
+    }
+
+    private void notifyGradOfUpdatedStudents(Event event, AssessmentSagaEntity saga, TransferOnApprovalSagaData transferOnApprovalSagaData) throws JsonProcessingException {
+        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
+        saga.setSagaState(NOTIFY_GRAD_OF_UPDATED_STUDENTS.toString());
+        saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
+        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
+
+        var pair = transferStudentOrchestrationService.getStudentRegistrationEvents(UUID.fromString(transferOnApprovalSagaData.getStudentID()));
+        pair.getLeft().forEach(publisher::dispatchChoreographyEvent);
+        final Event nextEvent = Event.builder().sagaId(saga.getSagaId())
+                .eventType(NOTIFY_GRAD_OF_UPDATED_STUDENTS).eventOutcome(GRAD_STUDENT_API_NOTIFIED)
+                .eventPayload(JsonUtil.getJsonStringFromObject(transferOnApprovalSagaData))
+                .build();
+        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
+        log.debug("Posted completion message for saga step notifyGradOfUpdatedStudents: {}", saga.getSagaId());
     }
 
     public void startStudentTransferProcessingSaga(TransferOnApprovalSagaData transferOnApprovalSagaData) throws JsonProcessingException {

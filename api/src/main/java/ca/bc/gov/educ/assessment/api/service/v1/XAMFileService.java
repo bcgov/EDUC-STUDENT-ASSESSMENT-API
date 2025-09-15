@@ -4,9 +4,11 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.StagedAssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
@@ -18,15 +20,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -40,79 +34,41 @@ public class XAMFileService {
     private RestUtils restUtils;
     private final S3Client s3Client;
     private final ApplicationProperties applicationProperties;
+    private StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
 
     @Autowired
-    public XAMFileService(AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, RestUtils restUtils, S3Client s3Client, ApplicationProperties applicationProperties) {
+    public XAMFileService(AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, RestUtils restUtils, S3Client s3Client, ApplicationProperties applicationProperties, StagedAssessmentStudentRepository stagedAssessmentStudentRepository) {
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.restUtils = restUtils;
         this.s3Client = s3Client;
         this.applicationProperties = applicationProperties;
+        this.stagedAssessmentStudentRepository = stagedAssessmentStudentRepository;
     }
 
     /**
      * Generic method to generate XAM content and return either a File or DownloadableReportResponse
      * @param assessmentSessionEntity the assessment session ID
      * @param school the school tombstone
-     * @param asFile whether to return a File (true) or DownloadableReportResponse (false)
-     * @return T - either File or DownloadableReportResponse
+     * @param forSaga whether for approval saga (staging uploaded to s3) or frontend request (full table students)
+     * @return T - either byte[] or DownloadableReportResponse
      */
     @SuppressWarnings("unchecked")
-    private <T> T generateXamContent(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school, boolean asFile) {
-        List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
-
-        StringBuilder sb = new StringBuilder();
-
-        for (AssessmentStudentEntity student : students) {
-            var examSchool = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
-            var examMincode = examSchool.map(SchoolTombstone::getMincode).orElse("");
-            String record =
-                padRight("E07", 3) + // TX_ID
-                padRight(school.getVendorSourceSystemCode(), 1) + // VENDOR_ID
-                padRight("", 1) + // VERI_FLAG (BLANK)
-                padRight("", 5) + // FILLER1 (BLANK)
-                padRight(school.getMincode(), 8) + // MINCODE
-                padRight(student.getLocalID(), 12) + // STUD_LOCAL_ID
-                padRight(student.getPen(), 10) + // STUD_NO (PEN)
-                padRight(student.getAssessmentEntity() != null ? student.getAssessmentEntity().getAssessmentTypeCode() : "", 5) + // CRSE_CODE
-                padRight("", 3) + // CRSE_LEVEL (BLANK)
-                padRight(student.getAssessmentEntity() != null && student.getAssessmentEntity().getAssessmentSessionEntity() != null ? student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() : "", 4) + // CRSE_YEAR
-                padRight(student.getAssessmentEntity() != null && student.getAssessmentEntity().getAssessmentSessionEntity() != null ? student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth() : "", 2) + // CRSE_MONTH
-                padRight("", 2) + // INTERIM_LETTER_GRADE (BLANK)
-                padRight("", 3) + // INTERIM_SCHOOL_PERCENT (BLANK)
-                padRight("", 3) + // FINAL_SCHOOL_PERCENT (BLANK)
-                padRight("", 3) + // EXAM_PERCENT (BLANK)
-                (student.getProficiencyScore() == null 
-                    ? padRight("", 3) 
-                    : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - formatted as 001-004
-                padRight("", 2) + // FINAL_LETTER_GRADE (BLANK)
-                padRight("Y", 1) + // E-EXAM FLAG - Always Y according to spec
-                padRight(student.getProvincialSpecialCaseCode(), 1) + // PROV_SPEC_CASE
-                padRight(student.getLocalAssessmentID(), 20) + // LOCAL_CRSE_ID
-                padRight("A", 1) + // CRSE_STATUS - Always A according to spec
-                padRight(student.getSurname(), 25) + // STUD_SURNAME
-                padRight("", 2) + // NUM_CREDITS (BLANK)
-                padRight("", 1) + // CRSE_TYPE (BLANK)
-                padRight("", 1) + // TO_WRITE_FLAG (BLANK)
-                padRight(examMincode, 8) + // EXAM_MINCODE
-                "\n";
-            sb.append(record);
+    private <T> T generateXamContent(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school, boolean forSaga) {
+        StringBuilder sb;
+        if (forSaga) {
+            List<StagedAssessmentStudentEntity> stagedStudents = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
+            sb = generateRowsStagedAssessmentStudent(stagedStudents, school);
+        } else {
+            List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
+            sb = generateRowsAssessmentStudent(students, school);
         }
+
         String fileName = generateXamFileName(school, assessmentSessionEntity);
         String content = sb.toString();
 
-        if (asFile) {
-            try {
-                Path outputDir = Paths.get("xam");
-                var dir = !Files.exists(outputDir) ?  Files.createDirectories(outputDir): outputDir;
-                Path file = dir.resolve(fileName);
-                // todo  write to stream instead of bytearray - dont want to create file, don't need to save just send straight to s3
-                Files.write(file, content.getBytes(StandardCharsets.UTF_8));
-                return (T) file.toFile();
-            } catch (IOException e) {
-                log.error("Failed to write XAM file", e);
-                throw new StudentAssessmentAPIRuntimeException("Failed to write XAM file: " + e.getMessage());
-            }
+        if (forSaga) {
+            return (T) content.getBytes(StandardCharsets.UTF_8);
         } else {
             DownloadableReportResponse response = new DownloadableReportResponse();
             response.setReportType(fileName);
@@ -121,11 +77,86 @@ public class XAMFileService {
         }
     }
 
-    /**
-     * Returns a File for the XAM content (used by orchestrator)
-     */
-    public File generateXamFile(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school) {
-        return generateXamContent(assessmentSessionEntity, school, true);
+    private StringBuilder generateRowsAssessmentStudent(List<AssessmentStudentEntity> assessmentStudents, SchoolTombstone school) {
+        StringBuilder sb = new StringBuilder();
+
+        for (AssessmentStudentEntity student : assessmentStudents) {
+            var examSchool = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
+            var examMincode = examSchool.map(SchoolTombstone::getMincode).orElse("");
+            String record =
+                    padRight("E07", 3) + // TX_ID
+                            padRight(school.getVendorSourceSystemCode(), 1) + // VENDOR_ID
+                            padRight("", 1) + // VERI_FLAG (BLANK)
+                            padRight("", 5) + // FILLER1 (BLANK)
+                            padRight(school.getMincode(), 8) + // MINCODE
+                            padRight(student.getLocalID(), 12) + // STUD_LOCAL_ID
+                            padRight(student.getPen(), 10) + // STUD_NO (PEN)
+                            padRight(student.getAssessmentEntity() != null ? student.getAssessmentEntity().getAssessmentTypeCode() : "", 5) + // CRSE_CODE
+                            padRight("", 3) + // CRSE_LEVEL (BLANK)
+                            padRight(student.getAssessmentEntity() != null && student.getAssessmentEntity().getAssessmentSessionEntity() != null ? student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() : "", 4) + // CRSE_YEAR
+                            padRight(student.getAssessmentEntity() != null && student.getAssessmentEntity().getAssessmentSessionEntity() != null ? student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth() : "", 2) + // CRSE_MONTH
+                            padRight("", 2) + // INTERIM_LETTER_GRADE (BLANK)
+                            padRight("", 3) + // INTERIM_SCHOOL_PERCENT (BLANK)
+                            padRight("", 3) + // FINAL_SCHOOL_PERCENT (BLANK)
+                            padRight("", 3) + // EXAM_PERCENT (BLANK)
+                            (student.getProficiencyScore() == null
+                                    ? padRight("", 3)
+                                    : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - formatted as 001-004
+                            padRight("", 2) + // FINAL_LETTER_GRADE (BLANK)
+                            padRight("Y", 1) + // E-EXAM FLAG - Always Y according to spec
+                            padRight(student.getProvincialSpecialCaseCode(), 1) + // PROV_SPEC_CASE
+                            padRight(student.getLocalAssessmentID(), 20) + // LOCAL_CRSE_ID
+                            padRight("A", 1) + // CRSE_STATUS - Always A according to spec
+                            padRight(student.getSurname(), 25) + // STUD_SURNAME
+                            padRight("", 2) + // NUM_CREDITS (BLANK)
+                            padRight("", 1) + // CRSE_TYPE (BLANK)
+                            padRight("", 1) + // TO_WRITE_FLAG (BLANK)
+                            padRight(examMincode, 8) + // EXAM_MINCODE
+                            "\n";
+            sb.append(record);
+        }
+        return sb;
+    }
+
+    private StringBuilder generateRowsStagedAssessmentStudent(List<StagedAssessmentStudentEntity> assessmentStudents, SchoolTombstone school) {
+        StringBuilder sb = new StringBuilder();
+
+        for (StagedAssessmentStudentEntity student : assessmentStudents) {
+            var examSchool = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
+            var examMincode = examSchool.map(SchoolTombstone::getMincode).orElse("");
+            String record =
+                    padRight("E07", 3) + // TX_ID
+                            padRight(school.getVendorSourceSystemCode(), 1) + // VENDOR_ID
+                            padRight("", 1) + // VERI_FLAG (BLANK)
+                            padRight("", 5) + // FILLER1 (BLANK)
+                            padRight(school.getMincode(), 8) + // MINCODE
+                            padRight(student.getLocalID(), 12) + // STUD_LOCAL_ID
+                            padRight(student.getPen(), 10) + // STUD_NO (PEN)
+                            padRight(student.getAssessmentEntity() != null ? student.getAssessmentEntity().getAssessmentTypeCode() : "", 5) + // CRSE_CODE
+                            padRight("", 3) + // CRSE_LEVEL (BLANK)
+                            padRight(student.getAssessmentEntity() != null && student.getAssessmentEntity().getAssessmentSessionEntity() != null ? student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() : "", 4) + // CRSE_YEAR
+                            padRight(student.getAssessmentEntity() != null && student.getAssessmentEntity().getAssessmentSessionEntity() != null ? student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth() : "", 2) + // CRSE_MONTH
+                            padRight("", 2) + // INTERIM_LETTER_GRADE (BLANK)
+                            padRight("", 3) + // INTERIM_SCHOOL_PERCENT (BLANK)
+                            padRight("", 3) + // FINAL_SCHOOL_PERCENT (BLANK)
+                            padRight("", 3) + // EXAM_PERCENT (BLANK)
+                            (student.getProficiencyScore() == null
+                                    ? padRight("", 3)
+                                    : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - formatted as 001-004
+                            padRight("", 2) + // FINAL_LETTER_GRADE (BLANK)
+                            padRight("Y", 1) + // E-EXAM FLAG - Always Y according to spec
+                            padRight(student.getProvincialSpecialCaseCode(), 1) + // PROV_SPEC_CASE
+                            padRight(student.getLocalAssessmentID(), 20) + // LOCAL_CRSE_ID
+                            padRight("A", 1) + // CRSE_STATUS - Always A according to spec
+                            padRight(student.getSurname(), 25) + // STUD_SURNAME
+                            padRight("", 2) + // NUM_CREDITS (BLANK)
+                            padRight("", 1) + // CRSE_TYPE (BLANK)
+                            padRight("", 1) + // TO_WRITE_FLAG (BLANK)
+                            padRight(examMincode, 8) + // EXAM_MINCODE
+                            "\n";
+            sb.append(record);
+        }
+        return sb;
     }
 
     /**
@@ -137,37 +168,17 @@ public class XAMFileService {
         return generateXamContent(assessmentSession, schoolTombstone, false);
     }
 
-    public void uploadToS3(File file, String key) {
+    public void uploadToS3(byte[] content, String key) {
         try {
             s3Client.putObject(PutObjectRequest.builder()
                     .bucket(applicationProperties.getS3BucketName())
                     .key(key)
-                    .build(), RequestBody.fromFile(file)); // todo request from bytes -> we don't want to make a file to send as we cannot over rest
-            log.debug("Successfully uploaded file to BCBox S3: {} (size: {} bytes)", key, file.length());
+                    .build(), RequestBody.fromBytes(content));
+            log.debug("Successfully uploaded file to BCBox S3: {} (size: {} bytes)", key, content.length);
         } catch (Exception e) {
             log.error("Failed to upload file to BCBox S3: {}", key, e);
             throw new StudentAssessmentAPIRuntimeException("Failed to upload file to BCBox S3: " + e.getMessage());
         }
-    }
-
-    /**
-     * for orchestration:
-     * Generates a XAM file for the given school and session, returns the file path.
-     */
-    public String generateXamFileAndReturnPath(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school) {
-        File file = generateXamFile(assessmentSessionEntity, school);
-        return file.getAbsolutePath();
-    }
-
-    /**
-     * for orchestration:
-     * Uploads the file at the given path to S3 for the given school and session.
-     */
-    public void uploadFilePathToS3(String filePath, AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school) {
-        File file = new File(filePath);
-        String fileName = generateXamFileName(school, assessmentSessionEntity);
-        String key = "xam-files/" + fileName;
-        uploadToS3(file, key);
     }
 
     /**
@@ -182,37 +193,16 @@ public class XAMFileService {
                 .toList();
         log.debug("Starting generation and upload of XAM files for {} MYED schools, session {}", myEdSchools.size(), assessmentSessionEntity.getSessionID());
         for (SchoolTombstone school : myEdSchools) {
-            String filePath = null;
-            try {
-                log.debug("Generating XAM file for school: {}", school.getMincode());
-                filePath = generateXamFileAndReturnPath(assessmentSessionEntity, school);
-                log.debug("Uploading XAM file for school: {}", school.getMincode());
-                uploadFilePathToS3(filePath, assessmentSessionEntity, school);
-                log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
-            } finally {
-                if (filePath != null) {
-                    deleteFile(filePath, school.getMincode());
-                }
-            }
+            byte[] xamFileContent = null;
+            log.debug("Generating XAM file for school: {}", school.getMincode());
+            xamFileContent = generateXamContent(assessmentSessionEntity, school, true);;
+            log.debug("Uploading XAM file for school: {}", school.getMincode());
+            String fileName = generateXamFileName(school, assessmentSessionEntity);
+            String key = "xam-files/" + fileName;
+            uploadToS3(xamFileContent, key);
+            log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
         }
         log.debug("Completed processing XAM files for session {}", assessmentSessionEntity.getSessionID());
-    }
-
-    /**
-     * Delete a file and log the result
-     */
-    private void deleteFile(String filePath, String schoolMincode) {
-        try {
-            Path path = Path.of(filePath);
-            Files.delete(path);
-            log.debug("Successfully deleted temporary XAM file for school {}: {}", schoolMincode, filePath);
-        } catch (NoSuchFileException e) {
-            log.debug("Temporary XAM file for school {} already deleted or does not exist: {}", schoolMincode, filePath);
-        } catch (IOException e) {
-            log.warn("Failed to delete temporary XAM file for school {}: {} - {}", schoolMincode, filePath, e.getMessage());
-        } catch (Exception e) {
-            log.error("Unexpected error deleting temporary XAM file for school {}: {}", schoolMincode, filePath, e);
-        }
     }
 
     /**
