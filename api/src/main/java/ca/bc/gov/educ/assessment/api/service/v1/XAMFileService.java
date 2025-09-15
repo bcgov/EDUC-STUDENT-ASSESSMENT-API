@@ -105,7 +105,7 @@ public class XAMFileService {
             try {
                 Path outputDir = Paths.get("xam");
                 var dir = !Files.exists(outputDir) ?  Files.createDirectories(outputDir): outputDir;
-                Path file = dir.resolve("fileName");
+                Path file = dir.resolve(fileName);
                 Files.write(file, content.getBytes(StandardCharsets.UTF_8));
                 return (T) file.toFile();
             } catch (IOException e) {
