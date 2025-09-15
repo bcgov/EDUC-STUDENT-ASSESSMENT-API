@@ -116,8 +116,8 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
-        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.MARK_STAGED_STUDENTS_READY_FOR_TRANSFER);
-        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.GENERATE_XAM_FILES_AND_UPLOAD);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.XAM_FILES_GENERATED_AND_UPLOADED);
     }
     
     @SneakyThrows
