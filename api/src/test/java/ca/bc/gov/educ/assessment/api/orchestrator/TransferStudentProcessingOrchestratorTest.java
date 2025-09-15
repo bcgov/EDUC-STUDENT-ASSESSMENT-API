@@ -210,7 +210,7 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
     void testStartStudentTransferProcessingSaga_initiatesSagaAndDispatchesEvent() {
         SagaService mockSagaService = Mockito.mock(SagaService.class);
         MessagePublisher mockMessagePublisher = Mockito.mock(MessagePublisher.class);
-        TransferStudentProcessingOrchestrator orchestratorWithMocks = new TransferStudentProcessingOrchestrator(mockSagaService, mockMessagePublisher, null, null);
+        TransferStudentProcessingOrchestrator orchestratorWithMocks = new TransferStudentProcessingOrchestrator(mockSagaService, mockMessagePublisher, null, null, null, null);
 
         AssessmentSagaEntity dummySaga = new AssessmentSagaEntity();
         dummySaga.setSagaId(UUID.randomUUID());

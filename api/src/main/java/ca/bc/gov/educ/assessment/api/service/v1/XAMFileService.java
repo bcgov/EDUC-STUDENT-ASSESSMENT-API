@@ -54,10 +54,10 @@ public class XAMFileService {
      * @return T - either byte[] or DownloadableReportResponse
      */
     @SuppressWarnings("unchecked")
-    private <T> T generateXamContent(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school, boolean forSaga) {
+    protected <T> T generateXamContent(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school, boolean forSaga) {
         StringBuilder sb;
         if (forSaga) {
-            List<StagedAssessmentStudentEntity> stagedStudents = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
+            List<StagedAssessmentStudentEntity> stagedStudents = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
             sb = generateRowsStagedAssessmentStudent(stagedStudents, school);
         } else {
             List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
@@ -193,9 +193,8 @@ public class XAMFileService {
                 .toList();
         log.debug("Starting generation and upload of XAM files for {} MYED schools, session {}", myEdSchools.size(), assessmentSessionEntity.getSessionID());
         for (SchoolTombstone school : myEdSchools) {
-            byte[] xamFileContent = null;
             log.debug("Generating XAM file for school: {}", school.getMincode());
-            xamFileContent = generateXamContent(assessmentSessionEntity, school, true);;
+            byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);
             log.debug("Uploading XAM file for school: {}", school.getMincode());
             String fileName = generateXamFileName(school, assessmentSessionEntity);
             String key = "xam-files/" + fileName;
