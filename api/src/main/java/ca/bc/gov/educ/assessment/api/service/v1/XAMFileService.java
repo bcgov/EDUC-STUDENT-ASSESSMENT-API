@@ -106,6 +106,7 @@ public class XAMFileService {
                 Path outputDir = Paths.get("xam");
                 var dir = !Files.exists(outputDir) ?  Files.createDirectories(outputDir): outputDir;
                 Path file = dir.resolve(fileName);
+                // todo  write to stream instead of bytearray - dont want to create file, don't need to save just send straight to s3
                 Files.write(file, content.getBytes(StandardCharsets.UTF_8));
                 return (T) file.toFile();
             } catch (IOException e) {
@@ -141,7 +142,7 @@ public class XAMFileService {
             s3Client.putObject(PutObjectRequest.builder()
                     .bucket(applicationProperties.getS3BucketName())
                     .key(key)
-                    .build(), RequestBody.fromFile(file));
+                    .build(), RequestBody.fromFile(file)); // todo request from bytes -> we don't want to make a file to send as we cannot over rest
             log.debug("Successfully uploaded file to BCBox S3: {} (size: {} bytes)", key, file.length());
         } catch (Exception e) {
             log.error("Failed to upload file to BCBox S3: {}", key, e);
@@ -188,8 +189,6 @@ public class XAMFileService {
                 log.debug("Uploading XAM file for school: {}", school.getMincode());
                 uploadFilePathToS3(filePath, assessmentSessionEntity, school);
                 log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
-            } catch (Exception e) {
-                log.error("Failed to process XAM file for school: {}", school.getMincode(), e);
             } finally {
                 if (filePath != null) {
                     deleteFile(filePath, school.getMincode());

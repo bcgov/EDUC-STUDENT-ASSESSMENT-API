@@ -66,9 +66,11 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         log.debug("Processing transfer for student: {}", studentId);
 
         // Transfer student data from staging to main tables
+        // todo put delete in below, and put in service
         transferStagedStudentToMainTables(studentId);
 
         // Mark the student as TRANSFERRED in the staging table (same transaction)
+        // todo needs to be a delete now
         int updatedCount = markStudentAsTransferredInTransaction(studentId);
         log.debug("Marked student {} as TRANSFERRED (updated: {} records)", studentId, updatedCount);
 

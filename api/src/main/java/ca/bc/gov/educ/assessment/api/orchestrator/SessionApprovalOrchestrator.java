@@ -55,11 +55,12 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
     @Override
     public void populateStepsToExecuteMap() {
         this.stepBuilder()
-            .begin(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
-            .step(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER, GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
+            .begin(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)// todo transfer last
+            .step(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER, GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload) // todo point at staging
             .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_GRAD_OF_UPDATED_STUDENTS, this::notifyGradOfUpdatedStudents)
             .step(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
             .step(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED, MARK_SESSION_COMPLETION_DATE, this::markSessionCompletionDate)
+                // mark students for transfer
             .end(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET);
     }
 
@@ -122,6 +123,7 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
         log.debug("Posted completion message for saga step generateXAMFilesAndUpload: {}", saga.getSagaId());
     }
 
+    // todo remove and  push to transfer orchestration as last step
     private void notifyGradOfUpdatedStudents(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
         final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
         saga.setSagaState(NOTIFY_GRAD_OF_UPDATED_STUDENTS.toString());
