@@ -26,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -195,6 +196,58 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
         assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_DOAR_CALCULATED);
     }
 
+    @SneakyThrows
+    @Test
+    void testOrchestratorHandles_givenEventType_NOTIFY_GRAD_OF_UPDATED_STUDENTS_shouldNotifyGrad() {
+        var sagaPayloadObject = JsonUtil.getJsonObjectFromString(TransferOnApprovalSagaData.class, sagaPayload);
+
+        var assessmentEntity = assessmentRepository.findById(UUID.fromString(sagaPayloadObject.getAssessmentID())).orElse(null);
+        var assessmentStudent = createMockStudentEntity(assessmentEntity);
+        assessmentStudent.setStudentID(UUID.fromString(sagaPayloadObject.getStudentID()));
+        assessmentStudentRepository.save(assessmentStudent);
+
+        String payload = sagaPayload;
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.CALCULATE_STUDENT_DOAR)
+                .eventOutcome(EventOutcome.STUDENT_DOAR_CALCULATED)
+                .eventPayload(payload)
+                .build();
+
+        transferStudentProcessingOrchestrator.handleEvent(event);
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(transferStudentProcessingOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.GRAD_STUDENT_API_NOTIFIED);
+    }
+
+    @SneakyThrows
+    @Test
+    void testOrchestratorHandles_givenEventType_NOTIFY_GRAD_OF_UPDATED_STUDENTS_shouldCompleteSaga() {
+        var sagaPayloadObject = JsonUtil.getJsonObjectFromString(TransferOnApprovalSagaData.class, sagaPayload);
+
+        var assessmentEntity = assessmentRepository.findById(UUID.fromString(sagaPayloadObject.getAssessmentID())).orElse(null);
+        var assessmentStudent = createMockStudentEntity(assessmentEntity);
+        assessmentStudent.setStudentID(UUID.fromString(sagaPayloadObject.getStudentID()));
+        assessmentStudentRepository.save(assessmentStudent);
+
+        String payload = sagaPayload;
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS)
+                .eventOutcome(EventOutcome.GRAD_STUDENT_API_NOTIFIED)
+                .eventPayload(payload)
+                .build();
+
+        transferStudentProcessingOrchestrator.handleEvent(event);
+
+        var updatedSaga = sagaRepository.findById(saga.getSagaId()).orElse(null);
+        assertNotNull(updatedSaga);
+        assertEquals("COMPLETED", updatedSaga.getStatus());
+    }
+
     @Test
     void testOrchestratorGetSagaName() {
         assertEquals(SagaEnum.PROCESS_STUDENT_TRANSFER.toString(), transferStudentProcessingOrchestrator.getSagaName());
@@ -232,6 +285,105 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.INITIATED);
         assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.INITIATE_SUCCESS);
+    }
+
+    @SneakyThrows
+    @Test
+    void testStartStudentTransferProcessingSaga_withValidData_shouldCreateSagaAndInitiate() {
+        AssessmentSessionEntity testSession = assessmentSessionRepository.save(createMockSessionEntity());
+        AssessmentEntity testAssessment = assessmentRepository.save(createMockAssessmentEntity(testSession, AssessmentTypeCodes.LTF12.getCode()));
+        StagedAssessmentStudentEntity testStagedStudent = createMockStagedStudentEntity(testAssessment);
+        testStagedStudent.setStagedAssessmentStudentStatus("TRANSFER");
+        testStagedStudent = stagedAssessmentStudentRepository.save(testStagedStudent);
+
+        var sagaData = TransferOnApprovalSagaData.builder()
+                .assessmentID(String.valueOf(testStagedStudent.getAssessmentEntity().getAssessmentID()))
+                .studentID(String.valueOf(testStagedStudent.getStudentID()))
+                .stagedStudentAssessmentID(String.valueOf(testStagedStudent.getAssessmentStudentID()))
+                .build();
+
+        sagaRepository.deleteAll();
+
+        transferStudentProcessingOrchestrator.startStudentTransferProcessingSaga(sagaData);
+
+        var sagas = sagaRepository.findAll();
+        assertThat(sagas).hasSize(1);
+        var createdSaga = sagas.getFirst();
+        assertEquals(SagaEnum.PROCESS_STUDENT_TRANSFER.toString(), createdSaga.getSagaName());
+        assertEquals("ASSESSMENT-API", createdSaga.getCreateUser());
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(transferStudentProcessingOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.PROCESS_STUDENT_TRANSFER_EVENT);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_TRANSFER_PROCESSED);
+    }
+
+    @SneakyThrows
+    @Test
+    void testProcessStudentTransfer_withExistingStudent_shouldUpdateExisting() {
+        var sagaPayloadObject = JsonUtil.getJsonObjectFromString(TransferOnApprovalSagaData.class, sagaPayload);
+
+        var assessmentEntity = assessmentRepository.findById(UUID.fromString(sagaPayloadObject.getAssessmentID())).orElse(null);
+        var existingStudent = createMockStudentEntity(assessmentEntity);
+        existingStudent.setStudentID(UUID.fromString(sagaPayloadObject.getStudentID()));
+        assessmentStudentRepository.save(existingStudent);
+
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.INITIATED)
+                .eventOutcome(EventOutcome.INITIATE_SUCCESS)
+                .eventPayload(sagaPayload)
+                .build();
+
+        transferStudentProcessingOrchestrator.handleEvent(event);
+
+        var stagedStudents = stagedAssessmentStudentRepository.findAll();
+        assertThat(stagedStudents).isEmpty();
+    }
+
+    @SneakyThrows
+    @Test
+    void testProcessStudentTransfer_withNewStudent_shouldCreateNew() {
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.INITIATED)
+                .eventOutcome(EventOutcome.INITIATE_SUCCESS)
+                .eventPayload(sagaPayload)
+                .build();
+
+        transferStudentProcessingOrchestrator.handleEvent(event);
+
+        var students = assessmentStudentRepository.findAll();
+        assertThat(students).isNotEmpty();
+
+        var stagedStudents = stagedAssessmentStudentRepository.findAll();
+        assertThat(stagedStudents).isEmpty();
+    }
+
+    @SneakyThrows
+    @Test
+    void testCreateAndPopulateDOARCalculations_shouldUpdateSagaState() {
+        var sagaPayloadObject = JsonUtil.getJsonObjectFromString(TransferOnApprovalSagaData.class, sagaPayload);
+
+        var assessmentEntity = assessmentRepository.findById(UUID.fromString(sagaPayloadObject.getAssessmentID())).orElse(null);
+        var assessmentStudent = createMockStudentEntity(assessmentEntity);
+        assessmentStudent.setStudentID(UUID.fromString(sagaPayloadObject.getStudentID()));
+        assessmentStudentRepository.save(assessmentStudent);
+
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.PROCESS_STUDENT_TRANSFER_EVENT)
+                .eventOutcome(EventOutcome.STUDENT_TRANSFER_PROCESSED)
+                .eventPayload(sagaPayload)
+                .build();
+
+        transferStudentProcessingOrchestrator.handleEvent(event);
+
+        var updatedSaga = sagaRepository.findById(saga.getSagaId()).orElse(null);
+        assertNotNull(updatedSaga);
+        assertEquals(EventType.CALCULATE_STUDENT_DOAR.toString(), updatedSaga.getSagaState());
+        assertEquals("IN_PROGRESS", updatedSaga.getStatus());
     }
 
     private AssessmentFormEntity setData(AssessmentEntity savedAssessmentEntity, String studentID) {
