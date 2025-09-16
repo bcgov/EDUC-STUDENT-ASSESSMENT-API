@@ -83,7 +83,7 @@ public class XAMFileService {
         for (AssessmentStudentEntity student : assessmentStudents) {
             var examSchool = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
             var examMincode = examSchool.map(SchoolTombstone::getMincode).orElse("");
-            String record =
+            String row =
                     padRight("E07", 3) + // TX_ID
                             padRight(school.getVendorSourceSystemCode(), 1) + // VENDOR_ID
                             padRight("", 1) + // VERI_FLAG (BLANK)
@@ -113,7 +113,7 @@ public class XAMFileService {
                             padRight("", 1) + // TO_WRITE_FLAG (BLANK)
                             padRight(examMincode, 8) + // EXAM_MINCODE
                             "\n";
-            sb.append(record);
+            sb.append(row);
         }
         return sb;
     }
@@ -124,7 +124,7 @@ public class XAMFileService {
         for (StagedAssessmentStudentEntity student : assessmentStudents) {
             var examSchool = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
             var examMincode = examSchool.map(SchoolTombstone::getMincode).orElse("");
-            String record =
+            String row =
                     padRight("E07", 3) + // TX_ID
                             padRight(school.getVendorSourceSystemCode(), 1) + // VENDOR_ID
                             padRight("", 1) + // VERI_FLAG (BLANK)
@@ -154,7 +154,7 @@ public class XAMFileService {
                             padRight("", 1) + // TO_WRITE_FLAG (BLANK)
                             padRight(examMincode, 8) + // EXAM_MINCODE
                             "\n";
-            sb.append(record);
+            sb.append(row);
         }
         return sb;
     }
