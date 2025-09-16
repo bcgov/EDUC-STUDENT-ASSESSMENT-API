@@ -6,7 +6,6 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultsSummary;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -27,7 +26,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.URL.BASE_URL;
-import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.SCHOOL_STUDENTS_IN_SESSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -234,18 +232,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     void testProcessAssessmentKeysFile_givenTxtFile_WithOpenEndedQues_ShouldReturnOK() throws Exception {
         assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTF12"));
         var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
-        var assessment = assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTF12"));
-
-        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
-        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
-        for (int i = 1; i < 29; i++) {
-            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
-        }
-        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+        assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTF12"));
 
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTF12.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
@@ -254,7 +241,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileContents(fileContents)
                 .createUser("ABC")
                 .updateUser("ABC")
-                .fileName("TRAX_202501_LTF12.txt")
+                .fileName("TRAX_202501_LTE10.txt")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")

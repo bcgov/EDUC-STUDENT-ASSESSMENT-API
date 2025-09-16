@@ -80,6 +80,7 @@ public abstract class BaseAssessmentAPITest {
     componentTypeCodeRepository.save(createComponentTypeCodeEntity("MUL_CHOICE"));
     componentTypeCodeRepository.save(createComponentTypeCodeEntity("OPEN_ENDED"));
     componentSubTypeCodeRepository.save(createComponentSubTypeCodeEntity("NONE"));
+    componentSubTypeCodeRepository.save(createComponentSubTypeCodeEntity("ORAL"));
    }
 
   @AfterEach
