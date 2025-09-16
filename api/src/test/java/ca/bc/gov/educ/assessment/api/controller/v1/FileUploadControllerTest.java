@@ -234,7 +234,18 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     void testProcessAssessmentKeysFile_givenTxtFile_WithOpenEndedQues_ShouldReturnOK() throws Exception {
         assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTF12"));
         var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
-        assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTF12"));
+        var assessment = assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTF12"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for (int i = 1; i < 29; i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
 
         final FileInputStream fis = new FileInputStream("src/test/resources/TRAX_202501_LTF12.txt");
         final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
