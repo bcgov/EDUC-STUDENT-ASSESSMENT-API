@@ -243,7 +243,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .fileContents(fileContents)
                 .createUser("ABC")
                 .updateUser("ABC")
-                .fileName("TRAX_202501_LTE10.txt")
+                .fileName("TRAX_202501_LTF12.txt")
                 .build();
 
         this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/key-file")
