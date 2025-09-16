@@ -69,6 +69,12 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
     @Autowired
     private AdaptedAssessmentIndicatorCodeRepository adaptedAssessmentIndicatorCodeRepository;
 
+    @Autowired
+    private SagaRepository sagaRepository;
+
+    @Autowired
+    private SagaEventRepository sagaEventRepository;
+
     private AssessmentSessionEntity session;
     private AssessmentEntity assessment;
 
@@ -87,6 +93,8 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
         adaptedAssessmentIndicatorCodeRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
+        sagaEventRepository.deleteAll();
+        sagaRepository.deleteAll();
     }
 
     @BeforeEach
