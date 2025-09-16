@@ -38,16 +38,6 @@ public class SessionApprovalOrchestrationService {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentEventRepository = assessmentEventRepository;
     }
-    
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<List<AssessmentEventEntity>, List<UUID>> getStudentRegistrationEvents(UUID sessionID) {
-        var studentIDs = assessmentStudentService.getAllStudentIDsInSessionFromResultsStaging(sessionID);
-        var events = studentIDs.stream()
-                .map(studentID -> assessmentStudentService.generateStudentUpdatedEvent(studentID.toString()))
-                .toList();
-        assessmentEventRepository.saveAll(events);
-        return Pair.of(events, studentIDs);
-    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AssessmentSessionEntity updateSessionCompletionDate(UUID sessionID) {

@@ -421,6 +421,11 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
         Event createResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, createResponse.getLeft());
         assertThat(createResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
 
+        UUID studentUUID = UUID.fromString(initial.getStudentID());
+        UUID assessmentUUID = UUID.fromString(initial.getAssessmentID());
+        var createdAfterSave = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentUUID, studentUUID).orElseThrow();
+        UUID sorSavedInDB = createdAfterSave.getSchoolOfRecordSchoolID();
+
         UUID newAssessmentCenter = UUID.randomUUID();
         AssessmentStudent update = createMockStudent();
         update.setAssessmentID(assessment.getAssessmentID().toString());
@@ -442,8 +447,10 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
         Event updateResponseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, updateResponse.getLeft());
         assertThat(updateResponseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
 
-        AssessmentStudentEntity persisted = assessmentStudentRepository.findAll().getFirst();
-        assertThat(persisted.getSchoolOfRecordSchoolID()).isEqualTo(sorOriginal);
+        UUID studentUUID2 = UUID.fromString(initial.getStudentID());
+        UUID assessmentUUID2 = UUID.fromString(initial.getAssessmentID());
+        AssessmentStudentEntity persisted = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentUUID2, studentUUID2).orElseThrow();
+        assertThat(persisted.getSchoolOfRecordSchoolID()).isEqualTo(sorSavedInDB);
         assertThat(persisted.getLocalID()).isEqualTo("NEW_LOCAL_ID");
         assertThat(persisted.getLocalAssessmentID()).isEqualTo("NEW_LOCAL_ASSESS_ID");
         assertThat(persisted.getAssessmentCenterSchoolID()).isEqualTo(newAssessmentCenter);
