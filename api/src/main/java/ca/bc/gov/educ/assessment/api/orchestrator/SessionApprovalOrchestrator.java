@@ -31,7 +31,6 @@ import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.XAM_FILE_GENERA
 @Component
 public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaData> {
 
-    private final Publisher publisher;
     private final XAMFileService xamFileService;
     private final SessionApprovalOrchestrationService sessionApprovalOrchestrationService;
     private final AssessmentSessionRepository assessmentSessionRepository;
@@ -40,9 +39,8 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
     private final EmailService emailService;
     private final AssessmentStudentService assessmentStudentService;
 
-    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, Publisher publisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailProperties emailProperties, EmailService emailService, AssessmentStudentService assessmentStudentService) {
+    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailProperties emailProperties, EmailService emailService, AssessmentStudentService assessmentStudentService) {
         super(sagaService, messagePublisher, ApprovalSagaData.class, GENERATE_XAM_FILES.toString(), XAM_FILE_GENERATION_TOPIC.toString());
-        this.publisher = publisher;
         this.xamFileService = xamFileService;
         this.sagaService = sagaService;
         this.sessionApprovalOrchestrationService = sessionApprovalOrchestrationService;
@@ -55,12 +53,11 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
     @Override
     public void populateStepsToExecuteMap() {
         this.stepBuilder()
-            .begin(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
-            .step(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER, GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
-            .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_GRAD_OF_UPDATED_STUDENTS, this::notifyGradOfUpdatedStudents)
-            .step(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
+            .begin(GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
+            .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
             .step(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED, MARK_SESSION_COMPLETION_DATE, this::markSessionCompletionDate)
-            .end(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET);
+            .step(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET, MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
+            .end(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER);
     }
 
     private void markSessionCompletionDate(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
@@ -120,23 +117,6 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("Posted completion message for saga step generateXAMFilesAndUpload: {}", saga.getSagaId());
-    }
-
-    private void notifyGradOfUpdatedStudents(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
-        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
-        saga.setSagaState(NOTIFY_GRAD_OF_UPDATED_STUDENTS.toString());
-        saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
-        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
-        
-        UUID sessionID = UUID.fromString(approvalSagaData.getSessionID());
-        var pair = sessionApprovalOrchestrationService.getStudentRegistrationEvents(sessionID);
-        pair.getLeft().forEach(publisher::dispatchChoreographyEvent);
-        final Event nextEvent = Event.builder().sagaId(saga.getSagaId())
-                .eventType(NOTIFY_GRAD_OF_UPDATED_STUDENTS).eventOutcome(GRAD_STUDENT_API_NOTIFIED)
-                .eventPayload(JsonUtil.getJsonStringFromObject(approvalSagaData))
-                .build();
-        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
-        log.debug("Posted completion message for saga step notifyGradOfUpdatedStudents: {}", saga.getSagaId());
     }
 
     private void notifyMyEDOfApproval(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {

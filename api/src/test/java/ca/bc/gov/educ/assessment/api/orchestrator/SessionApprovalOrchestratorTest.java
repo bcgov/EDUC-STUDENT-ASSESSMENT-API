@@ -116,8 +116,8 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
-        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.MARK_STAGED_STUDENTS_READY_FOR_TRANSFER);
-        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.GENERATE_XAM_FILES_AND_UPLOAD);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.XAM_FILES_GENERATED_AND_UPLOADED);
     }
     
     @SneakyThrows
@@ -136,33 +136,13 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
-        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS);
-        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.GRAD_STUDENT_API_NOTIFIED);
-    }
-
-    @SneakyThrows
-    @Test
-    void testOrchestratorHandlesEventAndDelegatesStep2ToService() {
-        String payload = sagaPayload;
-        Event event = Event.builder()
-                .sagaId(saga.getSagaId())
-                .eventType(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS)
-                .eventOutcome(EventOutcome.GRAD_STUDENT_API_NOTIFIED)
-                .eventPayload(payload)
-                .build();
-
-        sessionApprovalOrchestrator.handleEvent(event);
-
-        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
-        String dispatchedPayload = new String(eventCaptor.getValue());
-        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
         assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.NOTIFY_MYED_OF_UPDATED_STUDENTS);
         assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.MYED_NOTIFIED);
     }
 
     @SneakyThrows
     @Test
-    void testOrchestratorHandlesEventAndDelegatesStep3ToService() {
+    void testOrchestratorHandlesEventAndDelegatesStep2ToService() {
         String payload = sagaPayload;
         Event event = Event.builder()
                 .sagaId(saga.getSagaId())
@@ -182,7 +162,7 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
 
     @SneakyThrows
     @Test
-    void testOrchestratorHandlesEventAndDelegatesStep4ToService() {
+    void testOrchestratorHandlesEventAndDelegatesStep3ToService() {
         String payload = sagaPayload;
         Event event = Event.builder()
                 .sagaId(saga.getSagaId())
@@ -196,8 +176,8 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
-        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.MARK_SAGA_COMPLETE);
-        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.SAGA_COMPLETED);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.MARK_STAGED_STUDENTS_READY_FOR_TRANSFER);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER);
     }
 
     @SneakyThrows
@@ -226,7 +206,8 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         RestUtils dummyRestUtils = Mockito.mock(RestUtils.class);
         S3Client dummyS3Client = Mockito.mock(S3Client.class);
         ApplicationProperties dummyApplicationProperties = Mockito.mock(ApplicationProperties.class);
-        XAMFileService dummyService = new XAMFileService(dummyStudentRepo, dummySessionRepo, dummyRestUtils, dummyS3Client, dummyApplicationProperties);
+        StagedAssessmentStudentRepository dummyStagedAssessmentStudentRepository = Mockito.mock(StagedAssessmentStudentRepository.class);
+        XAMFileService dummyService = new XAMFileService(dummyStudentRepo, dummySessionRepo, dummyRestUtils, dummyS3Client, dummyApplicationProperties, dummyStagedAssessmentStudentRepository);
         XAMFileService spyService = Mockito.spy(dummyService);
         ReflectionTestUtils.setField(sessionApprovalOrchestrator, "xamFileService", spyService);
 

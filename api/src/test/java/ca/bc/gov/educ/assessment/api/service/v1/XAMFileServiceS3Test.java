@@ -6,6 +6,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.StagedAssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import org.junit.jupiter.api.AfterEach;
@@ -18,7 +19,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,6 +34,7 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
 
     private XAMFileService xamFileService;
     private AssessmentStudentRepository studentRepository;
+    private StagedAssessmentStudentRepository stagedStudentRepository;
     private RestUtils restUtils;
     private S3Client s3Client;
 
@@ -44,20 +45,20 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
     void setUp() {
         AssessmentSessionRepository sessionRepository = mock(AssessmentSessionRepository.class);
         studentRepository = mock(AssessmentStudentRepository.class);
+        stagedStudentRepository = mock(StagedAssessmentStudentRepository.class);
         restUtils = mock(RestUtils.class);
         s3Client = mock(S3Client.class);
         ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
 
         when(applicationProperties.getS3BucketName()).thenReturn("test-bucket");
 
-        xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, s3Client, applicationProperties));
+        xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, s3Client, applicationProperties, stagedStudentRepository));
     }
 
     @AfterEach
     void tearDown() {
-        try {
-            Files.walk(tempDir)
-                .filter(Files::isRegularFile)
+        try (var stream = Files.walk(tempDir)) {
+            stream.filter(Files::isRegularFile)
                 .forEach(path -> {
                     try {
                         Files.deleteIfExists(path);
@@ -71,14 +72,11 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testUploadToS3_Success() throws IOException {
-        Path testFile = tempDir.resolve("test.xam");
-        Files.write(testFile, "test content".getBytes());
-        File file = testFile.toFile();
-
+    void testUploadToS3_Success() {
+        byte[] testContent = "test content".getBytes();
         String testKey = "xam-files/12345678_" + UUID.randomUUID() + ".xam";
 
-        assertDoesNotThrow(() -> xamFileService.uploadToS3(file, testKey));
+        assertDoesNotThrow(() -> xamFileService.uploadToS3(testContent, testKey));
 
         ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         ArgumentCaptor<RequestBody> bodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
@@ -91,40 +89,18 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testUploadToS3_S3Exception() throws IOException {
-        Path testFile = tempDir.resolve("test.xam");
-        Files.write(testFile, "test content".getBytes());
-        File file = testFile.toFile();
-
+    void testUploadToS3_S3Exception() {
+        byte[] testContent = "test content".getBytes();
         String testKey = "xam-files/12345678_" + UUID.randomUUID() + ".xam";
 
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
             .thenThrow(S3Exception.builder().message("S3 upload failed").build());
 
         StudentAssessmentAPIRuntimeException exception = assertThrows(StudentAssessmentAPIRuntimeException.class,
-            () -> xamFileService.uploadToS3(file, testKey));
+            () -> xamFileService.uploadToS3(testContent, testKey));
 
         assertTrue(exception.getMessage().contains("Failed to upload file to BCBox S3"));
         assertTrue(exception.getMessage().contains("S3 upload failed"));
-    }
-
-    @Test
-    void testUploadFilePathToS3_Success() throws IOException {
-        Path testFile = tempDir.resolve("school-session-results.xam");
-        Files.write(testFile, "test xam content".getBytes());
-
-        AssessmentSessionEntity sessionEntity = createMockSession();
-        SchoolTombstone school = createTestSchool("12345678");
-
-        doNothing().when(xamFileService).uploadToS3(any(File.class), anyString());
-
-        assertDoesNotThrow(() -> xamFileService.uploadFilePathToS3(testFile.toString(), sessionEntity, school));
-
-        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        verify(xamFileService).uploadToS3(any(File.class), keyCaptor.capture());
-
-        String capturedKey = keyCaptor.getValue();
-        assertEquals("xam-files/12345678-202309-Results.xam", capturedKey);
     }
 
     @Test
@@ -132,7 +108,7 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
         AssessmentSessionEntity sessionEntity = createMockSession();
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
 
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
             .thenReturn(List.of());
 
         List<SchoolTombstone> schools = Arrays.asList(
@@ -142,99 +118,92 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
         );
         when(restUtils.getAllSchoolTombstones()).thenReturn(schools);
 
-        doReturn("test-file-path-1").when(xamFileService).generateXamFileAndReturnPath(sessionEntity, schools.get(0));
-        doReturn("test-file-path-2").when(xamFileService).generateXamFileAndReturnPath(sessionEntity, schools.get(2));
-        doNothing().when(xamFileService).uploadFilePathToS3(anyString(), eq(sessionEntity), any(SchoolTombstone.class));
+        doNothing().when(xamFileService).uploadToS3(any(byte[].class), anyString());
 
         assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionEntity));
 
-        verify(xamFileService, times(2)).generateXamFileAndReturnPath(eq(sessionEntity), any(SchoolTombstone.class));
-        verify(xamFileService, times(2)).uploadFilePathToS3(anyString(), eq(sessionEntity), any(SchoolTombstone.class));
+        // Verify uploadToS3 was called twice (once for each MYED school)
+        verify(xamFileService, times(2)).uploadToS3(any(byte[].class), anyString());
 
-        verify(xamFileService).generateXamFileAndReturnPath(sessionEntity, schools.get(0));
-        verify(xamFileService).generateXamFileAndReturnPath(sessionEntity, schools.get(2));
-        verify(xamFileService, never()).generateXamFileAndReturnPath(sessionEntity, schools.get(1));
+        // Verify the correct keys were used
+        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+        verify(xamFileService, times(2)).uploadToS3(any(byte[].class), keyCaptor.capture());
+
+        List<String> capturedKeys = keyCaptor.getAllValues();
+        assertTrue(capturedKeys.contains("xam-files/12345678-202309-Results.xam"));
+        assertTrue(capturedKeys.contains("xam-files/11223344-202309-Results.xam"));
     }
 
     @Test
-    void testGenerateAndUploadXamFiles_PartialFailure() {
-        AssessmentSessionEntity sessionEntity = createMockSession();
-        when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
-
-        SchoolTombstone school1 = createTestSchool("12345678", "MYED");
-        SchoolTombstone school2 = createTestSchool("87654321", "MYED");
-        when(restUtils.getAllSchoolTombstones()).thenReturn(Arrays.asList(school1, school2));
-
-        doReturn("test-file-path-1").when(xamFileService).generateXamFileAndReturnPath(sessionEntity, school1);
-        doThrow(new RuntimeException("File generation failed")).when(xamFileService).generateXamFileAndReturnPath(sessionEntity, school2);
-        doNothing().when(xamFileService).uploadFilePathToS3(anyString(), eq(sessionEntity), any(SchoolTombstone.class));
-
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
-            .thenReturn(List.of());
-
-        assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionEntity));
-
-        verify(xamFileService).generateXamFileAndReturnPath(sessionEntity, school1);
-        verify(xamFileService).uploadFilePathToS3("test-file-path-1", sessionEntity, school1);
-
-        verify(xamFileService).generateXamFileAndReturnPath(sessionEntity, school2);
-        verify(xamFileService, never()).uploadFilePathToS3(anyString(), eq(sessionEntity), eq(school2));
-    }
-
-    @Test
-    void testGenerateAndUploadXamFiles_UploadFailure() {
+    void testGenerateAndUploadXamFiles_S3Exception() {
         AssessmentSessionEntity sessionEntity = createMockSession();
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
 
         SchoolTombstone school = createTestSchool("12345678", "MYED");
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
 
-        doReturn("test-file-path").when(xamFileService).generateXamFileAndReturnPath(sessionEntity, school);
-        doThrow(new RuntimeException("S3 upload failed")).when(xamFileService).uploadFilePathToS3(anyString(), eq(sessionEntity), eq(school));
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+                .thenReturn(List.of());
 
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
-            .thenReturn(List.of());
+        doThrow(new StudentAssessmentAPIRuntimeException("S3 upload failed")).when(xamFileService).uploadToS3(any(byte[].class), anyString());
 
-        assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionEntity));
+        // The method should throw
+        StudentAssessmentAPIRuntimeException exception = assertThrows(StudentAssessmentAPIRuntimeException.class,
+                () -> xamFileService.generateAndUploadXamFiles(sessionEntity));
 
-        verify(xamFileService).generateXamFileAndReturnPath(sessionEntity, school);
-        verify(xamFileService).uploadFilePathToS3("test-file-path", sessionEntity, school);
+        assertTrue(exception.getMessage().contains("S3 upload failed"));
+
+        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files/12345678-202309-Results.xam"));
     }
 
     @Test
-    void testFileCleanup_FileDeleteFails() {
+    void testGenerateAndUploadXamFiles_OnlyMyEdSchools() {
         AssessmentSessionEntity sessionEntity = createMockSession();
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
 
-        SchoolTombstone school = createTestSchool("12345678", "MYED");
-        when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
+        List<SchoolTombstone> schools = Arrays.asList(
+            createTestSchool("12345678", "MYED"),
+            createTestSchool("87654321", "OTHER"),
+            createTestSchool("11223344", "BCSIS"),
+            createTestSchool("55667788", "MYED")
+        );
+        when(restUtils.getAllSchoolTombstones()).thenReturn(schools);
 
-        doReturn("test-file-path").when(xamFileService).generateXamFileAndReturnPath(sessionEntity, school);
-        doNothing().when(xamFileService).uploadFilePathToS3(anyString(), eq(sessionEntity), eq(school));
-
-        when(studentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
             .thenReturn(List.of());
 
-        assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionEntity));
+        doNothing().when(xamFileService).uploadToS3(any(byte[].class), anyString());
 
-        verify(xamFileService).generateXamFileAndReturnPath(sessionEntity, school);
-        verify(xamFileService).uploadFilePathToS3("test-file-path", sessionEntity, school);
+        xamFileService.generateAndUploadXamFiles(sessionEntity);
+
+        // Verify uploadToS3 was called only for MYED schools (2 times)
+        verify(xamFileService, times(2)).uploadToS3(any(byte[].class), anyString());
+
+        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+        verify(xamFileService, times(2)).uploadToS3(any(byte[].class), keyCaptor.capture());
+
+        List<String> capturedKeys = keyCaptor.getAllValues();
+        assertTrue(capturedKeys.contains("xam-files/12345678-202309-Results.xam"));
+        assertTrue(capturedKeys.contains("xam-files/55667788-202309-Results.xam"));
+        assertFalse(capturedKeys.stream().anyMatch(key -> key.contains("87654321")));
+        assertFalse(capturedKeys.stream().anyMatch(key -> key.contains("11223344")));
     }
 
     @Test
-    void testS3KeyFormat() throws IOException {
-        Path testFile = tempDir.resolve("test.xam");
-        Files.write(testFile, "test content".getBytes());
-
+    void testS3KeyFormat() {
         AssessmentSessionEntity sessionEntity = createMockSession();
         SchoolTombstone school = createTestSchool("12345678");
 
-        doNothing().when(xamFileService).uploadToS3(any(File.class), anyString());
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+            .thenReturn(List.of());
 
-        xamFileService.uploadFilePathToS3(testFile.toString(), sessionEntity, school);
+        when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
+        doNothing().when(xamFileService).uploadToS3(any(byte[].class), anyString());
+
+        xamFileService.generateAndUploadXamFiles(sessionEntity);
 
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        verify(xamFileService).uploadToS3(any(File.class), keyCaptor.capture());
+        verify(xamFileService).uploadToS3(any(byte[].class), keyCaptor.capture());
 
         String expectedKey = "xam-files/12345678-202309-Results.xam";
         assertEquals(expectedKey, keyCaptor.getValue());

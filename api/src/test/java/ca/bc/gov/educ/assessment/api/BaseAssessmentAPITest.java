@@ -53,26 +53,35 @@ public abstract class BaseAssessmentAPITest {
   private TaskCodeRepository taskCodeRepository;
   @Autowired
   private AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository;
+  @Autowired
+  private ComponentTypeCodeRepository componentTypeCodeRepository;
+  @Autowired
+  private ComponentSubTypeCodeRepository componentSubTypeCodeRepository;
 
-  @BeforeEach
-  public void before() {
-    // Setup test data - Flyway migrations will have already run during app startup
-    assessmentStudentDOARCalculationRepository.deleteAll();
-    claimCodeRepository.saveAll(List.of(createClaimCode("C"), createClaimCode("W"), createClaimCode("O")));
-    cognitiveLevelCodeRepository.saveAll(List.of(createCognitiveCode("7"), createCognitiveCode("8"), createCognitiveCode("9")));
-    var conceptsList = List.of(createConceptsCode("WRB"),
-            createConceptsCode("WRA"),
-            createConceptsCode("GO"),
-            createConceptsCode("WRS"),
-            createConceptsCode("WRD"),
-            createConceptsCode("WRF"),
-            createConceptsCode("O1D"),
-            createConceptsCode("O1F")
-            );
-    conceptsCodeRepository.saveAll(conceptsList);
-    contextCodeRepository.save(createContextCode("1"));
-    taskCodeRepository.save(createTaskCode("A"));
-  }
+   @BeforeEach
+   public void before() {
+     // Setup test data - Flyway migrations will have already run during app startup
+     assessmentStudentDOARCalculationRepository.deleteAll();
+     claimCodeRepository.saveAll(List.of(createClaimCode("C"), createClaimCode("W"), createClaimCode("O")));
+     cognitiveLevelCodeRepository.saveAll(List.of(createCognitiveCode("7"), createCognitiveCode("8"), createCognitiveCode("9")));
+     var conceptsList = List.of(createConceptsCode("WRB"),
+             createConceptsCode("WRA"),
+             createConceptsCode("GO"),
+             createConceptsCode("WRS"),
+             createConceptsCode("WRD"),
+             createConceptsCode("WRF"),
+             createConceptsCode("O1D"),
+             createConceptsCode("O1F")
+             );
+     conceptsCodeRepository.saveAll(conceptsList);
+     contextCodeRepository.save(createContextCode("1"));
+     taskCodeRepository.save(createTaskCode("A"));
+
+    componentTypeCodeRepository.save(createComponentTypeCodeEntity("MUL_CHOICE"));
+    componentTypeCodeRepository.save(createComponentTypeCodeEntity("OPEN_ENDED"));
+    componentSubTypeCodeRepository.save(createComponentSubTypeCodeEntity("NONE"));
+    componentSubTypeCodeRepository.save(createComponentSubTypeCodeEntity("ORAL"));
+   }
 
   @AfterEach
   public void resetState() {
@@ -98,7 +107,8 @@ public abstract class BaseAssessmentAPITest {
 
   public TaskCodeEntity createTaskCode(String code) {
     return TaskCodeEntity.builder().taskCode(code).description(code)
-            .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.now().plusYears(10)).displayOrder(1).label(code).createDate(LocalDateTime.now())
+            .effectiveDate(LocalDateTime.now().minusYears(10))
+            .expiryDate(LocalDateTime.now().plusYears(10)).displayOrder(1).label(code).createDate(LocalDateTime.now())
             .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
   }
 
@@ -106,6 +116,36 @@ public abstract class BaseAssessmentAPITest {
     return CognitiveLevelCodeEntity.builder().cognitiveLevelCode(code).description(code)
             .effectiveDate(LocalDateTime.now()).expiryDate(LocalDateTime.now().plusYears(10)).displayOrder(1).label(code).createDate(LocalDateTime.now())
             .updateDate(LocalDateTime.now()).createUser("TEST").updateUser("TEST").build();
+  }
+
+  public ComponentTypeCodeEntity createComponentTypeCodeEntity(String componentTypeCode) {
+    return ComponentTypeCodeEntity.builder()
+        .componentTypeCode(componentTypeCode)
+        .label(componentTypeCode)
+        .description(componentTypeCode)
+        .displayOrder(1)
+        .effectiveDate(LocalDateTime.now().minusYears(10))
+        .expiryDate(LocalDateTime.now().plusYears(10))
+        .createUser("TEST")
+        .createDate(LocalDateTime.now())
+        .updateUser("TEST")
+        .updateDate(LocalDateTime.now())
+        .build();
+  }
+
+  public ComponentSubTypeCodeEntity createComponentSubTypeCodeEntity(String componentSubTypeCode) {
+    return ComponentSubTypeCodeEntity.builder()
+        .componentSubTypeCode(componentSubTypeCode)
+        .label(componentSubTypeCode)
+        .description(componentSubTypeCode)
+        .displayOrder(1)
+        .effectiveDate(LocalDateTime.now().minusYears(10))
+        .expiryDate(LocalDateTime.now().plusYears(10))
+        .createUser("TEST")
+        .createDate(LocalDateTime.now())
+        .updateUser("TEST")
+        .updateDate(LocalDateTime.now())
+        .build();
   }
 
   public AssessmentStudentEntity createMockAssessmentStudentEntity(AssessmentEntity assessment, UUID studentId) {
@@ -345,6 +385,7 @@ public abstract class BaseAssessmentAPITest {
             .pen("120164447")
             .localID("123")
             .isPreRegistered(false)
+            .stagedAssessmentStudentStatus("ACTIVE")
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
             .createDate(LocalDateTime.now())
             .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)

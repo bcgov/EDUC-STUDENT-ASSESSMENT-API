@@ -6,7 +6,6 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultsSummary;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -27,7 +26,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.URL.BASE_URL;
-import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.SCHOOL_STUDENTS_IN_SESSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
