@@ -40,5 +40,11 @@ public interface ReportsEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     DownloadableReportResponse getStudentReport(@PathVariable UUID studentID, @PathVariable String type);
+
+    @GetMapping("/student-pen/{pen}/{type}/download")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    DownloadableReportResponse getStudentReport(@PathVariable String pen, @PathVariable String type);
     
 }

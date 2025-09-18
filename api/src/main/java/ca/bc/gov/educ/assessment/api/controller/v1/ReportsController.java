@@ -178,4 +178,16 @@ public class ReportsController implements ReportsEndpoint {
         
        return isrReportService.generateIndividualStudentReport(studentID);
     }
+
+    @Override
+    public DownloadableReportResponse getStudentReport(String pen, String type) {
+        Optional<AssessmentStudentReportTypeCode> code = AssessmentStudentReportTypeCode.findByValue(type);
+
+        if(code.isEmpty()){
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build();
+            throw new InvalidPayloadException(error);
+        }
+
+        return isrReportService.generateIndividualStudentReportByPEN(pen);
+    }
 }

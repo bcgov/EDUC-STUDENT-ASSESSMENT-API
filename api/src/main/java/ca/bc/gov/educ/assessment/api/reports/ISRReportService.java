@@ -4,7 +4,9 @@ import ca.bc.gov.educ.assessment.api.constants.v1.LanguageCode;
 import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
+import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentAnswerEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
@@ -17,6 +19,7 @@ import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.isr.*;
+import ca.bc.gov.educ.assessment.api.util.PenUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.util.Pair;
 import jakarta.annotation.PostConstruct;
@@ -31,10 +34,12 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes.MUL_CHOICE;
 import static ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes.OPEN_ENDED;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
  * Service class for generating School Students by Assessment Report
@@ -112,6 +117,19 @@ public class ISRReportService extends BaseReportGenerationService {
       e.printStackTrace();
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
+  }
+
+  public DownloadableReportResponse generateIndividualStudentReportByPEN(String pen){
+    if(!PenUtil.validCheckDigit(pen)){
+      ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid PEN").status(BAD_REQUEST).build();
+      throw new InvalidPayloadException(error);
+    }
+    var student = restUtils.getStudentByPEN(UUID.randomUUID(), pen);
+    if(student.isEmpty()){
+      ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid PEN").status(BAD_REQUEST).build();
+      throw new InvalidPayloadException(error);
+    }
+    return generateIndividualStudentReport(UUID.fromString(student.get().getStudentID()));
   }
 
   public DownloadableReportResponse generateIndividualStudentReport(UUID studentID){
