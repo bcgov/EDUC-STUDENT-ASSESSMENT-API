@@ -332,7 +332,7 @@ public class RestUtils {
 
   public Optional<List<UUID>> getSchoolIDsByIndependentAuthorityID(final String independentAuthorityID) {
     if (this.independentAuthorityToSchoolIDMap.isEmpty()) {
-      log.info("The map is empty reloading schools");
+      log.info("The map is empty reloading school");
       this.populateSchoolMap();
     }
     return Optional.ofNullable(this.independentAuthorityToSchoolIDMap.get(independentAuthorityID));
