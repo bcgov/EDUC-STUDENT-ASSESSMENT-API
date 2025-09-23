@@ -196,6 +196,7 @@ public class StudentAssessmentResultService {
             var totalScale = component.get().getAssessmentQuestionEntities()
                     .stream()
                     .map(AssessmentQuestionEntity::getScaleFactor)
+                    .filter(Objects::nonNull)
                     .reduce(0, Integer::sum);
             return (totalStudentScore.multiply(BigDecimal.valueOf(totalScale))).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         }
