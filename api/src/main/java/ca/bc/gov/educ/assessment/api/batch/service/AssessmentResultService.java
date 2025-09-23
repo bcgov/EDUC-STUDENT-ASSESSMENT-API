@@ -160,7 +160,7 @@ public class AssessmentResultService {
 
     private void createStudentRecordForCorrectionFile(AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, AssessmentSessionEntity validSession, AssessmentEntity assessmentEntity, AssessmentFormEntity formEntity) throws ResultsFileUnProcessableException {
         var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
-        if (StringUtils.isNotBlank(validSession.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(validSession.getApprovalAssessmentDesignUserID()) && StringUtils.isNotBlank(validSession.getApprovalAssessmentAnalysisUserID())) {
+        if (validSession.getCompletionDate() != null) {
             //approved session
             if (optStudent.isPresent()) {
                 Student studentApiStudent = optStudent.get();
