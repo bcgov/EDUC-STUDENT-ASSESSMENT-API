@@ -3,12 +3,10 @@ package ca.bc.gov.educ.assessment.api.orchestrator;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
-import ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEventStatesEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.BaseOrchestrator;
-import ca.bc.gov.educ.assessment.api.properties.EmailProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.Event;
@@ -18,9 +16,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.*;
@@ -36,17 +31,15 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
     private final SessionApprovalOrchestrationService sessionApprovalOrchestrationService;
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final SagaService sagaService;
-    private final EmailProperties emailProperties;
     private final EmailService emailService;
     private final AssessmentStudentService assessmentStudentService;
 
-    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailProperties emailProperties, EmailService emailService, AssessmentStudentService assessmentStudentService) {
+    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailService emailService, AssessmentStudentService assessmentStudentService) {
         super(sagaService, messagePublisher, ApprovalSagaData.class, GENERATE_XAM_FILES.toString(), XAM_FILE_GENERATION_TOPIC.toString());
         this.xamFileService = xamFileService;
         this.sagaService = sagaService;
         this.sessionApprovalOrchestrationService = sessionApprovalOrchestrationService;
         this.assessmentSessionRepository = assessmentSessionRepository;
-        this.emailProperties = emailProperties;
         this.emailService = emailService;
         this.assessmentStudentService = assessmentStudentService;
     }
@@ -126,18 +119,7 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
         saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
         this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
 
-        UUID sessionID = UUID.fromString(approvalSagaData.getSessionID());
-        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "assessmentSessionID", sessionID.toString()));
-        
-        var emailFields = new HashMap<String, String>();
-        emailFields.put("currentSession", session.getCourseYear() + "/" + session.getCourseMonth());
-
-        var subject = emailProperties.getEmailSubjectMyEdApproval();
-        var fromEmail = emailProperties.getEmailMyEdApprovalFrom();
-        var toEmail = Collections.singletonList(emailProperties.getEmailMyEdApprovalTo());
-
-        var emailSagaData = emailService.createEmailSagaData(fromEmail, toEmail, subject, "myed.approval.notification", emailFields);
-        emailService.sendEmail(emailSagaData);
+        emailService.sendMyEDApprovalEmail(approvalSagaData);
         
         final Event nextEvent = Event.builder().sagaId(saga.getSagaId())
                 .eventType(NOTIFY_MYED_OF_UPDATED_STUDENTS).eventOutcome(MYED_NOTIFIED)
