@@ -17,9 +17,6 @@ public class EmailProperties {
   @Value("${email.myed.approval.to}")
   private String emailMyEdApprovalTo;
 
-  @Value("${email.template.myed.approval.notification}")
-  private String emailTemplateMyEdApproval;
-
 }
 
 
