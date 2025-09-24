@@ -43,7 +43,7 @@ public class EmailService {
     log.debug("Email sent successfully");
   }
 
-  public EmailSagaData createEmailSagaData(String fromEmail, List<String> emailList, String subject, String templateName, HashMap<String, String> emailFields){
+  public EmailSagaData createEmailSagaData(String fromEmail, List<String> emailList, String subject, String templateName, Map<String, String> emailFields){
     return EmailSagaData
             .builder()
             .fromEmail(fromEmail)

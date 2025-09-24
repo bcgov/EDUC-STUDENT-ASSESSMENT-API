@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -133,7 +134,7 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
 
         var subject = emailProperties.getEmailSubjectMyEdApproval();
         var fromEmail = emailProperties.getEmailMyEdApprovalFrom();
-        var toEmail = Arrays.asList(emailProperties.getEmailMyEdApprovalTo());
+        var toEmail = Collections.singletonList(emailProperties.getEmailMyEdApprovalTo());
 
         var emailSagaData = emailService.createEmailSagaData(fromEmail, toEmail, subject, "myed.approval.notification", emailFields);
         emailService.sendEmail(emailSagaData);
