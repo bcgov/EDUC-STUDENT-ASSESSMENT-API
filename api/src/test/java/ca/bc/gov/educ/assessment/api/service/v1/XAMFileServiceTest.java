@@ -16,8 +16,11 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportRespons
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
+import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,6 +35,8 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     private AssessmentStudentRepository studentRepository;
     private StagedAssessmentStudentRepository stagedStudentRepository;
     private RestUtils restUtils;
+    private S3Client s3Client;
+    private ApplicationProperties applicationProperties;
 
     @BeforeEach
     void setUp() {
@@ -39,10 +44,34 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         studentRepository = mock(AssessmentStudentRepository.class);
         stagedStudentRepository = mock(StagedAssessmentStudentRepository.class);
         restUtils = mock(RestUtils.class);
-        S3Client s3Client = mock(S3Client.class);
-        ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
+        s3Client = mock(S3Client.class);
+        applicationProperties = mock(ApplicationProperties.class);
 
         when(applicationProperties.getS3BucketName()).thenReturn("test-bucket");
+        when(applicationProperties.getS3EndpointUrl()).thenReturn("https://test-endpoint.com");
+        when(applicationProperties.getS3AccessKeyId()).thenReturn("test-access-key");
+        when(applicationProperties.getS3AccessSecretKey()).thenReturn("test-secret-key");
+
+        S3ResponseMetadata responseMetadata = mock(S3ResponseMetadata.class);
+        when(responseMetadata.requestId()).thenReturn("test-request-id");
+
+        PutObjectResponse putResponse = PutObjectResponse.builder()
+                .eTag("test-etag")
+                .versionId("test-version")
+                .build();
+
+        PutObjectResponse spyPutResponse = spy(putResponse);
+        when(spyPutResponse.responseMetadata()).thenReturn(responseMetadata);
+
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(spyPutResponse);
+
+        HeadObjectResponse headResponse = HeadObjectResponse.builder()
+                .contentLength(12L)
+                .lastModified(Instant.now())
+                .build();
+        when(s3Client.headObject(any(HeadObjectRequest.class)))
+                .thenReturn(headResponse);
 
         xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, s3Client, applicationProperties, stagedStudentRepository));
     }
@@ -146,6 +175,9 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     void testUploadToS3_success() {
         byte[] testContent = "test content".getBytes();
         assertDoesNotThrow(() -> xamFileService.uploadToS3(testContent, "dummyKey.txt"));
+
+        verify(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+        verify(s3Client).headObject(any(HeadObjectRequest.class));
     }
 
     @Test
