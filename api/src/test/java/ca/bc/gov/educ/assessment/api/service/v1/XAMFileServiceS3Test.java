@@ -16,12 +16,12 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -37,6 +37,7 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
     private StagedAssessmentStudentRepository stagedStudentRepository;
     private RestUtils restUtils;
     private S3Client s3Client;
+    private ApplicationProperties applicationProperties;
 
     @TempDir
     Path tempDir;
@@ -48,9 +49,12 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
         stagedStudentRepository = mock(StagedAssessmentStudentRepository.class);
         restUtils = mock(RestUtils.class);
         s3Client = mock(S3Client.class);
-        ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
+        applicationProperties = mock(ApplicationProperties.class);
 
         when(applicationProperties.getS3BucketName()).thenReturn("test-bucket");
+        when(applicationProperties.getS3EndpointUrl()).thenReturn("https://test-endpoint.com");
+        when(applicationProperties.getS3AccessKeyId()).thenReturn("test-access-key");
+        when(applicationProperties.getS3AccessSecretKey()).thenReturn("test-secret-key");
 
         xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, s3Client, applicationProperties, stagedStudentRepository));
     }
@@ -76,12 +80,34 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
         byte[] testContent = "test content".getBytes();
         String testKey = "xam-files/12345678_" + UUID.randomUUID() + ".xam";
 
+        S3ResponseMetadata responseMetadata = mock(S3ResponseMetadata.class);
+        when(responseMetadata.requestId()).thenReturn("test-request-id");
+
+        PutObjectResponse putResponse = PutObjectResponse.builder()
+                .eTag("test-etag")
+                .versionId("test-version")
+                .build();
+
+        PutObjectResponse spyPutResponse = spy(putResponse);
+        when(spyPutResponse.responseMetadata()).thenReturn(responseMetadata);
+
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(spyPutResponse);
+
+        HeadObjectResponse headResponse = HeadObjectResponse.builder()
+                .contentLength((long) testContent.length)
+                .lastModified(Instant.now())
+                .build();
+        when(s3Client.headObject(any(HeadObjectRequest.class)))
+                .thenReturn(headResponse);
+
         assertDoesNotThrow(() -> xamFileService.uploadToS3(testContent, testKey));
 
         ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         ArgumentCaptor<RequestBody> bodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
 
         verify(s3Client).putObject(requestCaptor.capture(), bodyCaptor.capture());
+        verify(s3Client).headObject(any(HeadObjectRequest.class));
 
         PutObjectRequest capturedRequest = requestCaptor.getValue();
         assertEquals("test-bucket", capturedRequest.bucket());
@@ -101,6 +127,39 @@ class XAMFileServiceS3Test extends BaseAssessmentAPITest {
 
         assertTrue(exception.getMessage().contains("Failed to upload file to BCBox S3"));
         assertTrue(exception.getMessage().contains("S3 upload failed"));
+
+        verify(s3Client, never()).headObject(any(HeadObjectRequest.class));
+    }
+
+    @Test
+    void testUploadToS3_VerificationFailure() {
+        byte[] testContent = "test content".getBytes();
+        String testKey = "xam-files/12345678_" + UUID.randomUUID() + ".xam";
+
+        S3ResponseMetadata responseMetadata = mock(S3ResponseMetadata.class);
+        when(responseMetadata.requestId()).thenReturn("test-request-id");
+
+        PutObjectResponse putResponse = PutObjectResponse.builder()
+                .eTag("test-etag")
+                .versionId("test-version")
+                .build();
+
+        PutObjectResponse spyPutResponse = spy(putResponse);
+        when(spyPutResponse.responseMetadata()).thenReturn(responseMetadata);
+
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(spyPutResponse);
+
+        when(s3Client.headObject(any(HeadObjectRequest.class)))
+                .thenThrow(S3Exception.builder().message("Object not found").build());
+
+        StudentAssessmentAPIRuntimeException exception = assertThrows(StudentAssessmentAPIRuntimeException.class,
+                () -> xamFileService.uploadToS3(testContent, testKey));
+
+        assertTrue(exception.getMessage().contains("File upload appeared successful but verification failed"));
+
+        verify(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+        verify(s3Client).headObject(any(HeadObjectRequest.class));
     }
 
     @Test

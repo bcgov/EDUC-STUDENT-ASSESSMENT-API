@@ -21,17 +21,36 @@ public class S3Config {
 
     @Bean
     public S3Client s3Client() {
-        log.debug("Configuring S3 client for BCBox with endpoint: {}", applicationProperties.getS3EndpointUrl());
+        String endpoint = applicationProperties.getS3EndpointUrl();
+        String accessKeyId = applicationProperties.getS3AccessKeyId();
+        String secretKey = applicationProperties.getS3AccessSecretKey();
+        String bucketName = applicationProperties.getS3BucketName();
 
-        AwsBasicCredentials awsCreds = AwsBasicCredentials.create(
-            applicationProperties.getS3AccessKeyId(),
-            applicationProperties.getS3AccessSecretKey()
-        );
+        log.info("Configuring S3 client for BCBox:");
+        log.info("  - Endpoint: {}", endpoint);
+        log.info("  - Bucket: {}", bucketName);
+        log.info("  - Access Key ID: {}", accessKeyId != null && !accessKeyId.isEmpty() ? "***configured***" : "NOT CONFIGURED");
+        log.info("  - Secret Key: {}", secretKey != null && !secretKey.isEmpty() ? "***configured***" : "NOT CONFIGURED");
+
+        if (endpoint == null || endpoint.isEmpty()) {
+            throw new IllegalStateException("S3 endpoint URL is not configured");
+        }
+        if (bucketName == null || bucketName.isEmpty()) {
+            throw new IllegalStateException("S3 bucket name is not configured");
+        }
+        if (accessKeyId == null || accessKeyId.isEmpty()) {
+            throw new IllegalStateException("S3 access key ID is not configured");
+        }
+        if (secretKey == null || secretKey.isEmpty()) {
+            throw new IllegalStateException("S3 secret key is not configured");
+        }
+
+        AwsBasicCredentials awsCreds = AwsBasicCredentials.create(accessKeyId, secretKey);
 
         return S3Client.builder()
-            .endpointOverride(URI.create(applicationProperties.getS3EndpointUrl()))
+            .endpointOverride(URI.create(endpoint))
             .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
-            .region(Region.CA_WEST_1) // todo BCBox typically uses us-east-1 - what region are we using?
+            .region(Region.US_EAST_1)
             .forcePathStyle(true) // required for BCBox S3 compatibility
             .build();
     }

@@ -170,13 +170,43 @@ public class XAMFileService {
 
     public void uploadToS3(byte[] content, String key) {
         try {
-            s3Client.putObject(PutObjectRequest.builder()
-                    .bucket(applicationProperties.getS3BucketName())
+            String bucketName = applicationProperties.getS3BucketName();
+            String endpoint = applicationProperties.getS3EndpointUrl();
+
+            log.info("S3 Upload Configuration - Bucket: {}, Key: {}, Endpoint: {}, Content Size: {} bytes",
+                    bucketName, key, endpoint, content.length);
+
+            // Log S3 client configuration details
+            log.debug("S3 Access Key ID: {}", applicationProperties.getS3AccessKeyId() != null ? "***configured***" : "NULL");
+            log.debug("S3 Secret Key: {}", applicationProperties.getS3AccessSecretKey() != null ? "***configured***" : "NULL");
+
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucketName)
                     .key(key)
-                    .build(), RequestBody.fromBytes(content));
-            log.debug("Successfully uploaded file to BCBox S3: {} (size: {} bytes)", key, content.length);
+                    .build();
+
+            var response = s3Client.putObject(request, RequestBody.fromBytes(content));
+
+            log.info("S3 Upload Response - ETag: {}, VersionId: {}, RequestId: {}",
+                    response.eTag(), response.versionId(), response.responseMetadata().requestId());
+
+            // Verify the object actually exists in S3
+            try {
+                var headResponse = s3Client.headObject(software.amazon.awssdk.services.s3.model.HeadObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .build());
+                log.info("Verification SUCCESS - Object exists in S3. Size: {}, LastModified: {}",
+                        headResponse.contentLength(), headResponse.lastModified());
+                log.debug("Successfully uploaded file to BCBox S3: {} (size: {} bytes)", key, content.length);
+            } catch (Exception verifyEx) {
+                log.error("VERIFICATION FAILED - Object does NOT exist in S3 after upload: {}", key, verifyEx);
+                throw new StudentAssessmentAPIRuntimeException("File upload appeared successful but verification failed: " + verifyEx.getMessage());
+            }
+
         } catch (Exception e) {
-            log.error("Failed to upload file to BCBox S3: {}", key, e);
+            log.error("Failed to upload file to BCBox S3: {} to bucket: {} - Error: {}",
+                    key, applicationProperties.getS3BucketName(), e.getMessage(), e);
             throw new StudentAssessmentAPIRuntimeException("Failed to upload file to BCBox S3: " + e.getMessage());
         }
     }
