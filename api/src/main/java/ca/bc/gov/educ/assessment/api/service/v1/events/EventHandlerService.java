@@ -175,22 +175,29 @@ public class EventHandlerService {
 
     public byte[] handleGetStudentAssessmentDetailEvent(Event event) throws JsonProcessingException {
         AssessmentStudentGet student = JsonUtil.getJsonObjectFromString(AssessmentStudentGet.class, event.getEventPayload());
+        log.debug("handleGetStudentAssessmentDetailEvent - incoming payload student :: {}", student);
         var response = new AssessmentStudentDetailResponse();
 
         try {
+            log.debug("Attempting to load assessment for assessmentID :: {}", student.getAssessmentID());
             val assessment = assessmentService.getAssessment(UUID.fromString(student.getAssessmentID()));
+            log.debug("Loaded assessment :: {}", assessment.getAssessmentID());
             if (NumeracyAssessmentCodes.getAllCodes().stream().anyMatch(code -> code.equalsIgnoreCase(assessment.getAssessmentTypeCode()))) {
+                log.debug("Assessment is numeracy type :: {}", assessment.getAssessmentTypeCode());
                 List<UUID> assessmentIDs = new ArrayList<>();
                 assessment.getAssessmentSessionEntity().getAssessments().stream()
                         .filter(a -> NumeracyAssessmentCodes.getAllCodes().stream().anyMatch(code -> code.equalsIgnoreCase(a.getAssessmentTypeCode())))
                         .forEach(a -> assessmentIDs.add(a.getAssessmentID()));
+                log.debug("Numeracy assessment IDs in session :: {}", assessmentIDs);
                 val studentEntityList = assessmentStudentService.getStudentsByAssessmentIDsInAndStudentID(assessmentIDs, UUID.fromString(student.getStudentID()));
+                log.debug("Found {} student assessment records for studentID :: {}", studentEntityList.size(), student.getStudentID());
                 if (!studentEntityList.isEmpty()) {
                     response.setHasPriorRegistration(true);
 
                     for (var stud : studentEntityList) {
                         if (stud.getProficiencyScore() != null || StringUtils.isNotBlank(stud.getProvincialSpecialCaseCode())) {
                             response.setAlreadyWrittenAssessment(true);
+                            log.debug("Student has prior written assessment or special case :: {}", stud.getAssessmentStudentID());
                             break;
                         }
                     }
@@ -198,6 +205,7 @@ public class EventHandlerService {
 
                 val numberOfAttempts = assessmentStudentService.getNumberOfAttempts(student.getAssessmentID(), UUID.fromString(student.getStudentID()));
                 response.setNumberOfAttempts(numberOfAttempts);
+                log.debug("Returning response for numeracy assessment: {}", response);
                 return JsonUtil.getJsonBytesFromObject(response);
             }
         } catch (EntityNotFoundException e) {
