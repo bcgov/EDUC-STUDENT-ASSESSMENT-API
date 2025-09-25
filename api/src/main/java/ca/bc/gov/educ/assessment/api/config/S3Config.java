@@ -50,7 +50,7 @@ public class S3Config {
         return S3Client.builder()
             .endpointOverride(URI.create(endpoint))
             .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
-            .region(Region.US_EAST_1)
+            .region(Region.CA_WEST_1) // todo where do we want these to land????
             .forcePathStyle(true) // required for BCBox S3 compatibility
             .build();
     }

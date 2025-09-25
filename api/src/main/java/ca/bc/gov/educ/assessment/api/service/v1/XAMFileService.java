@@ -227,7 +227,7 @@ public class XAMFileService {
             byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);
             log.debug("Uploading XAM file for school: {}", school.getMincode());
             String fileName = generateXamFileName(school, assessmentSessionEntity);
-            String key = "xam-files/" + fileName;
+            String key = "xam-files/" + fileName; // todo versioning doesn't work by default collisions don't replace -> is this ok?
             uploadToS3(xamFileContent, key);
             log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
         }
