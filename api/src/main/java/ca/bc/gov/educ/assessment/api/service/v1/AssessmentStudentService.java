@@ -352,7 +352,7 @@ public class AssessmentStudentService {
     }
 
     public void deleteStagedStudent(StagedAssessmentStudentEntity stagedAssessmentStudentEntity) {
-        stagedAssessmentStudentRepository.delete(stagedAssessmentStudentEntity);
+        stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID());
     }
 
     @Transactional(readOnly = true)
