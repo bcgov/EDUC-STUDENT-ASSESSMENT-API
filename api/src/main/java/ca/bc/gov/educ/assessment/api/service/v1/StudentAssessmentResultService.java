@@ -274,14 +274,14 @@ public class StudentAssessmentResultService {
             AtomicInteger questionCounter = new AtomicInteger(1);
             AtomicInteger itemCounter = new AtomicInteger(1);
             for(var multiChoiceMark: multiChoiceMarks){
+                var answer = new StagedAssessmentStudentAnswerEntity();
+                answer.setStagedAssessmentStudentComponentEntity(studentComponent);
+                var question = component.getAssessmentQuestionEntities().stream()
+                        .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
+                        .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
+                questionCounter.getAndIncrement();
+                itemCounter.getAndIncrement();
                 if (StringUtils.isNotBlank(multiChoiceMark) && !multiChoiceMark.equalsIgnoreCase("9999")) {
-                    var answer = new StagedAssessmentStudentAnswerEntity();
-                    answer.setStagedAssessmentStudentComponentEntity(studentComponent);
-                    var question = component.getAssessmentQuestionEntities().stream()
-                            .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
-                            .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
-                    questionCounter.getAndIncrement();
-                    itemCounter.getAndIncrement();
                     answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
                     answer.setScore(new BigDecimal(multiChoiceMark));
                     answer.setCreateUser(studentResult.getCreateUser());
@@ -298,19 +298,19 @@ public class StudentAssessmentResultService {
             int answerForChoiceCounter = 0;
             int choiceQuestionNumber = 0;
             for(var openEndedMark: openEndedMarks) {
+                Optional<AssessmentQuestionEntity> question;
+                var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
+                question = component.getAssessmentQuestionEntities().stream()
+                        .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
+                        .findFirst();
+                var optAssessmentChoice = assessmentChoiceRepository.findByItemNumberAndAssessmentComponentEntity_AssessmentComponentID(itemCounter.get(), component.getAssessmentComponentID());
+
+                itemCounter.getAndIncrement();
+                if (answerForChoiceCounter != 0) {
+                    answerForChoiceCounter--;
+                }
+
                 if (StringUtils.isNotBlank(openEndedMark) && !openEndedMark.equalsIgnoreCase("9999")) {
-                    Optional<AssessmentQuestionEntity> question;
-                    var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
-                    question = component.getAssessmentQuestionEntities().stream()
-                            .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
-                            .findFirst();
-                    var optAssessmentChoice = assessmentChoiceRepository.findByItemNumberAndAssessmentComponentEntity_AssessmentComponentID(itemCounter.get(), component.getAssessmentComponentID());
-
-                    itemCounter.getAndIncrement();
-                    if (answerForChoiceCounter != 0) {
-                        answerForChoiceCounter--;
-                    }
-
                     if (question.isEmpty()) {
                         //It's a choice!
                         //Value in 4 chars is the question number
