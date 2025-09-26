@@ -69,7 +69,7 @@ public class DOARCalculateService {
         groupedQuestionsByMasterQuestionNumber.values().forEach(questionEntities -> {
             var totalQuestionValue = questionEntities.getFirst().getQuestionValue();
             var totalScale = questionEntities.getFirst().getScaleFactor();
-            possibleOEScore.set(possibleOEScore.get().add(totalQuestionValue.multiply(BigDecimal.valueOf(totalScale)).divide(divisor, 2, RoundingMode.HALF_UP)));
+            possibleOEScore.compareAndSet(possibleOEScore.get(), possibleOEScore.get().add(totalQuestionValue.multiply(BigDecimal.valueOf(totalScale)).divide(divisor, 2, RoundingMode.HALF_UP)));
         });
         return possibleOEScore.get();
     }
@@ -125,7 +125,7 @@ public class DOARCalculateService {
                             .map(bigDecimal -> bigDecimal.compareTo(new BigDecimal(9999)) == 0 ? BigDecimal.ZERO : bigDecimal)
                             .reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(studentAnswers.size()), RoundingMode.HALF_UP);
                     BigDecimal scaledScore = studentScore.multiply(BigDecimal.valueOf(scaleFactor));
-                    mcStudentScoreCount.set(mcStudentScoreCount.get().add(scaledScore.divide(divisor, 2, RoundingMode.HALF_UP)));
+                    mcStudentScoreCount.compareAndSet(mcStudentScoreCount.get(), mcStudentScoreCount.get().add(scaledScore.divide(divisor, 2, RoundingMode.HALF_UP)));
                 }
             } else {
                 calculateSingleMarkerScore(questionEntities.getFirst(), studentMcAnswers, mcStudentScoreCount);
@@ -145,7 +145,7 @@ public class DOARCalculateService {
         if (studentAnswer.isPresent()) {
             var studentScore = studentAnswer.get().getScore();
             BigDecimal scaledScore = studentScore.compareTo(new BigDecimal(9999)) == 0 ? BigDecimal.ZERO : studentScore.multiply(BigDecimal.valueOf(scaleFactor));
-            mcStudentScoreCount.set(mcStudentScoreCount.get().add(scaledScore.divide(divisor, 2, RoundingMode.HALF_UP)));
+            mcStudentScoreCount.compareAndSet(mcStudentScoreCount.get(), mcStudentScoreCount.get().add(scaledScore.divide(divisor, 2, RoundingMode.HALF_UP)));
         }
     }
 }
