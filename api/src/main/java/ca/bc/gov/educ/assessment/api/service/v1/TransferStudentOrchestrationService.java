@@ -65,7 +65,7 @@ public class TransferStudentOrchestrationService {
             }
         } finally {
             log.debug("Temp- debug");
-            assessmentStudentService.deleteStagedStudent(stagedStudent);
+//            assessmentStudentService.deleteStagedStudent(stagedStudent);
         }
     }
 
