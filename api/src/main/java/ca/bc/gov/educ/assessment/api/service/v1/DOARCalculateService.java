@@ -64,14 +64,14 @@ public class DOARCalculateService {
         }
         Map<Integer, List<AssessmentQuestionEntity>> groupedQuestionsByMasterQuestionNumber = selectedOeAssessmentQuestionsByTypeCode.stream().collect(Collectors.groupingBy(AssessmentQuestionEntity::getMasterQuestionNumber));
 
-        AtomicReference<BigDecimal> possibleOEScore = new AtomicReference<>(new BigDecimal(0));
+        BigDecimal possibleScore = BigDecimal.ZERO;
         BigDecimal divisor = new BigDecimal(100);
-        groupedQuestionsByMasterQuestionNumber.values().forEach(questionEntities -> {
+        for(List<AssessmentQuestionEntity> questionEntities : groupedQuestionsByMasterQuestionNumber.values()) {
             var totalQuestionValue = questionEntities.getFirst().getQuestionValue();
             var totalScale = questionEntities.getFirst().getScaleFactor();
-            possibleOEScore.compareAndSet(possibleOEScore.get(), possibleOEScore.get().add(totalQuestionValue.multiply(BigDecimal.valueOf(totalScale)).divide(divisor, 2, RoundingMode.HALF_UP)));
-        });
-        return possibleOEScore.get();
+            possibleScore = possibleScore.add(totalQuestionValue.multiply(BigDecimal.valueOf(totalScale)).divide(divisor, 2, RoundingMode.HALF_UP));
+        }
+        return possibleScore;
     }
 
     private BigDecimal getStudentMCTotal(List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode, AssessmentStudentEntity student) {
@@ -87,11 +87,12 @@ public class DOARCalculateService {
                 .flatMap(Collection::stream)
                 .toList();
 
-        AtomicReference<BigDecimal> mcStudentScoreCount = new AtomicReference<>(new BigDecimal(0));
-        selectedMcAssessmentQuestionsByTypeCode.forEach(questionEntities ->
-            calculateSingleMarkerScore(questionEntities, studentMcAnswers, mcStudentScoreCount)
-        );
-        return mcStudentScoreCount.get();
+        BigDecimal studentScore = BigDecimal.ZERO;
+        for(AssessmentQuestionEntity  questionEntities : selectedMcAssessmentQuestionsByTypeCode) {
+            BigDecimal scaledScore =  calculateSingleMarkerScore(questionEntities, studentMcAnswers);
+            studentScore = studentScore.add(scaledScore);
+        }
+        return studentScore;
     }
 
     private BigDecimal getStudentOETotal(List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode, AssessmentStudentEntity student) {
@@ -110,9 +111,9 @@ public class DOARCalculateService {
         Map<Integer, List<AssessmentQuestionEntity>> groupedQuestionsByQuestionNumber = selectedOeAssessmentQuestionsByTypeCode.stream().collect(Collectors.groupingBy(AssessmentQuestionEntity::getQuestionNumber));
 
         BigDecimal divisor = new BigDecimal(100);
-        AtomicReference<BigDecimal> mcStudentScoreCount = new AtomicReference<>(new BigDecimal(0));
+        BigDecimal calcScore = BigDecimal.ZERO;
 
-        groupedQuestionsByQuestionNumber.values().forEach(questionEntities -> {
+        for(List<AssessmentQuestionEntity> questionEntities : groupedQuestionsByQuestionNumber.values()) {
             if(questionEntities.size() > 1) {
                 var scaleFactor = questionEntities.getFirst().getScaleFactor();
                 var studentAnswers = studentMcAnswers.stream()
@@ -125,17 +126,18 @@ public class DOARCalculateService {
                             .map(bigDecimal -> bigDecimal.compareTo(new BigDecimal(9999)) == 0 ? BigDecimal.ZERO : bigDecimal)
                             .reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(studentAnswers.size()), RoundingMode.HALF_UP);
                     BigDecimal scaledScore = studentScore.multiply(BigDecimal.valueOf(scaleFactor));
-                    mcStudentScoreCount.compareAndSet(mcStudentScoreCount.get(), mcStudentScoreCount.get().add(scaledScore.divide(divisor, 2, RoundingMode.HALF_UP)));
+                    calcScore = calcScore.add(scaledScore.divide(divisor, 2, RoundingMode.HALF_UP));
                 }
             } else {
-                calculateSingleMarkerScore(questionEntities.getFirst(), studentMcAnswers, mcStudentScoreCount);
+                BigDecimal scaledScore = calculateSingleMarkerScore(questionEntities.getFirst(), studentMcAnswers);
+                calcScore = calcScore.add(scaledScore);
             }
 
-        });
-        return mcStudentScoreCount.get();
+        }
+        return calcScore;
     }
 
-    private void calculateSingleMarkerScore(AssessmentQuestionEntity questionEntity, List<AssessmentStudentAnswerEntity> studentMcAnswers, AtomicReference<BigDecimal> mcStudentScoreCount) {
+    private BigDecimal calculateSingleMarkerScore(AssessmentQuestionEntity questionEntity, List<AssessmentStudentAnswerEntity> studentMcAnswers) {
         BigDecimal divisor = new BigDecimal(100);
         var scaleFactor = questionEntity.getScaleFactor();
         var studentAnswer = studentMcAnswers.stream()
@@ -145,7 +147,8 @@ public class DOARCalculateService {
         if (studentAnswer.isPresent()) {
             var studentScore = studentAnswer.get().getScore();
             BigDecimal scaledScore = studentScore.compareTo(new BigDecimal(9999)) == 0 ? BigDecimal.ZERO : studentScore.multiply(BigDecimal.valueOf(scaleFactor));
-            mcStudentScoreCount.compareAndSet(mcStudentScoreCount.get(), mcStudentScoreCount.get().add(scaledScore.divide(divisor, 2, RoundingMode.HALF_UP)));
+            return scaledScore.divide(divisor, 2, RoundingMode.HALF_UP);
         }
+        return BigDecimal.ZERO;
     }
 }
