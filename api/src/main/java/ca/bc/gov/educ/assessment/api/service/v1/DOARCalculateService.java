@@ -60,9 +60,10 @@ public class DOARCalculateService {
         if(selectedMcAssessmentQuestionsByTypeCode.isEmpty()) {
             return BigDecimal.ZERO;
         }
-        var totalQuestionValue = selectedMcAssessmentQuestionsByTypeCode.stream().map(AssessmentQuestionEntity::getQuestionValue).reduce(BigDecimal.ZERO, BigDecimal::add);
-        var totalScale = selectedMcAssessmentQuestionsByTypeCode.stream().map(AssessmentQuestionEntity::getScaleFactor).reduce(0, Integer::sum);
-        return totalQuestionValue.multiply(BigDecimal.valueOf(totalScale)).divide(divisor, 2, RoundingMode.HALF_UP);
+        var totalQuestionValue = selectedMcAssessmentQuestionsByTypeCode.stream()
+                .map(question -> question.getQuestionValue().multiply(BigDecimal.valueOf(question.getScaleFactor())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return totalQuestionValue.divide(divisor, 2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal getPossibleOETotal(List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode) {
