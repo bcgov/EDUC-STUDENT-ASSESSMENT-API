@@ -89,6 +89,9 @@ public class DOARReportService {
         map.put(DOARColumnLookup.ENTRY1, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, OPEN_ENDED);
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, MUL_CHOICE);
+
+            log.debug("openEndedQues: {}", selectedOeAssessmentQuestionsByTypeCode.size());
+            log.debug("mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
         map.put(DOARColumnLookup.ENTRY2, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
@@ -437,33 +440,33 @@ public class DOARReportService {
 
     private AssessmentStudentDOARCalculationEntity prepareNMEDOAREntity(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
         var taskPlan = getStudentTotals(BOTH, "P", selectedAssessmentForm, student, "NME", false);
-        var taskEstimate = getStudentTotals(BOTH, "R", selectedAssessmentForm, student, "NME", false);
-        var taskFair = getStudentTotals(BOTH, "F", selectedAssessmentForm, student, "NME", false);
-        var taskModel = getStudentTotals(BOTH, "M", selectedAssessmentForm, student, "NME", false);
-
-        var numeracyInterpret = getStudentTotals(MUL_CHOICE, "I", selectedAssessmentForm, student, "NME", false);
-        var numeracyApply = getStudentTotals(MUL_CHOICE, "P", selectedAssessmentForm, student, "NME", false);
-        var numeracySolve = getStudentTotals(MUL_CHOICE, "S", selectedAssessmentForm, student, "NME", false);
-        var numeracyAnalyze = getStudentTotals(MUL_CHOICE, "N", selectedAssessmentForm, student, "NME", false);
-
-        var dok1 = getStudentTotals("BOTH", "7", selectedAssessmentForm, student, "NME", false);
-        var dok2 = getStudentTotals("BOTH", "8", selectedAssessmentForm, student, "NME", false);
-        var dok3 = getStudentTotals("BOTH", "9", selectedAssessmentForm, student, "NME", false);
+//        var taskEstimate = getStudentTotals(BOTH, "R", selectedAssessmentForm, student, "NME", false);
+//        var taskFair = getStudentTotals(BOTH, "F", selectedAssessmentForm, student, "NME", false);
+//        var taskModel = getStudentTotals(BOTH, "M", selectedAssessmentForm, student, "NME", false);
+//
+//        var numeracyInterpret = getStudentTotals(MUL_CHOICE, "I", selectedAssessmentForm, student, "NME", false);
+//        var numeracyApply = getStudentTotals(MUL_CHOICE, "P", selectedAssessmentForm, student, "NME", false);
+//        var numeracySolve = getStudentTotals(MUL_CHOICE, "S", selectedAssessmentForm, student, "NME", false);
+//        var numeracyAnalyze = getStudentTotals(MUL_CHOICE, "N", selectedAssessmentForm, student, "NME", false);
+//
+//        var dok1 = getStudentTotals("BOTH", "7", selectedAssessmentForm, student, "NME", false);
+//        var dok2 = getStudentTotals("BOTH", "8", selectedAssessmentForm, student, "NME", false);
+//        var dok3 = getStudentTotals("BOTH", "9", selectedAssessmentForm, student, "NME", false);
 
         return AssessmentStudentDOARCalculationEntity.builder()
                 .assessmentStudentID(student.getAssessmentStudentID())
                 .assessmentID(student.getAssessmentEntity().getAssessmentID())
                 .taskPlan(new BigDecimal(taskPlan))
-                .taskEstimate(new BigDecimal(taskEstimate))
-                .taskFair(new BigDecimal(taskFair))
-                .taskModel(new BigDecimal(taskModel))
-                .numeracyInterpret(new BigDecimal(numeracyInterpret))
-                .numeracyApply(new BigDecimal(numeracyApply))
-                .numeracySolve(new BigDecimal(numeracySolve))
-                .numeracyAnalyze(new BigDecimal(numeracyAnalyze))
-                .dok1(new BigDecimal(dok1))
-                .dok2(new BigDecimal(dok2))
-                .dok3(new BigDecimal(dok3))
+//                .taskEstimate(new BigDecimal(taskEstimate))
+//                .taskFair(new BigDecimal(taskFair))
+//                .taskModel(new BigDecimal(taskModel))
+//                .numeracyInterpret(new BigDecimal(numeracyInterpret))
+//                .numeracyApply(new BigDecimal(numeracyApply))
+//                .numeracySolve(new BigDecimal(numeracySolve))
+//                .numeracyAnalyze(new BigDecimal(numeracyAnalyze))
+//                .dok1(new BigDecimal(dok1))
+//                .dok2(new BigDecimal(dok2))
+//                .dok3(new BigDecimal(dok3))
                 .build();
     }
 

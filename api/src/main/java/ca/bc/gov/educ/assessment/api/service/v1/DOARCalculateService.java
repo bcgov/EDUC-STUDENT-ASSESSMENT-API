@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 
@@ -21,17 +20,25 @@ public class DOARCalculateService {
     public BigDecimal calculateTotal(AssessmentStudentEntity student, List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode, List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode) {
         //possible total
         BigDecimal possibleMcTotal = getPossibleMCTotal(selectedMcAssessmentQuestionsByTypeCode);
+        log.debug("possibleMcTotal: {}", possibleMcTotal);
         BigDecimal possibleOeTotal = getPossibleOETotal(selectedOeAssessmentQuestionsByTypeCode);
+        log.debug("possibleOeTotal: {}", possibleOeTotal);
 
         //student Total
         BigDecimal studentMcTotal = getStudentMCTotal(selectedMcAssessmentQuestionsByTypeCode, student);
+        log.debug("studentMcTotal: {}", studentMcTotal);
         BigDecimal studentOeTotal = getStudentOETotal(selectedOeAssessmentQuestionsByTypeCode, student);
+        log.debug("studentOeTotal: {}", studentOeTotal);
 
         var studentTotal = studentMcTotal.add(studentOeTotal);
         var possibleTotal = possibleMcTotal.add(possibleOeTotal);
+        log.debug("studentTotal: {}", studentTotal);
+        log.debug("possibleTotal: {}", possibleTotal);
 
         if(possibleTotal.compareTo(BigDecimal.ZERO) != 0) {
-            return studentTotal.divide(possibleTotal, 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+            var score = studentTotal.divide(possibleTotal, 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+            log.debug("return-in-if: {}", score);
+            return score;
         }
 
         return BigDecimal.ZERO;
