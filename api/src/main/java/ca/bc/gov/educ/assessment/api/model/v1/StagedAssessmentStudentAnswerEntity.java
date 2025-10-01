@@ -33,8 +33,11 @@ public class StagedAssessmentStudentAnswerEntity {
     @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
     UUID assessmentQuestionID;
 
-    @Column(name = "ASSESSMENT_STUDENT_CHOICE_ID", updatable = false)
-    UUID assessmentStudentChoiceID;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false, targetEntity = StagedAssessmentStudentChoiceEntity.class)
+    @JoinColumn(name = "ASSESSMENT_STUDENT_CHOICE_ID", referencedColumnName = "ASSESSMENT_STUDENT_CHOICE_ID", updatable = false)
+    StagedAssessmentStudentChoiceEntity assessmentStudentChoiceEntity;
 
     @Column(name = "SCORE")
     private BigDecimal score;

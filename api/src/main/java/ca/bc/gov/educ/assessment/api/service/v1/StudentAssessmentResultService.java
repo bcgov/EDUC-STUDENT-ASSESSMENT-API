@@ -335,6 +335,14 @@ public class StudentAssessmentResultService {
                         }
                     } else {
                         var answer = new StagedAssessmentStudentAnswerEntity();
+                        var studentChoice = studentComponent.getStagedAssessmentStudentChoiceEntities()
+                                .stream()
+                                .filter(studentChoiceEntity -> optAssessmentChoice.isPresent() && Objects.equals(studentChoiceEntity.getAssessmentChoiceEntity().getAssessmentChoiceID(), optAssessmentChoice.get().getAssessmentChoiceID()))
+                                .findFirst().orElse(null);
+
+                        if(studentChoice != null) {
+                            answer.setAssessmentStudentChoiceEntity(studentChoice);
+                        }
                         answer.setStagedAssessmentStudentComponentEntity(studentComponent);
                         answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
                         answer.setScore(new BigDecimal(openEndedMark));

@@ -65,7 +65,7 @@ public class TransferStudentOrchestrationService {
             }
         } finally {
             log.debug("Temp- debug");
-//            assessmentStudentService.deleteStagedStudent(stagedStudent);
+            assessmentStudentService.deleteStagedStudent(stagedStudent);
         }
     }
 
@@ -186,7 +186,7 @@ public class TransferStudentOrchestrationService {
     private AssessmentStudentAnswerEntity createMainAnswerFromStaged(StagedAssessmentStudentAnswerEntity staged, AssessmentStudentComponentEntity mainComponent) {
         return AssessmentStudentAnswerEntity.builder()
                 .assessmentStudentComponentEntity(mainComponent)
-                .assessmentStudentChoiceID(staged.getAssessmentStudentChoiceID())
+                .assessmentStudentChoiceID(staged.getAssessmentStudentChoiceEntity() != null ? staged.getAssessmentStudentChoiceEntity().getAssessmentStudentChoiceID() : null)
                 .assessmentQuestionID(staged.getAssessmentQuestionID())
                 .score(staged.getScore())
                 .createUser(staged.getCreateUser())
