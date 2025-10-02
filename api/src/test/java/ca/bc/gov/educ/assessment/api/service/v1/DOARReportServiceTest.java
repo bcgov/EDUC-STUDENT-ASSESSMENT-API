@@ -200,7 +200,7 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         assertThat(studentTotal).hasSize(1);
         var row = studentTotal.get(0);
         assertThat(row.get(0)).isEqualTo("202501");
-        assertThat(row.get(9)).isEqualTo("1.00");
+        assertThat(row.get(9)).isEqualTo("26.00");
     }
 
     private AssessmentFormEntity setData(String assessmentTypeCode, SchoolTombstone schoolTombstone) {

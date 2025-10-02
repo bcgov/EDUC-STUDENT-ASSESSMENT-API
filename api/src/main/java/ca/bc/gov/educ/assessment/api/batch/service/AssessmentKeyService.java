@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.assessment.api.batch.service;
 
-import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileError;
 import ca.bc.gov.educ.assessment.api.batch.exception.KeyFileUnProcessableException;
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyDetails;
 import ca.bc.gov.educ.assessment.api.batch.struct.AssessmentKeyFile;
@@ -59,7 +58,7 @@ public class AssessmentKeyService {
 
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentTypeCodeRepository assessmentTypeCodeRepository;
-    private final AssessmentStudentRepository assessmentStudentRepository;
+    private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
     private final AssessmentRepository assessmentRepository;
     private final KeyFileValidator keyFileValidator;
     private final CodeTableService codeTableService;
@@ -74,7 +73,7 @@ public class AssessmentKeyService {
 
         AssessmentSessionEntity validSession =
                 assessmentSessionRepository.findById(sessionID)
-                        .orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_INCOMING_REQUEST_SESSION, guid, LOAD_FAIL));
+                        .orElseThrow(() -> new KeyFileUnProcessableException(INVALID_INCOMING_REQUEST_SESSION, guid, LOAD_FAIL));
         populateAssessmentKeyFile(ds, batchFile, validSession, guid);
         processLoadedRecordsInBatchFile(guid, batchFile, validSession, fileUpload);
     }
@@ -92,16 +91,16 @@ public class AssessmentKeyService {
 
     private void processLoadedRecordsInBatchFile(@NonNull final String guid, @NonNull final AssessmentKeyFile batchFile, AssessmentSessionEntity validSession, AssessmentKeyFileUpload fileUpload) throws KeyFileUnProcessableException {
         var typeCode = batchFile.getAssessmentKeyData().getFirst().getAssessmentCode();
-        assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
+        assessmentTypeCodeRepository.findByAssessmentTypeCode(typeCode).orElseThrow(() -> new KeyFileUnProcessableException(INVALID_ASSESSMENT_TYPE, guid, LOAD_FAIL));
 
         var assessmentEntity = assessmentRepository.findByAssessmentSessionEntity_SessionIDAndAssessmentTypeCode(validSession.getSessionID(), typeCode)
-                .orElseThrow(() -> new KeyFileUnProcessableException(KeyFileError.INVALID_ASSESSMENT_CODE, guid, LOAD_FAIL));
+                .orElseThrow(() -> new KeyFileUnProcessableException(INVALID_ASSESSMENT_CODE, guid, LOAD_FAIL));
 
         if(!assessmentEntity.getAssessmentForms().isEmpty()) {
             List<UUID> formIds = assessmentEntity.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
-            var results = assessmentStudentRepository.findByAssessmentFormIDIn(formIds);
+            var results = stagedAssessmentStudentRepository.findByAssessmentFormIDIn(formIds);
             if(!results.isEmpty()) {
-                throw new KeyFileUnProcessableException(KeyFileError.ASSESSMENT_FORMS_HAVE_STUDENTS, guid, typeCode);
+                throw new KeyFileUnProcessableException(ASSESSMENT_FORMS_HAVE_STUDENTS, guid, typeCode);
             }
         }
 
@@ -191,16 +190,18 @@ public class AssessmentKeyService {
             var itemType = ques.getItemType().split("-");
             var marker = itemType[3].toCharArray();
             var index = Integer.parseInt(String.valueOf(marker[1]));
+            AssessmentChoiceEntity choiceEntity = null;
             for(int i = 0; i < index; i++) {
                 final var quesEntity = mapper.toQuestionEntity(ques, openEndedComponentEntity);
                 setOpenEndedWrittenQuestionEntityColumns(quesEntity, ques, questionGroups);
                 if(i == 0 && itemType[2].equalsIgnoreCase("C1")) {
-                    final var choiceEntity = createChoiceEntity(openEndedComponentEntity);
+                    choiceEntity = createChoiceEntity(openEndedComponentEntity);
                     choiceEntity.setItemNumber(itemNumberCounter.get());
                     itemNumberCounter.getAndIncrement();
                     choiceEntity.setMasterQuestionNumber(quesEntity.getMasterQuestionNumber());
                     openEndedComponentEntity.getAssessmentChoiceEntities().add(choiceEntity);
                 }
+
                 setItemNumber(quesEntity, index, i, itemType, itemNumberCounter, repeatCounter);
                 openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
             }
