@@ -519,7 +519,7 @@ public class CSVReportService {
     public DownloadableReportResponse generateDataForItemAnalysis(UUID sessionID, String assessmentTypeCode) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
-        List<AssessmentStudentLightEntity> students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentTypeCodeAndAssessmentEntity_AssessmentSessionEntity_SessionID(assessmentTypeCode, sessionID);
+        List<AssessmentStudentLightEntity> students = assessmentStudentLightRepository.findByAssessmentTypeCodeAndSessionIDAndProficiencyScoreNotNullOrProvincialSpecialCaseNotNull(assessmentTypeCode, sessionID);
         List<String> assignedStudentIds = students.stream().map(AssessmentStudentLightEntity::getPen).toList();
 
         List<String> headers = Arrays.stream(DataItemAnalysisHeader.values()).map(DataItemAnalysisHeader::getCode).toList();
@@ -820,6 +820,7 @@ public class CSVReportService {
                 sdcStudentNativeAcnestry, //Indigenous Ancestry
                 collectionSnapshotDate,
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null,
+                student.getProvincialSpecialCaseCode() != null ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).isPresent() ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : null : null,
                 student.getMcTotal() != null ? student.getMcTotal().toString() : null,
                 student.getOeTotal() != null ? student.getOeTotal().toString() : null,
                 student.getRawScore() != null ? student.getRawScore().toString() : null,

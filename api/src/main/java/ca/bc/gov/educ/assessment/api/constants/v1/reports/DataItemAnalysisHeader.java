@@ -18,6 +18,7 @@ public enum DataItemAnalysisHeader {
     INDIGENOUS_ANCESTRY("Indigenous Ancestry"),
     SLD_COLLECTION("SLD Collection"),
     PROFICIENCY_SCORE("Proficiency Score"),
+    SPECIAL_CASE("Special Case"),
     MC_SCORE("MC Score"),
     OE_SCORE("OE Score"),
     TOTAL_SCORE("Total Score"),
