@@ -64,8 +64,7 @@ public class TransferStudentOrchestrationService {
                 createNewStudentFromStaged(stagedStudent);
             }
         } finally {
-            log.debug("Temp- debug");
-//            assessmentStudentService.deleteStagedStudent(stagedStudent);
+            assessmentStudentService.deleteStagedStudent(stagedStudent);
         }
     }
 
