@@ -30,6 +30,12 @@ public class AssessmentQuestionEntity {
     @JoinColumn(name = "ASSESSMENT_COMPONENT_ID", referencedColumnName = "ASSESSMENT_COMPONENT_ID", updatable = false)
     AssessmentComponentEntity assessmentComponentEntity;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false, targetEntity = AssessmentChoiceEntity.class)
+    @JoinColumn(name = "ASSESSMENT_CHOICE_ID", referencedColumnName = "ASSESSMENT_CHOICE_ID", updatable = false)
+    AssessmentChoiceEntity assessmentChoiceEntity;
+
     @Column(name="QUESTION_NUMBER", nullable = false)
     private Integer questionNumber;
 

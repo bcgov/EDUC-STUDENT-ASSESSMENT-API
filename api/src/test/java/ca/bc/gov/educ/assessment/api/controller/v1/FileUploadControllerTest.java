@@ -73,6 +73,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         stagedStudentResultRepository.deleteAll();
         studentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
+        assessmentQuestionRepository.deleteAll();
         assessmentFormRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();

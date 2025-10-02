@@ -203,6 +203,7 @@ public class AssessmentKeyService {
                 }
 
                 setItemNumber(quesEntity, index, i, itemType, itemNumberCounter, repeatCounter);
+                quesEntity.setAssessmentChoiceEntity(choiceEntity);
                 openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
             }
         });
