@@ -78,6 +78,9 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
     private AssessmentSessionEntity session;
     private AssessmentEntity assessment;
 
+    @Autowired
+    AssessmentChoiceRepository  assessmentChoiceRepository;
+
     @AfterEach
     void cleanup() {
         assessmentStudentAnswerRepository.deleteAll();
@@ -387,6 +390,7 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
             createMockAssessmentComponentEntity(assessmentForm, "MUL_CHOICE", "NONE")
         );
 
+        var choice = assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(assessmentComponent, 2, 1));
         AssessmentQuestionEntity assessmentQuestion = assessmentQuestionRepository.save(
             createMockAssessmentQuestionEntity(assessmentComponent, 1, 1)
         );
@@ -396,6 +400,16 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
                 .stagedAssessmentStudentEntity(stagedStudent)
                 .assessmentComponentID(assessmentComponent.getAssessmentComponentID())
                 .choicePath("A")
+                .createUser("TEST")
+                .createDate(LocalDateTime.now())
+                .updateUser("TEST")
+                .updateDate(LocalDateTime.now())
+                .build();
+
+        StagedAssessmentStudentChoiceEntity choiceEntity = StagedAssessmentStudentChoiceEntity.builder()
+                .assessmentStudentChoiceID(UUID.randomUUID())
+                .stagedAssessmentStudentComponentEntity(component)
+                .assessmentChoiceEntity(choice)
                 .createUser("TEST")
                 .createDate(LocalDateTime.now())
                 .updateUser("TEST")
@@ -416,6 +430,10 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
         Set<StagedAssessmentStudentAnswerEntity> answers = new HashSet<>();
         answers.add(answer);
         component.setStagedAssessmentStudentAnswerEntities(answers);
+
+        Set<StagedAssessmentStudentChoiceEntity> choices = new HashSet<>();
+        choices.add(choiceEntity);
+        component.setStagedAssessmentStudentChoiceEntities(choices);
 
         Set<StagedAssessmentStudentComponentEntity> components = new HashSet<>();
         components.add(component);

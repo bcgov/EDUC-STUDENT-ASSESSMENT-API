@@ -144,9 +144,9 @@ public class TransferStudentOrchestrationService {
                 .irtScore(staged.getIrtScore())
                 .markingSession(staged.getMarkingSession())
                 .createUser(staged.getCreateUser())
-                .createDate(staged.getCreateDate())
+                .createDate(LocalDateTime.now())
                 .updateUser(staged.getUpdateUser())
-                .updateDate(staged.getUpdateDate())
+                .updateDate(LocalDateTime.now())
                 .build();
 
         // Transfer components and answers
@@ -166,9 +166,9 @@ public class TransferStudentOrchestrationService {
                 .assessmentComponentID(staged.getAssessmentComponentID())
                 .choicePath(staged.getChoicePath())
                 .createUser(staged.getCreateUser())
-                .createDate(staged.getCreateDate())
+                .createDate(LocalDateTime.now())
                 .updateUser(staged.getUpdateUser())
-                .updateDate(staged.getUpdateDate())
+                .updateDate(LocalDateTime.now())
                 .build();
 
         // Transfer answers
@@ -177,21 +177,39 @@ public class TransferStudentOrchestrationService {
             AssessmentStudentAnswerEntity mainAnswer = createMainAnswerFromStaged(stagedAnswer, main);
             mainAnswers.add(mainAnswer);
         }
-        main.setAssessmentStudentAnswerEntities(mainAnswers);
 
+        //Transfer choices
+        Set<AssessmentStudentChoiceEntity> choices = new HashSet<>();
+        for (StagedAssessmentStudentChoiceEntity choice : staged.getStagedAssessmentStudentChoiceEntities()) {
+            AssessmentStudentChoiceEntity choiceEntity = createMainChoiceFromStaged(choice, main);
+            choices.add(choiceEntity);
+        }
+
+        main.setAssessmentStudentAnswerEntities(mainAnswers);
+        main.setAssessmentStudentChoiceEntities(choices);
         return main;
     }
 
     private AssessmentStudentAnswerEntity createMainAnswerFromStaged(StagedAssessmentStudentAnswerEntity staged, AssessmentStudentComponentEntity mainComponent) {
         return AssessmentStudentAnswerEntity.builder()
                 .assessmentStudentComponentEntity(mainComponent)
-                .assessmentStudentChoiceID(staged.getAssessmentStudentChoiceID())
                 .assessmentQuestionID(staged.getAssessmentQuestionID())
                 .score(staged.getScore())
                 .createUser(staged.getCreateUser())
-                .createDate(staged.getCreateDate())
+                .createDate(LocalDateTime.now())
                 .updateUser(staged.getUpdateUser())
-                .updateDate(staged.getUpdateDate())
+                .updateDate(LocalDateTime.now())
+                .build();
+    }
+
+    private AssessmentStudentChoiceEntity createMainChoiceFromStaged(StagedAssessmentStudentChoiceEntity staged, AssessmentStudentComponentEntity mainComponent) {
+        return AssessmentStudentChoiceEntity.builder()
+                .assessmentStudentComponentEntity(mainComponent)
+                .assessmentChoiceEntity(staged.getAssessmentChoiceEntity())
+                .createUser(staged.getCreateUser())
+                .createDate(LocalDateTime.now())
+                .updateUser(staged.getUpdateUser())
+                .updateDate(LocalDateTime.now())
                 .build();
     }
 }
