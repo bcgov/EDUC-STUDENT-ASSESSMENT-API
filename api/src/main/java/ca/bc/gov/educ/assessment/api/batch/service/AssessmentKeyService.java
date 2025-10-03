@@ -203,11 +203,20 @@ public class AssessmentKeyService {
                 }
 
                 setItemNumber(quesEntity, index, i, itemType, itemNumberCounter, repeatCounter);
-                quesEntity.setAssessmentChoiceEntity(choiceEntity);
+                setChoiceOnQuestionEntity(quesEntity, openEndedComponentEntity);
                 openEndedComponentEntity.getAssessmentQuestionEntities().add(quesEntity);
             }
         });
         return openEndedComponentEntity;
+    }
+
+    private void setChoiceOnQuestionEntity(AssessmentQuestionEntity questionEntity, AssessmentComponentEntity openEndedComponentEntity) {
+        var choiceEntity = openEndedComponentEntity.getAssessmentChoiceEntities()
+                .stream()
+                .filter(choice -> Objects.equals(choice.getAssessmentComponentEntity().getAssessmentComponentID(), questionEntity.getAssessmentComponentEntity().getAssessmentComponentID())
+                        && Objects.equals(questionEntity.getMasterQuestionNumber(), choice.getMasterQuestionNumber())).findFirst();
+
+        questionEntity.setAssessmentChoiceEntity(choiceEntity.orElse(null));
     }
 
     private void setItemNumberAndIncrement(AssessmentQuestionEntity questionEntity, AtomicInteger itemNumberCounter) {
