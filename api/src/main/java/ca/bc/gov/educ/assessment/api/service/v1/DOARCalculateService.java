@@ -37,7 +37,7 @@ public class DOARCalculateService {
         log.debug("possibleTotal: {}", possibleTotal);
 
         if(possibleTotal.compareTo(BigDecimal.ZERO) != 0) {
-            var score = studentTotal.divide(possibleTotal, 2, RoundingMode.HALF_EVEN).multiply(BigDecimal.valueOf(100));
+            var score = studentTotal.divide(possibleTotal, 2, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100));
             log.debug("return-in-if: {}", score);
             return score;
         }
@@ -75,7 +75,7 @@ public class DOARCalculateService {
         BigDecimal studentMcTotal = getStudentMCTotal(selectedMcAssessmentQuestionsByTypeCode, student);
 
         if(possibleMcTotal.compareTo(BigDecimal.ZERO) != 0) {
-            return studentMcTotal.divide(possibleMcTotal, 2, RoundingMode.HALF_EVEN).multiply(BigDecimal.valueOf(100));
+            return studentMcTotal.divide(possibleMcTotal, 2, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100));
         }
 
         return BigDecimal.ZERO;
@@ -89,7 +89,7 @@ public class DOARCalculateService {
         var totalQuestionValue = selectedMcAssessmentQuestionsByTypeCode.stream()
                 .map(question -> question.getQuestionValue().multiply(BigDecimal.valueOf(question.getScaleFactor())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return totalQuestionValue.divide(divisor, 2, RoundingMode.HALF_EVEN);
+        return totalQuestionValue.divide(divisor, 2, RoundingMode.DOWN);
     }
 
     private BigDecimal getPossibleOETotal(List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode, AssessmentStudentEntity student) {
@@ -106,7 +106,7 @@ public class DOARCalculateService {
 
             boolean includeOeTotalInCalc = checkIfStudentAnsweredOEQues(student, questionEntities);
             if(includeOeTotalInCalc) {
-                possibleScore = possibleScore.add(totalQuestionValue.multiply(BigDecimal.valueOf(totalScale)).divide(divisor, 2, RoundingMode.HALF_EVEN));
+                possibleScore = possibleScore.add(totalQuestionValue.multiply(BigDecimal.valueOf(totalScale)).divide(divisor, 2, RoundingMode.DOWN));
             }
         }
         return possibleScore;
@@ -162,9 +162,9 @@ public class DOARCalculateService {
                 if (!studentAnswers.isEmpty()) {
                     var studentScore = studentAnswers.stream().map(AssessmentStudentAnswerEntity::getScore)
                             .map(bigDecimal -> bigDecimal.compareTo(new BigDecimal(9999)) == 0 ? BigDecimal.ZERO : bigDecimal)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(studentAnswers.size()), RoundingMode.HALF_EVEN);
+                            .reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(studentAnswers.size()), RoundingMode.DOWN);
                     BigDecimal scaledScore = studentScore.multiply(BigDecimal.valueOf(scaleFactor));
-                    calcScore = calcScore.add(scaledScore.divide(divisor, 2, RoundingMode.HALF_EVEN));
+                    calcScore = calcScore.add(scaledScore.divide(divisor, 2, RoundingMode.DOWN));
                 }
             } else {
                 BigDecimal scaledScore = calculateSingleMarkerScore(questionEntities.getFirst(), studentMcAnswers);
@@ -185,7 +185,7 @@ public class DOARCalculateService {
         if (studentAnswer.isPresent()) {
             var studentScore = studentAnswer.get().getScore();
             BigDecimal scaledScore = studentScore.compareTo(new BigDecimal(9999)) == 0 ? BigDecimal.ZERO : studentScore.multiply(BigDecimal.valueOf(scaleFactor));
-            return scaledScore.divide(divisor, 2, RoundingMode.HALF_EVEN);
+            return scaledScore.divide(divisor, 2, RoundingMode.DOWN);
         }
         return BigDecimal.ZERO;
     }
