@@ -137,10 +137,17 @@ public class AssessmentKeyService {
             formEntities.add(formEntity);
        }
 
+        log.debug("Forms size: {}", assessmentEntity.getAssessmentForms().size());
         assessmentEntity.getAssessmentForms().forEach(form ->
-            form.getAssessmentComponentEntities().forEach(component -> component.getAssessmentQuestionEntities().clear()));
+            form.getAssessmentComponentEntities().forEach(component -> {
+                log.debug("Ques size: {}", component.getAssessmentQuestionEntities().size());
+                component.getAssessmentQuestionEntities().clear();
+                log.debug("Ques size: {}", component.getAssessmentQuestionEntities().size());
+            }));
         assessmentEntity.getAssessmentForms().clear();
+        log.debug("Forms size: {}", assessmentEntity.getAssessmentForms().size());
         assessmentEntity.getAssessmentForms().addAll(formEntities);
+        log.debug("Saving forms: {}", formEntities.size());
         assessmentRepository.save(assessmentEntity);
     }
 
