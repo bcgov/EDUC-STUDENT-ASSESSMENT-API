@@ -137,6 +137,8 @@ public class AssessmentKeyService {
             formEntities.add(formEntity);
        }
 
+        assessmentEntity.getAssessmentForms().forEach(form ->
+            form.getAssessmentComponentEntities().forEach(component -> component.getAssessmentQuestionEntities().clear()));
         assessmentEntity.getAssessmentForms().clear();
         assessmentEntity.getAssessmentForms().addAll(formEntities);
         assessmentRepository.save(assessmentEntity);
