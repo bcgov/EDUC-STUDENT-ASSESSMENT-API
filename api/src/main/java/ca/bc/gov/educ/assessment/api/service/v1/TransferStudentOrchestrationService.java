@@ -63,8 +63,9 @@ public class TransferStudentOrchestrationService {
                 log.debug("Creating new student {} for assessment {}", stagedStudent.getStudentID(), stagedStudent.getAssessmentEntity().getAssessmentID());
                 createNewStudentFromStaged(stagedStudent);
             }
-        } finally {
-            assessmentStudentService.deleteStagedStudent(stagedStudent);
+        }
+        finally {
+//            assessmentStudentService.deleteStagedStudent(stagedStudent);
         }
     }
 
