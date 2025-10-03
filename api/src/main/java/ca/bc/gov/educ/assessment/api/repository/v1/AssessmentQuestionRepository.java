@@ -19,4 +19,6 @@ public interface AssessmentQuestionRepository extends JpaRepository<AssessmentQu
 
     List<AssessmentQuestionEntity> findByAssessmentComponentEntity_AssessmentComponentID(UUID assessmentComponentID);
 
+    void deleteAllByAssessmentComponentEntity_AssessmentFormEntity_AssessmentFormIDIn(List<UUID> assessmentFormIDs);
+
 }

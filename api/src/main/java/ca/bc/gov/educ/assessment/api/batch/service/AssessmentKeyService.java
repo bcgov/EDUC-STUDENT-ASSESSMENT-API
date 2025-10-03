@@ -66,6 +66,7 @@ public class AssessmentKeyService {
     private final String[] allowedTaskCodes = {"A", "E", "I"};
 
     public static final String LOAD_FAIL = "LOADFAIL";
+    private final AssessmentQuestionRepository assessmentQuestionRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void populateBatchFileAndLoadData(String guid, DataSet ds, UUID sessionID, AssessmentKeyFileUpload fileUpload) throws KeyFileUnProcessableException {
@@ -137,15 +138,9 @@ public class AssessmentKeyService {
             formEntities.add(formEntity);
        }
 
-        log.debug("Forms size: {}", assessmentEntity.getAssessmentForms().size());
-        assessmentEntity.getAssessmentForms().forEach(form ->
-            form.getAssessmentComponentEntities().forEach(component -> {
-                log.debug("Ques size: {}", component.getAssessmentQuestionEntities().size());
-                component.getAssessmentQuestionEntities().clear();
-                log.debug("Ques size: {}", component.getAssessmentQuestionEntities().size());
-            }));
+        List<UUID> formIds = assessmentEntity.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
+        assessmentQuestionRepository.deleteAllByAssessmentComponentEntity_AssessmentFormEntity_AssessmentFormIDIn(formIds);
         assessmentEntity.getAssessmentForms().clear();
-        log.debug("Forms size: {}", assessmentEntity.getAssessmentForms().size());
         assessmentEntity.getAssessmentForms().addAll(formEntities);
         log.debug("Saving forms: {}", formEntities.size());
         assessmentRepository.save(assessmentEntity);
