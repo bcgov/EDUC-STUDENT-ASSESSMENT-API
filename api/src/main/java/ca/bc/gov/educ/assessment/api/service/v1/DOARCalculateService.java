@@ -21,7 +21,8 @@ public class DOARCalculateService {
         //possible total
         BigDecimal possibleMcTotal = getPossibleMCTotal(selectedMcAssessmentQuestionsByTypeCode);
         log.debug("possibleMcTotal: {}", possibleMcTotal);
-        BigDecimal possibleOeTotal = getPossibleOETotal(selectedOeAssessmentQuestionsByTypeCode);
+
+        BigDecimal possibleOeTotal = getPossibleOETotal(selectedOeAssessmentQuestionsByTypeCode, student); // check per question
         log.debug("possibleOeTotal: {}", possibleOeTotal);
 
         //student Total
@@ -42,6 +43,24 @@ public class DOARCalculateService {
         }
 
         return BigDecimal.ZERO;
+    }
+
+    private boolean checkIfStudentAnsweredOEQues(AssessmentStudentEntity student, List<AssessmentQuestionEntity> questions) {
+        var listOfQuesIDs = questions.stream().map(AssessmentQuestionEntity::getAssessmentQuestionID).toList();
+        var listOfQuesChoiceIDs =  questions.stream().map(AssessmentQuestionEntity::getAssessmentChoiceEntity)
+                .filter(Objects::nonNull).map(AssessmentChoiceEntity::getAssessmentChoiceID).toList();
+
+        var listOfQuesAnswered = student.getAssessmentStudentComponentEntities().stream()
+                .map(AssessmentStudentComponentEntity::getAssessmentStudentAnswerEntities).flatMap(Collection::stream).map(AssessmentStudentAnswerEntity::getAssessmentQuestionID).toList();
+        var listOfStudentChoices = student.getAssessmentStudentComponentEntities().stream()
+                .map(AssessmentStudentComponentEntity::getAssessmentStudentChoiceEntities).flatMap(Collection::stream)
+                .map(AssessmentStudentChoiceEntity::getAssessmentChoiceEntity).filter(Objects::nonNull).map(AssessmentChoiceEntity::getAssessmentChoiceID).toList();
+
+        var hasAnsweredOeQues =  listOfQuesAnswered.stream().anyMatch(listOfQuesIDs::contains);
+        var hasAnsweredADifferentChoice =  listOfStudentChoices.stream().anyMatch(listOfQuesChoiceIDs::contains);
+        if(hasAnsweredOeQues) {
+            return true;
+        } else return !hasAnsweredADifferentChoice;
     }
 
     public BigDecimal calculateMCTotal(List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode, AssessmentStudentEntity student) {
@@ -66,7 +85,7 @@ public class DOARCalculateService {
         return totalQuestionValue.divide(divisor, 2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal getPossibleOETotal(List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode) {
+    private BigDecimal getPossibleOETotal(List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode, AssessmentStudentEntity student) {
         if(selectedOeAssessmentQuestionsByTypeCode.isEmpty()) {
             return BigDecimal.ZERO;
         }
@@ -77,7 +96,11 @@ public class DOARCalculateService {
         for(List<AssessmentQuestionEntity> questionEntities : groupedQuestionsByMasterQuestionNumber.values()) {
             var totalQuestionValue = questionEntities.getFirst().getQuestionValue();
             var totalScale = questionEntities.getFirst().getScaleFactor();
-            possibleScore = possibleScore.add(totalQuestionValue.multiply(BigDecimal.valueOf(totalScale)).divide(divisor, 2, RoundingMode.HALF_UP));
+
+            boolean includeOeTotalInCalc = checkIfStudentAnsweredOEQues(student, questionEntities);
+            if(includeOeTotalInCalc) {
+                possibleScore = possibleScore.add(totalQuestionValue.multiply(BigDecimal.valueOf(totalScale)).divide(divisor, 2, RoundingMode.HALF_UP));
+            }
         }
         return possibleScore;
     }

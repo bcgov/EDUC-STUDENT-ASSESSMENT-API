@@ -54,6 +54,8 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
     
     @Autowired
     private AssessmentFormRepository assessmentFormRepository;
+    @Autowired
+    private AssessmentQuestionRepository assessmentQuestionRepository;
 
     private static final AssessmentMapper mapper = AssessmentMapper.mapper;
 
@@ -61,6 +63,7 @@ class AssessmentControllerTest extends BaseAssessmentAPITest {
     void setUp() {
         assessmentStudentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
+        assessmentQuestionRepository.deleteAll();
         assessmentFormRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
         this.assessmentRepository.deleteAll();

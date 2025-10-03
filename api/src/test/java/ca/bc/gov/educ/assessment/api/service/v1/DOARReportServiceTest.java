@@ -49,6 +49,7 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         assessmentStudentDOARCalculationRepository.deleteAll();
         studentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
+        assessmentQuestionRepository.deleteAll();
         assessmentFormRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
@@ -200,7 +201,7 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         assertThat(studentTotal).hasSize(1);
         var row = studentTotal.get(0);
         assertThat(row.get(0)).isEqualTo("202501");
-        assertThat(row.get(9)).isEqualTo("26.00");
+        assertThat(row.get(9)).isEqualTo("0.00");
     }
 
     private AssessmentFormEntity setData(String assessmentTypeCode, SchoolTombstone schoolTombstone) {

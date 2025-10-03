@@ -75,6 +75,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     stagedAssessmentStudentRepository.deleteAll();
     this.assessmentStudentRepository.deleteAll();
     this.assessmentStudentHistoryRepository.deleteAll();
+    assessmentQuestionRepository.deleteAll();
     this.assessmentRepository.deleteAll();
     this.assessmentSessionRepository.deleteAll();
   }
