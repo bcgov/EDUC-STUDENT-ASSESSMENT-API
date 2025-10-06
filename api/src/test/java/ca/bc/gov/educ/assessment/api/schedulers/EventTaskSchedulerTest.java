@@ -148,7 +148,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     var savedStudent1 = stagedAssessmentStudentRepository.save(stagedStudent1);
     var savedStudent2 = stagedAssessmentStudentRepository.save(stagedStudent2);
 
-    eventTaskScheduler.processTransferStudents();
+    eventTaskScheduler.processLoadedStudents();
 
     var updatedStudent1 = stagedAssessmentStudentRepository.findById(savedStudent1.getAssessmentStudentID()).orElse(null);
     var updatedStudent2 = stagedAssessmentStudentRepository.findById(savedStudent2.getAssessmentStudentID()).orElse(null);

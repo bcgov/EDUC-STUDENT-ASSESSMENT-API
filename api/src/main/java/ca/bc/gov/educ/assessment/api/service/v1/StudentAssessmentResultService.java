@@ -38,7 +38,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 @Service
 @Slf4j
@@ -56,7 +55,7 @@ public class StudentAssessmentResultService {
 
     @Async("publisherExecutor")
     @Transactional
-    public void prepareAndSendSdcStudentsForFurtherProcessing(final List <StagedStudentResultEntity> stagedResultEntities) {
+    public void prepareAndSendStudentsForFurtherProcessing(final List <StagedStudentResultEntity> stagedResultEntities) {
         final List<StudentResultSagaData> resultSagaDatas = stagedResultEntities.stream()
                 .map(el -> {
                     val studentResultSagaData = new StudentResultSagaData();

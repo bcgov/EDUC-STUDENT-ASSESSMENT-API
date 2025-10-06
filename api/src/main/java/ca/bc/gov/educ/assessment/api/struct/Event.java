@@ -25,4 +25,5 @@ public class Event {
   private String replyTo;
   private String eventPayload; // json string
   private String stagedStudentResultID;
+  private String assessmentStudentID;
 }

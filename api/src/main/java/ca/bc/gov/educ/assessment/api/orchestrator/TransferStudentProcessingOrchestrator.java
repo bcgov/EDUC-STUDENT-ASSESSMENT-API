@@ -5,7 +5,6 @@ import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.BaseOrchestrator;
-import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.DOARReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.service.v1.TransferStudentOrchestrationService;
@@ -31,15 +30,13 @@ import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.STUDENT_TRANSFE
 @Component
 public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<TransferOnApprovalSagaData> {
 
-    private final AssessmentStudentService assessmentStudentService;
     private final SagaService sagaService;
     private final DOARReportService doarReportService;
     private final TransferStudentOrchestrationService transferStudentOrchestrationService;
     private final Publisher publisher;
 
-    protected TransferStudentProcessingOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, final AssessmentStudentService assessmentStudentService, DOARReportService doarReportService, TransferStudentOrchestrationService transferStudentOrchestrationService, Publisher publisher) {
+    protected TransferStudentProcessingOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, DOARReportService doarReportService, TransferStudentOrchestrationService transferStudentOrchestrationService, Publisher publisher) {
         super(sagaService, messagePublisher, TransferOnApprovalSagaData.class, PROCESS_STUDENT_TRANSFER.toString(), STUDENT_TRANSFER_PROCESSING_TOPIC.toString());
-        this.assessmentStudentService = assessmentStudentService;
         this.sagaService = sagaService;
         this.doarReportService = doarReportService;
         this.transferStudentOrchestrationService = transferStudentOrchestrationService;
@@ -109,18 +106,5 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("Posted completion message for saga step notifyGradOfUpdatedStudents: {}", saga.getSagaId());
-    }
-
-    public void startStudentTransferProcessingSaga(TransferOnApprovalSagaData transferOnApprovalSagaData) throws JsonProcessingException {
-        String payload = JsonUtil.getJsonStringFromObject(transferOnApprovalSagaData);
-        AssessmentSagaEntity saga = sagaService.createSagaRecordInDB(
-                this.getSagaName(),
-                "ASSESSMENT-API",
-                payload,
-                null,
-                UUID.fromString(transferOnApprovalSagaData.getStagedStudentAssessmentID())
-        );
-        this.startSaga(saga);
-        log.debug("Started student transfer processing saga for student: {}", transferOnApprovalSagaData.getStagedStudentAssessmentID());
     }
 }

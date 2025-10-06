@@ -7,12 +7,14 @@ import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
+import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -262,7 +264,7 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
     void testStartStudentTransferProcessingSaga_initiatesSagaAndDispatchesEvent() {
         SagaService mockSagaService = Mockito.mock(SagaService.class);
         MessagePublisher mockMessagePublisher = Mockito.mock(MessagePublisher.class);
-        TransferStudentProcessingOrchestrator orchestratorWithMocks = new TransferStudentProcessingOrchestrator(mockSagaService, mockMessagePublisher, null, null, null, null);
+        TransferStudentProcessingOrchestrator orchestratorWithMocks = new TransferStudentProcessingOrchestrator(mockSagaService, mockMessagePublisher, null, null, null);
 
         AssessmentSagaEntity dummySaga = new AssessmentSagaEntity();
         dummySaga.setSagaId(UUID.randomUUID());
@@ -274,7 +276,10 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
                         .stagedStudentAssessmentID(String.valueOf(UUID.randomUUID()))
                         .build();
 
-        orchestratorWithMocks.startStudentTransferProcessingSaga(sagaData);
+        orchestratorWithMocks.startSaga(orchestratorWithMocks.createSaga(JsonUtil.getJsonStringFromObject(sagaData),
+                ApplicationProperties.STUDENT_ASSESSMENT_API,
+                null,
+                UUID.fromString(sagaData.getStagedStudentAssessmentID())));
 
         verify(mockSagaService, atLeastOnce()).createSagaRecordInDB(anyString(), anyString(), anyString(), isNull(), any(UUID.class));
         verify(mockMessagePublisher, atLeastOnce()).dispatchMessage(eq(orchestratorWithMocks.getTopicToSubscribe()), eventCaptor.capture());
@@ -301,9 +306,13 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
                 .stagedStudentAssessmentID(String.valueOf(testStagedStudent.getAssessmentStudentID()))
                 .build();
 
-        sagaRepository.deleteAll();
-
-        transferStudentProcessingOrchestrator.startStudentTransferProcessingSaga(sagaData);
+        this.sagaRepository.save(saga);
+        val event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.INITIATED)
+                .eventOutcome(EventOutcome.INITIATE_SUCCESS)
+                .eventPayload(JsonUtil.getJsonStringFromObject(sagaData)).build();
+        transferStudentProcessingOrchestrator.handleEvent(event);
 
         var sagas = sagaRepository.findAll();
         assertThat(sagas).hasSize(1);
