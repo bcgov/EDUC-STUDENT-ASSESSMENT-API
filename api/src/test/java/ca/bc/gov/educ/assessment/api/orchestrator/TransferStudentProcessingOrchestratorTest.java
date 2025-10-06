@@ -305,8 +305,7 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
                 .studentID(String.valueOf(testStagedStudent.getStudentID()))
                 .stagedStudentAssessmentID(String.valueOf(testStagedStudent.getAssessmentStudentID()))
                 .build();
-
-        this.sagaRepository.save(saga);
+        
         val event = Event.builder()
                 .sagaId(saga.getSagaId())
                 .eventType(EventType.INITIATED)
@@ -318,7 +317,7 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
         assertThat(sagas).hasSize(1);
         var createdSaga = sagas.getFirst();
         assertEquals(SagaEnum.PROCESS_STUDENT_TRANSFER.toString(), createdSaga.getSagaName());
-        assertEquals("ASSESSMENT-API", createdSaga.getCreateUser());
+        assertEquals("test", createdSaga.getCreateUser());
 
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(transferStudentProcessingOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());

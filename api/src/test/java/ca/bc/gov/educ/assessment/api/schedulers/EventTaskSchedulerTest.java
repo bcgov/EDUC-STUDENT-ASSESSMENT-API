@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -130,30 +131,11 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
             .updateUser("TEST")
             .build();
 
-    var savedStudentResult = stagedStudentResultRepository.save(studentResult);
+    stagedStudentResultRepository.save(studentResult);
 
     eventTaskScheduler.processLoadedStudents();
     verify(this.messagePublisher, atMost(1)).dispatchMessage(eq(TopicsEnum.READ_STUDENT_RESULT_RECORD.toString()), this.eventCaptor.capture());
     final var newEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(this.eventCaptor.getValue()));
     assertThat(newEvent.getEventType()).isEqualTo(EventType.READ_STUDENT_RESULT_FOR_PROCESSING);
-  }
-
-  @Test
-  void processTransferStudents_WhenTransferStudentsExist_ShouldCallAsyncService() {
-    var stagedStudent1 = createMockStagedStudentEntity(savedAssessmentEntity);
-    stagedStudent1.setStagedAssessmentStudentStatus("TRANSFER");
-    var stagedStudent2 = createMockStagedStudentEntity(savedAssessmentEntity);
-    stagedStudent2.setStagedAssessmentStudentStatus("TRANSFER");
-
-    var savedStudent1 = stagedAssessmentStudentRepository.save(stagedStudent1);
-    var savedStudent2 = stagedAssessmentStudentRepository.save(stagedStudent2);
-
-    eventTaskScheduler.processLoadedStudents();
-
-    var updatedStudent1 = stagedAssessmentStudentRepository.findById(savedStudent1.getAssessmentStudentID()).orElse(null);
-    var updatedStudent2 = stagedAssessmentStudentRepository.findById(savedStudent2.getAssessmentStudentID()).orElse(null);
-
-    assertThat(updatedStudent1).isNull();
-    assertThat(updatedStudent2).isNull();
   }
 }

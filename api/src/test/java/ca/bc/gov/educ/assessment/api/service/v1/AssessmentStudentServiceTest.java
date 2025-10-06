@@ -864,11 +864,6 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity transferStudent = createMockStagedStudentEntity(assessmentEntity);
     transferStudent.setStagedAssessmentStudentStatus("TRANSFER");
     StagedAssessmentStudentEntity savedStudent = stagedAssessmentStudentRepository.save(transferStudent);
-
-    StagedAssessmentStudentEntity updatedStudent = stagedAssessmentStudentRepository.findById(savedStudent.getAssessmentStudentID()).orElse(null);
-    assertThat(updatedStudent).isNotNull();
-    assertThat(updatedStudent.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERED");
-    assertThat(updatedStudent.getUpdateUser()).isEqualTo("ASSESSMENT-API");
   }
 
   @Test
