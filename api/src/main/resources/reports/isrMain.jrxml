@@ -556,7 +556,7 @@
 				<text><![CDATA[Graduation Assessment Results]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="545" y="34" width="58" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
+				<reportElement x="540" y="40" width="58" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
@@ -566,7 +566,7 @@
 				<textFieldExpression><![CDATA["School Name: "]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="623" y="50" width="127" height="15" uuid="bd23ceca-07d5-4e6a-a266-8dda73c09239">
+				<reportElement x="618" y="56" width="132" height="15" uuid="bd23ceca-07d5-4e6a-a266-8dda73c09239">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<textElement textAlignment="Left">
@@ -624,7 +624,7 @@
 				<textFieldExpression><![CDATA[$F{studentPEN}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="603" y="34" width="152" height="15" uuid="2cf1f850-0edc-49dd-9583-c838e38ec39d">
+				<reportElement x="598" y="40" width="152" height="15" uuid="2cf1f850-0edc-49dd-9583-c838e38ec39d">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<textElement textAlignment="Left">
@@ -633,7 +633,7 @@
 				<textFieldExpression><![CDATA[$F{schoolDetail}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="545" y="50" width="78" height="15" uuid="cec78a11-4e68-455d-9f9a-946a5153a186">
+				<reportElement x="540" y="56" width="78" height="15" uuid="cec78a11-4e68-455d-9f9a-946a5153a186">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
