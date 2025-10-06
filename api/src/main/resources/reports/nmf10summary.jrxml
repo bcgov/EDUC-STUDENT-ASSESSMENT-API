@@ -17,38 +17,38 @@
 	<parameter name="writtenPlanningScore" class="java.lang.String"/>
 	<parameter name="writtenPlanningOutOf" class="java.lang.String"/>
 	<title>
-		<band height="638" splitType="Stretch">
+		<band height="655" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<rectangle>
-				<reportElement mode="Opaque" x="535" y="101" width="175" height="249" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
+				<reportElement mode="Opaque" x="535" y="101" width="175" height="269" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("4 - Approfondie")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="360" y="101" width="175" height="249" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b90587e-7fee-4b7f-99a8-8538b65a05c7">
+				<reportElement mode="Opaque" x="360" y="101" width="175" height="270" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b90587e-7fee-4b7f-99a8-8538b65a05c7">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("3 - Acquise")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="101" width="190" height="249" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="e34cd20d-59fd-4469-8aea-20727e814ecd">
+				<reportElement mode="Opaque" x="0" y="101" width="190" height="268" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="e34cd20d-59fd-4469-8aea-20727e814ecd">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("1 - Émergente")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="180" y="101" width="180" height="249" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="dfe961e3-e1af-4582-a5c1-027dbd0ac1c6">
+				<reportElement mode="Opaque" x="180" y="101" width="180" height="270" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="dfe961e3-e1af-4582-a5c1-027dbd0ac1c6">
 					<printWhenExpression><![CDATA[$P{score}.equals("2 - En voie d’acquisition")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<break>
-				<reportElement positionType="Float" x="0" y="637" width="76" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
+				<reportElement positionType="Float" x="0" y="654" width="76" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
 			</break>
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["L’Évaluation de numératie de la 10ᵉ année - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
@@ -107,14 +107,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<text><![CDATA[4 - Approfondie]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="3" y="120" width="160" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
+				<reportElement x="7" y="123" width="160" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre des capacités minimales pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="-35" y="182" width="194" height="168" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
+				<reportElement x="-31" y="182" width="194" height="186" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -136,7 +136,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<text><![CDATA[L’élève démontre des capacités intermédiaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="158" y="189" width="194" height="168" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
+				<reportElement x="158" y="189" width="194" height="180" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -151,14 +151,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="366" y="123" width="148" height="97" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
+				<reportElement x="369" y="123" width="148" height="97" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre de solides capacités pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="330" y="182" width="194" height="168" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
+				<reportElement x="333" y="182" width="194" height="188" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -173,14 +173,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="540" y="123" width="148" height="97" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
+				<reportElement x="543" y="123" width="148" height="97" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre des capacités exemplaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="503" y="182" width="194" height="168" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
+				<reportElement x="506" y="182" width="194" height="188" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -195,26 +195,26 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 ]]></text>
 			</staticText>
 			<line>
-				<reportElement x="1" y="350" width="708" height="1" forecolor="#BFBFBF" uuid="31f0b0d1-7681-4a9d-a76f-ee8f730e35a1">
+				<reportElement x="1" y="370" width="708" height="1" forecolor="#BFBFBF" uuid="31f0b0d1-7681-4a9d-a76f-ee8f730e35a1">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
 			<staticText>
-				<reportElement x="1" y="363" width="82" height="19" uuid="68f2a54f-ebdb-42c6-814e-2a6d155b0c23"/>
+				<reportElement x="1" y="380" width="82" height="19" uuid="68f2a54f-ebdb-42c6-814e-2a6d155b0c23"/>
 				<textElement>
 					<font fontName="BC Sans" size="8" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Résultats bruts]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="1" y="378" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
+				<reportElement x="1" y="395" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
 				<textElement>
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Vous trouverez ci-dessous vos résultats bruts pour l’Évaluation de numératie de la 10ᵉ année. Ces résultats indiquent votre niveau de réussite dans les différents domaines évalués, et ne peuvent pas être directement transposables en palier de compétence.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="1" y="405" width="484" height="13" backcolor="#E0E0E0" uuid="1c2bedb1-cd70-4ac5-8de5-8fafca494a25">
+				<reportElement mode="Opaque" x="1" y="422" width="484" height="13" backcolor="#E0E0E0" uuid="1c2bedb1-cd70-4ac5-8de5-8fafca494a25">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box>
@@ -231,7 +231,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<text><![CDATA[Questions à réponse choisie (Section commune)]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="480" y="405" width="105" height="13" backcolor="#E0E0E0" uuid="091d67d7-aa28-4ba1-bca9-b0bf749e3b5e"/>
+				<reportElement mode="Opaque" x="480" y="422" width="105" height="13" backcolor="#E0E0E0" uuid="091d67d7-aa28-4ba1-bca9-b0bf749e3b5e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -245,7 +245,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="580" y="405" width="105" height="13" backcolor="#E0E0E0" uuid="bc277b69-c609-493b-9a82-9c9aefcbc10b"/>
+				<reportElement mode="Opaque" x="580" y="422" width="105" height="13" backcolor="#E0E0E0" uuid="bc277b69-c609-493b-9a82-9c9aefcbc10b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -259,7 +259,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<text><![CDATA[Total]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="418" width="479" height="34" backcolor="#FFFFFF" uuid="ca20abd2-9d38-41a8-9480-80da1c053469">
+				<reportElement mode="Transparent" x="1" y="435" width="479" height="34" backcolor="#FFFFFF" uuid="ca20abd2-9d38-41a8-9480-80da1c053469">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -277,7 +277,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<text><![CDATA[<b>La planification et la conception</b><br>L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif pour formuler une recommandation (p. ex., planifier l’expédition efficace de plusieurs conteneurs).]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="452" width="479" height="22" backcolor="#FFFFFF" uuid="437d7843-db34-4407-9ebb-1680336c7a17">
+				<reportElement mode="Transparent" x="1" y="469" width="479" height="22" backcolor="#FFFFFF" uuid="437d7843-db34-4407-9ebb-1680336c7a17">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -296,7 +296,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 L’élève doit faire ou utiliser des estimations de plusieurs variables, afin de former un argument logique à l’appui d’une solution (p. ex., planifier des vacances).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="418" width="100" height="34" uuid="bef2864b-e66b-444a-bb54-dd641632b551"/>
+				<reportElement x="480" y="435" width="100" height="34" uuid="bef2864b-e66b-444a-bb54-dd641632b551"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -310,7 +310,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 				<textFieldExpression><![CDATA[$P{multiChoicePlanningScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="418" width="105" height="34" uuid="d30cd488-96cc-47d5-97b1-5cba4c07f084"/>
+				<reportElement x="580" y="435" width="105" height="34" uuid="d30cd488-96cc-47d5-97b1-5cba4c07f084"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -324,7 +324,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 				<textFieldExpression><![CDATA[$P{multiChoicePlanningOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="452" width="105" height="22" uuid="60df56e3-7414-4321-9d09-c960ca952d4e"/>
+				<reportElement x="580" y="469" width="105" height="22" uuid="60df56e3-7414-4321-9d09-c960ca952d4e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -338,7 +338,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 				<textFieldExpression><![CDATA[$P{multiChoiceEstimationsOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="452" width="100" height="22" uuid="7393ce8a-3985-4ec2-8a8a-1e6983413356"/>
+				<reportElement x="480" y="469" width="100" height="22" uuid="7393ce8a-3985-4ec2-8a8a-1e6983413356"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -352,7 +352,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 				<textFieldExpression><![CDATA[$P{multiChoiceEstimationsScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Opaque" x="1" y="554" width="484" height="13" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
+				<reportElement mode="Opaque" x="1" y="571" width="484" height="13" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box>
@@ -369,7 +369,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 				<text><![CDATA[Questions à réponse construite (Section à options)]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="480" y="554" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
+				<reportElement mode="Opaque" x="480" y="571" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -383,7 +383,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="580" y="554" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
+				<reportElement mode="Opaque" x="580" y="571" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -397,7 +397,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 				<text><![CDATA[Total]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="474" width="479" height="36" backcolor="#FFFFFF" uuid="e104dc09-2c34-46ff-a636-0265d28f451f">
+				<reportElement mode="Transparent" x="1" y="491" width="479" height="36" backcolor="#FFFFFF" uuid="e104dc09-2c34-46ff-a636-0265d28f451f">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -416,7 +416,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 L’élève doit créer des groupements ou des catégories pour répartir ou allouer quelque chose en utilisant des critères convenables à une situation (p. ex., un processus pour distribuer une prime d’équipe parmi les membres d’un groupe).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="474" width="100" height="36" uuid="4e89a3f1-b7b6-4b3e-92d5-7ae538a03a7e"/>
+				<reportElement x="480" y="491" width="100" height="36" uuid="4e89a3f1-b7b6-4b3e-92d5-7ae538a03a7e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -430,7 +430,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 				<textFieldExpression><![CDATA[$P{multiChoiceGroupingScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="474" width="105" height="36" uuid="714b2610-1785-4e95-b6dd-48ab116a2a2e"/>
+				<reportElement x="580" y="491" width="105" height="36" uuid="714b2610-1785-4e95-b6dd-48ab116a2a2e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -444,7 +444,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 				<textFieldExpression><![CDATA[$P{multiChoiceGroupingOutOf}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="510" width="479" height="44" backcolor="#FFFFFF" uuid="7c5c9103-462e-43f9-ba07-f48ea03fc1da">
+				<reportElement mode="Transparent" x="1" y="527" width="479" height="44" backcolor="#FFFFFF" uuid="7c5c9103-462e-43f9-ba07-f48ea03fc1da">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -463,7 +463,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemble de données. Il doit ensuite appliquer ce modèle ou cette stratégie à un nouvel ensemble de données et, si besoin est, l’adapter (p. ex., extrapoler des données pour prédire des tendances futures).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="510" width="100" height="44" uuid="e0e4ac37-ba91-4e72-827b-4aa4b87996e9"/>
+				<reportElement x="480" y="527" width="100" height="44" uuid="e0e4ac37-ba91-4e72-827b-4aa4b87996e9"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -477,7 +477,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 				<textFieldExpression><![CDATA[$P{multiChoiceModelScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="510" width="105" height="44" uuid="7d899191-99c1-4175-8e95-09677a130c96"/>
+				<reportElement x="580" y="527" width="105" height="44" uuid="7d899191-99c1-4175-8e95-09677a130c96"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -491,7 +491,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 				<textFieldExpression><![CDATA[$P{multiChoiceModelOutOf}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="567" width="479" height="36" backcolor="#FFFFFF" uuid="6527d8d5-c0e7-4c6e-8134-7b5c315767d5">
+				<reportElement mode="Transparent" x="1" y="584" width="479" height="36" backcolor="#FFFFFF" uuid="6527d8d5-c0e7-4c6e-8134-7b5c315767d5">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -510,7 +510,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 L’élève doit créer des groupements ou des catégories pour répartir ou allouer quelque chose en utilisant des critères convenables à une situation (p. ex., un processus pour distribuer une prime d’équipe parmi les membres d’un groupe).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="567" width="100" height="36" uuid="56f15e5f-9cbd-4fa9-91e3-83358c73aa0a"/>
+				<reportElement x="480" y="584" width="100" height="36" uuid="56f15e5f-9cbd-4fa9-91e3-83358c73aa0a"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -524,7 +524,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 				<textFieldExpression><![CDATA[$P{writtenGroupingScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="567" width="105" height="36" uuid="5d930ecc-6c80-4c46-8664-4c868206a86b"/>
+				<reportElement x="580" y="584" width="105" height="36" uuid="5d930ecc-6c80-4c46-8664-4c868206a86b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -538,7 +538,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 				<textFieldExpression><![CDATA[$P{writtenGroupingOutOf}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="603" width="479" height="34" backcolor="#FFFFFF" uuid="1347b830-f5ab-4001-a162-b439551cd692">
+				<reportElement mode="Transparent" x="1" y="620" width="479" height="34" backcolor="#FFFFFF" uuid="1347b830-f5ab-4001-a162-b439551cd692">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -557,7 +557,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif pour formuler une recommandation (p. ex., planifier l’expédition efficace de plusieurs conteneurs).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="603" width="100" height="34" uuid="2a60e87b-23ef-4c0a-b065-8e09d458ba4c"/>
+				<reportElement x="480" y="620" width="100" height="34" uuid="2a60e87b-23ef-4c0a-b065-8e09d458ba4c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -571,7 +571,7 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 				<textFieldExpression><![CDATA[$P{writtenPlanningScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="603" width="105" height="34" uuid="d4348a1d-a4bf-40ec-bf5c-13045e88093c"/>
+				<reportElement x="580" y="620" width="105" height="34" uuid="d4348a1d-a4bf-40ec-bf5c-13045e88093c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -584,6 +584,31 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenPlanningOutOf}]]></textFieldExpression>
 			</textField>
+			<line>
+				<reportElement x="708" y="101" width="1" height="270" forecolor="#BFBFBF" uuid="4f684e99-50e9-40fc-b11f-707ffb794b1a">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="535" y="101" width="1" height="270" forecolor="#BFBFBF" uuid="1404b4ce-3ecf-41d9-8a74-3dc0de60ccdc">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="360" y="101" width="1" height="270" forecolor="#BFBFBF" uuid="b0701396-ea66-4221-b6b4-9e79b5741f62">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="180" y="101" width="1" height="270" forecolor="#BFBFBF" uuid="fbd38ce7-dc54-4527-879f-e91feda3dffe">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="1" y="101" width="1" height="270" forecolor="#BFBFBF" uuid="f2ce6f82-a09c-446f-9333-89d7b43b3441">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
 		</band>
 	</title>
 </jasperReport>

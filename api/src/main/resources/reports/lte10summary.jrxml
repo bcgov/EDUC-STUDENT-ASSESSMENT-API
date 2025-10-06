@@ -49,7 +49,7 @@
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Literacy 10 Assessment - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
@@ -108,7 +108,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[4 - Extending]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="3" y="93" width="160" height="44" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
+				<reportElement x="7" y="93" width="160" height="44" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -116,7 +116,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="-35" y="140" width="194" height="158" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
+				<reportElement x="-31" y="140" width="194" height="158" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -153,14 +153,14 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="366" y="96" width="148" height="62" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
+				<reportElement x="369" y="96" width="148" height="62" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Students demonstrate a <b>complete understanding</b> of the concepts and competencies relevant to the expected learning, specifically, they can:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="330" y="140" width="194" height="158" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
+				<reportElement x="333" y="140" width="194" height="158" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -175,14 +175,14 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="540" y="96" width="148" height="62" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
+				<reportElement x="543" y="96" width="148" height="62" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Students demonstrate a <b>sophisticated understanding</b> of the concepts and competencies relevant to the expected learning, specifically, they can:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="503" y="140" width="194" height="158" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
+				<reportElement x="506" y="140" width="194" height="158" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -718,6 +718,31 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
 			</textField>
+			<line>
+				<reportElement x="709" y="74" width="1" height="225" forecolor="#BFBFBF" uuid="6fb7f3b1-553d-428a-ab53-7c3f61b9bfee">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="535" y="74" width="1" height="225" forecolor="#BFBFBF" uuid="cf79f5b2-acd5-4132-acc4-556c3107118a">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="360" y="74" width="1" height="225" forecolor="#BFBFBF" uuid="cce3227e-cda6-42f6-b1d9-0fcdecdfa63e">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="180" y="74" width="1" height="225" forecolor="#BFBFBF" uuid="80bb9189-3670-4f3a-8ce8-863eade76f82">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="0" y="74" width="1" height="225" forecolor="#BFBFBF" uuid="2ef47970-1342-4b03-b469-bee6609a173d">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
 		</band>
 	</title>
 </jasperReport>

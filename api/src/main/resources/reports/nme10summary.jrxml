@@ -44,7 +44,7 @@
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Numeracy 10 Assessment - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
@@ -103,7 +103,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<text><![CDATA[4 - Extending]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="3" y="104" width="160" height="44" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
+				<reportElement x="8" y="104" width="160" height="44" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -111,7 +111,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="-35" y="151" width="194" height="150" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
+				<reportElement x="-30" y="151" width="194" height="150" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -590,6 +590,31 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenReasonedEstimatesScore}]]></textFieldExpression>
 			</textField>
+			<line>
+				<reportElement x="709" y="85" width="1" height="218" forecolor="#BFBFBF" uuid="b983958f-f880-46d5-b0e5-6d2be38b755f">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="535" y="85" width="1" height="218" forecolor="#BFBFBF" uuid="3481e36a-cc56-47f6-acde-650ba47876a4">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="360" y="85" width="1" height="218" forecolor="#BFBFBF" uuid="c59de9fb-115b-4b49-874d-0309c1309236">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="189" y="85" width="1" height="218" forecolor="#BFBFBF" uuid="e72b1662-351a-452c-a5a0-0895757fee20">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="0" y="85" width="1" height="218" forecolor="#BFBFBF" uuid="0c516173-263c-4019-89c4-b7c96a32f12e">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
 		</band>
 	</title>
 </jasperReport>

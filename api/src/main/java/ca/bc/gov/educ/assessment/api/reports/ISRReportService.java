@@ -146,7 +146,7 @@ public class ISRReportService extends BaseReportGenerationService {
       
       ISRRootNode isrRootNode = new ISRRootNode();
       ISRReportNode reportNode = new ISRReportNode();
-      setReportTombstoneValues(UUID.fromString(gradStudentRecord.getSchoolOfRecordId()), reportNode, student.getPen(), student.getLegalFirstName() + " " + student.getLegalLastName());
+      setReportTombstoneValues(UUID.fromString(gradStudentRecord.getSchoolOfRecordId()), reportNode, student.getPen(), student.getLegalLastName() + ", " + student.getLegalFirstName());
       isrRootNode.setReport(reportNode);
       reportNode.setAssessments(new ArrayList<>());
       reportNode.setAssessmentDetails(new ArrayList<>());
@@ -291,8 +291,8 @@ public class ISRReportService extends BaseReportGenerationService {
   protected void setReportTombstoneValues(UUID schoolID, ISRReportNode reportNode, String studentPEN, String studentName){
     var school = validateAndReturnSchool(schoolID);
 
-    reportNode.setReportGeneratedDate("Report Generated: " + LocalDate.now().format(formatter));
-    reportNode.setSchoolDetail(school.getMincode() + " - " + school.getDisplayName());
+    reportNode.setReportGeneratedDate(LocalDate.now().format(formatter));
+    reportNode.setSchoolDetail(school.getDisplayName());
     reportNode.setStudentPEN(studentPEN);
     reportNode.setStudentName(studentName);
   }

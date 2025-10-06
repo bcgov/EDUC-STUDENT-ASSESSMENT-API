@@ -547,7 +547,7 @@
 		<fieldDescription><![CDATA[assessments]]></fieldDescription>
 	</field>
 	<pageHeader>
-		<band height="72" splitType="Stretch">
+		<band height="75" splitType="Stretch">
 			<staticText>
 				<reportElement x="287" y="20" width="209" height="14" forecolor="#030303" uuid="8ef7f15d-0e1e-47ce-862d-01e8577c31eb"/>
 				<textElement>
@@ -556,19 +556,19 @@
 				<text><![CDATA[Graduation Assessment Results]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="520" y="35" width="221" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
+				<reportElement x="545" y="34" width="60" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
-				<textElement textAlignment="Right">
-					<font fontName="BC Sans" size="8"/>
+				<textElement textAlignment="Left">
+					<font fontName="BC Sans" size="8" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["School Name: " + $F{schoolDetail}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["School Name: "]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="520" y="50" width="222" height="15" uuid="bd23ceca-07d5-4e6a-a266-8dda73c09239">
+				<reportElement x="630" y="50" width="127" height="15" uuid="bd23ceca-07d5-4e6a-a266-8dda73c09239">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
-				<textElement textAlignment="Right">
+				<textElement textAlignment="Left">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{reportGeneratedDate}]]></textFieldExpression>
@@ -581,27 +581,65 @@
 				<text><![CDATA[Ministry of Education and Child Care]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="0" y="40" width="280" height="15" uuid="8650a750-21b2-4c0f-8b34-49b5a5815d49">
+				<reportElement x="0" y="40" width="66" height="15" uuid="8650a750-21b2-4c0f-8b34-49b5a5815d49">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<textElement>
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="8" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Student Name: " + $F{studentName}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Student Name: "]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="0" y="55" width="280" height="15" uuid="5e29d86f-8976-4bf4-8822-22fadb4759de">
+				<reportElement x="0" y="55" width="120" height="15" uuid="5e29d86f-8976-4bf4-8822-22fadb4759de">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<textElement>
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="8" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Personal Education Number: " + $F{studentPEN}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Personal Education Number: "]]></textFieldExpression>
 			</textField>
 			<image>
 				<reportElement x="-9" y="-17" width="100" height="44" uuid="c139017e-89b8-438d-b893-49e771231c44"/>
 				<imageExpression><![CDATA["bc_gov_logo.jpg"]]></imageExpression>
 			</image>
+			<textField>
+				<reportElement x="66" y="40" width="280" height="15" uuid="519dd987-5569-4e77-8a88-38cd6871e986">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{studentName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="55" width="280" height="15" uuid="6938a5a5-38fb-44a2-92cc-44ede4b4d8a8">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{studentPEN}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="605" y="34" width="152" height="15" uuid="2cf1f850-0edc-49dd-9583-c838e38ec39d">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left">
+					<font fontName="BC Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{schoolDetail}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="545" y="50" width="85" height="15" uuid="cec78a11-4e68-455d-9f9a-946a5153a186">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left">
+					<font fontName="BC Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Report Generated: "]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageHeader>
 	<detail>
@@ -620,7 +658,7 @@
 								<staticText>
 									<reportElement style="Table 2_CH" x="0" y="0" width="185" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
-										<font fontName="BC Sans" size="7"/>
+										<font fontName="BC Sans" size="8" isBold="true"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
 									<text><![CDATA[Session]]></text>
@@ -648,7 +686,7 @@
 								<staticText>
 									<reportElement style="Table 2_CH" x="0" y="0" width="295" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
-										<font fontName="BC Sans" size="7"/>
+										<font fontName="BC Sans" size="8" isBold="true"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
 									<text><![CDATA[Assessment]]></text>
@@ -673,7 +711,7 @@
 								<staticText>
 									<reportElement style="Table 2_CH" x="0" y="0" width="90" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
-										<font fontName="BC Sans" size="7"/>
+										<font fontName="BC Sans" size="8" isBold="true"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
 									<text><![CDATA[Proficiency Score]]></text>
@@ -698,7 +736,7 @@
 								<staticText>
 									<reportElement style="Table 2_CH" x="0" y="0" width="99" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="ebff00d1-1363-4fcd-9c22-924599830329"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
-										<font fontName="BC Sans" size="7"/>
+										<font fontName="BC Sans" size="8" isBold="true"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
 									<text><![CDATA[Special Case]]></text>

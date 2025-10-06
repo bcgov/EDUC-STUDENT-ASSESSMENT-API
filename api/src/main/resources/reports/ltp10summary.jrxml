@@ -60,7 +60,7 @@
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Évaluation de littératie de la 10e année – Français langue première - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
@@ -119,14 +119,14 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<text><![CDATA[4 - Approfondie]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="3" y="120" width="160" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
+				<reportElement x="7" y="123" width="160" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève fait preuve d’une compréhension initiale des concepts et commence à mettre en pratique les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="-35" y="209" width="194" height="213" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
+				<reportElement x="-31" y="209" width="194" height="213" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -150,7 +150,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<text><![CDATA[L’élève fait preuve d’une compréhension partielle des concepts et met en pratique, de manière partielle, les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="158" y="209" width="194" height="213" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
+				<reportElement x="158" y="214" width="194" height="213" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -167,14 +167,14 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="366" y="123" width="148" height="97" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
+				<reportElement x="369" y="123" width="148" height="97" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève fait preuve d’une pleine compréhension des concepts et met en pratique les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="330" y="209" width="194" height="213" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
+				<reportElement x="333" y="209" width="194" height="213" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -191,25 +191,25 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="540" y="123" width="148" height="97" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
+				<reportElement x="544" y="123" width="148" height="97" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève fait preuve d’une compréhension poussée des concepts et met en pratique de manière élaborée les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="503" y="209" width="194" height="213" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
+				<reportElement x="507" y="214" width="194" height="213" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[
-<li>de saisir subtilement le sens d’un document en tenant compte de ses implications;</li><br>
+<li>de saisir subtilement le sens d’un document en tenant compte de ses implications;</li>
 
-<li>d’évaluer de manière critique et créative l’information, les idées et les concepts présentés afin d’établir les liens sophistiqués entre les documents, le monde et soi;</li><br>
+<li>d’évaluer de manière critique et créative l’information, les idées et les concepts présentés afin d’établir les liens sophistiqués entre les documents, le monde et soi;</li>
 
-<li>de faire preuve de perspicacité par rapport à diverses situations de communication;</li><br>
+<li>de faire preuve de perspicacité par rapport à diverses situations de communication;</li>
 
-<li>de raffiner son langage en se servant des outils langagiers;</li><br>
+<li>de raffiner son langage en se servant des outils langagiers;</li>
 
 <li>de développer astucieusement ses idées de façon constante, cohérente et logique en faisant appel à des exemples judicieux.</li>
 ]]></text>
@@ -1012,6 +1012,31 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partOralPart3OutOf}]]></textFieldExpression>
 			</textField>
+			<line>
+				<reportElement x="709" y="101" width="1" height="323" forecolor="#BFBFBF" uuid="66b47fae-2725-428f-9c86-62cbe9283f84">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="535" y="101" width="1" height="323" forecolor="#BFBFBF" uuid="86070ed3-4efa-4446-a5bb-e5a9087f8016">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="360" y="101" width="1" height="323" forecolor="#BFBFBF" uuid="b400d3b7-6fa0-4cd9-a1cd-84a45f89c1ea">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="180" y="101" width="1" height="323" forecolor="#BFBFBF" uuid="f78a4694-c2fb-4e9a-afb6-cef7dcad96f1">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="1" y="101" width="1" height="323" forecolor="#BFBFBF" uuid="88881d53-cf4f-4a58-bb5a-b600b959fa06">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
 		</band>
 	</title>
 </jasperReport>

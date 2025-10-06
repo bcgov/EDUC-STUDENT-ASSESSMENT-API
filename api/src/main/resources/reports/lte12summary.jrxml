@@ -49,7 +49,7 @@
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Literacy 12 Assessment - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
@@ -87,7 +87,7 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 				<text><![CDATA[1 - Emerging]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="193" y="76" width="82" height="11" uuid="492b5b6a-9cc6-44ad-bdbc-69210bef9b2e"/>
+				<reportElement x="190" y="76" width="82" height="11" uuid="492b5b6a-9cc6-44ad-bdbc-69210bef9b2e"/>
 				<textElement>
 					<font fontName="BC Sans" size="8" isBold="true"/>
 				</textElement>
@@ -108,7 +108,7 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 				<text><![CDATA[4 - Extending]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="3" y="93" width="160" height="44" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
+				<reportElement x="6" y="93" width="160" height="44" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -116,7 +116,7 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="-35" y="140" width="194" height="197" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
+				<reportElement x="-32" y="140" width="194" height="197" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -133,14 +133,14 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="193" y="96" width="148" height="62" uuid="77ddbd88-ee82-4206-a7f9-1fe731815e47"/>
+				<reportElement x="189" y="96" width="148" height="62" uuid="77ddbd88-ee82-4206-a7f9-1fe731815e47"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Students demonstrate a <b>partial understanding</b> of the concepts and competencies relevant to the expected learning, specifically, they can:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="158" y="140" width="194" height="197" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
+				<reportElement x="155" y="140" width="194" height="197" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -157,14 +157,14 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="366" y="96" width="148" height="62" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
+				<reportElement x="369" y="96" width="148" height="62" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Students demonstrate a <b>complete understanding</b> of the concepts and competencies relevant to the expected learning, specifically, they can:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="330" y="140" width="194" height="197" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
+				<reportElement x="333" y="140" width="194" height="197" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -181,14 +181,14 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="540" y="96" width="148" height="62" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
+				<reportElement x="543" y="96" width="148" height="62" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Students demonstrate a <b>sophisticated understanding</b> of the concepts and competencies relevant to the expected learning, specifically, they can:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="503" y="140" width="194" height="197" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
+				<reportElement x="506" y="140" width="194" height="197" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="8" isBold="false"/>
 				</textElement>
@@ -726,6 +726,31 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
 			</textField>
+			<line>
+				<reportElement x="0" y="74" width="1" height="264" forecolor="#BFBFBF" uuid="4d74540c-6561-4701-a892-33ebf09ad0f9">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="180" y="74" width="1" height="264" forecolor="#BFBFBF" uuid="c4f7aaa7-8aef-43ce-8208-879f85767e28">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="360" y="74" width="1" height="264" forecolor="#BFBFBF" uuid="50796730-32ed-4a0a-9ad5-3306521894d4">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="535" y="74" width="1" height="264" forecolor="#BFBFBF" uuid="6b53e641-1169-4587-8c1d-64424439e045">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="708" y="74" width="1" height="264" forecolor="#BFBFBF" uuid="d8d61d2a-c914-484b-8919-45f6d7a1327c">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
 		</band>
 	</title>
 </jasperReport>
