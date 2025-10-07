@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -241,7 +242,7 @@ public class ISRReportService extends BaseReportGenerationService {
   }
   
   private Pair<String, String> getTotals(List<AssessmentQuestionEntity> filteredQuestions, List<AssessmentStudentAnswerEntity> answers, String questionType){
-    int totalScore = 0;
+    BigDecimal totalScore = new BigDecimal(0);
     String choicePathToIgnore = null;
 
     for(AssessmentStudentAnswerEntity answer : answers){
@@ -259,9 +260,9 @@ public class ISRReportService extends BaseReportGenerationService {
       }
       if(answer.getScore() != null && question.isPresent()) {
         if(questionType.equalsIgnoreCase(MUL_CHOICE.getCode())) {
-          totalScore = totalScore + (answer.getScore().intValue() * (question.get().getScaleFactor()/100));
+          totalScore = totalScore.add(answer.getScore().multiply(new BigDecimal(question.get().getScaleFactor()/100)));
         }else if(question.get().getQuestionNumber().equals(question.get().getMasterQuestionNumber())){
-          totalScore = totalScore + (answer.getScore().intValue() * (question.get().getScaleFactor()/100));
+          totalScore = totalScore.add(answer.getScore().multiply(new BigDecimal(question.get().getScaleFactor()/100)));
         }
       }
     }
@@ -278,7 +279,7 @@ public class ISRReportService extends BaseReportGenerationService {
       }
     }
 
-    return Pair.of(totalScore + "", totalOutOf + "");
+    return Pair.of(totalScore.toString(), totalOutOf + "");
   }
   
   private String choicePathToIgnore(String choicePath){
@@ -312,7 +313,7 @@ public class ISRReportService extends BaseReportGenerationService {
     var fairShare = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, MUL_CHOICE.getCode(), "F");
     assessmentNME10.setOnlineFairShareScore(fairShare.getLeft());
     assessmentNME10.setOnlineFairShareOutOf(fairShare.getRight());
-    var model = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, MUL_CHOICE.getCode(), "M");
+    var model = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, MUL_CHOICE.getCode(), "M");
     assessmentNME10.setOnlineModelScore(model.getLeft());
     assessmentNME10.setOnlineModelOutOf(model.getRight());
     var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, OPEN_ENDED.getCode(), "F");
@@ -333,22 +334,22 @@ public class ISRReportService extends BaseReportGenerationService {
     assessmentNMF10.setAssessmentCode(assessmentSummary.getAssessmentCode());
     
     var planDesign = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, MUL_CHOICE.getCode(), "P");
-    assessmentNMF10.setMultiChoicePlanningScore(planDesign.getLeft());
+    assessmentNMF10.setMultiChoicePlanningScore(planDesign.getLeft().replace(".", ","));
     assessmentNMF10.setMultiChoicePlanningOutOf(planDesign.getRight());
     var reasonedEstimates = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, MUL_CHOICE.getCode(), "R");
-    assessmentNMF10.setMultiChoiceEstimationsScore(reasonedEstimates.getLeft());
+    assessmentNMF10.setMultiChoiceEstimationsScore(reasonedEstimates.getLeft().replace(".", ","));
     assessmentNMF10.setMultiChoiceEstimationsOutOf(reasonedEstimates.getRight());
     var fairShare = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, MUL_CHOICE.getCode(), "F");
-    assessmentNMF10.setMultiChoiceGroupingScore(fairShare.getLeft());
+    assessmentNMF10.setMultiChoiceGroupingScore(fairShare.getLeft().replace(".", ","));
     assessmentNMF10.setMultiChoiceGroupingOutOf(fairShare.getRight());
     var model = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, MUL_CHOICE.getCode(), "M");
-    assessmentNMF10.setMultiChoiceModelScore(model.getLeft());
+    assessmentNMF10.setMultiChoiceModelScore(model.getLeft().replace(".", ","));
     assessmentNMF10.setMultiChoiceModelOutOf(model.getRight());
     var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, OPEN_ENDED.getCode(), "F");
-    assessmentNMF10.setWrittenGroupingScore(writtenFairShare.getLeft());
+    assessmentNMF10.setWrittenGroupingScore(writtenFairShare.getLeft().replace(".", ","));
     assessmentNMF10.setWrittenGroupingOutOf(writtenFairShare.getRight());
     var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(questions, studentAnswers, OPEN_ENDED.getCode(), "R");
-    assessmentNMF10.setWrittenPlanningScore(writtenReasoned.getLeft());
+    assessmentNMF10.setWrittenPlanningScore(writtenReasoned.getLeft().replace(".", ","));
     assessmentNMF10.setWrittenPlanningOutOf(writtenReasoned.getRight());
 
     return assessmentNMF10;
@@ -422,37 +423,37 @@ public class ISRReportService extends BaseReportGenerationService {
     assessmentLTP12.setAssessmentCode(assessmentSummary.getAssessmentCode());
 
     var comprehend = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, MUL_CHOICE.getCode(), "C");
-    assessmentLTP12.setComprehendScore(comprehend.getLeft());
+    assessmentLTP12.setComprehendScore(comprehend.getLeft().replace(".", ","));
     assessmentLTP12.setComprehendOutOf(comprehend.getRight());
     var communicate = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, OPEN_ENDED.getCode(), "W");
-    assessmentLTP12.setCommunicateScore(communicate.getLeft());
+    assessmentLTP12.setCommunicateScore(communicate.getLeft().replace(".", ","));
     assessmentLTP12.setCommunicateOutOf(communicate.getRight());
     var communicateOral = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O");
-    assessmentLTP12.setCommunicateOralScore(communicateOral.getLeft());
+    assessmentLTP12.setCommunicateOralScore(communicateOral.getLeft().replace(".", ","));
     assessmentLTP12.setCommunicateOralOutOf(communicateOral.getRight());
     var partASelectedResponse = getResultSummaryForQuestionsWithAssessmentSectionStartsWith(questions, studentAnswers, MUL_CHOICE.getCode(), "A");
-    assessmentLTP12.setPartASelectedResponseScore(partASelectedResponse.getLeft());
+    assessmentLTP12.setPartASelectedResponseScore(partASelectedResponse.getLeft().replace(".", ","));
     assessmentLTP12.setPartASelectedResponseOutOf(partASelectedResponse.getRight());
     var partAWritten = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "GO");
-    assessmentLTP12.setPartAWrittenResponseGraphicScore(partAWritten.getLeft());
+    assessmentLTP12.setPartAWrittenResponseGraphicScore(partAWritten.getLeft().replace(".", ","));
     assessmentLTP12.setPartAWrittenResponseGraphicOutOf(partAWritten.getRight());
     var partAWrittenUnderstanding = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRA");
-    assessmentLTP12.setPartAWrittenResponseUnderstandingScore(partAWrittenUnderstanding.getLeft());
+    assessmentLTP12.setPartAWrittenResponseUnderstandingScore(partAWrittenUnderstanding.getLeft().replace(".", ","));
     assessmentLTP12.setPartAWrittenResponseUnderstandingOutOf(partAWrittenUnderstanding.getRight());
     var partBSelectedResponse = getResultSummaryForQuestionsWithAssessmentSectionStartsWith(questions, studentAnswers, MUL_CHOICE.getCode(), "B");
-    assessmentLTP12.setPartBSelectedResponseScore(partBSelectedResponse.getLeft());
+    assessmentLTP12.setPartBSelectedResponseScore(partBSelectedResponse.getLeft().replace(".", ","));
     assessmentLTP12.setPartBSelectedResponseOutOf(partBSelectedResponse.getRight());
     var partBWrittenResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRB");
-    assessmentLTP12.setPartBWrittenResponseUnderstandingScore(partBWrittenResponse.getLeft());
+    assessmentLTP12.setPartBWrittenResponseUnderstandingScore(partBWrittenResponse.getLeft().replace(".", ","));
     assessmentLTP12.setPartBWrittenResponseUnderstandingOutOf(partBWrittenResponse.getRight());
-    var partCOralResponsePart1Response = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "01");
-    assessmentLTP12.setPartCOralResponsePart1Score(partCOralResponsePart1Response.getLeft());
+    var partCOralResponsePart1Response = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O1");
+    assessmentLTP12.setPartCOralResponsePart1Score(partCOralResponsePart1Response.getLeft().replace(".", ","));
     assessmentLTP12.setPartCOralResponsePart1OutOf(partCOralResponsePart1Response.getRight());
-    var partCOralResponsePart2Response = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "02");
-    assessmentLTP12.setPartCOralResponsePart2Score(partCOralResponsePart2Response.getLeft());
+    var partCOralResponsePart2Response = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O2");
+    assessmentLTP12.setPartCOralResponsePart2Score(partCOralResponsePart2Response.getLeft().replace(".", ","));
     assessmentLTP12.setPartCOralResponsePart2OutOf(partCOralResponsePart2Response.getRight());
-    var partCOralResponsePart3ScoreResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "03");
-    assessmentLTP12.setPartCOralResponsePart3Score(partCOralResponsePart3ScoreResponse.getLeft());
+    var partCOralResponsePart3ScoreResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O3");
+    assessmentLTP12.setPartCOralResponsePart3Score(partCOralResponsePart3ScoreResponse.getLeft().replace(".", ","));
     assessmentLTP12.setPartCOralResponsePart3OutOf(partCOralResponsePart3ScoreResponse.getRight());
     
     return assessmentLTP12;
@@ -466,40 +467,40 @@ public class ISRReportService extends BaseReportGenerationService {
     assessmentLTP10.setAssessmentCode(assessmentSummary.getAssessmentCode());
 
     var comprehend = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, MUL_CHOICE.getCode(), "C");
-    assessmentLTP10.setComprehendScore(comprehend.getLeft());
+    assessmentLTP10.setComprehendScore(comprehend.getLeft().replace(".", ","));
     assessmentLTP10.setComprehendOutOf(comprehend.getRight());
     var communicate = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, OPEN_ENDED.getCode(), "W");
-    assessmentLTP10.setCommunicateScore(communicate.getLeft());
+    assessmentLTP10.setCommunicateScore(communicate.getLeft().replace(".", ","));
     assessmentLTP10.setCommunicateOutOf(communicate.getRight());
     var communicateOral = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O");
-    assessmentLTP10.setCommunicateOralScore(communicateOral.getLeft());
+    assessmentLTP10.setCommunicateOralScore(communicateOral.getLeft().replace(".", ","));
     assessmentLTP10.setCommunicateOralOutOf(communicateOral.getRight());
     var partASelectedResponse = getResultSummaryForQuestionsWithAssessmentSectionStartsWith(questions, studentAnswers, MUL_CHOICE.getCode(), "A");
-    assessmentLTP10.setPartASelectedResponseScore(partASelectedResponse.getLeft());
+    assessmentLTP10.setPartASelectedResponseScore(partASelectedResponse.getLeft().replace(".", ","));
     assessmentLTP10.setPartASelectedResponseOutOf(partASelectedResponse.getRight());
     var partAWrittenShort = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRS");
-    assessmentLTP10.setPartAWrittenShortScore(partAWrittenShort.getLeft());
+    assessmentLTP10.setPartAWrittenShortScore(partAWrittenShort.getLeft().replace(".", ","));
     assessmentLTP10.setPartAWrittenShortOutOf(partAWrittenShort.getRight());
     var partAWrittenGraphic = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "GO");
-    assessmentLTP10.setPartAWrittenGraphicScore(partAWrittenGraphic.getLeft());
+    assessmentLTP10.setPartAWrittenGraphicScore(partAWrittenGraphic.getLeft().replace(".", ","));
     assessmentLTP10.setPartAWrittenGraphicOutOf(partAWrittenGraphic.getRight());
     var partAWrittenLong = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRA");
-    assessmentLTP10.setPartAWrittenLongScore(partAWrittenLong.getLeft());
+    assessmentLTP10.setPartAWrittenLongScore(partAWrittenLong.getLeft().replace(".", ","));
     assessmentLTP10.setPartAWrittenLongOutOf(partAWrittenLong.getRight());
     var partBSelectedResponse = getResultSummaryForQuestionsWithAssessmentSectionStartsWith(questions, studentAnswers, MUL_CHOICE.getCode(), "B");
-    assessmentLTP10.setPartBSelectedResponseScore(partBSelectedResponse.getLeft());
+    assessmentLTP10.setPartBSelectedResponseScore(partBSelectedResponse.getLeft().replace(".", ","));
     assessmentLTP10.setPartBSelectedResponseOutOf(partBSelectedResponse.getRight());
     var partBWrittenShort = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRB");
-    assessmentLTP10.setPartBWrittenShortScore(partBWrittenShort.getLeft());
+    assessmentLTP10.setPartBWrittenShortScore(partBWrittenShort.getLeft().replace(".", ","));
     assessmentLTP10.setPartBWrittenShortOutOf(partBWrittenShort.getRight());
     var partOralPart1 = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "01");
-    assessmentLTP10.setPartOralPart1Score(partOralPart1.getLeft());
+    assessmentLTP10.setPartOralPart1Score(partOralPart1.getLeft().replace(".", ","));
     assessmentLTP10.setPartOralPart1OutOf(partOralPart1.getRight());
     var partOralPart2 = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "02");
-    assessmentLTP10.setPartOralPart1Score(partOralPart2.getLeft());
+    assessmentLTP10.setPartOralPart1Score(partOralPart2.getLeft().replace(".", ","));
     assessmentLTP10.setPartOralPart1OutOf(partOralPart2.getRight());
     var partOralPart3 = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "03");
-    assessmentLTP10.setPartOralPart1Score(partOralPart3.getLeft());
+    assessmentLTP10.setPartOralPart1Score(partOralPart3.getLeft().replace(".", ","));
     assessmentLTP10.setPartOralPart1OutOf(partOralPart3.getRight());
 
     return assessmentLTP10;
@@ -513,61 +514,65 @@ public class ISRReportService extends BaseReportGenerationService {
     assessmentLTF12.setAssessmentCode(assessmentSummary.getAssessmentCode());
 
     var comprehend = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, MUL_CHOICE.getCode(), "C");
-    assessmentLTF12.setComprehendScore(comprehend.getLeft());
+    assessmentLTF12.setComprehendScore(comprehend.getLeft().replace(".", ","));
     assessmentLTF12.setComprehendOutOf(comprehend.getRight());
     var communicate = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, OPEN_ENDED.getCode(), "W");
-    assessmentLTF12.setCommunicateScore(communicate.getLeft());
+    assessmentLTF12.setCommunicateScore(communicate.getLeft().replace(".", ","));
     assessmentLTF12.setCommunicateOutOf(communicate.getRight());
     var communicateOral = getResultSummaryForQuestionsWithClaimCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O");
-    assessmentLTF12.setCommunicateOralScore(communicateOral.getLeft());
+    assessmentLTF12.setCommunicateOralScore(communicateOral.getLeft().replace(".", ","));
     assessmentLTF12.setCommunicateOralOutOf(communicateOral.getRight());
     var partASelectedResponse = getResultSummaryForQuestionsWithAssessmentSectionStartsWith(questions, studentAnswers, MUL_CHOICE.getCode(), "A");
-    assessmentLTF12.setPartASelectedResponseScore(partASelectedResponse.getLeft());
+    assessmentLTF12.setPartASelectedResponseScore(partASelectedResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartASelectedResponseOutOf(partASelectedResponse.getRight());
     var partBSelectedResponse = getResultSummaryForQuestionsWithAssessmentSectionStartsWith(questions, studentAnswers, MUL_CHOICE.getCode(), "B");
-    assessmentLTF12.setPartBSelectedResponseScore(partBSelectedResponse.getLeft());
+    assessmentLTF12.setPartBSelectedResponseScore(partBSelectedResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartBSelectedResponseOutOf(partBSelectedResponse.getRight());
     var partBWrittenAnalyzeResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRS");
-    assessmentLTF12.setPartBWrittenResponseAnalyzeScore(partBWrittenAnalyzeResponse.getLeft());
+    assessmentLTF12.setPartBWrittenResponseAnalyzeScore(partBWrittenAnalyzeResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartBWrittenResponseAnalyzeOutOf(partBWrittenAnalyzeResponse.getRight());
 
     var partBWrittenResponseDissertationFoundationResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRD");
-    assessmentLTF12.setPartBWrittenResponseDissertationFoundationScore(partBWrittenResponseDissertationFoundationResponse.getLeft());
+    assessmentLTF12.setPartBWrittenResponseDissertationFoundationScore(partBWrittenResponseDissertationFoundationResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartBWrittenResponseDissertationFoundationOutOf(partBWrittenResponseDissertationFoundationResponse.getRight());
 
     var partBWrittenResponseDissertationFormResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRF");
-    assessmentLTF12.setPartBWrittenResponseDissertationFormScore(partBWrittenResponseDissertationFormResponse.getLeft());
+    assessmentLTF12.setPartBWrittenResponseDissertationFormScore(partBWrittenResponseDissertationFormResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartBWrittenResponseDissertationFormOutOf(partBWrittenResponseDissertationFormResponse.getRight());
 
-//    var partBChoicePathResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRB");
-//    assessmentLTF12.setPartBWrittenResponseDissertationFoundationScore(partBChoicePathResponse.getLeft());
-//    assessmentLTF12.setPartBWrittenResponseDissertationFoundationOutOf(partBChoicePathResponse.getRight());
+    var partBChoicePathResponse = getPartBChoicePath();
+    assessmentLTF12.setPartBChoicePath(partBChoicePathResponse);
 
-    var partCOralResponsePart1FoundationResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRB");
-    assessmentLTF12.setPartCOralResponsePart1FoundationScore(partCOralResponsePart1FoundationResponse.getLeft());
+    var partCOralResponsePart1FoundationResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O1D");
+    assessmentLTF12.setPartCOralResponsePart1FoundationScore(partCOralResponsePart1FoundationResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartCOralResponsePart1FoundationOutOf(partCOralResponsePart1FoundationResponse.getRight());
 
-    var partCOralResponsePart1FormResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRB");
-    assessmentLTF12.setPartCOralResponsePart1FormScore(partCOralResponsePart1FormResponse.getLeft());
+    var partCOralResponsePart1FormResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O1F");
+    assessmentLTF12.setPartCOralResponsePart1FormScore(partCOralResponsePart1FormResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartCOralResponsePart1FormOutOf(partCOralResponsePart1FormResponse.getRight());
 
-    var partCOralResponsePart1OralResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRB");
-    assessmentLTF12.setPartCOralResponsePart1OralScore(partCOralResponsePart1OralResponse.getLeft());
+    var partCOralResponsePart1OralResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O1E");
+    assessmentLTF12.setPartCOralResponsePart1OralScore(partCOralResponsePart1OralResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartCOralResponsePart1OralOutOf(partCOralResponsePart1OralResponse.getRight());
 
-    var partCOralResponsePart2DiscourseFoundationResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRB");
-    assessmentLTF12.setPartCOralResponsePart2DiscourseFoundationScore(partCOralResponsePart2DiscourseFoundationResponse.getLeft());
+    var partCOralResponsePart2DiscourseFoundationResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O2D");
+    assessmentLTF12.setPartCOralResponsePart2DiscourseFoundationScore(partCOralResponsePart2DiscourseFoundationResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartCOralResponsePart2DiscourseFoundationOutOf(partCOralResponsePart2DiscourseFoundationResponse.getRight());
 
-    var partCOralResponsePart2DiscourseFormResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRB");
-    assessmentLTF12.setPartCOralResponsePart2DiscourseFormScore(partCOralResponsePart2DiscourseFormResponse.getLeft());
+    var partCOralResponsePart2DiscourseFormResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O2F");
+    assessmentLTF12.setPartCOralResponsePart2DiscourseFormScore(partCOralResponsePart2DiscourseFormResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartCOralResponsePart2DiscourseFormOutOf(partCOralResponsePart2DiscourseFormResponse.getRight());
 
-    var partCOralResponsePart2DiscourseOralResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "WRB");
-    assessmentLTF12.setPartCOralResponsePart2DiscourseOralScore(partCOralResponsePart2DiscourseOralResponse.getLeft());
+    var partCOralResponsePart2DiscourseOralResponse = getResultSummaryForQuestionsWithConceptsCode(questions, studentAnswers, OPEN_ENDED.getCode(), "O2E");
+    assessmentLTF12.setPartCOralResponsePart2DiscourseOralScore(partCOralResponsePart2DiscourseOralResponse.getLeft().replace(".", ","));
     assessmentLTF12.setPartCOralResponsePart2DiscourseOralOutOf(partCOralResponsePart2DiscourseOralResponse.getRight());
     
     return assessmentLTF12;
+  }
+
+  private String getPartBChoicePath(){
+    
+    return "le monde de l'expression";
   }
   
   private String getProficiencyScore(Integer proficiencyScore, LanguageCode language){
