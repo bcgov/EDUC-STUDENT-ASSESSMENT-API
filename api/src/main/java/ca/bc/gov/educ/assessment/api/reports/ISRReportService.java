@@ -259,8 +259,8 @@ public class ISRReportService extends BaseReportGenerationService {
         totalScore = totalScore.add(answer.getScore().multiply(new BigDecimal(question.get().getScaleFactor()/100)));
       }
     }
-    
-    int totalOutOf = 0;
+
+    BigDecimal totalOutOf = new BigDecimal(0);
 
     for (AssessmentQuestionEntity question : filteredQuestions) {
       if (questionType.equalsIgnoreCase(MUL_CHOICE.getCode())) {
@@ -269,14 +269,14 @@ public class ISRReportService extends BaseReportGenerationService {
           choicePathToIgnore = choicePathToIgnore(choicePath);  
         }
         if(StringUtils.isBlank(choicePathToIgnore) || !question.getTaskCode().equalsIgnoreCase(choicePathToIgnore)) {
-          totalOutOf = totalOutOf + (question.getQuestionValue().intValue() * (question.getScaleFactor() / 100));
+          totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
         }
       } else if (question.getQuestionNumber().equals(question.getMasterQuestionNumber())) {
-        totalOutOf = totalOutOf + (question.getQuestionValue().intValue() * (question.getScaleFactor() / 100));
+        totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
       }
     }
 
-    return Pair.of(totalScore.toString(), totalOutOf + "");
+    return Pair.of(totalScore.toString(), totalOutOf.toString());
   }
   
   private String getChoicePath(List<AssessmentQuestionEntity> filteredQuestions, UUID assessmentStudentID){
