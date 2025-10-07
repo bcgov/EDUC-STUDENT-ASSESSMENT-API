@@ -1,13 +1,24 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
+import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
+import ca.bc.gov.educ.assessment.api.constants.EventType;
+import ca.bc.gov.educ.assessment.api.constants.TopicsEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
+import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentResultMapper;
+import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
+import ca.bc.gov.educ.assessment.api.struct.Event;
+import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
+import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
+import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.nimbusds.jose.util.Pair;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,14 +40,50 @@ public class TransferStudentOrchestrationService {
 
     @Getter(AccessLevel.PRIVATE)
     private final AssessmentEventRepository assessmentEventRepository;
+    private final MessagePublisher messagePublisher;
+    private static final String EVENT_EMPTY_MSG = "Event String is empty, skipping the publish to topic :: {}";
 
-    public TransferStudentOrchestrationService(AssessmentStudentService assessmentStudentService, SagaService sagaService, AssessmentSessionRepository assessmentSessionRepository, AssessmentEventRepository assessmentEventRepository) {
+    public TransferStudentOrchestrationService(AssessmentStudentService assessmentStudentService, SagaService sagaService, AssessmentSessionRepository assessmentSessionRepository, AssessmentEventRepository assessmentEventRepository, MessagePublisher messagePublisher) {
         this.assessmentStudentService = assessmentStudentService;
         this.sagaService = sagaService;
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentEventRepository = assessmentEventRepository;
+        this.messagePublisher = messagePublisher;
     }
 
+    @Async("publisherExecutor")
+    @Transactional
+    public void prepareAndSendStudentsForFurtherProcessing(final List <StagedAssessmentStudentEntity> transferStudents) {
+        final List<TransferOnApprovalSagaData> transferSaga = transferStudents.stream()
+                .map(el -> {
+                    var transferOnApprovalStudent = TransferOnApprovalSagaData.builder()
+                            .stagedStudentAssessmentID(String.valueOf(el.getAssessmentStudentID()))
+                            .studentID(String.valueOf(el.getStudentID()))
+                            .assessmentID(String.valueOf(el.getAssessmentEntity().getAssessmentID()))
+                            .build();
+                    return transferOnApprovalStudent;
+                }).toList();
+        this.publishUnprocessedStudentRecordsForProcessing(transferSaga);
+    }
+
+    public void publishUnprocessedStudentRecordsForProcessing(final List<TransferOnApprovalSagaData> transferSaga) {
+        transferSaga.forEach(this::sendIndividualStudentAsMessageToTopic);
+    }
+
+    private void sendIndividualStudentAsMessageToTopic(final TransferOnApprovalSagaData transferSaga) {
+        final var eventPayload = JsonUtil.getJsonString(transferSaga);
+        if (eventPayload.isPresent()) {
+            final Event event = Event.builder().eventType(EventType.TRANSFER_STUDENT_RESULT).eventOutcome(EventOutcome.READ_TRANSFER_STUDENT_RESULT_SUCCESS).eventPayload(eventPayload.get()).assessmentStudentID(String.valueOf(transferSaga.getStagedStudentAssessmentID())).build();
+            final var eventString = JsonUtil.getJsonString(event);
+            if (eventString.isPresent()) {
+                this.messagePublisher.dispatchMessage(TopicsEnum.READ_TRANSFER_STUDENT_TOPIC.toString(), eventString.get().getBytes());
+            } else {
+                log.error(EVENT_EMPTY_MSG, transferSaga);
+            }
+        } else {
+            log.error(EVENT_EMPTY_MSG, transferSaga);
+        }
+    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<List<AssessmentEventEntity>, List<UUID>> getStudentRegistrationEvents(UUID studentID) {
@@ -65,7 +112,7 @@ public class TransferStudentOrchestrationService {
             }
         }
         finally {
-//            assessmentStudentService.deleteStagedStudent(stagedStudent);
+            assessmentStudentService.deleteStagedStudent(stagedStudent);
         }
     }
 

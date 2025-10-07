@@ -50,13 +50,6 @@ public class AsyncConfiguration {
             .setCorePoolSize(5).setMaximumPoolSize(10).setKeepAliveTime(Duration.ofSeconds(60)).build();
   }
 
-  @Bean(name = "processTransferStudentsTaskExecutor")
-  public Executor processTransferSagasTaskExecutor() {
-    return new EnhancedQueueExecutor.Builder()
-            .setThreadFactory(new ThreadFactoryBuilder().withNameFormat("async-transfer-saga-executor-%d").get())
-            .setCorePoolSize(5).setMaximumPoolSize(10).setKeepAliveTime(Duration.ofSeconds(60)).build();
-  }
-
   @Bean(name = "findSchoolCollectionsForSubmissionTaskExecutor")
   public Executor findSchoolCollectionsForSubmissionTaskExecutor() {
     return new EnhancedQueueExecutor.Builder()

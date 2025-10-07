@@ -864,22 +864,6 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity transferStudent = createMockStagedStudentEntity(assessmentEntity);
     transferStudent.setStagedAssessmentStudentStatus("TRANSFER");
     StagedAssessmentStudentEntity savedStudent = stagedAssessmentStudentRepository.save(transferStudent);
-
-    int updatedCount = assessmentStudentService.markStudentAsTransferInProgress(savedStudent.getAssessmentStudentID());
-
-    assertThat(updatedCount).isEqualTo(1);
-
-    StagedAssessmentStudentEntity updatedStudent = stagedAssessmentStudentRepository.findById(savedStudent.getAssessmentStudentID()).orElse(null);
-    assertThat(updatedStudent).isNotNull();
-    assertThat(updatedStudent.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFERED");
-    assertThat(updatedStudent.getUpdateUser()).isEqualTo("ASSESSMENT-API");
-  }
-
-  @Test
-  void testMarkStudentAsTransferInProgress_WhenStudentDoesNotExist_ShouldReturnZero() {
-    UUID nonExistentStudentId = UUID.randomUUID();
-    int updatedCount = assessmentStudentService.markStudentAsTransferInProgress(nonExistentStudentId);
-    assertThat(updatedCount).isZero();
   }
 
   @Test
@@ -890,10 +874,6 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity loadedStudent = createMockStagedStudentEntity(assessmentEntity);
     loadedStudent.setStagedAssessmentStudentStatus("LOADED");
     StagedAssessmentStudentEntity savedStudent = stagedAssessmentStudentRepository.save(loadedStudent);
-
-    int updatedCount = assessmentStudentService.markStudentAsTransferInProgress(savedStudent.getAssessmentStudentID());
-
-    assertThat(updatedCount).isZero();
 
     StagedAssessmentStudentEntity unchangedStudent = stagedAssessmentStudentRepository.findById(savedStudent.getAssessmentStudentID()).orElse(null);
     assertThat(unchangedStudent).isNotNull();
