@@ -7,6 +7,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -48,4 +50,16 @@ public class AssessmentStudentChoiceEntity {
     @PastOrPresent
     @Column(name = "UPDATE_DATE", nullable = false)
     private LocalDateTime updateDate;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "assessmentStudentChoiceEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = AssessmentStudentChoiceQuestionSetEntity.class)
+    Set<AssessmentStudentChoiceQuestionSetEntity> assessmentStudentChoiceQuestionSetEntities;
+
+    public Set<AssessmentStudentChoiceQuestionSetEntity> getAssessmentStudentChoiceQuestionSetEntities() {
+        if (this.assessmentStudentChoiceQuestionSetEntities == null) {
+            this.assessmentStudentChoiceQuestionSetEntities = new HashSet<>();
+        }
+        return this.assessmentStudentChoiceQuestionSetEntities;
+    }
 }

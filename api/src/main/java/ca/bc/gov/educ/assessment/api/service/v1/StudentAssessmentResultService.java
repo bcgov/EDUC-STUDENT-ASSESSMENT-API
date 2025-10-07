@@ -315,9 +315,10 @@ public class StudentAssessmentResultService {
                         //Value in 4 chars is the question number
                         var questionNumber = getQuestionNumberFromString(openEndedMark);
                         //Pull the number of rows that have this question number in this component
-                        answerForChoiceCounter = component.getAssessmentQuestionEntities().stream()
+                        var questionSelected = component.getAssessmentQuestionEntities().stream()
                                 .filter(q -> q.getQuestionNumber().equals(questionNumber))
-                                .toList().size();
+                                .toList();
+                        answerForChoiceCounter = questionSelected.size();
                         //Based on number of rows returned, we know how many answers are coming
                         //Item numbers are sequential, while skipping the choice records
                         choiceQuestionNumber = questionNumber;
@@ -330,6 +331,17 @@ public class StudentAssessmentResultService {
                             choice.setCreateDate(LocalDateTime.now());
                             choice.setUpdateUser(studentResult.getUpdateUser());
                             choice.setUpdateDate(LocalDateTime.now());
+
+                            questionSelected.forEach(ques -> {
+                                var questionSet = new StagedAssessmentStudentChoiceQuestionSetEntity();
+                                questionSet.setAssessmentQuestionEntity(ques);
+                                questionSet.setStagedAssessmentStudentChoiceEntity(choice);
+                                questionSet.setCreateUser(studentResult.getCreateUser());
+                                questionSet.setCreateDate(LocalDateTime.now());
+                                questionSet.setUpdateUser(studentResult.getUpdateUser());
+                                questionSet.setUpdateDate(LocalDateTime.now());
+                                choice.getStagedAssessmentStudentChoiceQuestionSetEntities().add(questionSet);
+                            });
                             studentComponent.getStagedAssessmentStudentChoiceEntities().add(choice);
                         }
                     } else {
@@ -421,7 +433,6 @@ public class StudentAssessmentResultService {
             int answerForChoiceCounter = 0;
             int choiceQuestionNumber = 0;
             for(var openEndedMark: openEndedMarks){
-                if(StringUtils.isNotBlank(openEndedMark) && !openEndedMark.equalsIgnoreCase("9999")) {
                     Optional<AssessmentQuestionEntity> question;
                     var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
                     question = component.getAssessmentQuestionEntities().stream()
@@ -434,14 +445,16 @@ public class StudentAssessmentResultService {
                         answerForChoiceCounter--;
                     }
 
+                if(StringUtils.isNotBlank(openEndedMark) && !openEndedMark.equalsIgnoreCase("9999")) {
                     if(question.isEmpty()){
                         //It's a choice!
                         //Value in 4 chars is the question number
                         var questionNumber = getQuestionNumberFromString(openEndedMark);
                         //Pull the number of rows that have this question number in this component
-                        answerForChoiceCounter = component.getAssessmentQuestionEntities().stream()
+                        var questionSelected = component.getAssessmentQuestionEntities().stream()
                                 .filter(q -> q.getQuestionNumber().equals(questionNumber))
-                                .toList().size();
+                                .toList();
+                        answerForChoiceCounter = questionSelected.size();
                         //Based on number of rows returned, we know how many answers are coming
                         //Item numbers are sequential, while skipping the choice records
                         choiceQuestionNumber = questionNumber;
@@ -454,6 +467,17 @@ public class StudentAssessmentResultService {
                             choice.setCreateDate(LocalDateTime.now());
                             choice.setUpdateUser(fileUpload.getUpdateUser());
                             choice.setUpdateDate(LocalDateTime.now());
+
+                            questionSelected.forEach(ques -> {
+                                var questionSet = new AssessmentStudentChoiceQuestionSetEntity();
+                                questionSet.setAssessmentQuestionEntity(ques);
+                                questionSet.setAssessmentStudentChoiceEntity(choice);
+                                questionSet.setCreateUser(fileUpload.getCreateUser());
+                                questionSet.setCreateDate(LocalDateTime.now());
+                                questionSet.setUpdateUser(fileUpload.getUpdateUser());
+                                questionSet.setUpdateDate(LocalDateTime.now());
+                                choice.getAssessmentStudentChoiceQuestionSetEntities().add(questionSet);
+                            });
                             studentComponent.getAssessmentStudentChoiceEntities().add(choice);
                         }
                     } else {
