@@ -606,7 +606,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="189" y="85" width="1" height="218" forecolor="#BFBFBF" uuid="e72b1662-351a-452c-a5a0-0895757fee20">
+				<reportElement x="180" y="85" width="1" height="218" forecolor="#BFBFBF" uuid="e72b1662-351a-452c-a5a0-0895757fee20">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
