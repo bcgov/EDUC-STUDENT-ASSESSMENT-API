@@ -57,13 +57,4 @@ public class EventTaskScheduler {
         LockAssert.assertLocked();
         this.getTaskSchedulerAsyncService().purgeCompletedResultsFromStaging();
     }
-
-    @Scheduled(cron = "${scheduled.jobs.process.transfer.students.cron}")
-    @SchedulerLock(name = "PROCESS_TRANSFER_STUDENTS", lockAtLeastFor = "${scheduled.jobs.process.transfer.students.cron.lockAtLeastFor}", lockAtMostFor = "${scheduled.jobs.process.transfer.students.cron.lockAtMostFor}")
-    public void processTransferStudents() {
-        LockAssert.assertLocked();
-        log.debug("Started processTransferStudents scheduler");
-        this.getTaskSchedulerAsyncService().findAndProcessTransferStudents();
-        log.debug("Scheduler processTransferStudents complete");
-    }
 }

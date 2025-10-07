@@ -4,25 +4,21 @@ import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
-import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.StudentResultProcessingOrchestrator;
+import ca.bc.gov.educ.assessment.api.orchestrator.TransferStudentProcessingOrchestrator;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
-import ca.bc.gov.educ.assessment.api.service.v1.AssessmentService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentDetailResponse;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentGet;
-import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
+import ca.bc.gov.educ.assessment.api.struct.v1.*;
 import ca.bc.gov.educ.assessment.api.util.EventUtil;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import ca.bc.gov.educ.assessment.api.util.RequestUtil;
@@ -38,7 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -72,9 +67,9 @@ public class EventHandlerService {
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentEventRepository assessmentEventRepository;
     private final AssessmentStudentService assessmentStudentService;
-    private final AssessmentService assessmentService;
     private final SagaService sagaService;
     private final StudentResultProcessingOrchestrator studentResultProcessingOrchestrator;
+    private final TransferStudentProcessingOrchestrator transferStudentProcessingOrchestrator;
     private final AssessmentStudentRepository assessmentStudentRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -213,6 +208,25 @@ public class EventHandlerService {
                             UUID.fromString(sagaData.getStudentResult().getStagedStudentResultID()));
             log.debug("Starting course student processing orchestrator :: {}", saga);
             this.studentResultProcessingOrchestrator.startSaga(saga);
+        }
+    }
+
+    @Transactional(propagation = REQUIRES_NEW)
+    public void handleProcessTransferStudentResultEvent(final Event event) throws JsonProcessingException {
+        if (event.getEventOutcome() == EventOutcome.READ_TRANSFER_STUDENT_RESULT_SUCCESS) {
+            final TransferOnApprovalSagaData sagaData = JsonUtil.getJsonObjectFromString(TransferOnApprovalSagaData.class, event.getEventPayload());
+            final var sagaList = sagaService.findByAssessmentStudentIDAndSagaNameAndStatusNot(UUID.fromString(sagaData.getStagedStudentAssessmentID()), SagaEnum.PROCESS_STUDENT_TRANSFER.toString(), SagaStatusEnum.COMPLETED.toString());
+            if (sagaList.isPresent()) { // possible duplicate message.
+                log.trace(NO_EXECUTION_MSG, event);
+                return;
+            }
+            val saga = this.transferStudentProcessingOrchestrator
+                    .createSaga(event.getEventPayload(),
+                            ApplicationProperties.STUDENT_ASSESSMENT_API,
+                            null,
+                            UUID.fromString(sagaData.getStagedStudentAssessmentID()));
+            log.debug("Starting transfer student processing orchestrator :: {}", saga);
+            this.transferStudentProcessingOrchestrator.startSaga(saga);
         }
     }
 

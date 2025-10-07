@@ -40,16 +40,6 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
             s.updateDate = :updateDate""")
     int updateAllStagedAssessmentStudentStatus(String status, String updateUser, LocalDateTime updateDate);
 
-    @Modifying
-    @Query("""
-        UPDATE StagedAssessmentStudentEntity s 
-        SET s.stagedAssessmentStudentStatus = :newStatus, 
-            s.updateUser = :updateUser, 
-            s.updateDate = :updateDate 
-        WHERE s.stagedAssessmentStudentStatus = :currentStatus 
-        AND s.assessmentStudentID IN :studentIds""")
-    int updateStagedAssessmentStudentStatusByIds(List<UUID> studentIds, String currentStatus, String newStatus, String updateUser, LocalDateTime updateDate);
-
     @Query(value = """
         SELECT s
         FROM StagedAssessmentStudentEntity s 

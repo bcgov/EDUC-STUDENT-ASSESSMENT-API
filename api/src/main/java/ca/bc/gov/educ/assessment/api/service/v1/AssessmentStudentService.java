@@ -327,24 +327,6 @@ public class AssessmentStudentService {
         return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("TRANSFER", pageable);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public int markStudentAsTransferInProgress(UUID studentId) {
-        log.debug("Marking student {} as TRANSFERED", studentId);
-
-        LocalDateTime updateTime = LocalDateTime.now();
-        List<UUID> studentIds = List.of(studentId);
-        int updatedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusByIds(
-            studentIds,
-            "TRANSFER",
-            "TRANSFERED",
-            "ASSESSMENT-API",
-            updateTime
-        );
-
-        log.debug("Successfully marked student {} as TRANSFERIN (updated: {})", studentId, updatedCount);
-        return updatedCount;
-    }
-
     public StagedAssessmentStudentEntity getStagedStudentById(UUID stagedStudentId) {
         return stagedAssessmentStudentRepository.findById(stagedStudentId).orElseThrow(() ->
                 new EntityNotFoundException(StagedAssessmentStudentEntity.class, "stagedStudentId", stagedStudentId.toString())

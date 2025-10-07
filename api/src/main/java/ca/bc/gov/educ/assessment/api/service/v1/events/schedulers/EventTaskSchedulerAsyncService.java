@@ -13,6 +13,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.StagedStudentResultRepository
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SessionService;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
+import ca.bc.gov.educ.assessment.api.service.v1.TransferStudentOrchestrationService;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
 import lombok.Getter;
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 import static lombok.AccessLevel.PRIVATE;
@@ -58,7 +58,7 @@ public class EventTaskSchedulerAsyncService {
 
     private final StagedStudentResultRepository stagedStudentResultRepository;
     private final StudentAssessmentResultService studentAssessmentResultService;
-    private final TransferStudentProcessingOrchestrator transferStudentProcessingOrchestrator;
+    private final TransferStudentOrchestrationService transferStudentOrchestrationService;
 
     @Value("${number.students.process.saga}")
     private String numberOfStudentsToProcess;
@@ -67,7 +67,7 @@ public class EventTaskSchedulerAsyncService {
     @Setter
     private List<String> statusFilters;
 
-    public EventTaskSchedulerAsyncService(final List<Orchestrator> orchestrators, SagaRepository sagaRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentService assessmentStudentService, SessionService sessionService, StagedStudentResultRepository stagedStudentResultRepository, StudentAssessmentResultService studentAssessmentResultService, TransferStudentProcessingOrchestrator transferStudentProcessingOrchestrator) {
+    public EventTaskSchedulerAsyncService(final List<Orchestrator> orchestrators, SagaRepository sagaRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentService assessmentStudentService, SessionService sessionService, StagedStudentResultRepository stagedStudentResultRepository, StudentAssessmentResultService studentAssessmentResultService, TransferStudentOrchestrationService transferStudentOrchestrationService) {
         this.sagaRepository = sagaRepository;
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentSessionRepository = assessmentSessionRepository;
@@ -75,7 +75,7 @@ public class EventTaskSchedulerAsyncService {
         this.sessionService = sessionService;
         this.stagedStudentResultRepository = stagedStudentResultRepository;
         this.studentAssessmentResultService = studentAssessmentResultService;
-        this.transferStudentProcessingOrchestrator = transferStudentProcessingOrchestrator;
+        this.transferStudentOrchestrationService = transferStudentOrchestrationService;
         orchestrators.forEach(orchestrator -> this.sagaOrchestrators.put(orchestrator.getSagaName(), orchestrator));
     }
 
@@ -115,7 +115,14 @@ public class EventTaskSchedulerAsyncService {
         final var entities = stagedStudentResultRepository.findTopLoadedStudentForProcessing(numberOfStudentsToProcess);
         log.debug("Found :: {}  records in loaded status", entities.size());
         if (!entities.isEmpty()) {
-            studentAssessmentResultService.prepareAndSendSdcStudentsForFurtherProcessing(entities);
+            studentAssessmentResultService.prepareAndSendStudentsForFurtherProcessing(entities);
+        } else {
+            int batchSize = Integer.parseInt(numberOfStudentsToProcess);
+            final var transferStudents = assessmentStudentService.findBatchOfTransferStudentIds(batchSize);
+            log.debug("Found :: {} students marked for transfer in this batch", transferStudents.size());
+            if(!transferStudents.isEmpty()) {
+                transferStudentOrchestrationService.prepareAndSendStudentsForFurtherProcessing(transferStudents);
+            }
         }
     }
 
@@ -157,50 +164,6 @@ public class EventTaskSchedulerAsyncService {
         saga.setRetryCount(retryCount);
         this.sagaRepository.save(saga);
         LogHelper.logSagaRetry(saga);
-    }
-
-    @Async("processTransferStudentsTaskExecutor")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void findAndProcessTransferStudents() {
-        log.debug("Querying for students marked with TRANSFER status to process");
-        if (this.getSagaRepository().findByStatusIn(this.getStatusFilters(), 101).size() > 100) { // at max there will be 100 parallel sagas.
-            log.debug("Saga count is greater than 100, so not processing transfer students");
-            return;
-        }
-
-        int batchSize = Integer.parseInt(numberOfStudentsToProcess);
-        final var transferStudents = assessmentStudentService.findBatchOfTransferStudentIds(batchSize);
-        log.debug("Found :: {} students marked for transfer in this batch", transferStudents.size());
-
-        if (!transferStudents.isEmpty()) {
-            int sagasCreated = 0;
-
-            for (StagedAssessmentStudentEntity student : transferStudents) {
-                var studentId = student.getAssessmentStudentID();
-                try {
-                    int updated = assessmentStudentService.markStudentAsTransferInProgress(studentId);
-
-                    if (updated > 0) {
-                        // Create individual saga for each student
-                        log.debug("Creating transfer processing saga for student: {}", studentId);
-                        var transferOnApprovalStudent = TransferOnApprovalSagaData.builder()
-                                .stagedStudentAssessmentID(String.valueOf(student.getAssessmentStudentID()))
-                                .studentID(String.valueOf(student.getStudentID()))
-                                .assessmentID(String.valueOf(student.getAssessmentEntity().getAssessmentID()))
-                                .build();
-                        transferStudentProcessingOrchestrator.startStudentTransferProcessingSaga(transferOnApprovalStudent);
-                        sagasCreated++;
-                    } else {
-                        log.debug("Student {} may have already been processed by another thread", studentId);
-                    }
-
-                } catch (Exception e) {
-                    log.error("Failed to create transfer saga for student {}: {}", studentId, e.getMessage(), e);
-                }
-            }
-
-            log.debug("Created {} new transfer sagas", sagasCreated);
-        }
     }
 
     public void purgeCompletedResultsFromStaging() {

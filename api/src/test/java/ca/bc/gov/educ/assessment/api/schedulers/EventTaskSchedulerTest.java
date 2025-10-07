@@ -11,6 +11,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.StagedStudentResultEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.service.v1.events.schedulers.EventTaskSchedulerAsyncService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,6 +57,8 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
   private AssessmentStudentRepository assessmentStudentRepository;
   @Autowired
   private AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+  @Autowired
+  private EventTaskSchedulerAsyncService taskSchedulerAsyncService;
 
   @BeforeEach
   void setUp() {
@@ -130,7 +134,7 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
             .updateUser("TEST")
             .build();
 
-    var savedStudentResult = stagedStudentResultRepository.save(studentResult);
+    stagedStudentResultRepository.save(studentResult);
 
     eventTaskScheduler.processLoadedStudents();
     verify(this.messagePublisher, atMost(1)).dispatchMessage(eq(TopicsEnum.READ_STUDENT_RESULT_RECORD.toString()), this.eventCaptor.capture());
@@ -139,21 +143,17 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void processTransferStudents_WhenTransferStudentsExist_ShouldCallAsyncService() {
+  void processTransferStudents_WhenTransferStudentsExist_ShouldCallAsyncService() throws JsonProcessingException {
     var stagedStudent1 = createMockStagedStudentEntity(savedAssessmentEntity);
     stagedStudent1.setStagedAssessmentStudentStatus("TRANSFER");
     var stagedStudent2 = createMockStagedStudentEntity(savedAssessmentEntity);
     stagedStudent2.setStagedAssessmentStudentStatus("TRANSFER");
 
-    var savedStudent1 = stagedAssessmentStudentRepository.save(stagedStudent1);
-    var savedStudent2 = stagedAssessmentStudentRepository.save(stagedStudent2);
+    stagedAssessmentStudentRepository.saveAll(List.of(stagedStudent1, stagedStudent2));
 
-    eventTaskScheduler.processTransferStudents();
-
-    var updatedStudent1 = stagedAssessmentStudentRepository.findById(savedStudent1.getAssessmentStudentID()).orElse(null);
-    var updatedStudent2 = stagedAssessmentStudentRepository.findById(savedStudent2.getAssessmentStudentID()).orElse(null);
-
-    assertThat(updatedStudent1).isNull();
-    assertThat(updatedStudent2).isNull();
+    taskSchedulerAsyncService.findAndPublishLoadedStudentRecordsForProcessing();
+    verify(this.messagePublisher, atMost(2)).dispatchMessage(eq(TopicsEnum.READ_TRANSFER_STUDENT_TOPIC.toString()), this.eventCaptor.capture());
+    final var newEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(this.eventCaptor.getValue()));
+    assertThat(newEvent.getEventType()).isEqualTo(EventType.TRANSFER_STUDENT_RESULT);
   }
 }
