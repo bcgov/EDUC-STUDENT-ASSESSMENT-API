@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.io.FileInputStream;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -421,6 +422,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         savedSession.get().setApprovalStudentCertUserID("ABC");
         savedSession.get().setApprovalAssessmentDesignUserID("ABC");
         savedSession.get().setApprovalAssessmentAnalysisUserID("BCD");
+        savedSession.get().setCompletionDate(LocalDateTime.now().minusDays(5));
 
         var updatedSessionEntity = assessmentSessionRepository.save(savedSession.get());
         var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(updatedSessionEntity, "LTP10"));
