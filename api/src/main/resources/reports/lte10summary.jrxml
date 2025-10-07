@@ -656,7 +656,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partASelectedResponseOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partBSelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="474" width="100" height="11" uuid="c140d2d5-9eb2-445d-a32b-68fe8cb167d1"/>
@@ -670,7 +670,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partASelectedResponseScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partBSelectedResponseScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement mode="Transparent" x="1" y="485" width="479" height="11" backcolor="#FFFFFF" uuid="56dbaa42-5776-4ea7-aff0-e4cae8620b39">
@@ -702,7 +702,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partBWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="480" y="485" width="100" height="11" uuid="4275b21b-de41-43f4-8897-37248d49c94c"/>
@@ -716,7 +716,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textElement textAlignment="Center">
 					<font fontName="BC Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{partBWrittenResponseUnderstandingScore}]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="709" y="74" width="1" height="225" forecolor="#BFBFBF" uuid="6fb7f3b1-553d-428a-ab53-7c3f61b9bfee">
