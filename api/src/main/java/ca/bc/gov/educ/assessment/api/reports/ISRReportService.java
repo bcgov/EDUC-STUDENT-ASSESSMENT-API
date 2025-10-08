@@ -254,7 +254,8 @@ public class ISRReportService extends BaseReportGenerationService {
     BigDecimal totalScore = new BigDecimal(0);
     
     log.debug("Incoming choice path for questions :: " + choicePath);
-    log.debug("Filtered questions are: " + filteredQuestions);
+    log.debug("Filtered questions size is: " + filteredQuestions.size());
+    log.debug("Filtered question IDs are: " + filteredQuestions.stream().map(AssessmentQuestionEntity::getAssessmentQuestionID).toList());
     
     for(AssessmentStudentAnswerEntity answer : answers){
       log.debug("Answer question ID: {}", answer.getAssessmentQuestionID());
