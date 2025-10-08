@@ -331,6 +331,7 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
 
         StagedAssessmentStudentEntity stagedStudent = createStagedStudentWithComponents(assessment);
         stagedStudent.setStudentID(existingStudent.getStudentID());
+        var ques =  assessmentQuestionRepository.findAll();
         stagedStudent = stagedAssessmentStudentRepository.save(stagedStudent);
 
         UUID originalComponentId = existingStudentComponent.getAssessmentComponentID();
@@ -390,9 +391,9 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
             createMockAssessmentComponentEntity(assessmentForm, "MUL_CHOICE", "NONE")
         );
 
-        var choice = assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(assessmentComponent, 2, 1));
+        var choice = assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(assessmentComponent, 1, 1));
         AssessmentQuestionEntity assessmentQuestion = assessmentQuestionRepository.save(
-            createMockAssessmentQuestionEntity(assessmentComponent, 1, 1)
+            createMockAssessmentQuestionEntity(assessmentComponent, 1, 2)
         );
 
         StagedAssessmentStudentComponentEntity component = StagedAssessmentStudentComponentEntity.builder()
@@ -415,6 +416,18 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
                 .updateUser("TEST")
                 .updateDate(LocalDateTime.now())
                 .build();
+
+        StagedAssessmentStudentChoiceQuestionSetEntity quesSet = StagedAssessmentStudentChoiceQuestionSetEntity.builder()
+                .assessmentStudentChoiceQuestionSetID(UUID.randomUUID())
+                .assessmentQuestionID(assessmentQuestion.getAssessmentQuestionID())
+                .stagedAssessmentStudentChoiceEntity(choiceEntity)
+                .createUser("TEST")
+                .createDate(LocalDateTime.now())
+                .updateUser("TEST")
+                .updateDate(LocalDateTime.now())
+                .build();
+
+        choiceEntity.getStagedAssessmentStudentChoiceQuestionSetEntities().add(quesSet);
 
         StagedAssessmentStudentAnswerEntity answer = StagedAssessmentStudentAnswerEntity.builder()
                 .assessmentStudentAnswerID(UUID.randomUUID())

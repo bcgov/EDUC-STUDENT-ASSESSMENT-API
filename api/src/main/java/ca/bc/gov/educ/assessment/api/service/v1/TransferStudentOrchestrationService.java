@@ -263,7 +263,7 @@ public class TransferStudentOrchestrationService {
         staged.getStagedAssessmentStudentChoiceQuestionSetEntities().forEach(stagedAssessmentStudentChoiceQuestionSetEntity -> {
             var questionSet  = new AssessmentStudentChoiceQuestionSetEntity();
             questionSet.setAssessmentStudentChoiceEntity(choice);
-            questionSet.setAssessmentQuestionEntity(stagedAssessmentStudentChoiceQuestionSetEntity.getAssessmentQuestionEntity());
+            questionSet.setAssessmentQuestionID(stagedAssessmentStudentChoiceQuestionSetEntity.getAssessmentQuestionID());
             questionSet.setCreateUser(stagedAssessmentStudentChoiceQuestionSetEntity.getCreateUser());
             questionSet.setCreateDate(LocalDateTime.now());
             questionSet.setUpdateUser(stagedAssessmentStudentChoiceQuestionSetEntity.getUpdateUser());

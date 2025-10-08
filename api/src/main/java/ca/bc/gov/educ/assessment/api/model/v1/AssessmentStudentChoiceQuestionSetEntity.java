@@ -29,11 +29,8 @@ public class AssessmentStudentChoiceQuestionSetEntity {
     @JoinColumn(name = "ASSESSMENT_STUDENT_CHOICE_ID", referencedColumnName = "ASSESSMENT_STUDENT_CHOICE_ID", updatable = false)
     AssessmentStudentChoiceEntity assessmentStudentChoiceEntity;
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @ManyToOne(optional = false, targetEntity = AssessmentQuestionEntity.class)
-    @JoinColumn(name = "ASSESSMENT_QUESTION_ID", referencedColumnName = "ASSESSMENT_QUESTION_ID", updatable = false)
-    AssessmentQuestionEntity assessmentQuestionEntity;
+    @Column(name = "ASSESSMENT_QUESTION_ID", updatable = false)
+    UUID assessmentQuestionID;
 
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;

@@ -58,7 +58,7 @@ public class DOARCalculateService {
         var listOfQuesAnswered = student.getAssessmentStudentComponentEntities().stream()
                 .map(AssessmentStudentComponentEntity::getAssessmentStudentChoiceEntities).flatMap(Collection::stream)
                 .map(AssessmentStudentChoiceEntity::getAssessmentStudentChoiceQuestionSetEntities).flatMap(Collection::stream)
-                .map(AssessmentStudentChoiceQuestionSetEntity::getAssessmentQuestionEntity).map(AssessmentQuestionEntity::getAssessmentQuestionID).toList();
+                .map(AssessmentStudentChoiceQuestionSetEntity::getAssessmentQuestionID).toList();
 
         //assessment choice Ids of student answers
         var listOfStudentChoices = student.getAssessmentStudentComponentEntities().stream()
