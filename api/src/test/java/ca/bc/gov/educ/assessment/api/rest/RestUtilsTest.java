@@ -1,14 +1,20 @@
 package ca.bc.gov.educ.assessment.api.rest;
 
+import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
+import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.Collection;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.SdcSchoolCollectionStudent;
+import ca.bc.gov.educ.assessment.api.struct.external.servicesapi.v1.StudentMerge;
+import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.nats.client.Message;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -620,6 +626,175 @@ class RestUtilsTest {
         // When
         List<SdcSchoolCollectionStudent> result = (List<SdcSchoolCollectionStudent>)
                 ReflectionTestUtils.invokeMethod(restUtils, "fetchStudentsForBatch", pageSize, searchCriteriaList);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetMergedStudentsForDateRange_WhenValidResponse_ShouldReturnStudentMerges() throws Exception {
+        // Given
+        UUID correlationID = UUID.randomUUID();
+        String createDateStart = "2024-09-08T00:00:00";
+        String createDateEnd = "2025-10-08T00:00:00";
+
+        StudentMerge merge1 = StudentMerge.builder()
+                .studentMergeID(UUID.randomUUID().toString())
+                .studentID(UUID.randomUUID().toString())
+                .mergeStudentID(UUID.randomUUID().toString())
+                .build();
+
+        StudentMerge merge2 = StudentMerge.builder()
+                .studentMergeID(UUID.randomUUID().toString())
+                .studentID(UUID.randomUUID().toString())
+                .mergeStudentID(UUID.randomUUID().toString())
+                .build();
+
+        List<StudentMerge> expectedMerges = Arrays.asList(merge1, merge2);
+        ObjectMapper mapper = new ObjectMapper();
+        String mergesJson = mapper.writeValueAsString(expectedMerges);
+
+        Event responseEvent = Event.builder()
+                .eventOutcome(EventOutcome.MERGE_FOUND)
+                .eventPayload(mergesJson)
+                .build();
+
+        Message natsMessage = mock(Message.class);
+        when(natsMessage.getData()).thenReturn(mapper.writeValueAsBytes(responseEvent));
+
+        when(messagePublisher.requestMessage(anyString(), any(byte[].class)))
+                .thenReturn(CompletableFuture.completedFuture(natsMessage));
+
+        // When
+        List<ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge> result = restUtils.getMergedStudentsForDateRange(correlationID, createDateStart, createDateEnd);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(merge1.getStudentMergeID(), result.get(0).getStudentMergeID());
+        assertEquals(merge2.getStudentMergeID(), result.get(1).getStudentMergeID());
+    }
+
+    @Test
+    void testGetMergedStudentsForDateRange_WhenEmptyList_ShouldReturnEmptyList() throws Exception {
+        // Given
+        UUID correlationID = UUID.randomUUID();
+        String createDateStart = "2024-09-08T00:00:00";
+        String createDateEnd = "2025-10-08T00:00:00";
+
+        ObjectMapper mapper = new ObjectMapper();
+        String emptyListJson = "[]";
+
+        Event responseEvent = Event.builder()
+                .eventOutcome(EventOutcome.MERGE_FOUND)
+                .eventPayload(emptyListJson)
+                .build();
+
+        Message natsMessage = mock(Message.class);
+        when(natsMessage.getData()).thenReturn(mapper.writeValueAsBytes(responseEvent));
+
+        when(messagePublisher.requestMessage(anyString(), any(byte[].class)))
+                .thenReturn(CompletableFuture.completedFuture(natsMessage));
+
+        // When
+        List<ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge> result = restUtils.getMergedStudentsForDateRange(correlationID, createDateStart, createDateEnd);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetStudents_WhenStudentsNotFoundOutcome_ShouldReturnEmptyList() throws Exception {
+        // Given
+        UUID correlationID = UUID.randomUUID();
+        Set<String> studentIDs = new HashSet<>(Arrays.asList(
+                UUID.randomUUID().toString(),
+                UUID.randomUUID().toString()
+        ));
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        Event responseEvent = Event.builder()
+                .eventOutcome(EventOutcome.STUDENTS_NOT_FOUND)
+                .eventPayload(mapper.writeValueAsString(studentIDs)) // Payload still contains IDs
+                .build();
+
+        Message natsMessage = mock(Message.class);
+        when(natsMessage.getData()).thenReturn(mapper.writeValueAsBytes(responseEvent));
+
+        when(messagePublisher.requestMessage(anyString(), any(byte[].class)))
+                .thenReturn(CompletableFuture.completedFuture(natsMessage));
+
+        // When
+        List<Student> result = restUtils.getStudents(correlationID, studentIDs);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetStudents_WhenStudentsFound_ShouldReturnStudents() throws Exception {
+        // Given
+        UUID correlationID = UUID.randomUUID();
+        Set<String> studentIDs = new HashSet<>(Arrays.asList(
+                UUID.randomUUID().toString(),
+                UUID.randomUUID().toString()
+        ));
+
+        Student student1 = Student.builder()
+                .studentID(studentIDs.iterator().next())
+                .legalFirstName("John")
+                .legalLastName("Doe")
+                .build();
+
+        Student student2 = Student.builder()
+                .studentID(studentIDs.iterator().next())
+                .legalFirstName("Jane")
+                .legalLastName("Smith")
+                .build();
+
+        List<Student> expectedStudents = Arrays.asList(student1, student2);
+        ObjectMapper mapper = new ObjectMapper();
+        String studentsJson = mapper.writeValueAsString(expectedStudents);
+
+        Event responseEvent = Event.builder()
+                .eventOutcome(EventOutcome.STUDENTS_FOUND)
+                .eventPayload(studentsJson)
+                .build();
+
+        Message natsMessage = mock(Message.class);
+        when(natsMessage.getData()).thenReturn(mapper.writeValueAsBytes(responseEvent));
+
+        when(messagePublisher.requestMessage(anyString(), any(byte[].class)))
+                .thenReturn(CompletableFuture.completedFuture(natsMessage));
+
+        // When
+        List<Student> result = restUtils.getStudents(correlationID, studentIDs);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("John", result.get(0).getLegalFirstName());
+        assertEquals("Jane", result.get(1).getLegalFirstName());
+    }
+
+    @Test
+    void testGetStudents_WhenEmptyResponseData_ShouldReturnEmptyList() throws Exception {
+        // Given
+        UUID correlationID = UUID.randomUUID();
+        Set<String> studentIDs = new HashSet<>(Arrays.asList(UUID.randomUUID().toString()));
+
+        Message natsMessage = mock(Message.class);
+        when(natsMessage.getData()).thenReturn(new byte[0]); // Empty response data
+
+        when(messagePublisher.requestMessage(anyString(), any(byte[].class)))
+                .thenReturn(CompletableFuture.completedFuture(natsMessage));
+
+        // When
+        List<Student> result = restUtils.getStudents(correlationID, studentIDs);
 
         // Then
         assertNotNull(result);
