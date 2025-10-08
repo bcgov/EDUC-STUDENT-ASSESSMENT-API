@@ -785,7 +785,7 @@ class RestUtilsTest {
     void testGetStudents_WhenEmptyResponseData_ShouldReturnEmptyList() {
         // Given
         UUID correlationID = UUID.randomUUID();
-        Set<String> studentIDs = new HashSet<>(Arrays.asList(UUID.randomUUID().toString()));
+        Set<String> studentIDs = new HashSet<>(Collections.singletonList(UUID.randomUUID().toString()));
 
         Message natsMessage = mock(Message.class);
         when(natsMessage.getData()).thenReturn(new byte[0]); // Empty response data
