@@ -334,7 +334,7 @@ public class StudentAssessmentResultService {
 
                             questionSelected.forEach(ques -> {
                                 var questionSet = new StagedAssessmentStudentChoiceQuestionSetEntity();
-                                questionSet.setAssessmentQuestionEntity(ques);
+                                questionSet.setAssessmentQuestionID(ques.getAssessmentQuestionID());
                                 questionSet.setStagedAssessmentStudentChoiceEntity(choice);
                                 questionSet.setCreateUser(studentResult.getCreateUser());
                                 questionSet.setCreateDate(LocalDateTime.now());
@@ -470,7 +470,7 @@ public class StudentAssessmentResultService {
 
                             questionSelected.forEach(ques -> {
                                 var questionSet = new AssessmentStudentChoiceQuestionSetEntity();
-                                questionSet.setAssessmentQuestionEntity(ques);
+                                questionSet.setAssessmentQuestionID(ques.getAssessmentQuestionID());
                                 questionSet.setAssessmentStudentChoiceEntity(choice);
                                 questionSet.setCreateUser(fileUpload.getCreateUser());
                                 questionSet.setCreateDate(LocalDateTime.now());
