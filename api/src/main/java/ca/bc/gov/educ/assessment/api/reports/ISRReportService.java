@@ -252,37 +252,57 @@ public class ISRReportService extends BaseReportGenerationService {
   
   private Pair<String, String> getTotals(List<AssessmentQuestionEntity> filteredQuestions, List<AssessmentStudentAnswerEntity> answers, String questionType, String choicePath){
     BigDecimal totalScore = new BigDecimal(0);
-
+    
+    log.debug("Incoming choice path for questions :: " + choicePath);
+    
     for(AssessmentStudentAnswerEntity answer : answers){
       var question = filteredQuestions.stream().filter(filteredQuestion -> filteredQuestion.getAssessmentQuestionID().equals(answer.getAssessmentQuestionID())).findFirst();
+      log.debug("Found question: {}", question);
       if(answer.getScore() != null && question.isPresent()) {
+        log.debug("Current total score: {}", totalScore);
+        log.debug("Adding the following value to total score: {}", answer.getScore().multiply(new BigDecimal(question.get().getScaleFactor()/100)));
         totalScore = totalScore.add(answer.getScore().multiply(new BigDecimal(question.get().getScaleFactor()/100)));
+        log.debug("Total score now: {}", totalScore);
       }
     }
 
     BigDecimal totalOutOf = new BigDecimal(0);
 
     for (AssessmentQuestionEntity question : filteredQuestions) {
+      log.debug("Question check: {}", question.getQuestionNumber().equals(question.getMasterQuestionNumber()));
       if (questionType.equalsIgnoreCase(MUL_CHOICE.getCode())) {
         String choicePathToIgnore = null;
         if(StringUtils.isNotBlank(choicePath)) {
           choicePathToIgnore = choicePathToIgnore(choicePath);  
         }
+        log.debug("Choice path to ignore currently: {}", choicePathToIgnore);
         if(StringUtils.isBlank(choicePathToIgnore) || !question.getTaskCode().equalsIgnoreCase(choicePathToIgnore)) {
+          log.debug("Current total out of: {}", totalOutOf);
+          log.debug("Adding the following value to total out of: {}", question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
           totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
+          log.debug("Total out of now: {}", totalOutOf);
         }
       } else if (question.getQuestionNumber().equals(question.getMasterQuestionNumber())) {
+        log.debug("Current total out of non-multi: {}", totalOutOf);
+        log.debug("Adding the following value to total out of non-multi: {}", question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
         totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
+        log.debug("Total out of now non-multi: {}", totalOutOf);
       }
     }
 
+    if(answers.isEmpty()){
+      return Pair.of("No Response", totalOutOf.toString());
+    }
+    
     return Pair.of(totalScore.toString(), totalOutOf.toString());
   }
   
   private String getChoicePath(List<AssessmentQuestionEntity> filteredQuestions, UUID assessmentStudentID){
     if(!filteredQuestions.isEmpty()){
       var componentID = filteredQuestions.getFirst().getAssessmentComponentEntity().getAssessmentComponentID();
+      log.debug("Found component with ID: " + componentID);
       var studentComponent = assessmentStudentComponentRepository.findAllByAssessmentStudentComponentIDAndAssessmentComponentID(assessmentStudentID, componentID);
+      log.debug("Found student component through query: " + studentComponent);
       return studentComponent.map(AssessmentStudentComponentEntity::getChoicePath).orElse(null);
     }
     return null;
@@ -503,11 +523,11 @@ public class ISRReportService extends BaseReportGenerationService {
     assessmentLTP10.setPartOralPart1Score(partOralPart1.getLeft().replace(".", ","));
     assessmentLTP10.setPartOralPart1OutOf(partOralPart1.getRight());
     var partOralPart2 = getResultSummaryForQuestionsWithConceptsCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "O2");
-    assessmentLTP10.setPartOralPart1Score(partOralPart2.getLeft().replace(".", ","));
-    assessmentLTP10.setPartOralPart1OutOf(partOralPart2.getRight());
+    assessmentLTP10.setPartOralPart2Score(partOralPart2.getLeft().replace(".", ","));
+    assessmentLTP10.setPartOralPart2OutOf(partOralPart2.getRight());
     var partOralPart3 = getResultSummaryForQuestionsWithConceptsCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "O3");
-    assessmentLTP10.setPartOralPart1Score(partOralPart3.getLeft().replace(".", ","));
-    assessmentLTP10.setPartOralPart1OutOf(partOralPart3.getRight());
+    assessmentLTP10.setPartOralPart3Score(partOralPart3.getLeft().replace(".", ","));
+    assessmentLTP10.setPartOralPart3OutOf(partOralPart3.getRight());
 
     return assessmentLTP10;
   }
@@ -547,7 +567,9 @@ public class ISRReportService extends BaseReportGenerationService {
     assessmentLTF12.setPartBWrittenResponseDissertationFormOutOf(partBWrittenResponseDissertationFormResponse.getRight());
 
     var multiChoiceQuestions = getMultiChoiceQuestions(questions);
+    log.debug("Multiple choice questions found for student: {}", multiChoiceQuestions);
     var choicePath = getChoicePath(multiChoiceQuestions, assessmentStudentID);
+    log.debug("Choice path found for student: {}", choicePath);
     
     var partBChoicePathResponse = getPartBChoicePath(choicePath);
     assessmentLTF12.setPartBChoicePath(partBChoicePathResponse);

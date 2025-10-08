@@ -37,5 +37,5 @@ public class LTP10Assessment extends ISRAssessment {
     private String partOralPart2Score;
     private String partOralPart2OutOf;
     private String partOralPart3Score;
-    private String partOralPart4OutOf;
+    private String partOralPart3OutOf;
 }
