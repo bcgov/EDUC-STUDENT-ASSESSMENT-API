@@ -301,7 +301,7 @@ public class ISRReportService extends BaseReportGenerationService {
     if(!filteredQuestions.isEmpty()){
       var componentID = filteredQuestions.getFirst().getAssessmentComponentEntity().getAssessmentComponentID();
       log.debug("Found component with ID: " + componentID);
-      var studentComponent = assessmentStudentComponentRepository.findAllByAssessmentStudentComponentIDAndAssessmentComponentID(assessmentStudentID, componentID);
+      var studentComponent = assessmentStudentComponentRepository.findAllByAssessmentStudentEntity_AssessmentStudentIDAndAssessmentComponentID(assessmentStudentID, componentID);
       log.debug("Found student component through query: " + studentComponent);
       return studentComponent.map(AssessmentStudentComponentEntity::getChoicePath).orElse(null);
     }

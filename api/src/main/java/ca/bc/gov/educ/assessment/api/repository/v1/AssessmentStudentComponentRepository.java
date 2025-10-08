@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface AssessmentStudentComponentRepository extends JpaRepository<AssessmentStudentComponentEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentComponentEntity> {
-    Optional<AssessmentStudentComponentEntity> findAllByAssessmentStudentComponentIDAndAssessmentComponentID(UUID assessmentStudentID, UUID assessmentComponentID);
+    Optional<AssessmentStudentComponentEntity> findAllByAssessmentStudentEntity_AssessmentStudentIDAndAssessmentComponentID(UUID assessmentStudentID, UUID assessmentComponentID);
 }
