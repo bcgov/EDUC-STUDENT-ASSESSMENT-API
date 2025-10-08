@@ -362,7 +362,7 @@ public class RestUtils {
       final TypeReference<Event> refEventResponse = new TypeReference<>() {};
       final TypeReference<List<StudentMerge>> refMergedStudentResponse = new TypeReference<>() {};
       Object event = Event.builder().sagaId(correlationID).eventType(EventType.GET_MERGES_IN_DATE_RANGE).eventPayload(CREATE_DATE_START.concat("=").concat(createDateStart).concat("&").concat(CREATE_DATE_END).concat("=").concat(createDateEnd)).build();
-      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.PEN_SERVICES_EVENTS_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
+      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.PEN_SERVICES_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
       if (responseMessage == null) {
         log.error("Received null response from PEN SERVICES API for correlationID: {}", correlationID);
         throw new StudentAssessmentAPIRuntimeException(NATS_TIMEOUT + correlationID);
@@ -460,7 +460,17 @@ public class RestUtils {
         log.error("Received null response from GET STUDENTS for correlationID: {}", correlationID);
         throw new StudentAssessmentAPIRuntimeException(NATS_TIMEOUT + correlationID);
       } else {
-        val eventResponse = objectMapper.readValue(responseMessage.getData(), refEventResponse);
+        byte[] data = responseMessage.getData();
+        if (data == null || data.length == 0) {
+          log.debug("Empty response data for getStudents; returning empty list for correlationID: {}", correlationID);
+          return new ArrayList<>();
+        }
+        val eventResponse = objectMapper.readValue(data, refEventResponse);
+        
+        if (EventOutcome.STUDENTS_NOT_FOUND.equals(eventResponse.getEventOutcome())) {
+          log.debug("Students not found for correlationID: {}; returning empty list", correlationID);
+          return new ArrayList<>();
+        }
         return objectMapper.readValue(eventResponse.getEventPayload(), refStudentResponse);
       }
 
