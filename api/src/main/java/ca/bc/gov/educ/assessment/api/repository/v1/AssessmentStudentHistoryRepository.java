@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentHistoryEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,9 +13,9 @@ import java.util.UUID;
 public interface AssessmentStudentHistoryRepository extends JpaRepository<AssessmentStudentHistoryEntity, UUID> {
     List<AssessmentStudentHistoryEntity> findAllByAssessmentIDAndAssessmentStudentID(UUID asessmentID, UUID assessmentStudentID);
     void deleteAllByAssessmentIDAndAssessmentStudentID(UUID assessmentID, UUID assessmentStudentID);
-
-
-    @Modifying
+    
+    @Modifying (clearAutomatically = true)
+    @Transactional
     @Query(value="""
     INSERT INTO assessment_student_history (assessment_student_history_ID, assessment_id, assessment_student_id, assessment_form_id,
          school_of_record_at_write_school_id, assessment_center_school_id, school_of_record_school_id, student_id, given_name, surname, pen, local_id, local_assessment_id,

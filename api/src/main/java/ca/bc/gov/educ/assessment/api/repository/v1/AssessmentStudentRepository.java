@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,7 +47,8 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     """)
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentIDAndAssessmentStudentIDIsNot(UUID assessmentID, UUID studentID, UUID assessmentStudentID);
 
-    @Modifying
+    @Modifying (clearAutomatically = true)
+    @Transactional
     @Query(value="""
     update AssessmentStudentEntity as stud
     set stud.downloadDate = :downloadDate,
