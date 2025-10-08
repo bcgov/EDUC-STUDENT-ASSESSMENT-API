@@ -71,8 +71,8 @@ public class SessionService {
         return this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now());
     }
 
-    @Transactional
-    public AssessmentSessionEntity recordTransferRegistrationsUser(UUID sessionID, String userID, AssessmentReportTypeCode reportTypeCode) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordTransferRegistrationsUser(UUID sessionID, String userID, AssessmentReportTypeCode reportTypeCode) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
         switch (reportTypeCode) {
             case ALL_SESSION_REGISTRATIONS:
@@ -99,7 +99,7 @@ public class SessionService {
         }
         session.setUpdateUser(userID);
         session.setUpdateDate(LocalDateTime.now());
-        return assessmentSessionRepository.save(session);
+        assessmentSessionRepository.save(session);
     }
 
     public AssessmentSessionEntity approveAssessment(final AssessmentApproval assessmentApproval) {
