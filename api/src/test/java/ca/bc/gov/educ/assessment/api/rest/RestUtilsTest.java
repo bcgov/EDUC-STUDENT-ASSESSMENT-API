@@ -782,7 +782,7 @@ class RestUtilsTest {
     }
 
     @Test
-    void testGetStudents_WhenEmptyResponseData_ShouldReturnEmptyList() throws Exception {
+    void testGetStudents_WhenEmptyResponseData_ShouldReturnEmptyList() {
         // Given
         UUID correlationID = UUID.randomUUID();
         Set<String> studentIDs = new HashSet<>(Arrays.asList(UUID.randomUUID().toString()));
