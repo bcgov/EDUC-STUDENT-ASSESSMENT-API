@@ -166,7 +166,9 @@ public class ISRReportService extends BaseReportGenerationService {
         if(assessmentStudent.getProficiencyScore() != null) {
           var questions = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentFormEntity_AssessmentFormID(assessmentStudent.getAssessmentFormID());
           var studentAnswers = assessmentStudentAnswerRepository.findAllByAssessmentStudentComponentEntity_AssessmentStudentEntity_AssessmentStudentID_AndAssessmentQuestionIDIsNotNull(assessmentStudent.getAssessmentStudentID());
-
+          log.debug("Main questions size is: " + questions.size());
+          log.debug("Main question IDs are: " + questions.stream().map(AssessmentQuestionEntity::getAssessmentQuestionID).toList());
+          
           switch (assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()) {
             case "LTE10":
               reportNode.getAssessmentDetails().add(populateLTE10Assessment(assessmentSummary, questions, studentAnswers, assessmentStudent.getAssessmentStudentID()));
