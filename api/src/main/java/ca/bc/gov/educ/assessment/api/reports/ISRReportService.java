@@ -256,6 +256,7 @@ public class ISRReportService extends BaseReportGenerationService {
     log.debug("Incoming choice path for questions :: " + choicePath);
     
     for(AssessmentStudentAnswerEntity answer : answers){
+      log.debug("Answer question ID: {}", answer.getAssessmentQuestionID());
       var question = filteredQuestions.stream().filter(filteredQuestion -> filteredQuestion.getAssessmentQuestionID().equals(answer.getAssessmentQuestionID())).findFirst();
       log.debug("Found question: {}", question);
       if(answer.getScore() != null && question.isPresent()) {
