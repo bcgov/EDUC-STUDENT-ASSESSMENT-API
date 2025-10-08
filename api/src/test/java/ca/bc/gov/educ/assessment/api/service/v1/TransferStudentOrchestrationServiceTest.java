@@ -331,7 +331,6 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
 
         StagedAssessmentStudentEntity stagedStudent = createStagedStudentWithComponents(assessment);
         stagedStudent.setStudentID(existingStudent.getStudentID());
-        var ques =  assessmentQuestionRepository.findAll();
         stagedStudent = stagedAssessmentStudentRepository.save(stagedStudent);
 
         UUID originalComponentId = existingStudentComponent.getAssessmentComponentID();
