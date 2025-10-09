@@ -15,7 +15,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 @Repository
 public interface AssessmentSessionRepository extends JpaRepository<AssessmentSessionEntity, UUID> {
     List<AssessmentSessionEntity> findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime currentDate1);
-    List<AssessmentSessionEntity> findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(LocalDateTime currentDate1, LocalDateTime currentDate2);
+    List<AssessmentSessionEntity> findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqualAndCompletionDateIsNull(LocalDateTime currentDate1, LocalDateTime currentDate2);
     List<AssessmentSessionEntity> findBySchoolYear(String schoolYear);
     @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM AssessmentSessionEntity s WHERE s.schoolYear = :schoolYear")
     Boolean upcomingSchoolYearSessionsExist(@Param("schoolYear") String schoolYear);

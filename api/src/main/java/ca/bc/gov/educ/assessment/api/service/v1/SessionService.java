@@ -141,7 +141,7 @@ public class SessionService {
     }
 
     public List<AssessmentSessionEntity> getActiveSessions() {
-        return this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(LocalDateTime.now(), LocalDateTime.now());
+        return this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqualAndCompletionDateIsNull(LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
