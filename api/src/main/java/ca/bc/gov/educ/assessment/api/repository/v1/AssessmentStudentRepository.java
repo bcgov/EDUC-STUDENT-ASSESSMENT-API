@@ -46,16 +46,17 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         AND (:assessmentStudentID IS NULL OR s.assessmentStudentID <> :assessmentStudentID)
     """)
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentIDAndAssessmentStudentIDIsNot(UUID assessmentID, UUID studentID, UUID assessmentStudentID);
-
+    
     @Modifying
-    @Query(value="""
-    update AssessmentStudentEntity as stud
-    set stud.downloadDate = :downloadDate,
-        stud.updateUser = :updateUser,
-        stud.updateDate = :updateDate
-    where exists(select stud from AssessmentEntity as a, AssessmentStudentEntity as stud
-    where a.assessmentSessionEntity.sessionID = :assessmentSessionID
-    and stud.provincialSpecialCaseCode not in ('E'))""")
+    @Query(value = "update assessment_student " +
+            "set DOWNLOAD_DATE = :downloadDate, " +
+            "UPDATE_USER = :updateUser, " +
+            "UPDATE_DATE = :updateDate " +
+            "where assessment_student_id in (select student.assessment_student_id from assessment as a, assessment_student as student, assessment_session sess " +
+            "    where a.session_id = sess.session_id " +
+            "    and a.assessment_id = student.assessment_id " +
+            "    and sess.session_id = :assessmentSessionID " +
+            "    and (student.provincial_special_case_code not in ('E') or student.provincial_special_case_code is null))", nativeQuery=true)
     void updateDownloadDataAllByAssessmentSessionAndNoExemption(UUID assessmentSessionID, LocalDateTime downloadDate, String updateUser, LocalDateTime updateDate);
 
     List<AssessmentStudentEntity> findByStudentID(UUID studentID);
