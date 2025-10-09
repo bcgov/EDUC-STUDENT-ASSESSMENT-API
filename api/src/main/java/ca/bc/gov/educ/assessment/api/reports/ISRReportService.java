@@ -168,6 +168,7 @@ public class ISRReportService extends BaseReportGenerationService {
           var studentAnswers = assessmentStudentAnswerRepository.findAllByAssessmentStudentComponentEntity_AssessmentStudentEntity_AssessmentStudentID_AndAssessmentQuestionIDIsNotNull(assessmentStudent.getAssessmentStudentID());
           log.debug("Main questions size is: " + questions.size());
           log.debug("Main question IDs are: " + questions.stream().map(AssessmentQuestionEntity::getAssessmentQuestionID).toList());
+          log.debug("About to populate assessment type {} with ID {}", assessmentStudent.getAssessmentEntity().getAssessmentTypeCode(), assessmentStudent.getAssessmentEntity().getAssessmentID());
           
           switch (assessmentStudent.getAssessmentEntity().getAssessmentTypeCode()) {
             case "LTE10":
