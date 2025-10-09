@@ -266,8 +266,8 @@ public class ISRReportService extends BaseReportGenerationService {
       log.debug("Found question: {}", question);
       if(answer.getScore() != null && question.isPresent()) {
         log.debug("Current total score: {}", totalScore);
-        log.debug("Adding the following value to total score: {}", answer.getScore().multiply(new BigDecimal(question.get().getScaleFactor()/100)));
-        totalScore = totalScore.add(answer.getScore().multiply(new BigDecimal(question.get().getScaleFactor()/100)));
+        log.debug("Adding the following value to total score: {}", answer.getScore().multiply(getScaleFactorAsBigDecimal(question.get().getScaleFactor()).divide(new BigDecimal(100))));
+        totalScore = totalScore.add(answer.getScore().multiply(getScaleFactorAsBigDecimal(question.get().getScaleFactor()).divide(new BigDecimal(100))));
         log.debug("Total score now: {}", totalScore);
       }
     }
@@ -284,14 +284,14 @@ public class ISRReportService extends BaseReportGenerationService {
         log.debug("Choice path to ignore currently: {}", choicePathToIgnore);
         if(StringUtils.isBlank(choicePathToIgnore) || !question.getTaskCode().equalsIgnoreCase(choicePathToIgnore)) {
           log.debug("Current total out of: {}", totalOutOf);
-          log.debug("Adding the following value to total out of: {}", question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
-          totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
+          log.debug("Adding the following value to total out of: {}", question.getQuestionValue().multiply(getScaleFactorAsBigDecimal(question.getScaleFactor()).divide(new BigDecimal(100))));
+          totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(getScaleFactorAsBigDecimal(question.getScaleFactor()).divide(new BigDecimal(100))));
           log.debug("Total out of now: {}", totalOutOf);
         }
       } else if (question.getQuestionNumber().equals(question.getMasterQuestionNumber())) {
         log.debug("Current total out of non-multi: {}", totalOutOf);
-        log.debug("Adding the following value to total out of non-multi: {}", question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
-        totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor() / 100)));
+        log.debug("Adding the following value to total out of non-multi: {}", question.getQuestionValue().multiply(getScaleFactorAsBigDecimal(question.getScaleFactor()).divide(new BigDecimal(100))));
+        totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(getScaleFactorAsBigDecimal(question.getScaleFactor()).divide(new BigDecimal(100))));
         log.debug("Total out of now non-multi: {}", totalOutOf);
       }
     }
@@ -301,6 +301,10 @@ public class ISRReportService extends BaseReportGenerationService {
     }
     
     return Pair.of(totalScore.toString(), totalOutOf.toString());
+  }
+  
+  private BigDecimal getScaleFactorAsBigDecimal(Integer scaleFactor) {
+    return new BigDecimal(scaleFactor);
   }
   
   private String getChoicePath(List<AssessmentQuestionEntity> filteredQuestions, UUID assessmentStudentID){
