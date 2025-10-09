@@ -83,6 +83,17 @@ public class DOARCalculateService {
         return BigDecimal.ZERO;
     }
 
+    public BigDecimal calculateOETotal(List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode, AssessmentStudentEntity student) {
+        BigDecimal possibleOeTotal = getPossibleOETotal(selectedMcAssessmentQuestionsByTypeCode, student);
+        BigDecimal studentOeTotal = getStudentOETotal(selectedMcAssessmentQuestionsByTypeCode, student);
+
+        if(possibleOeTotal.compareTo(BigDecimal.ZERO) != 0) {
+            return studentOeTotal.divide(possibleOeTotal, 4, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100));
+        }
+
+        return BigDecimal.ZERO;
+    }
+
     private BigDecimal getPossibleMCTotal(List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode) {
         BigDecimal divisor = new BigDecimal(100);
         if(selectedMcAssessmentQuestionsByTypeCode.isEmpty()) {
