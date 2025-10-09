@@ -77,7 +77,9 @@ public class DOARCalculateService {
         BigDecimal studentMcTotal = getStudentMCTotal(selectedMcAssessmentQuestionsByTypeCode, student);
 
         if(possibleMcTotal.compareTo(BigDecimal.ZERO) != 0) {
-            return studentMcTotal.divide(possibleMcTotal, 4, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100));
+            var score =  studentMcTotal.divide(possibleMcTotal, 4, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100));
+            log.debug("return-in-if: {}", score);
+            return score;
         }
 
         return BigDecimal.ZERO;
@@ -86,9 +88,13 @@ public class DOARCalculateService {
     public BigDecimal calculateOETotal(List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode, AssessmentStudentEntity student) {
         BigDecimal possibleOeTotal = getPossibleOETotal(selectedMcAssessmentQuestionsByTypeCode, student);
         BigDecimal studentOeTotal = getStudentOETotal(selectedMcAssessmentQuestionsByTypeCode, student);
+        log.debug("possibleOeTotal: {}", possibleOeTotal);
+        log.debug("studentOeTotal: {}", studentOeTotal);
 
         if(possibleOeTotal.compareTo(BigDecimal.ZERO) != 0) {
-            return studentOeTotal.divide(possibleOeTotal, 4, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100));
+            var score = studentOeTotal.divide(possibleOeTotal, 4, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100));
+            log.debug("return-in-if: {}", score);
+            return score;
         }
 
         return BigDecimal.ZERO;
