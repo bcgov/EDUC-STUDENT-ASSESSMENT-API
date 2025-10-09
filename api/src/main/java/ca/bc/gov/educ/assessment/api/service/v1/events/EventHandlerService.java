@@ -142,7 +142,7 @@ public class EventHandlerService {
 
     public byte[] handleGetOpenAssessmentSessionsEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
         var currentDate = LocalDateTime.now();
-        val sessions = assessmentSessionRepository.findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqual(currentDate, currentDate);
+        val sessions = assessmentSessionRepository.findAllByActiveFromDateLessThanEqualAndActiveUntilDateGreaterThanEqualAndCompletionDateIsNull(currentDate, currentDate);
         var sessionStructs = new ArrayList<>();
         sessions.forEach(sessionStruct -> sessionStructs.add(sessionMapper.toStructure(sessionStruct)));
         if (isSynchronous) {
