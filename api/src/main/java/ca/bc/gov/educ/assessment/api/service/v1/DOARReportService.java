@@ -96,27 +96,34 @@ public class DOARReportService {
         });
         map.put(DOARColumnLookup.ENTRY2, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getClaimCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, MUL_CHOICE, includeChoiceCalc);
+            log.debug("mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateMCTotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
         map.put(DOARColumnLookup.ENTRY3, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, OPEN_ENDED, false);
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, MUL_CHOICE, includeChoiceCalc);
+            log.debug("openEndedQues: {}", selectedOeAssessmentQuestionsByTypeCode.size());
+            log.debug("mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
         map.put(DOARColumnLookup.ENTRY4, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getClaimCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, OPEN_ENDED, false);
+            log.debug("mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateMCTotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
         map.put(DOARColumnLookup.ENTRY5, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, MUL_CHOICE);
+            log.debug("mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateMCTotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
         map.put(DOARColumnLookup.ENTRY6, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getConceptsCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, MUL_CHOICE, includeChoiceCalc);
+            log.debug("mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateMCTotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
         map.put(DOARColumnLookup.ENTRY7, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getQuestionsWithAssessmentSectionForSelectedForm(selectedAssessmentForm, code, student, MUL_CHOICE, includeChoiceCalc);
+            log.debug("mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateMCTotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
     }
@@ -522,11 +529,10 @@ public class DOARReportService {
             if(component.isPresent() && !component.get().getAssessmentQuestionEntities().isEmpty()) {
                 var responseNotSelected = getChoicePathNotSelected(student, component.get());
 
-                if(includeChoiceCalc) {
+                if(includeChoiceCalc && StringUtils.isNotBlank(responseNotSelected)) {
                     return component.stream().map(AssessmentComponentEntity::getAssessmentQuestionEntities)
                             .flatMap(Collection::stream)
                             .filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getClaimCode())
-                                    && StringUtils.isNotBlank(responseNotSelected)
                                     && assessmentQuestionEntity.getTaskCode().equalsIgnoreCase(responseNotSelected)
                                     && assessmentQuestionEntity.getClaimCode().equalsIgnoreCase(taskCode))
                             .toList();
@@ -549,11 +555,10 @@ public class DOARReportService {
 
             if(component.isPresent() && !component.get().getAssessmentQuestionEntities().isEmpty()) {
                 var responseNotSelected = getChoicePathNotSelected(student, component.get());
-                if(includeChoiceCalc) {
+                if(includeChoiceCalc && StringUtils.isNotBlank(responseNotSelected)) {
                     return component.stream().map(AssessmentComponentEntity::getAssessmentQuestionEntities)
                             .flatMap(Collection::stream)
                             .filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getConceptCode())
-                                    && StringUtils.isNotBlank(responseNotSelected)
                                     && !assessmentQuestionEntity.getTaskCode().equalsIgnoreCase(responseNotSelected)
                                     && assessmentQuestionEntity.getConceptCode().equalsIgnoreCase(taskCode))
                             .toList();
@@ -576,11 +581,10 @@ public class DOARReportService {
 
             if(component.isPresent() && !component.get().getAssessmentQuestionEntities().isEmpty()) {
                 var responseNotSelected = getChoicePathNotSelected(student, component.get());
-                if(includeChoiceCalc) {
+                if(includeChoiceCalc && StringUtils.isNotBlank(responseNotSelected)) {
                     return component.stream().map(AssessmentComponentEntity::getAssessmentQuestionEntities)
                             .flatMap(Collection::stream)
                             .filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getCognitiveLevelCode())
-                                    && StringUtils.isNotBlank(responseNotSelected)
                                     && !assessmentQuestionEntity.getTaskCode().equalsIgnoreCase(responseNotSelected)
                                     && assessmentQuestionEntity.getCognitiveLevelCode().equalsIgnoreCase(taskCode))
                             .toList();
@@ -612,11 +616,10 @@ public class DOARReportService {
 
             if(component.isPresent() && !component.get().getAssessmentQuestionEntities().isEmpty()) {
                 var responseNotSelected = getChoicePathNotSelected(student, component.get());
-                if(includeChoiceCalc) {
+                if(includeChoiceCalc && StringUtils.isNotBlank(responseNotSelected)) {
                     return component.stream().map(AssessmentComponentEntity::getAssessmentQuestionEntities)
                             .flatMap(Collection::stream)
                             .filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getAssessmentSection())
-                                    && StringUtils.isNotBlank(responseNotSelected)
                                     && !assessmentQuestionEntity.getTaskCode().equalsIgnoreCase(responseNotSelected)
                                     && assessmentQuestionEntity.getAssessmentSection().startsWith(code))
                             .toList();
