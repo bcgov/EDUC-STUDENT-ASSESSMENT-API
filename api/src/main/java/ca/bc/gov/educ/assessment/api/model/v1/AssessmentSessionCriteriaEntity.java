@@ -36,6 +36,9 @@ public class AssessmentSessionCriteriaEntity {
   @Column(name = "EXPIRY_DATE")
   private LocalDateTime expiryDate;
 
+  @Column(name = "SESSION_START_MONTH")
+  private String sessionStartMonth;
+
   @ToString.Exclude
   @EqualsAndHashCode.Exclude
   @OneToMany(mappedBy = "assessmentSessionCriteriaEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL)

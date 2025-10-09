@@ -169,7 +169,7 @@ public class SessionService {
         LocalDateTime activeFromDate = LocalDateTime.of(schoolYearStart, 10, 1, 0, 0);
 
         for(AssessmentSessionCriteriaEntity sessionType : sessionTypes){
-            String sessionMonth = StringUtils.leftPad(String.valueOf(sessionType.getSessionEnd().getMonthValue()),2, "0");
+            String sessionMonth = StringUtils.leftPad(sessionType.getSessionStartMonth(),2, "0");
             int sessionYear = sessionMonth.equalsIgnoreCase("11") ? schoolYearStart : schoolYearStart + 1;
             LocalDateTime endOfSessionDate = LocalDateTime.of(sessionYear, sessionType.getSessionEnd().getMonth(), sessionType.getSessionEnd().getDayOfMonth(), 0, 0);
 
