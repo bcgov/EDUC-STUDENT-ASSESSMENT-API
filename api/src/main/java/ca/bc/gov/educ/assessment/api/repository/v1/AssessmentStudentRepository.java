@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,7 +34,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     """)
     Optional<AssessmentStudentEntity> findByIdWithAssessmentDetails(UUID assessmentStudentID, UUID assessmentID);
 
-    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolID(UUID sessionID, UUID schoolAtWriteSchoolID);
+    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCode(UUID sessionID, UUID schoolAtWriteSchoolID, String studentStatusCode);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDInAndStudentID(List<UUID> assessmentIDs, UUID studentID);
 
@@ -52,7 +51,8 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
             "set DOWNLOAD_DATE = :downloadDate, " +
             "UPDATE_USER = :updateUser, " +
             "UPDATE_DATE = :updateDate " +
-            "where assessment_student_id in (select student.assessment_student_id from assessment as a, assessment_student as student, assessment_session sess " +
+            "where STUDENT_STATUS_CODE = 'ACTIVE'" +
+            "and assessment_student_id in (select student.assessment_student_id from assessment as a, assessment_student as student, assessment_session sess " +
             "    where a.session_id = sess.session_id " +
             "    and a.assessment_id = student.assessment_id " +
             "    and sess.session_id = :assessmentSessionID " +
@@ -80,7 +80,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     or stud.provincialSpecialCaseCode in ('X','Q'))""")
     int findNumberOfAttemptsForStudent(UUID studentID, List<String> assessmentCodes);
 
-    List<AssessmentStudentEntity> findByAssessmentFormIDIn(List<UUID> assessmentFormIDs);
+    List<AssessmentStudentEntity> findByAssessmentFormIDIn(List<UUID> assessmentFormIDs); //Only used in tests so didn't add ACTIVE check
 
     @Query(value="""
         select stud.assessmentEntity.assessmentID as assessmentID,
@@ -101,6 +101,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)
         and stud.downloadDate is null
+        and stud.studentStatusCode = 'ACTIVE'
         group by stud.assessmentEntity.assessmentID
     """)
     List<RegistrationSummaryResult> getRegistrationSummaryByAssessmentIDsAndDownloadDateNull(List<UUID> assessmentIDs);
@@ -182,6 +183,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         SELECT s FROM AssessmentStudentEntity s
         WHERE s.assessmentEntity.assessmentID = :assessmentID
         AND s.assessmentFormID IN (:formIDs)
+        AND s.studentStatusCode = 'ACTIVE'
         ORDER BY s.createDate DESC
         LIMIT 1""")
     Optional<AssessmentStudentEntity> findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(UUID assessmentID, List<UUID> formIDs);

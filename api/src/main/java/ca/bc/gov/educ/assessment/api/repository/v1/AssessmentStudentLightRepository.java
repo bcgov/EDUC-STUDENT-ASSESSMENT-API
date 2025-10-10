@@ -16,11 +16,12 @@ import java.util.UUID;
 @Repository
 public interface AssessmentStudentLightRepository extends JpaRepository<AssessmentStudentLightEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentEntity> {
 
-    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionID(UUID sessionID);
+    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCode(UUID sessionID, String studentStatusCode);
 
     @Query("""
     select stud from AssessmentStudentLightEntity stud
     where stud.assessmentEntity.assessmentTypeCode = :assessmentTypeCode
+    and stud.studentStatusCode = 'ACTIVE'
     and stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
     and (stud.proficiencyScore is not null
          or stud.provincialSpecialCaseCode is not null)
