@@ -733,7 +733,7 @@ public class CSVReportService {
                 "Mark",
                 question.getQuestionNumber() != null ? question.getQuestionNumber().toString() : "",
                 question.getQuestionValue() != null ? question.getQuestionValue().toString() : "",
-                question.getScaleFactor() != null ? String.valueOf(question.getScaleFactor()/100) : "",
+                question.getScaleFactor() != null ? String.valueOf(new BigDecimal(question.getScaleFactor()).divide(new BigDecimal(100))) : "",
                 calculateScaledValue(question),
                 question.getMaxQuestionValue() != null ? question.getMaxQuestionValue().toString() : "",
                 question.getCognitiveLevelCode(),
