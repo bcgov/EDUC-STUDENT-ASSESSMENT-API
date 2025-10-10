@@ -296,9 +296,11 @@ public class StudentAssessmentResultService {
             AtomicInteger itemCounter = new AtomicInteger(1);
             int answerForChoiceCounter = 0;
             int choiceQuestionNumber = 0;
+
+            int answerForMultiMarkerCounter = 0;
             for(var openEndedMark: openEndedMarks) {
                 Optional<AssessmentQuestionEntity> question;
-                var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
+                var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter;
                 question = component.getAssessmentQuestionEntities().stream()
                         .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
                         .findFirst();
@@ -307,6 +309,7 @@ public class StudentAssessmentResultService {
                 itemCounter.getAndIncrement();
                 if (answerForChoiceCounter != 0) {
                     answerForChoiceCounter--;
+                    questionCounter++;
                 }
 
                 if (StringUtils.isNotBlank(openEndedMark) && !openEndedMark.equalsIgnoreCase("9999")) {
@@ -322,6 +325,7 @@ public class StudentAssessmentResultService {
                         //Based on number of rows returned, we know how many answers are coming
                         //Item numbers are sequential, while skipping the choice records
                         choiceQuestionNumber = questionNumber;
+                        questionCounter++;
 
                         if(optAssessmentChoice.isPresent()) {
                             var choice = new StagedAssessmentStudentChoiceEntity();
@@ -345,6 +349,21 @@ public class StudentAssessmentResultService {
                             studentComponent.getStagedAssessmentStudentChoiceEntities().add(choice);
                         }
                     } else {
+                        // It's a question
+                        if(question.get().getAssessmentChoiceEntity() == null) {
+                            if (answerForMultiMarkerCounter == 0) {
+                                var questionSelected = component.getAssessmentQuestionEntities().stream()
+                                        .filter(q -> q.getQuestionNumber().equals(quesCount))
+                                        .toList();
+                                answerForMultiMarkerCounter = questionSelected.size() - 1;
+                            } else {
+                                answerForMultiMarkerCounter--;
+                            }
+
+                            if (answerForMultiMarkerCounter == 0) {
+                                questionCounter++;
+                            }
+                        }
                         var answer = new StagedAssessmentStudentAnswerEntity();
                         answer.setStagedAssessmentStudentComponentEntity(studentComponent);
                         answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
@@ -432,9 +451,11 @@ public class StudentAssessmentResultService {
             AtomicInteger itemCounter = new AtomicInteger(1);
             int answerForChoiceCounter = 0;
             int choiceQuestionNumber = 0;
+
+            int answerForMultiMarkerCounter = 0;
             for(var openEndedMark: openEndedMarks){
                     Optional<AssessmentQuestionEntity> question;
-                    var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter++;
+                    var quesCount = answerForChoiceCounter != 0 ? choiceQuestionNumber : questionCounter;
                     question = component.getAssessmentQuestionEntities().stream()
                             .filter(q -> q.getQuestionNumber().equals(quesCount) && q.getItemNumber().equals(itemCounter.get()))
                             .findFirst();
@@ -443,6 +464,7 @@ public class StudentAssessmentResultService {
                     itemCounter.getAndIncrement();
                     if(answerForChoiceCounter != 0) {
                         answerForChoiceCounter--;
+                        questionCounter++;
                     }
 
                 if(StringUtils.isNotBlank(openEndedMark) && !openEndedMark.equalsIgnoreCase("9999")) {
@@ -481,6 +503,20 @@ public class StudentAssessmentResultService {
                             studentComponent.getAssessmentStudentChoiceEntities().add(choice);
                         }
                     } else {
+                        if(question.get().getAssessmentChoiceEntity() == null) {
+                            if (answerForMultiMarkerCounter == 0) {
+                                var questionSelected = component.getAssessmentQuestionEntities().stream()
+                                        .filter(q -> q.getQuestionNumber().equals(quesCount))
+                                        .toList();
+                                answerForMultiMarkerCounter = questionSelected.size() - 1;
+                            } else {
+                                answerForMultiMarkerCounter--;
+                            }
+
+                            if (answerForMultiMarkerCounter == 0) {
+                                questionCounter++;
+                            }
+                        }
                         var answer = new AssessmentStudentAnswerEntity();
                         answer.setAssessmentStudentComponentEntity(studentComponent);
                         answer.setAssessmentQuestionID(question.get().getAssessmentQuestionID());
