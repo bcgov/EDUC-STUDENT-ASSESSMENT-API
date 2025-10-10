@@ -8,7 +8,6 @@ import ca.bc.gov.educ.assessment.api.constants.v1.ComponentSubTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.LegacyComponentTypeCodes;
 import ca.bc.gov.educ.assessment.api.exception.ConfirmationRequiredException;
-import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.mappers.StringMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
@@ -165,12 +164,19 @@ public class AssessmentResultService {
             if (optStudent.isPresent()) {
                 Student studentApiStudent = optStudent.get();
                 boolean isMergedRecord = false;
-                Student trueStudentApiStudentRecord = null;
-                if(optStudent.get().getStatusCode().equalsIgnoreCase("M")) {
-                    List<Student> mergedStudent = restUtils.getStudents(UUID.randomUUID(), Set.of(optStudent.get().getTrueStudentID()));
-                    trueStudentApiStudentRecord = mergedStudent.getFirst();
+                Student trueStudentApiStudentRecord;
+                Student currentStudent = optStudent.get();
+                int mergeDepth = 0;
+                int MAX_MERGE_DEPTH = 10;
+                
+                while(currentStudent.getStatusCode().equalsIgnoreCase("M") && mergeDepth < MAX_MERGE_DEPTH) {
+                    List<Student> mergedStudents = restUtils.getStudents(UUID.randomUUID(), Set.of(currentStudent.getTrueStudentID()));
+                    currentStudent = mergedStudents.getFirst();
+                    mergeDepth++;
                     isMergedRecord = true;
                 }
+                
+                trueStudentApiStudentRecord = currentStudent;
                 var studentID = isMergedRecord ? trueStudentApiStudentRecord.getStudentID() : studentApiStudent.getStudentID();
                 var studentApiRecord = isMergedRecord ? trueStudentApiStudentRecord : studentApiStudent;
                 Optional<AssessmentStudentEntity> student = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentID));
