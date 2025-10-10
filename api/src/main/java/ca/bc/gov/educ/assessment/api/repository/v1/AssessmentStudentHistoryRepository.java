@@ -27,6 +27,7 @@ public interface AssessmentStudentHistoryRepository extends JpaRepository<Assess
              stud.raw_score, stud.mc_total, stud.oe_total, stud.download_date, stud.create_user, stud.create_date, :updateUser, :updateDate 
     from assessment a, assessment_student stud
     where a.session_id = :assessmentSessionID
+    and stud.studentStatusCode
     and stud.provincial_special_case_code not in ('E')""", nativeQuery = true)
     void insertHistoryForDownloadDateUpdate(UUID assessmentSessionID, String updateUser, LocalDateTime updateDate);
 
