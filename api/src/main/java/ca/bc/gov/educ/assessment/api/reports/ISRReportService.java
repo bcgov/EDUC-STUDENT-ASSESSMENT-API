@@ -261,6 +261,8 @@ public class ISRReportService extends BaseReportGenerationService {
     log.debug("Filtered questions size is: " + filteredQuestions.size());
     log.debug("Filtered question IDs are: " + filteredQuestions.stream().map(AssessmentQuestionEntity::getAssessmentQuestionID).toList());
     
+    boolean foundAnyAnswers = false;
+    
     for(AssessmentStudentAnswerEntity answer : answers){
       log.debug("Answer question ID: {}", answer.getAssessmentQuestionID());
       var question = filteredQuestions.stream().filter(filteredQuestion -> filteredQuestion.getAssessmentQuestionID().equals(answer.getAssessmentQuestionID())).findFirst();
@@ -270,6 +272,7 @@ public class ISRReportService extends BaseReportGenerationService {
         log.debug("Adding the following value to total score: {}", answer.getScore().multiply(getScaleFactorAsBigDecimal(question.get().getScaleFactor()).divide(new BigDecimal(100))));
         totalScore = totalScore.add(answer.getScore().multiply(getScaleFactorAsBigDecimal(question.get().getScaleFactor()).divide(new BigDecimal(100))));
         log.debug("Total score now: {}", totalScore);
+        foundAnyAnswers = true;
       }
     }
 
@@ -297,8 +300,8 @@ public class ISRReportService extends BaseReportGenerationService {
       }
     }
 
-    if(answers.isEmpty()){
-      return Pair.of("No Response", totalOutOf.toString());
+    if(!foundAnyAnswers){
+      return Pair.of("No Response", totalOutOf.setScale(2, RoundingMode.DOWN).toString());
     }
     
     var totalScoreScaled = totalScore.setScale(2, RoundingMode.DOWN);
