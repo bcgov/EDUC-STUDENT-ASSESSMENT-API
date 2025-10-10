@@ -27,9 +27,27 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     """)
     List<AssessmentStudentLightEntity> findByAssessmentTypeCodeAndSessionIDAndProficiencyScoreNotNullOrProvincialSpecialCaseNotNull(String assessmentTypeCode, UUID sessionID);
 
-    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCode(UUID sessionID, String provincialSpecialCaseCode, String studentStatusCode);
+    @Query("""
+    select stud from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and (stud.provincialSpecialCaseCode is null OR stud.provincialSpecialCaseCode != :provincialSpecialCaseCode)
+    and stud.studentStatusCode = :studentStatusCode
+    """)
+    List<AssessmentStudentLightEntity> findByDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCode(UUID sessionID, String provincialSpecialCaseCode, String studentStatusCode);
 
     List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> studentStatuses);
+
+    @Query("""
+    select stud from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and stud.downloadDate is not null
+    and stud.studentStatusCode = 'ACTIVE'
+    and (stud.provincialSpecialCaseCode is null
+         or stud.provincialSpecialCaseCode <> :provincialSpecialCaseCode)
+    order by stud.downloadDate desc
+    limit 1
+    """)
+    Optional<AssessmentStudentLightEntity> findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCodeActiveAndDownloadDateIsNotNull(UUID sessionID, String provincialSpecialCaseCode);
 
     @Query("""
     select stud from AssessmentStudentLightEntity stud

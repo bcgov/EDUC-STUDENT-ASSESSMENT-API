@@ -217,7 +217,7 @@ public class CSVReportService {
         List<AssessmentStudentLightEntity> students;
         Optional<AssessmentStudentLightEntity> studentEntityOpt = assessmentStudentLightRepository.findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCodeActive(sessionID, ProvincialSpecialCaseCodes.EXEMPT.getCode());
         if(studentEntityOpt.isPresent()) {
-            students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCode(sessionID, ProvincialSpecialCaseCodes.EXEMPT.getCode(), StudentStatusCodes.ACTIVE.getCode());
+            students = assessmentStudentLightRepository.findByDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCode(sessionID, ProvincialSpecialCaseCodes.EXEMPT.getCode(), StudentStatusCodes.ACTIVE.getCode());
         } else {
             students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionID(sessionID);
         }
