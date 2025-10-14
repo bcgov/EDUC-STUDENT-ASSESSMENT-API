@@ -385,7 +385,7 @@ public class ISRReportService extends BaseReportGenerationService {
     var fairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, MUL_CHOICE.getCode(), "F");
     assessmentNMF10.setMultiChoiceGroupingScore(replacePeriodsWithCommas(fairShare.getLeft()));
     assessmentNMF10.setMultiChoiceGroupingOutOf(replacePeriodsWithCommas(fairShare.getRight()));
-    var model = getResultSummaryForQuestionsWithConceptsCode(assessmentStudentID, questions, studentAnswers, MUL_CHOICE.getCode(), "M");
+    var model = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, MUL_CHOICE.getCode(), "M");
     assessmentNMF10.setMultiChoiceModelScore(replacePeriodsWithCommas(model.getLeft()));
     assessmentNMF10.setMultiChoiceModelOutOf(replacePeriodsWithCommas(model.getRight()));
     var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
