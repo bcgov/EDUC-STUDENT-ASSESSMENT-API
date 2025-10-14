@@ -162,9 +162,9 @@ public class AssessmentResultService {
         }
     }
 
-    private void createStudentRecordForCorrectionFile(List<AssessmentResultDetails> groupedResult, AssessmentResultFileUpload fileUpload, AssessmentSessionEntity validSession, AssessmentEntity assessmentEntity, AssessmentFormEntity formEntity) throws ResultsFileUnProcessableException {
-        var studentResultOptional = groupedResult.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).findFirst();
-        var studentResult =  studentResultOptional.get();
+    private void createStudentRecordForCorrectionFile(List<AssessmentResultDetails> groupedResult, AssessmentResultFileUpload fileUpload, AssessmentSessionEntity validSession, AssessmentEntity assessmentEntity, AssessmentFormEntity formEntity) {
+        var studentResultOptional = groupedResult.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).toList();
+        var studentResult =  studentResultOptional.getFirst();
 
         var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
         if (validSession.getCompletionDate() != null) {
@@ -196,23 +196,27 @@ public class AssessmentResultService {
             }
         } else {
             //on-going session, delete student from staging table and load in the result upload table
-            if (optStudent.isPresent()) {
-                Student studentApiStudent = optStudent.get();
-                Optional<StagedAssessmentStudentEntity> optStagedStudent = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
-                optStagedStudent.ifPresent(stagedAssessmentStudentEntity -> stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID()));
-            }
-            groupedResult.forEach(assessmentResultEntity -> {
-                StagedStudentResultEntity resultEntity = assessmentResultsBatchFileMapper.toStagedStudentResultEntity(assessmentResultEntity, assessmentEntity, fileUpload);
-                resultEntity.setAssessmentFormID(formEntity.getAssessmentFormID());
-                resultEntity.setStagedStudentResultStatus("LOADED");
-                stagedStudentResultRepository.save(resultEntity);
-            });
+            createResultForOngoingSession(optStudent, groupedResult, fileUpload, formEntity, assessmentEntity);
         }
     }
 
+    private void createResultForOngoingSession(Optional<Student> optStudent, List<AssessmentResultDetails> groupedResult, AssessmentResultFileUpload fileUpload, AssessmentFormEntity formEntity, AssessmentEntity assessmentEntity) {
+        if (optStudent.isPresent()) {
+            Student studentApiStudent = optStudent.get();
+            Optional<StagedAssessmentStudentEntity> optStagedStudent = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
+            optStagedStudent.ifPresent(stagedAssessmentStudentEntity -> stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID()));
+        }
+        groupedResult.forEach(assessmentResultEntity -> {
+            StagedStudentResultEntity resultEntity = assessmentResultsBatchFileMapper.toStagedStudentResultEntity(assessmentResultEntity, assessmentEntity, fileUpload);
+            resultEntity.setAssessmentFormID(formEntity.getAssessmentFormID());
+            resultEntity.setStagedStudentResultStatus("LOADED");
+            stagedStudentResultRepository.save(resultEntity);
+        });
+    }
+
     private AssessmentStudentEntity createResultForApprovedSession(List<AssessmentResultDetails> groupedResult, AssessmentResultFileUpload fileUpload, GradStudentRecord gradStudent, Student studentApiRecord, AssessmentFormEntity formEntity, AssessmentEntity assessmentEntity) {
-        var studentResultOptional = groupedResult.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).findFirst();
-        var studentResult =  studentResultOptional.get();
+        var studentResultOptional = groupedResult.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).toList();
+        var studentResult =  studentResultOptional.getFirst();
 
         var studentWithOralComponent = groupedResult.stream().filter(e -> e.getComponentType().equalsIgnoreCase("7")).findFirst();
 

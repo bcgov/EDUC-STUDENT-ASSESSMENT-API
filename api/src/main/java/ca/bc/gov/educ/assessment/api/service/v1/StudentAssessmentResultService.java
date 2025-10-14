@@ -9,7 +9,6 @@ import ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.LegacyComponentTypeCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
-import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentResultMapper;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
@@ -20,7 +19,6 @@ import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombston
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import ca.bc.gov.educ.assessment.api.struct.v1.IStudentResultLoad;
-import ca.bc.gov.educ.assessment.api.struct.v1.StudentResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
 import ca.bc.gov.educ.assessment.api.util.AssessmentUtil;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
@@ -95,8 +93,8 @@ public class StudentAssessmentResultService {
         if(studentResults.isEmpty()) {
                 throw new EntityNotFoundException(StagedStudentResultEntity.class, "pen", studentResultSagaData.getPen());
         }
-        var studentResultOptional = studentResults.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).findFirst();
-        var studentResult =  studentResultOptional.get();
+        var studentResultOptional = studentResults.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).toList();
+        var studentResult =  studentResultOptional.getFirst();
         var school = this.restUtils.getSchoolByMincode(studentResult.getMincode());
 
         var studentWithOralComponent = studentResults.stream().filter(e -> e.getComponentType().equalsIgnoreCase("7")).findFirst();
