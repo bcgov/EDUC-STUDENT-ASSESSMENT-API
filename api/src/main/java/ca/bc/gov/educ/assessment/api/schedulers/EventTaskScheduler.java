@@ -41,8 +41,8 @@ public class EventTaskScheduler {
         log.debug("Scheduler findAndProcessPendingSagaEvents complete");
     }
 
-    @Scheduled(cron = "${scheduled.jobs.publish.loaded.assessment.students.cron}")
-    @SchedulerLock(name = "PROCESS_LOADED_STUDENTS", lockAtLeastFor = "${scheduled.jobs.publish.loaded.assessment.students.cron.lockAtLeastFor}", lockAtMostFor = "${scheduled.jobs.publish.loaded.assessment.students.cron.lockAtMostFor}")
+//    @Scheduled(cron = "${scheduled.jobs.publish.loaded.assessment.students.cron}")
+//    @SchedulerLock(name = "PROCESS_LOADED_STUDENTS", lockAtLeastFor = "${scheduled.jobs.publish.loaded.assessment.students.cron.lockAtLeastFor}", lockAtMostFor = "${scheduled.jobs.publish.loaded.assessment.students.cron.lockAtMostFor}")
     public void processLoadedStudents() {
         LockAssert.assertLocked();
         log.debug("Started processLoadedStudents scheduler");
