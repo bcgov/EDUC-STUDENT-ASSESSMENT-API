@@ -196,7 +196,7 @@ public class EventHandlerService {
     public void handleProcessStudentResultEvent(final Event event) throws JsonProcessingException {
         if (event.getEventOutcome() == EventOutcome.READ_STUDENT_RESULT_FOR_PROCESSING_SUCCESS) {
             final StudentResultSagaData sagaData = JsonUtil.getJsonObjectFromString(StudentResultSagaData.class, event.getEventPayload());
-            final var sagaList = sagaService.findByStagedStudentResultIDAndSagaNameAndStatusNot(UUID.fromString(sagaData.getStudentResult().getStagedStudentResultID()), SagaEnum.PROCESS_STUDENT_RESULT.toString(), SagaStatusEnum.COMPLETED.toString());
+            final var sagaList = sagaService.findByAssessmentIDAndPenAndSagaNameAndStatusNot(UUID.fromString(sagaData.getAssessmentID()), sagaData.getPen(), SagaEnum.PROCESS_STUDENT_RESULT.toString(), SagaStatusEnum.COMPLETED.toString());
             if (!sagaList.isEmpty()) { // possible duplicate message.
                 log.trace(NO_EXECUTION_MSG, event);
                 return;
@@ -205,7 +205,9 @@ public class EventHandlerService {
                     .createSaga(event.getEventPayload(),
                             ApplicationProperties.STUDENT_ASSESSMENT_API,
                             null,
-                            UUID.fromString(sagaData.getStudentResult().getStagedStudentResultID()));
+                            null,
+                            UUID.fromString(sagaData.getAssessmentID()),
+                            sagaData.getPen());
             log.debug("Starting course student processing orchestrator :: {}", saga);
             this.studentResultProcessingOrchestrator.startSaga(saga);
         }
@@ -224,7 +226,9 @@ public class EventHandlerService {
                     .createSaga(event.getEventPayload(),
                             ApplicationProperties.STUDENT_ASSESSMENT_API,
                             null,
-                            UUID.fromString(sagaData.getStagedStudentAssessmentID()));
+                            UUID.fromString(sagaData.getStagedStudentAssessmentID()),
+                            null,
+                            null);
             log.debug("Starting transfer student processing orchestrator :: {}", saga);
             this.transferStudentProcessingOrchestrator.startSaga(saga);
         }

@@ -38,6 +38,12 @@ public class AssessmentSagaEntity {
   @Column(name = "ASSESSMENT_STUDENT_ID", nullable = false, columnDefinition = "BINARY(16)")
   private UUID assessmentStudentID;
 
+  @Column(name = "ASSESSMENT_ID", nullable = false, columnDefinition = "BINARY(16)")
+  private UUID assessmentID;
+
+  @Column(name = "PEN")
+  private String pen;
+
   @NotNull(message = "saga name cannot be null")
   @Column(name = "SAGA_NAME")
   String sagaName;
