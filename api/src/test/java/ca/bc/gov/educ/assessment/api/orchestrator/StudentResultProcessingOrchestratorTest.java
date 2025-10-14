@@ -164,12 +164,10 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
                 .build();
 
         var savedStudentResult = stagedStudentResultRepository.save(studentResult);
-
-        var studentResultStruct = AssessmentStudentResultMapper.mapper.toStructure(savedStudentResult);
         var sagaData = StudentResultSagaData
                 .builder()
-                .studentResult(studentResultStruct)
-                .school(school)
+                .assessmentID(String.valueOf(savedStudentResult.getAssessmentEntity().getAssessmentID()))
+                .pen(savedStudentResult.getPen())
                 .build();
 
         val saga = this.createStudentResultMockSaga(sagaData);
@@ -243,11 +241,10 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         var savedStudentResult = stagedStudentResultRepository.save(studentResult);
 
-        var studentResultStruct = AssessmentStudentResultMapper.mapper.toStructure(savedStudentResult);
         var sagaData = StudentResultSagaData
                 .builder()
-                .studentResult(studentResultStruct)
-                .school(school)
+                .assessmentID(String.valueOf(savedStudentResult.getAssessmentEntity().getAssessmentID()))
+                .pen(savedStudentResult.getPen())
                 .build();
 
         val saga = this.createStudentResultMockSaga(sagaData);
@@ -311,11 +308,10 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         var savedStudentResult = stagedStudentResultRepository.save(studentResult);
 
-        var studentResultStruct = AssessmentStudentResultMapper.mapper.toStructure(savedStudentResult);
         var sagaData = StudentResultSagaData
                 .builder()
-                .studentResult(studentResultStruct)
-                .school(school)
+                .assessmentID(String.valueOf(savedStudentResult.getAssessmentEntity().getAssessmentID()))
+                .pen(savedStudentResult.getPen())
                 .build();
 
         val saga = this.createStudentResultMockSaga(sagaData);

@@ -147,17 +147,25 @@ public class AssessmentResultService {
             throw new ResultsFileUnProcessableException(INVALID_KEY, correlationID, LOAD_FAIL);
         }
 
-        for(val studentResult : batchFile.getAssessmentResultData()) {
+        Map<String, List<AssessmentResultDetails>> groupedStudents = batchFile.getAssessmentResultData().stream().collect(Collectors.groupingBy(AssessmentResultDetails::getPen));
+
+        for(val groupedResult : groupedStudents.entrySet()) {
+
+            var studentResultOptional = groupedResult.getValue().stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).findFirst();
+            var studentResult =  studentResultOptional.get();
             var formEntity = formMap.get(studentResult.getFormCode());
             if (formEntity == null) {
                 throw new ResultsFileUnProcessableException(INVALID_FORM_CODE, correlationID, LOAD_FAIL);
             }
             checkChoicePathValue(studentResult, formEntity, correlationID);
-            createStudentRecordForCorrectionFile(studentResult, fileUpload, validSession, assessmentEntity, formEntity);
+            createStudentRecordForCorrectionFile(groupedResult.getValue(), fileUpload, validSession, assessmentEntity, formEntity);
         }
     }
 
-    private void createStudentRecordForCorrectionFile(AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, AssessmentSessionEntity validSession, AssessmentEntity assessmentEntity, AssessmentFormEntity formEntity) throws ResultsFileUnProcessableException {
+    private void createStudentRecordForCorrectionFile(List<AssessmentResultDetails> groupedResult, AssessmentResultFileUpload fileUpload, AssessmentSessionEntity validSession, AssessmentEntity assessmentEntity, AssessmentFormEntity formEntity) throws ResultsFileUnProcessableException {
+        var studentResultOptional = groupedResult.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).findFirst();
+        var studentResult =  studentResultOptional.get();
+
         var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
         if (validSession.getCompletionDate() != null) {
             //approved session
@@ -184,7 +192,7 @@ public class AssessmentResultService {
                 student.ifPresent(assessmentStudentEntity -> assessmentStudentRepository.deleteById(assessmentStudentEntity.getAssessmentStudentID()));
 
                 var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentID)).orElse(null);
-                assessmentStudentRepository.save(createResultForApprovedSession(studentResult, fileUpload, gradStudent, studentApiRecord, formEntity, assessmentEntity));
+                assessmentStudentRepository.save(createResultForApprovedSession(groupedResult, fileUpload, gradStudent, studentApiRecord, formEntity, assessmentEntity));
             }
         } else {
             //on-going session, delete student from staging table and load in the result upload table
@@ -193,29 +201,29 @@ public class AssessmentResultService {
                 Optional<StagedAssessmentStudentEntity> optStagedStudent = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessmentEntity.getAssessmentID(), UUID.fromString(studentApiStudent.getStudentID()));
                 optStagedStudent.ifPresent(stagedAssessmentStudentEntity -> stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID()));
             }
-            StagedStudentResultEntity resultEntity = assessmentResultsBatchFileMapper.toStagedStudentResultEntity(studentResult, assessmentEntity, fileUpload);
-            resultEntity.setAssessmentFormID(formEntity.getAssessmentFormID());
-            resultEntity.setStagedStudentResultStatus("LOADED");
-            stagedStudentResultRepository.save(resultEntity);
+            groupedResult.forEach(assessmentResultEntity -> {
+                StagedStudentResultEntity resultEntity = assessmentResultsBatchFileMapper.toStagedStudentResultEntity(assessmentResultEntity, assessmentEntity, fileUpload);
+                resultEntity.setAssessmentFormID(formEntity.getAssessmentFormID());
+                resultEntity.setStagedStudentResultStatus("LOADED");
+                stagedStudentResultRepository.save(resultEntity);
+            });
         }
     }
 
-    private AssessmentStudentEntity createResultForApprovedSession(AssessmentResultDetails studentResult, AssessmentResultFileUpload fileUpload, GradStudentRecord gradStudent, Student studentApiRecord, AssessmentFormEntity formEntity, AssessmentEntity assessmentEntity) {
+    private AssessmentStudentEntity createResultForApprovedSession(List<AssessmentResultDetails> groupedResult, AssessmentResultFileUpload fileUpload, GradStudentRecord gradStudent, Student studentApiRecord, AssessmentFormEntity formEntity, AssessmentEntity assessmentEntity) {
+        var studentResultOptional = groupedResult.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).findFirst();
+        var studentResult =  studentResultOptional.get();
+
+        var studentWithOralComponent = groupedResult.stream().filter(e -> e.getComponentType().equalsIgnoreCase("7")).findFirst();
+
         var assessmentStudent = studentAssessmentResultService.createNewAssessmentStudentEntity(studentResult, studentApiRecord, gradStudent, formEntity.getAssessmentFormID(), assessmentEntity);
         assessmentStudent.setCreateDate(LocalDateTime.now());
         assessmentStudent.setCreateUser(fileUpload.getCreateUser());
         assessmentStudent.setUpdateUser(fileUpload.getUpdateUser());
         assessmentStudent.setUpdateDate(LocalDateTime.now());
 
-        switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
-            case MUL_CHOICE -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-            case OPEN_ENDED -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-            case ORAL -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
-            case BOTH -> {
-                studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-                studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-            }
-        }
+        createStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult);
+        studentWithOralComponent.ifPresent(stagedStudentResultEntity -> createStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult));
 
         var mcTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, formEntity);
         var oeTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, formEntity);
@@ -226,6 +234,18 @@ public class AssessmentResultService {
         assessmentStudent.setRawScore(mcTotal.add(oralTotal).add(oeTotal));
 
         return assessmentStudent;
+    }
+
+    private void createStudentComponent(AssessmentFormEntity formEntity, AssessmentStudentEntity assessmentStudent, AssessmentResultFileUpload fileUpload, AssessmentResultDetails studentResult) {
+        switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
+            case MUL_CHOICE -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+            case OPEN_ENDED -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+            case ORAL -> studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
+            case BOTH -> {
+                studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+                studentAssessmentResultService.addAssessmentStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+            }
+        }
     }
 
     private AssessmentResultDetails getAssessmentResultDetailRecordFromFile(final DataSet ds, final String guid, final String lineNumber) throws ResultsFileUnProcessableException {

@@ -121,7 +121,8 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
             "test",
             sagaPayload,
             null,
-            stagedStudent.getAssessmentStudentID()
+            stagedStudent.getAssessmentStudentID(),
+                null,null
         );
     }
 
@@ -268,7 +269,7 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         AssessmentSagaEntity dummySaga = new AssessmentSagaEntity();
         dummySaga.setSagaId(UUID.randomUUID());
-        when(mockSagaService.createSagaRecordInDB(anyString(), anyString(), anyString(), isNull(), any(UUID.class))).thenReturn(dummySaga);
+        when(mockSagaService.createSagaRecordInDB(anyString(), anyString(), anyString(), isNull(), any(UUID.class), isNull(), isNull())).thenReturn(dummySaga);
 
         var sagaData = TransferOnApprovalSagaData.builder()
                         .assessmentID(String.valueOf(UUID.randomUUID()))
@@ -279,9 +280,9 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
         orchestratorWithMocks.startSaga(orchestratorWithMocks.createSaga(JsonUtil.getJsonStringFromObject(sagaData),
                 ApplicationProperties.STUDENT_ASSESSMENT_API,
                 null,
-                UUID.fromString(sagaData.getStagedStudentAssessmentID())));
+                UUID.fromString(sagaData.getStagedStudentAssessmentID()), null, null));
 
-        verify(mockSagaService, atLeastOnce()).createSagaRecordInDB(anyString(), anyString(), anyString(), isNull(), any(UUID.class));
+        verify(mockSagaService, atLeastOnce()).createSagaRecordInDB(anyString(), anyString(), anyString(), isNull(), any(UUID.class), isNull(), isNull());
         verify(mockMessagePublisher, atLeastOnce()).dispatchMessage(eq(orchestratorWithMocks.getTopicToSubscribe()), eventCaptor.capture());
 
         String dispatchedPayload = new String(eventCaptor.getValue());

@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api.model.v1;
 
+import ca.bc.gov.educ.assessment.api.util.UpperCase;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
@@ -54,9 +55,11 @@ public class AssessmentStudentEntity {
   private String studentStatusCode;
 
   @Column(name = "GIVEN_NAME", length = 25)
+  @UpperCase
   private String givenName;
 
   @Column(name = "SURNAME", nullable = false, length = 25)
+  @UpperCase
   private String surname;
 
   @Column(name = "PEN", nullable = false, length = 9)

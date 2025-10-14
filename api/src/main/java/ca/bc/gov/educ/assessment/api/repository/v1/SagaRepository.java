@@ -26,6 +26,8 @@ public interface SagaRepository extends JpaRepository<AssessmentSagaEntity, UUID
 
   List<AssessmentSagaEntity> findByStagedStudentResultIDAndSagaNameAndStatusNot(UUID stagedStudentResultID, String sagaName, String status);
 
+  List<AssessmentSagaEntity> findByAssessmentIDAndPenAndSagaNameAndStatusNot(UUID assessmentID, String pen, String sagaName, String status);
+
   @Transactional
   @Modifying
   @Query("delete from AssessmentSagaEntity where createDate <= :createDate")

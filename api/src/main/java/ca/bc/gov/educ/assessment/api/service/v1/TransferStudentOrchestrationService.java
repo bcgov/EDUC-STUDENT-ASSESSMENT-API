@@ -101,19 +101,14 @@ public class TransferStudentOrchestrationService {
                         stagedStudent.getAssessmentEntity().getAssessmentID(),
                         stagedStudent.getStudentID()
                 );
-
-        try {
-            if (existingStudent.isPresent()) {
-                log.debug("Updating existing student {} for assessment {}", stagedStudent.getStudentID(), stagedStudent.getAssessmentEntity().getAssessmentID());
-                updateExistingStudentFromStaged(existingStudent.get(), stagedStudent);
-            } else {
-                log.debug("Creating new student {} for assessment {}", stagedStudent.getStudentID(), stagedStudent.getAssessmentEntity().getAssessmentID());
-                createNewStudentFromStaged(stagedStudent);
-            }
+        if (existingStudent.isPresent()) {
+            log.debug("Updating existing student {} for assessment {}", stagedStudent.getStudentID(), stagedStudent.getAssessmentEntity().getAssessmentID());
+            updateExistingStudentFromStaged(existingStudent.get(), stagedStudent);
+        } else {
+            log.debug("Creating new student {} for assessment {}", stagedStudent.getStudentID(), stagedStudent.getAssessmentEntity().getAssessmentID());
+            createNewStudentFromStaged(stagedStudent);
         }
-        finally {
-            assessmentStudentService.deleteStagedStudent(stagedStudent);
-        }
+        assessmentStudentService.deleteStagedStudent(stagedStudent);
     }
 
     private void updateExistingStudentFromStaged(AssessmentStudentEntity existingStudent, StagedAssessmentStudentEntity stagedStudent) {
