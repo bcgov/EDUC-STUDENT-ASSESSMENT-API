@@ -24,6 +24,7 @@ public class AssessmentRulesService {
 
     public boolean studentAssessmentWritesExceeded(UUID studentID, String assessmentTypeCode){
         int numberOfAttemptsForStudentPEN = assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, AssessmentUtil.getAssessmentTypeCodeList(assessmentTypeCode));
+        log.debug("Number of attempts is {} for student with ID: {}", numberOfAttemptsForStudentPEN, studentID);
         return numberOfAttemptsForStudentPEN >= studentAssessmentWriteMax;
     }
 }
