@@ -153,6 +153,12 @@ public class StudentAssessmentResultService {
         studentResult.setUpdateDate(LocalDateTime.now());
         stagedStudentResultRepository.save(studentResult);
 
+        if(studentWithOralComponent.isPresent()) {
+            var oralResult = studentWithOralComponent.get();
+            oralResult.setStagedStudentResultStatus("COMPLETED");
+            oralResult.setUpdateDate(LocalDateTime.now());
+            stagedStudentResultRepository.save(oralResult);
+        }
     }
 
     private void createStudentComponent(AssessmentFormEntity formEntity, StagedAssessmentStudentEntity stagedStudent, StagedStudentResultEntity studentResult) {
