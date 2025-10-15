@@ -17,6 +17,7 @@ import ca.bc.gov.educ.assessment.api.util.RequestUtil;
 import ca.bc.gov.educ.assessment.api.util.ValidationUtil;
 import ca.bc.gov.educ.assessment.api.validator.AssessmentStudentValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @RestController
 public class AssessmentStudentController implements AssessmentStudentEndpoint {
 
@@ -62,7 +64,7 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     }
 
   @Override
-  public AssessmentStudentListItem updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID, boolean allowRuleOverride, String source) throws JsonProcessingException {
+  public AssessmentStudentListItem updateStudent(AssessmentStudent assessmentStudent, UUID assessmentStudentID, boolean allowRuleOverride, String source) {
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, false));
     RequestUtil.setAuditColumnsForUpdate(assessmentStudent);
     var pair = studentService.updateStudent(mapper.toModel(assessmentStudent), allowRuleOverride, source);
@@ -73,7 +75,8 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public AssessmentStudentListItem createStudent(AssessmentStudent assessmentStudent, boolean allowRuleOverride, String source) throws JsonProcessingException {
+  public AssessmentStudentListItem createStudent(AssessmentStudent assessmentStudent, boolean allowRuleOverride, String source) {
+    log.debug("Allow override set to: {}", allowRuleOverride);
     ValidationUtil.validatePayload(() -> validator.validatePayload(assessmentStudent, true));
     RequestUtil.setAuditColumnsForCreate(assessmentStudent);
     AssessmentStudentEntity assessmentStudentEntity = mapper.toModel(assessmentStudent);
