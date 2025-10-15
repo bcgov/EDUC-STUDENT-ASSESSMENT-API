@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.assessment.api.repository.v1;
 
-import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.StagedStudentResultEntity;
+import ca.bc.gov.educ.assessment.api.struct.v1.IStudentResultLoad;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,13 +17,15 @@ import java.util.UUID;
 public interface StagedStudentResultRepository extends JpaRepository<StagedStudentResultEntity, UUID>, JpaSpecificationExecutor<StagedStudentResultEntity> {
 
     @Query(value="""
-    SELECT stud FROM StagedStudentResultEntity stud WHERE stud.stagedStudentResultID
+    SELECT stud.assessmentEntity.assessmentID as assessmentID, stud.pen as pen
+    FROM StagedStudentResultEntity stud WHERE stud.stagedStudentResultID
     NOT IN (SELECT saga.stagedStudentResultID FROM AssessmentSagaEntity saga WHERE saga.status != 'COMPLETED'
     AND saga.stagedStudentResultID IS NOT NULL)
     AND stud.stagedStudentResultStatus = 'LOADED'
-    order by stud.createDate
+    GROUP BY stud.pen, stud.assessmentEntity.assessmentID
+    ORDER BY stud.pen
     LIMIT :numberOfStudentsToProcess""")
-    List<StagedStudentResultEntity> findTopLoadedStudentForProcessing(String numberOfStudentsToProcess);
+    List<IStudentResultLoad> findTopLoadedStudentForProcessing(String numberOfStudentsToProcess);
 
     @Transactional
     @Modifying
@@ -37,5 +39,7 @@ public interface StagedStudentResultRepository extends JpaRepository<StagedStude
         ORDER BY s.createDate DESC
         LIMIT 1""")
     Optional<StagedStudentResultEntity> findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(UUID assessmentID);
+
+    List<StagedStudentResultEntity> findByAssessmentEntity_assessmentIDAndPen(UUID assessmentID, String pen);
 
 }

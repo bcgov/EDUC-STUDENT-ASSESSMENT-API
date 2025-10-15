@@ -9,7 +9,6 @@ import ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.LegacyComponentTypeCodes;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
-import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentResultMapper;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
@@ -19,7 +18,7 @@ import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
-import ca.bc.gov.educ.assessment.api.struct.v1.StudentResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.IStudentResultLoad;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
 import ca.bc.gov.educ.assessment.api.util.AssessmentUtil;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
@@ -55,13 +54,12 @@ public class StudentAssessmentResultService {
 
     @Async("publisherExecutor")
     @Transactional
-    public void prepareAndSendStudentsForFurtherProcessing(final List <StagedStudentResultEntity> stagedResultEntities) {
+    public void prepareAndSendStudentsForFurtherProcessing(final List <IStudentResultLoad> stagedResultEntities) {
         final List<StudentResultSagaData> resultSagaDatas = stagedResultEntities.stream()
                 .map(el -> {
                     val studentResultSagaData = new StudentResultSagaData();
-                    var school = this.restUtils.getSchoolByMincode(el.getMincode());
-                    studentResultSagaData.setSchool(school.get());
-                    studentResultSagaData.setStudentResult(AssessmentStudentResultMapper.mapper.toStructure(el));
+                    studentResultSagaData.setAssessmentID(el.getAssessmentID());
+                    studentResultSagaData.setPen(el.getPen());
                     return studentResultSagaData;
                 }).toList();
         this.publishUnprocessedStudentRecordsForProcessing(resultSagaDatas);
@@ -74,7 +72,7 @@ public class StudentAssessmentResultService {
     private void sendIndividualStudentAsMessageToTopic(final StudentResultSagaData studentResultSagaData) {
         final var eventPayload = JsonUtil.getJsonString(studentResultSagaData);
         if (eventPayload.isPresent()) {
-            final Event event = Event.builder().eventType(EventType.READ_STUDENT_RESULT_FOR_PROCESSING).eventOutcome(EventOutcome.READ_STUDENT_RESULT_FOR_PROCESSING_SUCCESS).eventPayload(eventPayload.get()).stagedStudentResultID(String.valueOf(studentResultSagaData.getStudentResult().getStagedStudentResultID())).build();
+            final Event event = Event.builder().eventType(EventType.READ_STUDENT_RESULT_FOR_PROCESSING).eventOutcome(EventOutcome.READ_STUDENT_RESULT_FOR_PROCESSING_SUCCESS).eventPayload(eventPayload.get()).assessmentID(String.valueOf(studentResultSagaData.getAssessmentID())).build();
             final var eventString = JsonUtil.getJsonString(event);
             if (eventString.isPresent()) {
                 this.messagePublisher.dispatchMessage(TopicsEnum.READ_STUDENT_RESULT_RECORD.toString(), eventString.get().getBytes());
@@ -88,17 +86,22 @@ public class StudentAssessmentResultService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processLoadedRecordsInBatchFile(StudentResultSagaData studentResultSagaData) {
-        var studentResult = studentResultSagaData.getStudentResult();
-        var assessmentEntity = assessmentRepository.findById(UUID.fromString(studentResult.getAssessmentID()))
-                .orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", studentResult.getAssessmentID()));
+        var assessmentEntity = assessmentRepository.findById(UUID.fromString(studentResultSagaData.getAssessmentID()))
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", studentResultSagaData.getAssessmentID()));
 
+        var studentResults = stagedStudentResultRepository.findByAssessmentEntity_assessmentIDAndPen(UUID.fromString(studentResultSagaData.getAssessmentID()), studentResultSagaData.getPen());
+        if(studentResults.isEmpty()) {
+                throw new EntityNotFoundException(StagedStudentResultEntity.class, "pen", studentResultSagaData.getPen());
+        }
+        var studentResultOptional = studentResults.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).toList();
+        var studentResult =  studentResultOptional.getFirst();
+        var school = this.restUtils.getSchoolByMincode(studentResult.getMincode());
+
+        var studentWithOralComponent = studentResults.stream().filter(e -> e.getComponentType().equalsIgnoreCase("7")).findFirst();
         var formEntity = assessmentEntity.getAssessmentForms().stream()
-                .filter(form -> Objects.equals(form.getAssessmentFormID(), UUID.fromString(studentResult.getAssessmentFormID())))
+                .filter(form -> Objects.equals(form.getAssessmentFormID(), studentResult.getAssessmentFormID()))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "assessmentFormID", studentResult.getAssessmentFormID()));
-
-        var stagedStudentResult = stagedStudentResultRepository.findById(UUID.fromString(studentResult.getStagedStudentResultID()))
-                .orElseThrow(() -> new EntityNotFoundException(StagedStudentResultEntity.class, "stagedStudentResultID", studentResult.getStagedStudentResultID()));
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "assessmentFormID", studentResult.getAssessmentFormID().toString()));
 
         var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResult.getPen());
         var penMatchFound = optStudent.isPresent();
@@ -115,11 +118,11 @@ public class StudentAssessmentResultService {
 
             var studentID = isMergedRecord ? trueStudentApiStudentRecord.getStudentID() : studentApiStudent.getStudentID();
             var studentApiRecord = isMergedRecord ? trueStudentApiStudentRecord : studentApiStudent;
-            var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(studentResult.getAssessmentID()), UUID.fromString(studentID));
+            var existingStudentRegistrationOpt = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(studentResult.getAssessmentEntity().getAssessmentID(), UUID.fromString(studentID));
             var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentID)).orElse(null);
             stagedStudent = existingStudentRegistrationOpt.isPresent() ?
                     createFromExistingStudentEntity(studentResult, gradStudent, existingStudentRegistrationOpt.get(), formEntity.getAssessmentFormID())
-                    : createNewStagedAssessmentStudentEntity(studentResult, studentResultSagaData.getSchool(), studentApiRecord, gradStudent, formEntity.getAssessmentFormID(), assessmentEntity);
+                    : createNewStagedAssessmentStudentEntity(studentResult, school.get(), studentApiRecord, gradStudent, formEntity.getAssessmentFormID(), assessmentEntity);
             stagedStudent.setIsPreRegistered(existingStudentRegistrationOpt.isPresent());
             if(isMergedRecord) {
                 stagedStudent.setStagedAssessmentStudentStatus("MERGED");
@@ -128,20 +131,13 @@ public class StudentAssessmentResultService {
                 stagedStudent.setStagedAssessmentStudentStatus("ACTIVE");
             }
         } else {
-            stagedStudent = createNewStagedAssessmentStudentEntity(studentResult, studentResultSagaData.getSchool(), null, null, formEntity.getAssessmentFormID(), assessmentEntity);
+            stagedStudent = createNewStagedAssessmentStudentEntity(studentResult, school.get(), null, null, formEntity.getAssessmentFormID(), assessmentEntity);
             stagedStudent.setIsPreRegistered(false);
             stagedStudent.setStagedAssessmentStudentStatus("NOPENFOUND");
         }
 
-        switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
-            case MUL_CHOICE -> addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-            case OPEN_ENDED -> addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-            case ORAL -> addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
-            case BOTH -> {
-                addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
-                addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
-            }
-        }
+        createStudentComponent(formEntity, stagedStudent, studentResult);
+        studentWithOralComponent.ifPresent(stagedStudentResultEntity -> createStudentComponent(formEntity, stagedStudent, stagedStudentResultEntity));
 
         var mcTotal = setStagedStudentTotals(stagedStudent, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, formEntity);
         var oeTotal = setStagedStudentTotals(stagedStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, formEntity);
@@ -153,10 +149,22 @@ public class StudentAssessmentResultService {
 
         stagedAssessmentStudentRepository.save(stagedStudent);
 
-        stagedStudentResult.setStagedStudentResultStatus("COMPLETED");
-        stagedStudentResult.setUpdateDate(LocalDateTime.now());
-        stagedStudentResultRepository.save(stagedStudentResult);
+        studentResult.setStagedStudentResultStatus("COMPLETED");
+        studentResult.setUpdateDate(LocalDateTime.now());
+        stagedStudentResultRepository.save(studentResult);
 
+    }
+
+    private void createStudentComponent(AssessmentFormEntity formEntity, StagedAssessmentStudentEntity stagedStudent, StagedStudentResultEntity studentResult) {
+        switch (LegacyComponentTypeCodes.findByValue(studentResult.getComponentType()).orElseThrow()) {
+            case MUL_CHOICE -> addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+            case OPEN_ENDED -> addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+            case ORAL -> addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.ORAL);
+            case BOTH -> {
+                addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE);
+                addStagedStudentComponent(formEntity, stagedStudent, studentResult, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE);
+            }
+        }
     }
 
     private BigDecimal setStagedStudentTotals(StagedAssessmentStudentEntity stagedStudent, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType, AssessmentFormEntity formEntity) {
@@ -202,7 +210,7 @@ public class StudentAssessmentResultService {
         return BigDecimal.ZERO;
     }
 
-    private StagedAssessmentStudentEntity createFromExistingStudentEntity(StudentResult studentResult, GradStudentRecord gradStudent, AssessmentStudentEntity existingStudent, UUID assessmentFormID) {
+    private StagedAssessmentStudentEntity createFromExistingStudentEntity(StagedStudentResultEntity studentResult, GradStudentRecord gradStudent, AssessmentStudentEntity existingStudent, UUID assessmentFormID) {
         StagedAssessmentStudentEntity stagedStudent = AssessmentStudentMapper.mapper.toStagingStudent(existingStudent);
         if(studentResult.getComponentType().equalsIgnoreCase("1") || studentResult.getComponentType().equalsIgnoreCase("3")) {
             stagedStudent.setIrtScore(studentResult.getIrtScore());
@@ -221,7 +229,7 @@ public class StudentAssessmentResultService {
         return stagedStudent;
     }
 
-    private StagedAssessmentStudentEntity createNewStagedAssessmentStudentEntity(StudentResult studentResult, SchoolTombstone school, Student studentApiStudent, GradStudentRecord gradStudent, UUID assessmentFormID, AssessmentEntity assessmentEntity) {
+    private StagedAssessmentStudentEntity createNewStagedAssessmentStudentEntity(StagedStudentResultEntity studentResult, SchoolTombstone school, Student studentApiStudent, GradStudentRecord gradStudent, UUID assessmentFormID, AssessmentEntity assessmentEntity) {
         StagedAssessmentStudentEntity stagedStudent = new StagedAssessmentStudentEntity();
         var noOfAttempts = studentApiStudent != null
                 ? assessmentStudentRepository.findNumberOfAttemptsForStudent(UUID.fromString(studentApiStudent.getStudentID()), AssessmentUtil.getAssessmentTypeCodeList(assessmentEntity.getAssessmentTypeCode()))
@@ -253,7 +261,7 @@ public class StudentAssessmentResultService {
         return stagedStudent;
     }
 
-    private void addStagedStudentComponent(AssessmentFormEntity formEntity, StagedAssessmentStudentEntity assessmentStudent, StudentResult studentResult, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType) {
+    private void addStagedStudentComponent(AssessmentFormEntity formEntity, StagedAssessmentStudentEntity assessmentStudent, StagedStudentResultEntity studentResult, ComponentTypeCodes componentType, ComponentSubTypeCodes componentSubType) {
         var studentComponent = new StagedAssessmentStudentComponentEntity();
         studentComponent.setStagedAssessmentStudentEntity(assessmentStudent);
 

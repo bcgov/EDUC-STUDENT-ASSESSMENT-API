@@ -93,7 +93,7 @@ class AssessmentResultServiceMergeTest {
 
         ArgumentCaptor<Student> studentCaptor = ArgumentCaptor.forClass(Student.class);
 
-        invokeCreate(details, fileUpload, session, assessment, form);
+        invokeCreate(List.of(details), fileUpload, session, assessment, form);
 
         verify(restUtils, times(1)).getStudents(any(), anySet());
         verify(studentAssessmentResultService).createNewAssessmentStudentEntity(any(), studentCaptor.capture(), any(), any(), any());
@@ -146,21 +146,21 @@ class AssessmentResultServiceMergeTest {
 
         ArgumentCaptor<Student> studentCaptor = ArgumentCaptor.forClass(Student.class);
 
-        invokeCreate(details, fileUpload, session, assessment, form);
+        invokeCreate(List.of(details), fileUpload, session, assessment, form);
 
         verify(restUtils, times(2)).getStudents(any(), anySet());
         verify(studentAssessmentResultService).createNewAssessmentStudentEntity(any(), studentCaptor.capture(), any(), any(), any());
         assertEquals(finalId.toString(), studentCaptor.getValue().getStudentID());
     }
 
-    private void invokeCreate(AssessmentResultDetails details,
+    private void invokeCreate(List<AssessmentResultDetails> details,
                               AssessmentResultFileUpload fileUpload,
                               AssessmentSessionEntity session,
                               AssessmentEntity assessment,
                               AssessmentFormEntity form) throws Exception {
         Method m = AssessmentResultService.class.getDeclaredMethod(
                 "createStudentRecordForCorrectionFile",
-                AssessmentResultDetails.class,
+                List.class,
                 AssessmentResultFileUpload.class,
                 AssessmentSessionEntity.class,
                 AssessmentEntity.class,
