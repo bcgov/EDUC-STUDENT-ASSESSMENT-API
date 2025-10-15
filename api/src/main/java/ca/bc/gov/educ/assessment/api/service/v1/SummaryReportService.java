@@ -178,6 +178,10 @@ public class SummaryReportService {
         Optional<SchoolTombstone> schoolTombstone = this.restUtils.getSchoolBySchoolID(result.getSchoolOfRecordSchoolID());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode(), validAssessments.containsKey(result.getAssessmentID()) ? validAssessments.get(result.getAssessmentID()).getAssessmentTypeCode() : result.getAssessmentID());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode(), schoolTombstone.isPresent() ? schoolTombstone.get().getMincode() : result.getSchoolOfRecordSchoolID());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_04_COUNT.getCode(), result.getGrade8Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_05_COUNT.getCode(), result.getGrade8Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_06_COUNT.getCode(), result.getGrade8Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_07_COUNT.getCode(), result.getGrade8Count());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_08_COUNT.getCode(), result.getGrade8Count());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_09_COUNT.getCode(), result.getGrade9Count());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode(),  result.getGrade10Count());
@@ -194,6 +198,18 @@ public class SummaryReportService {
 
     private HashMap<String, Integer> generateNeededHeadersForAssessmentRegistrationTotalsBySchoolResult(AssessmentRegistrationTotalsBySchoolResult result) {
         HashMap<String, Integer> neededHeaders = new HashMap<>();
+        if (!result.getGrade8Count().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_04_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_04_COUNT.getOrder());
+        }
+        if (!result.getGrade8Count().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_05_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_05_COUNT.getOrder());
+        }
+        if (!result.getGrade8Count().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_06_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_06_COUNT.getOrder());
+        }
+        if (!result.getGrade8Count().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_07_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_07_COUNT.getOrder());
+        }
         if (!result.getGrade8Count().equals("0")) {
             neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_08_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_08_COUNT.getOrder());
         }
