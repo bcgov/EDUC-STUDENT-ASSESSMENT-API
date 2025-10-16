@@ -37,6 +37,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes.MUL_CHOICE;
 import static ca.bc.gov.educ.assessment.api.constants.v1.ComponentTypeCodes.OPEN_ENDED;
@@ -261,6 +262,17 @@ public class ISRReportService extends BaseReportGenerationService {
     log.debug("Filtered questions size is: " + filteredQuestions.size());
     log.debug("Filtered question IDs are: " + filteredQuestions.stream().map(AssessmentQuestionEntity::getAssessmentQuestionID).toList());
     
+    //Remove any of the duplicate item numbers in the filtered list
+    var uniqueList = filteredQuestions.stream()
+            .collect(Collectors.toMap(
+                    AssessmentQuestionEntity::getItemNumber,  // Key extractor (the field to check for duplicates)
+                    item -> item,                   // Value mapper (the object itself)
+                    (existing, replacement) -> existing  // Merge function (keep first occurrence)
+            ))
+            .values()
+            .stream()
+            .toList();
+    
     boolean foundAnyAnswers = false;
     
     for(AssessmentStudentAnswerEntity answer : answers){
@@ -278,8 +290,7 @@ public class ISRReportService extends BaseReportGenerationService {
 
     BigDecimal totalOutOf = new BigDecimal(0);
 
-    for (AssessmentQuestionEntity question : filteredQuestions) {
-      log.debug("Question check: {}", question.getQuestionNumber().equals(question.getMasterQuestionNumber()));
+    for (AssessmentQuestionEntity question : uniqueList) {
       if (questionType.equalsIgnoreCase(MUL_CHOICE.getCode())) {
         String choicePathToIgnore = null;
         if(StringUtils.isNotBlank(choicePath)) {
@@ -292,7 +303,7 @@ public class ISRReportService extends BaseReportGenerationService {
           totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(getScaleFactorAsBigDecimal(question.getScaleFactor()).divide(new BigDecimal(100))));
           log.debug("Total out of now: {}", totalOutOf);
         }
-      } else if (question.getQuestionNumber().equals(question.getMasterQuestionNumber())) {
+      } else {
         log.debug("Current total out of non-multi: {}", totalOutOf);
         log.debug("Adding the following value to total out of non-multi: {}", question.getQuestionValue().multiply(getScaleFactorAsBigDecimal(question.getScaleFactor()).divide(new BigDecimal(100))));
         totalOutOf = totalOutOf.add(question.getQuestionValue().multiply(getScaleFactorAsBigDecimal(question.getScaleFactor()).divide(new BigDecimal(100))));
