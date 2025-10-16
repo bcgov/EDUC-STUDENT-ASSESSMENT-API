@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Service
@@ -115,11 +116,18 @@ public class DOARCalculateService {
         if(selectedOeAssessmentQuestionsByTypeCode.isEmpty()) {
             return BigDecimal.ZERO;
         }
-        Map<Integer, List<AssessmentQuestionEntity>> groupedQuestionsByMasterQuestionNumber = selectedOeAssessmentQuestionsByTypeCode.stream().collect(Collectors.groupingBy(AssessmentQuestionEntity::getMasterQuestionNumber));
+        var oralQuestions = selectedOeAssessmentQuestionsByTypeCode.stream()
+                .filter(questionEntity -> questionEntity.getAssessmentComponentEntity().getComponentSubTypeCode().equalsIgnoreCase("ORAL"))
+                .toList();
+        var oralWrittenQuestions = selectedOeAssessmentQuestionsByTypeCode.stream()
+                .filter(questionEntity -> questionEntity.getAssessmentComponentEntity().getComponentSubTypeCode().equalsIgnoreCase("NONE"))
+                .toList();
+        Map<Integer, List<AssessmentQuestionEntity>> groupedOralQuestionsByMasterQuestionNumber = oralQuestions.stream().collect(Collectors.groupingBy(AssessmentQuestionEntity::getMasterQuestionNumber));
+        Map<Integer, List<AssessmentQuestionEntity>> groupedOralWrittenQuestionsByMasterQuestionNumber = oralWrittenQuestions.stream().collect(Collectors.groupingBy(AssessmentQuestionEntity::getMasterQuestionNumber));
 
         BigDecimal possibleScore = BigDecimal.ZERO;
         BigDecimal divisor = new BigDecimal(100);
-        for(List<AssessmentQuestionEntity> questionEntities : groupedQuestionsByMasterQuestionNumber.values()) {
+        for(List<AssessmentQuestionEntity> questionEntities : Stream.concat(groupedOralQuestionsByMasterQuestionNumber.values().stream(), groupedOralWrittenQuestionsByMasterQuestionNumber.values().stream()).toList()) {
             var totalQuestionValue = questionEntities.getFirst().getQuestionValue();
             var totalScale = questionEntities.getFirst().getScaleFactor();
 
@@ -157,20 +165,31 @@ public class DOARCalculateService {
             return BigDecimal.ZERO;
         }
 
-        var assessmentComponentID = selectedOeAssessmentQuestionsByTypeCode.getFirst().getAssessmentComponentEntity().getAssessmentComponentID();
+        var oralQuestions = selectedOeAssessmentQuestionsByTypeCode.stream()
+                .filter(questionEntity -> questionEntity.getAssessmentComponentEntity().getComponentSubTypeCode().equalsIgnoreCase("ORAL"))
+                .toList();
+        var oralWrittenQuestions = selectedOeAssessmentQuestionsByTypeCode.stream()
+                .filter(questionEntity -> questionEntity.getAssessmentComponentEntity().getComponentSubTypeCode().equalsIgnoreCase("NONE"))
+                .toList();
+
+        var oralAssessmentComponentID = !oralQuestions.isEmpty() ? oralQuestions.getFirst().getAssessmentComponentEntity().getAssessmentComponentID() : null;
+        var oralWrittenAssessmentComponentID = !oralWrittenQuestions.isEmpty() ? oralWrittenQuestions.getFirst().getAssessmentComponentEntity().getAssessmentComponentID(): null;
         // get student OE answers
         var studentMcAnswers = student.getAssessmentStudentComponentEntities().stream()
-                .filter(assessmentStudentComponentEntity -> Objects.equals(assessmentStudentComponentEntity.getAssessmentComponentID(), assessmentComponentID))
+                .filter(assessmentStudentComponentEntity ->
+                        (oralAssessmentComponentID != null && Objects.equals(assessmentStudentComponentEntity.getAssessmentComponentID(), oralAssessmentComponentID))
+                                || (oralWrittenAssessmentComponentID !=null && Objects.equals(assessmentStudentComponentEntity.getAssessmentComponentID(), oralWrittenAssessmentComponentID)))
                 .map(AssessmentStudentComponentEntity::getAssessmentStudentAnswerEntities)
                 .flatMap(Collection::stream)
                 .toList();
 
-        Map<Integer, List<AssessmentQuestionEntity>> groupedQuestionsByQuestionNumber = selectedOeAssessmentQuestionsByTypeCode.stream().collect(Collectors.groupingBy(AssessmentQuestionEntity::getQuestionNumber));
+        Map<Integer, List<AssessmentQuestionEntity>> groupedOralQuestionsByQuestionNumber = oralQuestions.stream().collect(Collectors.groupingBy(AssessmentQuestionEntity::getQuestionNumber));
+        Map<Integer, List<AssessmentQuestionEntity>> groupedOralWrittenQuestionsByQuestionNumber = oralWrittenQuestions.stream().collect(Collectors.groupingBy(AssessmentQuestionEntity::getQuestionNumber));
 
         BigDecimal divisor = new BigDecimal(100);
         BigDecimal calcScore = BigDecimal.ZERO;
 
-        for(List<AssessmentQuestionEntity> questionEntities : groupedQuestionsByQuestionNumber.values()) {
+        for(List<AssessmentQuestionEntity> questionEntities : Stream.concat(groupedOralQuestionsByQuestionNumber.values().stream(), groupedOralWrittenQuestionsByQuestionNumber.values().stream()).toList()) {
             if(questionEntities.size() > 1) {
                 var scaleFactor = questionEntities.getFirst().getScaleFactor();
                 var studentAnswers = studentMcAnswers.stream()
