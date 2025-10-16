@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  *  | ID          | Severity | Rule                                                                                                       | Dependent On |
@@ -50,12 +51,13 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
     @Override
     public List<AssessmentStudentValidationIssue> executeValidation(StudentRuleData studentRuleData) {
         var student = studentRuleData.getAssessmentStudentEntity();
+        var studentAPIStudent = studentRuleData.getStudentApiStudent();
         log.debug("In executeValidation of V304 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
         
-        boolean hasStudentAssessmentDuplicate = assessmentRulesService.hasStudentAssessmentDuplicate(student.getStudentID(), student.getAssessmentEntity().getAssessmentID(), student.getAssessmentStudentID());
+        boolean hasStudentAssessmentDuplicate = assessmentRulesService.hasStudentAssessmentDuplicate(UUID.fromString(studentAPIStudent.getStudentID()), student.getAssessmentEntity().getAssessmentID(), student.getAssessmentStudentID());
 
-        boolean studentWritesExceeded = assessmentRulesService.studentAssessmentWritesExceeded(student.getStudentID(), student.getAssessmentEntity().getAssessmentTypeCode());
+        boolean studentWritesExceeded = assessmentRulesService.studentAssessmentWritesExceeded(UUID.fromString(studentAPIStudent.getStudentID()), student.getAssessmentEntity().getAssessmentTypeCode());
 
         if (hasStudentAssessmentDuplicate) {
             log.debug("V304: The student has already been registered for this assessment in this session :: {}", student.getPen());

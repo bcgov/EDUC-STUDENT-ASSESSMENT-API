@@ -282,17 +282,21 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
         assertThat(results.getRows()).isNotEmpty();
         assertThat(results.getHeaders().get(0)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode());
         assertThat(results.getHeaders().get(1)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode());
-        assertThat(results.getHeaders().get(2)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_08_COUNT.getCode());
-        assertThat(results.getHeaders().get(3)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_09_COUNT.getCode());
-        assertThat(results.getHeaders().get(4)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode());
-        assertThat(results.getHeaders().get(5)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_11_COUNT.getCode());
-        assertThat(results.getHeaders().get(6)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_12_COUNT.getCode());
-        assertThat(results.getHeaders().get(7)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AD_COUNT.getCode());
-        assertThat(results.getHeaders().get(8)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_OT_COUNT.getCode());
-        assertThat(results.getHeaders().get(9)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_HS_COUNT.getCode());
-        assertThat(results.getHeaders().get(10)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AN_COUNT.getCode());
-        assertThat(results.getHeaders().get(11)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.BLANK_GRADE_COUNT.getCode());
-        assertThat(results.getHeaders().get(12)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode());
+        assertThat(results.getHeaders().get(2)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_04_COUNT.getCode());
+        assertThat(results.getHeaders().get(3)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_05_COUNT.getCode());
+        assertThat(results.getHeaders().get(4)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_06_COUNT.getCode());
+        assertThat(results.getHeaders().get(5)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_07_COUNT.getCode());
+        assertThat(results.getHeaders().get(6)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_08_COUNT.getCode());
+        assertThat(results.getHeaders().get(7)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_09_COUNT.getCode());
+        assertThat(results.getHeaders().get(8)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode());
+        assertThat(results.getHeaders().get(9)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_11_COUNT.getCode());
+        assertThat(results.getHeaders().get(10)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_12_COUNT.getCode());
+        assertThat(results.getHeaders().get(11)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AD_COUNT.getCode());
+        assertThat(results.getHeaders().get(12)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_OT_COUNT.getCode());
+        assertThat(results.getHeaders().get(13)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_HS_COUNT.getCode());
+        assertThat(results.getHeaders().get(14)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AN_COUNT.getCode());
+        assertThat(results.getHeaders().get(15)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.BLANK_GRADE_COUNT.getCode());
+        assertThat(results.getHeaders().get(16)).isEqualTo(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode());
         Map<String, String> row1 = results.getRows().getFirst();
         assertThat(row1)
                 .containsEntry(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode(), "LTE10")
