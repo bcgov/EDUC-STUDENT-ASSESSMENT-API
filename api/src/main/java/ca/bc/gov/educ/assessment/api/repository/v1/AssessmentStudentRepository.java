@@ -1,8 +1,8 @@
 package ca.bc.gov.educ.assessment.api.repository.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentRegistrationTotalsBySchoolResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -40,11 +40,11 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     @Query("""
         SELECT s FROM AssessmentStudentEntity s
-        WHERE s.assessmentEntity.assessmentID = :assessmentID
+        WHERE s.assessmentEntity.assessmentID in (:assessmentIDs)
         AND s.studentID = :studentID
         AND (:assessmentStudentID IS NULL OR s.assessmentStudentID <> :assessmentStudentID)
     """)
-    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentIDAndAssessmentStudentIDIsNot(UUID assessmentID, UUID studentID, UUID assessmentStudentID);
+    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentIDAndAssessmentStudentIDIsNot(List<UUID> assessmentIDs, UUID studentID, UUID assessmentStudentID);
     
     @Modifying
     @Query(value = "update assessment_student " +

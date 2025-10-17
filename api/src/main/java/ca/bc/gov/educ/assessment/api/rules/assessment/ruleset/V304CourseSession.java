@@ -55,7 +55,7 @@ public class V304CourseSession implements AssessmentValidationBaseRule {
         log.debug("In executeValidation of V304 for assessment student PEN :: {}", student.getPen());
         final List<AssessmentStudentValidationIssue> errors = new ArrayList<>();
         
-        boolean hasStudentAssessmentDuplicate = assessmentRulesService.hasStudentAssessmentDuplicate(UUID.fromString(studentAPIStudent.getStudentID()), student.getAssessmentEntity().getAssessmentID(), student.getAssessmentStudentID());
+        boolean hasStudentAssessmentDuplicate = assessmentRulesService.hasStudentAssessmentDuplicate(UUID.fromString(studentAPIStudent.getStudentID()), student.getAssessmentEntity(), student.getAssessmentStudentID());
 
         boolean studentWritesExceeded = assessmentRulesService.studentAssessmentWritesExceeded(UUID.fromString(studentAPIStudent.getStudentID()), student.getAssessmentEntity().getAssessmentTypeCode());
 
