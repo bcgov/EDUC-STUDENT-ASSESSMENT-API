@@ -105,8 +105,13 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         doarSummaryPage.setNumeracyScore(new ArrayList<>());
         doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
 
+        log.debug("setProficiencyLevels start for assessment {}", assessmentType);
         setProficiencyLevels(studentList, isIndependent, school, doarSummaryPage);
+        log.debug("setProficiencyLevels end for assessment {}", assessmentType);
+
+        log.debug("setAssessmentRawScores start for assessment {}", assessmentType);
         setAssessmentRawScores(studentList, isIndependent, school, doarSummaryPage, assessmentType);
+        log.debug("setAssessmentRawScores start for assessment {}", assessmentType);
 
         doarSummaryNode.getSummaryPages().add(doarSummaryPage);
       });
