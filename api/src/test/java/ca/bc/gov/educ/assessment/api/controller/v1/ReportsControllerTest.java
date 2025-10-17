@@ -13,6 +13,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.DOARReportService;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentHistory;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
@@ -63,6 +64,8 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     @Autowired
     private AssessmentQuestionRepository assessmentQuestionRepository;
     @Autowired
+    AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+    @Autowired
     AssessmentRepository assessmentRepository;
     @Autowired
     private MockMvc mockMvc;
@@ -80,6 +83,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        assessmentStudentHistoryRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         assessmentChoiceRepository.deleteAll();
         assessmentFormRepository.deleteAll();
