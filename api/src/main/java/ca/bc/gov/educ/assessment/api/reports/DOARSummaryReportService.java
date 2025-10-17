@@ -82,15 +82,18 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
 
   public DownloadableReportResponse generateDOARSummaryReport(UUID assessmentSessionID, UUID schoolID){
     try {
+      log.debug("generateDOARSummaryReport");
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
       var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode());
 
+      log.debug("no. of students found {}", students.size());
       var school = validateAndReturnSchool(schoolID);
       boolean isIndependent = school.getIndependentAuthorityId() != null;
       DOARSummaryNode doarSummaryNode = new DOARSummaryNode();
       doarSummaryNode.setSummaryPages(new ArrayList<>());
 
       var studentsByAssessment = organizeStudentsInEachAssessment(students);
+      log.debug("organizeStudentsInEachAssessment");
       studentsByAssessment.forEach((assessmentType, studentList) -> {
         DOARSummaryPage doarSummaryPage =  new DOARSummaryPage();
         setReportTombstoneValues(session, doarSummaryPage, assessmentType, school);
@@ -102,12 +105,17 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         doarSummaryPage.setNumeracyScore(new ArrayList<>());
         doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
 
+        log.debug("setProficiencyLevels start for assessment {}", assessmentType);
         setProficiencyLevels(studentList, isIndependent, school, doarSummaryPage);
+        log.debug("setProficiencyLevels end for assessment {}", assessmentType);
+
+        log.debug("setAssessmentRawScores start for assessment {}", assessmentType);
         setAssessmentRawScores(studentList, isIndependent, school, doarSummaryPage, assessmentType);
+        log.debug("setAssessmentRawScores start for assessment {}", assessmentType);
 
         doarSummaryNode.getSummaryPages().add(doarSummaryPage);
       });
-
+      log.debug("generating report");
       return generateJasperReport(objectWriter.writeValueAsString(doarSummaryNode), doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
     }
     catch (JsonProcessingException e) {

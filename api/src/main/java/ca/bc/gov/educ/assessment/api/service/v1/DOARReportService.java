@@ -535,7 +535,7 @@ public class DOARReportService {
                     return multiComponent.stream().map(AssessmentComponentEntity::getAssessmentQuestionEntities)
                             .flatMap(Collection::stream)
                             .filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getClaimCode())
-                                    && assessmentQuestionEntity.getTaskCode().equalsIgnoreCase(responseNotSelected)
+                                    && !assessmentQuestionEntity.getTaskCode().equalsIgnoreCase(responseNotSelected)
                                     && assessmentQuestionEntity.getClaimCode().equalsIgnoreCase(code))
                             .toList();
                 }
@@ -613,8 +613,10 @@ public class DOARReportService {
                 .filter(assessmentComponentEntity -> Objects.equals(assessmentComponentEntity.getAssessmentComponentID(), component.getAssessmentComponentID()))
                 .findFirst();
         var selectedChoice = studentComponent.map(AssessmentStudentComponentEntity::getChoicePath).orElse(null);
-        var responseNotSelected = Arrays.stream(allowedSelectedResponse).filter(response -> StringUtils.isNotBlank(selectedChoice) && selectedChoice.equalsIgnoreCase(response)).findFirst();
-        return responseNotSelected.isPresent() ? selectedChoice : null;
+        if(StringUtils.isNotBlank(selectedChoice) && selectedChoice.equalsIgnoreCase("I")) {
+            return "E";
+        }
+        return "I";
     }
 
     private List<AssessmentQuestionEntity> getQuestionsWithAssessmentSectionForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String code, AssessmentStudentEntity student, String componentTypeCode, boolean includeChoiceCalc) {

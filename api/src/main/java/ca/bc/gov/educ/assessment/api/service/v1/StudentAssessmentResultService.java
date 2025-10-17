@@ -322,8 +322,10 @@ public class StudentAssessmentResultService {
 
                 itemCounter.getAndIncrement();
                 if (answerForChoiceCounter != 0) {
+                    if(answerForChoiceCounter == 1) {
+                        questionCounter++;
+                    }
                     answerForChoiceCounter--;
-                    questionCounter++;
                 }
 
                 if (StringUtils.isNotBlank(openEndedMark) && !openEndedMark.equalsIgnoreCase("9999")) {
@@ -339,7 +341,7 @@ public class StudentAssessmentResultService {
                         //Based on number of rows returned, we know how many answers are coming
                         //Item numbers are sequential, while skipping the choice records
                         choiceQuestionNumber = questionNumber;
-                        questionCounter++;
+                        questionCounter = questionNumber;
 
                         if(optAssessmentChoice.isPresent()) {
                             var choice = new StagedAssessmentStudentChoiceEntity();
@@ -477,8 +479,10 @@ public class StudentAssessmentResultService {
 
                     itemCounter.getAndIncrement();
                     if(answerForChoiceCounter != 0) {
+                        if(answerForChoiceCounter == 1) {
+                            questionCounter++;
+                        }
                         answerForChoiceCounter--;
-                        questionCounter++;
                     }
 
                 if(StringUtils.isNotBlank(openEndedMark) && !openEndedMark.equalsIgnoreCase("9999")) {
@@ -494,6 +498,7 @@ public class StudentAssessmentResultService {
                         //Based on number of rows returned, we know how many answers are coming
                         //Item numbers are sequential, while skipping the choice records
                         choiceQuestionNumber = questionNumber;
+                        questionCounter = questionNumber;
 
                         if(optAssessmentChoice.isPresent()) {
                             var choice = new AssessmentStudentChoiceEntity();
