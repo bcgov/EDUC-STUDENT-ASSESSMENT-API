@@ -85,6 +85,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
       var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode());
 
+      log.debug("no. of students found {}", students.size());
       var school = validateAndReturnSchool(schoolID);
       boolean isIndependent = school.getIndependentAuthorityId() != null;
       DOARSummaryNode doarSummaryNode = new DOARSummaryNode();
