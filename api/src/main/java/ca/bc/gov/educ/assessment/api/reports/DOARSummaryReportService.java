@@ -82,6 +82,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
 
   public DownloadableReportResponse generateDOARSummaryReport(UUID assessmentSessionID, UUID schoolID){
     try {
+      log.debug("generateDOARSummaryReport");
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
       var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode());
 
@@ -92,6 +93,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       doarSummaryNode.setSummaryPages(new ArrayList<>());
 
       var studentsByAssessment = organizeStudentsInEachAssessment(students);
+      log.debug("organizeStudentsInEachAssessment");
       studentsByAssessment.forEach((assessmentType, studentList) -> {
         DOARSummaryPage doarSummaryPage =  new DOARSummaryPage();
         setReportTombstoneValues(session, doarSummaryPage, assessmentType, school);
@@ -108,7 +110,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
 
         doarSummaryNode.getSummaryPages().add(doarSummaryPage);
       });
-
+      log.debug("generating report");
       return generateJasperReport(objectWriter.writeValueAsString(doarSummaryNode), doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
     }
     catch (JsonProcessingException e) {
