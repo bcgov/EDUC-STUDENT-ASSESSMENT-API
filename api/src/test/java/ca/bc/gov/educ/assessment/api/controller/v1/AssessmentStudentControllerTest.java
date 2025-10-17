@@ -75,7 +75,8 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
 
   @BeforeEach
   void setUp() {
-    assessmentFormRepository.deleteAll();
+    this.assessmentQuestionRepository.deleteAll();
+    this.assessmentFormRepository.deleteAll();
     this.assessmentStudentHistoryRepository.deleteAll();
     this.studentRepository.deleteAll();
     this.assessmentRepository.deleteAll();
