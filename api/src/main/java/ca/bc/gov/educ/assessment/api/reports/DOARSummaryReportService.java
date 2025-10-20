@@ -32,7 +32,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ca.bc.gov.educ.assessment.api.constants.v1.SchoolCategoryCodes.*;
+import static ca.bc.gov.educ.assessment.api.constants.v1.SchoolCategoryCodes.YUKON;
 
 /**
  * Service class for generating School Students by Assessment Report
@@ -172,7 +172,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     List<AssessmentStudentDOARCalculationEntity> schoolLevelDOARCalc =
             filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get(SCHOOL));
     List<AssessmentStudentDOARCalculationEntity> provinceLevelDOARCalc =
-            filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get("PROVINCE"));
+            filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get("Province"));
 
     if(isIndependent) {
       List<AssessmentStudentDOARCalculationEntity> indpLevelDOARCalc =
@@ -218,10 +218,6 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                     .map(s -> UUID.fromString(s.getSchoolId()))
                     .collect(Collectors.toSet()) : Collections.emptySet();
 
-    Set<UUID> provinceSchoolIds = getSchoolsByLevel("PROVINCE", null).stream()
-            .map(s -> UUID.fromString(s.getSchoolId()))
-            .collect(Collectors.toSet());
-
     Set<UUID> schoolLevel = new HashSet<>();
     Set<UUID> districtLevel = new HashSet<>();
     Set<UUID> publicLevel = new HashSet<>();
@@ -232,9 +228,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       UUID studentSchoolId = student.getSchoolAtWriteSchoolID();
       UUID studentId = student.getAssessmentStudentID();
 
-      if (provinceSchoolIds.contains(studentSchoolId)) {
-        provinceLevel.add(studentId);
-      }
+      provinceLevel.add(studentId);
 
       if (schoolId.equals(studentSchoolId)) {
         schoolLevel.add(studentId);
@@ -254,38 +248,38 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     result.put(DISTRICT, districtLevel);
     result.put(PUBLIC, publicLevel);
     result.put(INDEPENDENT, independentLevel);
-    result.put("PROVINCE", provinceLevel);
+    result.put("Province", provinceLevel);
 
     return result;
   }
 
   private void populateRawScoresForIndependentSchools(List<AssessmentStudentDOARCalculationEntity> schoolLevel, List<AssessmentStudentDOARCalculationEntity> provinceLevel, List<AssessmentStudentDOARCalculationEntity> indpLevel, DOARSummaryPage doarSummaryPage, String assessmentType) {
-    List<TaskScore> taskScores = List.of(createTaskSectionByLevel(assessmentType, SCHOOL, schoolLevel), createTaskSectionByLevel(assessmentType, ALL_INDP, indpLevel), createTaskSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+    List<TaskScore> taskScores = List.of(createTaskSectionByLevel(assessmentType, SCHOOL, schoolLevel), createTaskSectionByLevel(assessmentType, ALL_INDP, indpLevel), createTaskSectionByLevel(assessmentType, "Province", provinceLevel));
     doarSummaryPage.getTaskScore().addAll(taskScores);
 
-    List<CognitiveLevelScore> cognScore = List.of(createCognitiveSectionByLevel(SCHOOL, schoolLevel), createCognitiveSectionByLevel(ALL_INDP, indpLevel), createCognitiveSectionByLevel("PROVINCE", provinceLevel));
+    List<CognitiveLevelScore> cognScore = List.of(createCognitiveSectionByLevel(SCHOOL, schoolLevel), createCognitiveSectionByLevel(ALL_INDP, indpLevel), createCognitiveSectionByLevel("Province", provinceLevel));
     doarSummaryPage.getCognitiveLevelScore().addAll(cognScore);
 
     switch (assessmentType) {
       case NME10, NMF10 ->  {
-        List<NumeracyScore> numScores = List.of(createNumeracySectionByLevel(SCHOOL, schoolLevel), createNumeracySectionByLevel(ALL_INDP, indpLevel), createNumeracySectionByLevel("PROVINCE", provinceLevel));
+        List<NumeracyScore> numScores = List.of(createNumeracySectionByLevel(SCHOOL, schoolLevel), createNumeracySectionByLevel(ALL_INDP, indpLevel), createNumeracySectionByLevel("Province", provinceLevel));
         doarSummaryPage.getNumeracyScore().addAll(numScores);
       }
       case LTE10, LTE12 -> {
-        List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel), createComprehendSectionByLevel(assessmentType, ALL_INDP, indpLevel), createComprehendSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel), createComprehendSectionByLevel(assessmentType, ALL_INDP, indpLevel), createComprehendSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getComprehendScore().addAll(comprehendScores);
 
-        List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateSectionByLevel(assessmentType, ALL_INDP, indpLevel), createCommunicateSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateSectionByLevel(assessmentType, ALL_INDP, indpLevel), createCommunicateSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getCommunicateScore().addAll(communicateScores);
       }
       case LTP10, LTP12, LTF12 -> {
-        List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel), createComprehendSectionByLevel(assessmentType, ALL_INDP, indpLevel), createComprehendSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel), createComprehendSectionByLevel(assessmentType, ALL_INDP, indpLevel), createComprehendSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getComprehendScore().addAll(comprehendScores);
 
-        List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateSectionByLevel(assessmentType, ALL_INDP, indpLevel), createCommunicateSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateSectionByLevel(assessmentType, ALL_INDP, indpLevel), createCommunicateSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getCommunicateScore().addAll(communicateScores);
 
-        List<CommunicateOralScore> communicateOralScores = List.of(createCommunicateOralSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateOralSectionByLevel(assessmentType, ALL_INDP, indpLevel) ,createCommunicateOralSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<CommunicateOralScore> communicateOralScores = List.of(createCommunicateOralSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateOralSectionByLevel(assessmentType, ALL_INDP, indpLevel) ,createCommunicateOralSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getCommunicateOralScore().addAll(communicateOralScores);
       }
       default -> log.info("Invalid assessment type");
@@ -293,32 +287,32 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
   }
 
   private void populateRawScoresForPublicSchools(List<AssessmentStudentDOARCalculationEntity> schoolLevel, List<AssessmentStudentDOARCalculationEntity> districtLevel, List<AssessmentStudentDOARCalculationEntity> publicLevel, List<AssessmentStudentDOARCalculationEntity> provinceLevel, DOARSummaryPage doarSummaryPage, String assessmentType) {
-    List<TaskScore> taskScores = List.of(createTaskSectionByLevel(assessmentType, SCHOOL, schoolLevel), createTaskSectionByLevel(assessmentType, DISTRICT, districtLevel), createTaskSectionByLevel(assessmentType, "All Public", publicLevel), createTaskSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+    List<TaskScore> taskScores = List.of(createTaskSectionByLevel(assessmentType, SCHOOL, schoolLevel), createTaskSectionByLevel(assessmentType, DISTRICT, districtLevel), createTaskSectionByLevel(assessmentType, "All Public", publicLevel), createTaskSectionByLevel(assessmentType, "Province", provinceLevel));
     doarSummaryPage.getTaskScore().addAll(taskScores);
 
-    List<CognitiveLevelScore> cognScore = List.of(createCognitiveSectionByLevel(SCHOOL, schoolLevel), createCognitiveSectionByLevel(DISTRICT, districtLevel), createCognitiveSectionByLevel("All Public", publicLevel), createCognitiveSectionByLevel("PROVINCE", provinceLevel));
+    List<CognitiveLevelScore> cognScore = List.of(createCognitiveSectionByLevel(SCHOOL, schoolLevel), createCognitiveSectionByLevel(DISTRICT, districtLevel), createCognitiveSectionByLevel("All Public", publicLevel), createCognitiveSectionByLevel("Province", provinceLevel));
     doarSummaryPage.getCognitiveLevelScore().addAll(cognScore);
 
     switch (assessmentType) {
       case NME10, NMF10 ->  {
-        List<NumeracyScore> numScores = List.of(createNumeracySectionByLevel(SCHOOL, schoolLevel), createNumeracySectionByLevel(DISTRICT, districtLevel), createNumeracySectionByLevel("All Public", publicLevel), createNumeracySectionByLevel("PROVINCE", provinceLevel));
+        List<NumeracyScore> numScores = List.of(createNumeracySectionByLevel(SCHOOL, schoolLevel), createNumeracySectionByLevel(DISTRICT, districtLevel), createNumeracySectionByLevel("All Public", publicLevel), createNumeracySectionByLevel("Province", provinceLevel));
         doarSummaryPage.getNumeracyScore().addAll(numScores);
       }
       case LTE10, LTE12 -> {
-        List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel), createComprehendSectionByLevel(assessmentType, DISTRICT, districtLevel), createComprehendSectionByLevel(assessmentType, "All Public", publicLevel), createComprehendSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel), createComprehendSectionByLevel(assessmentType, DISTRICT, districtLevel), createComprehendSectionByLevel(assessmentType, "All Public", publicLevel), createComprehendSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getComprehendScore().addAll(comprehendScores);
 
-        List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateSectionByLevel(assessmentType, DISTRICT, districtLevel), createCommunicateSectionByLevel(assessmentType, "All Public", publicLevel), createCommunicateSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateSectionByLevel(assessmentType, DISTRICT, districtLevel), createCommunicateSectionByLevel(assessmentType, "All Public", publicLevel), createCommunicateSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getCommunicateScore().addAll(communicateScores);
       }
       case LTP10, LTP12, LTF12 -> {
-        List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel), createComprehendSectionByLevel(assessmentType, DISTRICT, districtLevel), createComprehendSectionByLevel(assessmentType, "All Public", publicLevel), createComprehendSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel), createComprehendSectionByLevel(assessmentType, DISTRICT, districtLevel), createComprehendSectionByLevel(assessmentType, "All Public", publicLevel), createComprehendSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getComprehendScore().addAll(comprehendScores);
 
-        List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateSectionByLevel(assessmentType, DISTRICT, districtLevel), createCommunicateSectionByLevel(assessmentType, "All Public", publicLevel), createCommunicateSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateSectionByLevel(assessmentType, DISTRICT, districtLevel), createCommunicateSectionByLevel(assessmentType, "All Public", publicLevel), createCommunicateSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getCommunicateScore().addAll(communicateScores);
 
-        List<CommunicateOralScore> communicateOralScores = List.of(createCommunicateOralSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateOralSectionByLevel(assessmentType, DISTRICT, districtLevel), createCommunicateOralSectionByLevel(assessmentType, "All Public", publicLevel) ,createCommunicateOralSectionByLevel(assessmentType, "PROVINCE", provinceLevel));
+        List<CommunicateOralScore> communicateOralScores = List.of(createCommunicateOralSectionByLevel(assessmentType, SCHOOL, schoolLevel), createCommunicateOralSectionByLevel(assessmentType, DISTRICT, districtLevel), createCommunicateOralSectionByLevel(assessmentType, "All Public", publicLevel) ,createCommunicateOralSectionByLevel(assessmentType, "Province", provinceLevel));
         doarSummaryPage.getCommunicateOralScore().addAll(communicateOralScores);
       }
       default -> log.info("Invalid assessment type");
@@ -527,7 +521,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     Map<String, List<AssessmentStudentLightEntity>> studentsByLevel =
             categorizeStudentsEntitiesByLevel(students, school, isIndependent);
 
-    var provinceLevel = createProficiencyLevelSection("PROVINCE", studentsByLevel.get("PROVINCE"));
+    var provinceLevel = createProficiencyLevelSection("Province", students);
     if(isIndependent) {
       doarSummaryPage.getProficiencySection().addAll(List.of(
               createProficiencyLevelSection(SCHOOL, studentsByLevel.get(SCHOOL)),
@@ -565,16 +559,11 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                     .map(s -> UUID.fromString(s.getSchoolId()))
                     .collect(Collectors.toSet()) : Collections.emptySet();
 
-    Set<UUID> provinceSchoolIds = getSchoolsByLevel("PROVINCE", null).stream()
-                    .map(s -> UUID.fromString(s.getSchoolId()))
-                    .collect(Collectors.toSet());
-
     // Single pass through students
     List<AssessmentStudentLightEntity> schoolLevel = new ArrayList<>();
     List<AssessmentStudentLightEntity> districtLevel = new ArrayList<>();
     List<AssessmentStudentLightEntity> publicLevel = new ArrayList<>();
     List<AssessmentStudentLightEntity> independentLevel = new ArrayList<>();
-    List<AssessmentStudentLightEntity> provinceLevel = new ArrayList<>();
 
     for (AssessmentStudentLightEntity student : students) {
       UUID studentSchoolId = student.getSchoolAtWriteSchoolID();
@@ -591,16 +580,13 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       if (independentSchoolIds.contains(studentSchoolId)) {
         independentLevel.add(student);
       }
-      if (provinceSchoolIds.contains(studentSchoolId)) {
-        provinceLevel.add(student);
-      }
     }
 
     result.put(SCHOOL, schoolLevel);
     result.put(DISTRICT, districtLevel);
     result.put(PUBLIC, publicLevel);
     result.put(INDEPENDENT, independentLevel);
-    result.put("PROVINCE", provinceLevel);
+
     return result;
   }
 
@@ -648,9 +634,6 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       case INDEPENDENT -> schools.stream().filter(school -> school.getIndependentAuthorityId().equals(districtOrAuthorityID)).toList();
       case PUBLIC -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
               || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode())).toList();
-      case "PROVINCE" -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
-              || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode()) ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDEPEND.getCode())
-      ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDP_FNS.getCode())).toList();
       default -> Collections.emptyList();
     };
   }
