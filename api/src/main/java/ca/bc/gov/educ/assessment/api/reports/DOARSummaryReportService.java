@@ -520,29 +520,89 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
   }
 
   private void setProficiencyLevels(List<AssessmentStudentLightEntity> students, boolean isIndependent, SchoolTombstone school, DOARSummaryPage doarSummaryPage) {
-    var schoolLevelStudents = getStudentsInSameSchool(students, school);
+
+    Map<String, List<AssessmentStudentLightEntity>> studentsByLevel =
+            categorizeStudentsEntitiesByLevel(students, school, isIndependent);
+
     var provinceLevel = createProficiencyLevelSection("Province", students);
     if(isIndependent) {
-      var indpLevelStudents = getStudentsByLevel(students, school, INDEPENDENT);
-      doarSummaryPage.getProficiencySection().addAll(List.of(createProficiencyLevelSection(SCHOOL, schoolLevelStudents), createProficiencyLevelSection(ALL_INDP, indpLevelStudents), provinceLevel));
+      doarSummaryPage.getProficiencySection().addAll(List.of(
+              createProficiencyLevelSection(SCHOOL, studentsByLevel.get(SCHOOL)),
+              createProficiencyLevelSection(ALL_INDP, studentsByLevel.get(INDEPENDENT)),
+              provinceLevel
+      ));
     } else {
-      var districtLevelStudents = getStudentsByLevel(students, school, DISTRICT);
-      var publicLevelStudents =  getStudentsByLevel(students, school, PUBLIC);
-      doarSummaryPage.getProficiencySection().addAll(
-              List.of(createProficiencyLevelSection(SCHOOL, schoolLevelStudents), createProficiencyLevelSection(DISTRICT, districtLevelStudents), createProficiencyLevelSection("All Public", publicLevelStudents),provinceLevel)
-      );
+      doarSummaryPage.getProficiencySection().addAll(List.of(
+              createProficiencyLevelSection(SCHOOL, studentsByLevel.get(SCHOOL)),
+              createProficiencyLevelSection(DISTRICT, studentsByLevel.get(DISTRICT)),
+              createProficiencyLevelSection("All Public", studentsByLevel.get(PUBLIC)),
+              provinceLevel
+      ));
     }
   }
 
-  private List<AssessmentStudentLightEntity> getStudentsInSameSchool(List<AssessmentStudentLightEntity> students, SchoolTombstone school) {
-    return students.stream().filter(student -> Objects.equals(student.getSchoolAtWriteSchoolID(), UUID.fromString(school.getSchoolId()))).toList();
+  private Map<String, List<AssessmentStudentLightEntity>> categorizeStudentsEntitiesByLevel(
+          List<AssessmentStudentLightEntity> students, SchoolTombstone school, boolean isIndependent) {
+
+    Map<String, List<AssessmentStudentLightEntity>> result = new HashMap<>();
+    UUID schoolId = UUID.fromString(school.getSchoolId());
+
+    // Get school IDs by level ONCE and convert to Set for O(1) lookup
+    Set<UUID> districtSchoolIds = isIndependent ? Collections.emptySet() :
+            getSchoolsByLevel(DISTRICT, school.getDistrictId()).stream()
+                    .map(s -> UUID.fromString(s.getSchoolId()))
+                    .collect(Collectors.toSet());
+
+    Set<UUID> publicSchoolIds = isIndependent ? Collections.emptySet() :
+            getSchoolsByLevel(PUBLIC, null).stream()
+                    .map(s -> UUID.fromString(s.getSchoolId()))
+                    .collect(Collectors.toSet());
+
+    Set<UUID> independentSchoolIds = isIndependent ?
+            getSchoolsByLevel(INDEPENDENT, school.getIndependentAuthorityId()).stream()
+                    .map(s -> UUID.fromString(s.getSchoolId()))
+                    .collect(Collectors.toSet()) : Collections.emptySet();
+
+    // Single pass through students
+    List<AssessmentStudentLightEntity> schoolLevel = new ArrayList<>();
+    List<AssessmentStudentLightEntity> districtLevel = new ArrayList<>();
+    List<AssessmentStudentLightEntity> publicLevel = new ArrayList<>();
+    List<AssessmentStudentLightEntity> independentLevel = new ArrayList<>();
+
+    for (AssessmentStudentLightEntity student : students) {
+      UUID studentSchoolId = student.getSchoolAtWriteSchoolID();
+
+      if (schoolId.equals(studentSchoolId)) {
+        schoolLevel.add(student);
+      }
+      if (districtSchoolIds.contains(studentSchoolId)) {
+        districtLevel.add(student);
+      }
+      if (publicSchoolIds.contains(studentSchoolId)) {
+        publicLevel.add(student);
+      }
+      if (independentSchoolIds.contains(studentSchoolId)) {
+        independentLevel.add(student);
+      }
+    }
+
+    result.put(SCHOOL, schoolLevel);
+    result.put(DISTRICT, districtLevel);
+    result.put(PUBLIC, publicLevel);
+    result.put(INDEPENDENT, independentLevel);
+
+    return result;
   }
 
-  private List<AssessmentStudentLightEntity> getStudentsByLevel(List<AssessmentStudentLightEntity> students, SchoolTombstone school, String level) {
-    return students.stream().filter(student ->
-                    getSchoolsByLevel(level, school.getDistrictId()).stream().anyMatch(schoolByLevel -> Objects.equals(student.getSchoolAtWriteSchoolID(), UUID.fromString(school.getSchoolId()))))
-            .toList();
-  }
+//  private List<AssessmentStudentLightEntity> getStudentsInSameSchool(List<AssessmentStudentLightEntity> students, SchoolTombstone school) {
+//    return students.stream().filter(student -> Objects.equals(student.getSchoolAtWriteSchoolID(), UUID.fromString(school.getSchoolId()))).toList();
+//  }
+//
+//  private List<AssessmentStudentLightEntity> getStudentsByLevel(List<AssessmentStudentLightEntity> students, SchoolTombstone school, String level) {
+//    return students.stream().filter(student ->
+//                    getSchoolsByLevel(level, school.getDistrictId()).stream().anyMatch(schoolByLevel -> Objects.equals(student.getSchoolAtWriteSchoolID(), UUID.fromString(school.getSchoolId()))))
+//            .toList();
+//  }
 
   private ProficiencyLevel createProficiencyLevelSection(String level, List<AssessmentStudentLightEntity> students) {
     int totalCount = students.size();
