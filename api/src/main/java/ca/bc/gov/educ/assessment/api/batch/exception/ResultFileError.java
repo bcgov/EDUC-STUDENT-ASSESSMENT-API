@@ -13,6 +13,7 @@ public enum ResultFileError {
   EMPTY_FILE("The results file contains no records."),
 
   INVALID_INCOMING_REQUEST_SESSION("Invalid assessment session."),
+  INVALID_PEN_DUPLICATE_IN_FILE("Same PEN $? was found in the file with the same form code."),
 
   INVALID_TXID("Invalid transaction ID (TX_ID), value must be A01."),
   INVALID_COMPONENT_TYPE_CODE("Invalid component type code on line $?."),

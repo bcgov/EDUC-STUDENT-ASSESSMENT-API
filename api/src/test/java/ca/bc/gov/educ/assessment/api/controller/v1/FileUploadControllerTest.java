@@ -373,6 +373,49 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
+    void testProcessAssessmentResulsFile_givenTxtFile_WithDuplicatePENs_ShouldReturnBadRequest() throws Exception {
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTP10"));
+        var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession.get(), "LTP10"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        final FileInputStream fis = new FileInputStream("src/test/resources/202406_RESULTS_LTP10_DUPE.TXT");
+        final String fileContents = Base64.getEncoder().encodeToString(IOUtils.toByteArray(fis));
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
+        var student = this.createMockStudentAPIStudent();
+        when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
+        when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(createMockGradStudentAPIRecord()));
+
+        var file = AssessmentResultFileUpload.builder()
+                .fileContents(fileContents)
+                .createUser("ABC")
+                .updateUser("ABC")
+                .fileName("202406_RESULTS_LTP10_DUPE.TXT")
+                .isSingleUpload("N")
+                .build();
+
+        this.mockMvc.perform(post( BASE_URL + "/" + savedSession.get().getSessionID() + "/results-file")
+                .with(jwt().jwt(jwt -> jwt.claim("scope", "WRITE_ASSESSMENT_FILES")))
+                .header("correlationID", UUID.randomUUID().toString())
+                .content(JsonUtil.getJsonStringFromObject(file))
+                .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
+    }
+
+    @Test
     void testProcessSingleAssessmentResultsFile_givenTxtFile_InOngoingSession_ShouldReturnOK() throws Exception {
         assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity("LTP10"));
         var savedSession = assessmentSessionRepository.findByCourseYearAndCourseMonth("2025", "01");

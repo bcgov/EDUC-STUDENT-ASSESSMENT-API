@@ -66,10 +66,22 @@ public class AssessmentResultService {
                 assessmentSessionRepository.findById(sessionID)
                         .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_INCOMING_REQUEST_SESSION, correlationID, LOAD_FAIL));
         populateAssessmentResultsFile(ds, batchFile, correlationID);
+        validatePENsInFile(batchFile, correlationID);
         if(isSingleResult) {
             processCorrectionRecordsInBatchFile(correlationID, batchFile, validSession, fileUpload);
         } else {
             processLoadedRecordsInBatchFile(correlationID, batchFile, validSession, fileUpload);
+        }
+    }
+    
+    private void validatePENsInFile(AssessmentResultFile batchFile, String correlationID) throws ResultsFileUnProcessableException {
+        for(var assessmentResultData: batchFile.getAssessmentResultData()){
+            var pen = assessmentResultData.getPen();
+            var formCode = assessmentResultData.getFormCode();
+            var filteredPEN = batchFile.getAssessmentResultData().stream().filter(student -> student.getPen().equals(pen) && student.getFormCode().equalsIgnoreCase(formCode)).count();
+            if(filteredPEN > 1) {
+                throw new ResultsFileUnProcessableException(INVALID_PEN_DUPLICATE_IN_FILE, correlationID, pen);
+            }
         }
     }
 
