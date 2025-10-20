@@ -16,5 +16,5 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ToString(callSuper = true)
 public class DOARSummaryNode {
-    List<DOARSummaryPage> summaryPages;
+    List<DOARSummaryPage> reports;
 }

@@ -92,7 +92,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       var school = validateAndReturnSchool(schoolID);
       boolean isIndependent = school.getIndependentAuthorityId() != null;
       DOARSummaryNode doarSummaryNode = new DOARSummaryNode();
-      doarSummaryNode.setSummaryPages(new ArrayList<>());
+      doarSummaryNode.setReports(new ArrayList<>());
 
       var studentsByAssessment = organizeStudentsInEachAssessment(students);
       log.debug("organizeStudentsInEachAssessment");
@@ -115,10 +115,11 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         setAssessmentRawScores(studentList, isIndependent, school, doarSummaryPage, assessmentType);
         log.debug("setAssessmentRawScores start for assessment {}", assessmentType);
 
-        doarSummaryNode.getSummaryPages().add(doarSummaryPage);
+        doarSummaryNode.getReports().add(doarSummaryPage);
       });
       log.debug("generating report");
-      return generateJasperReport(objectWriter.writeValueAsString(doarSummaryNode), doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
+      String payload = objectWriter.writeValueAsString(doarSummaryNode);
+      return generateJasperReport(payload, doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
     }
     catch (JsonProcessingException e) {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
@@ -152,7 +153,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     }
 
     reportNode.setReportGeneratedDate("Report Generated: " + LocalDate.now().format(formatter));
-    reportNode.setSession(assessmentSession.getCourseYear() + "/" + assessmentSession.getCourseMonth() + " Session");
+    reportNode.setSessionDetail(assessmentSession.getCourseYear() + "/" + assessmentSession.getCourseMonth() + " Session");
     reportNode.setSchoolMincodeAndName(school.getMincode() + " - " + school.getDisplayName());
     reportNode.setAssessmentType(assessmentType);
     reportNode.setReportId(UUID.randomUUID().toString());

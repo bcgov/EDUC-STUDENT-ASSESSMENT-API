@@ -17,7 +17,7 @@ import java.util.List;
 @ToString(callSuper = true)
 public class DOARSummaryPage {
     private String reportId;
-    private String session;
+    private String sessionDetail;
     private String reportTitle;
     private String reportGeneratedDate;
     private String districtNumberAndName;
