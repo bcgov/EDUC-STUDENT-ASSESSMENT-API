@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -84,18 +85,15 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
 
   public DownloadableReportResponse generateDOARSummaryReport(UUID assessmentSessionID, UUID schoolID){
     try {
-      log.debug("generateDOARSummaryReport");
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
       var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode());
 
-      log.debug("no. of students found {}", students.size());
       var school = validateAndReturnSchool(schoolID);
       boolean isIndependent = school.getIndependentAuthorityId() != null;
       DOARSummaryNode doarSummaryNode = new DOARSummaryNode();
       doarSummaryNode.setReports(new ArrayList<>());
 
       var studentsByAssessment = organizeStudentsInEachAssessment(students);
-      log.debug("organizeStudentsInEachAssessment");
       studentsByAssessment.forEach((assessmentType, studentList) -> {
         DOARSummaryPage doarSummaryPage =  new DOARSummaryPage();
         setReportTombstoneValues(session, doarSummaryPage, assessmentType, school);
@@ -107,17 +105,11 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         doarSummaryPage.setNumeracyScore(new ArrayList<>());
         doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
 
-        log.debug("setProficiencyLevels start for assessment {}", assessmentType);
         setProficiencyLevels(studentList, isIndependent, school, doarSummaryPage);
-        log.debug("setProficiencyLevels end for assessment {}", assessmentType);
-
-        log.debug("setAssessmentRawScores start for assessment {}", assessmentType);
         setAssessmentRawScores(studentList, isIndependent, school, doarSummaryPage, assessmentType);
-        log.debug("setAssessmentRawScores start for assessment {}", assessmentType);
 
         doarSummaryNode.getReports().add(doarSummaryPage);
       });
-      log.debug("generating report");
       String payload = objectWriter.writeValueAsString(doarSummaryNode);
       return generateJasperReport(payload, doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
     }
@@ -338,10 +330,10 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal taskFairSum = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getTaskFair).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal taskModelSum = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getTaskModel).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setTaskPlan(String.valueOf(taskPlanSum.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setTaskEstimate(String.valueOf(taskEstimateSum.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setTaskFair(String.valueOf(taskFairSum.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setTaskModel(String.valueOf(taskModelSum.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setTaskPlan(String.valueOf(taskPlanSum.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setTaskEstimate(String.valueOf(taskEstimateSum.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setTaskFair(String.valueOf(taskFairSum.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setTaskModel(String.valueOf(taskModelSum.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
 
         yield score;
       }
@@ -349,8 +341,8 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal taskCompre = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getTaskComprehend).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal taskComm = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getTaskCommunicate).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setTaskComprehend(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setTaskCommunicate(String.valueOf(taskComm.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setTaskComprehend(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setTaskCommunicate(String.valueOf(taskComm.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
 
         yield score;
       }
@@ -359,9 +351,9 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal taskComm = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getTaskCommunicate).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal taskCommOral = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getTaskOral).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setTaskComprehend(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setTaskCommunicate(String.valueOf(taskComm.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setTaskOral(String.valueOf(taskCommOral.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setTaskComprehend(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setTaskCommunicate(String.valueOf(taskComm.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setTaskOral(String.valueOf(taskCommOral.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
 
         yield score;
       }
@@ -382,8 +374,8 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal taskCompre = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartA).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal taskComm = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartB).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setComprehendPartA(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setComprehendPartB(String.valueOf(taskComm.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setComprehendPartA(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setComprehendPartB(String.valueOf(taskComm.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
         yield score;
       }
       case LTF12 -> {
@@ -391,9 +383,9 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal infoCompre = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBInfo).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal expCompre = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBExp).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setComprehendPartATask(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setComprehendPartBInfo(String.valueOf(infoCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setComprehendPartBExp(String.valueOf(expCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setComprehendPartATask(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setComprehendPartBInfo(String.valueOf(infoCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setComprehendPartBExp(String.valueOf(expCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
         yield score;
       }
       default -> score;
@@ -414,9 +406,9 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal commWRA = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getCommunicateUnderstanding).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal commWRB = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getCommunicatePersonalConn).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setCommunicateGraphicOrg(String.valueOf(commGO.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicateUnderstanding(String.valueOf(commWRA.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicatePersonalConn(String.valueOf(commWRB.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setCommunicateGraphicOrg(String.valueOf(commGO.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicateUnderstanding(String.valueOf(commWRA.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicatePersonalConn(String.valueOf(commWRB.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
         yield score;
       }
       case LTP10 -> {
@@ -425,10 +417,10 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal commWRA = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getCommunicateUnderstanding).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal commWRB = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getCommunicatePersonalConn).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setCommunicateGraphicOrg(String.valueOf(commGO.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicateUnderstanding(String.valueOf(commWRA.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicatePersonalConn(String.valueOf(commWRB.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setComprehendPartAShort(String.valueOf(comprePartA.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setCommunicateGraphicOrg(String.valueOf(commGO.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicateUnderstanding(String.valueOf(commWRA.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicatePersonalConn(String.valueOf(commWRB.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setComprehendPartAShort(String.valueOf(comprePartA.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
         yield score;
       }
       case LTF12 -> {
@@ -436,9 +428,9 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal form = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getDissertationForm).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal comprePartA = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartAShort).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setComprehendPartAShort(String.valueOf(comprePartA.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setDissertationBackground(String.valueOf(background.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setDissertationForm(String.valueOf(form.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setComprehendPartAShort(String.valueOf(comprePartA.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setDissertationBackground(String.valueOf(background.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setDissertationForm(String.valueOf(form.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
         yield score;
       }
       default -> score;
@@ -459,9 +451,9 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal part2 = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getCommunicateOralPart2).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal part3 = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getCommunicateOralPart3).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setCommunicateOralPart1(String.valueOf(part1.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicateOralPart2(String.valueOf(part2.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicateOralPart3(String.valueOf(part3.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setCommunicateOralPart1(String.valueOf(part1.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicateOralPart2(String.valueOf(part2.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicateOralPart3(String.valueOf(part3.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
         yield score;
       }
       case LTF12 -> {
@@ -472,12 +464,12 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal part5 = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getCommunicateOralPart2Background).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal part6 = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getCommunicateOralPart2Form).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        score.setCommunicateOralPart1Background(String.valueOf(part1.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicateOralPart1Form(String.valueOf(part2.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicateOralPart1Expression(String.valueOf(part3.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicateOralPart2Expression(String.valueOf(part4.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicateOralPart2Background(String.valueOf(part5.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-        score.setCommunicateOralPart2Form(String.valueOf(part6.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+        score.setCommunicateOralPart1Background(String.valueOf(part1.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicateOralPart1Form(String.valueOf(part2.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicateOralPart1Expression(String.valueOf(part3.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicateOralPart2Expression(String.valueOf(part4.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicateOralPart2Background(String.valueOf(part5.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setCommunicateOralPart2Form(String.valueOf(part6.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
         yield score;
       }
       default -> score;
@@ -495,9 +487,9 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     BigDecimal dok2 = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getDok2).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal dok3 = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getDok3).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    score.setDok1(String.valueOf(dok1.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-    score.setDok2(String.valueOf(dok2.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-    score.setDok3(String.valueOf(dok3.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+    score.setDok1(String.valueOf(dok1.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+    score.setDok2(String.valueOf(dok2.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+    score.setDok3(String.valueOf(dok3.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
     return score;
   }
 
@@ -513,10 +505,10 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     BigDecimal solve = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getNumeracySolve).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal analyze = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getNumeracyAnalyze).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    score.setNumeracyInterpret(String.valueOf(interpret.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-    score.setNumeracyApply(String.valueOf(apply.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-    score.setNumeracySolve(String.valueOf(solve.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
-    score.setNumeracyAnalyze(String.valueOf(analyze.divide(new BigDecimal(noOfStudents), 2, RoundingMode.HALF_UP)));
+    score.setNumeracyInterpret(String.valueOf(interpret.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+    score.setNumeracyApply(String.valueOf(apply.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+    score.setNumeracySolve(String.valueOf(solve.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+    score.setNumeracyAnalyze(String.valueOf(analyze.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
     return score;
   }
 
@@ -614,16 +606,31 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     schoolProficiencyLevel.setStudentsWithProficiency2(String.valueOf(getProficiencyScorePercent(students, 2, totalCount)));
     schoolProficiencyLevel.setStudentsWithProficiency3(String.valueOf(getProficiencyScorePercent(students, 3, totalCount)));
     schoolProficiencyLevel.setStudentsWithProficiency4(String.valueOf(getProficiencyScorePercent(students, 4, totalCount)));
+    schoolProficiencyLevel.setNotCounted(String.valueOf(getSpecialCasePercent(students, "NC", totalCount)));
 
     return schoolProficiencyLevel;
+  }
+
+  private Integer getSpecialCasePercent(List<AssessmentStudentLightEntity> students, String caseCode, int count) {
+    if(count == 0) {
+      return 0;
+    }
+    var studentsWithProfScore = students.stream().filter(student -> StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) && student.getProvincialSpecialCaseCode().equalsIgnoreCase(caseCode)).toList();
+    if(studentsWithProfScore.isEmpty()) {
+      return 0;
+    }
+    return (studentsWithProfScore.size() * 100) / count;
   }
 
   private Integer getProficiencyScorePercent(List<AssessmentStudentLightEntity> students, int score, int count) {
     if(count == 0) {
       return 0;
     }
-    int sum = students.stream().map(AssessmentStudentLightEntity::getProficiencyScore).filter(proficiencyScore -> proficiencyScore!= null && proficiencyScore == score).reduce(0, Integer::sum);
-    return (sum * 100) / count;
+    var studentsWithProfScore = students.stream().filter(student -> student.getProficiencyScore() != null && student.getProficiencyScore() == score).toList();
+    if(studentsWithProfScore.isEmpty()) {
+      return 0;
+    }
+    return (studentsWithProfScore.size() * 100) / count;
   }
 
   private List<SchoolTombstone> getSchoolsByLevel(String level, String districtOrAuthorityID) {
