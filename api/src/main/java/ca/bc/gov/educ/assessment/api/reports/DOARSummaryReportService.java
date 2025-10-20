@@ -28,6 +28,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Service class for generating School Students by Assessment Report
@@ -159,26 +161,99 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
 
   private void setAssessmentRawScores(List<AssessmentStudentLightEntity> students, boolean isIndependent, SchoolTombstone school, DOARSummaryPage doarSummaryPage, String assessmentType) {
     UUID assessmentID = students.getFirst().getAssessmentEntity().getAssessmentID();
-    List<UUID> schoolLevelStudents = getStudentsInSameSchool(students, school).stream().map(AssessmentStudentLightEntity::getAssessmentStudentID).toList();
-    var schoolLevelDOARCalc = assessmentStudentDOARCalculationRepository.findAllByAssessmentIDAndAssessmentStudentIDIn(assessmentID, schoolLevelStudents);
+    Map<String, Set<UUID>> studentIdsByLevel = categorizeStudentsByLevel(students, school, isIndependent);
 
-    List<UUID> provinceLevel = students.stream().map(AssessmentStudentLightEntity::getAssessmentStudentID).toList();
-    var provinceLevelDOARCalc = assessmentStudentDOARCalculationRepository.findAllByAssessmentIDAndAssessmentStudentIDIn(assessmentID, provinceLevel);
+    List<UUID> allStudentIds = students.stream()
+            .map(AssessmentStudentLightEntity::getAssessmentStudentID)
+            .toList();
+    var allDOARCalc = assessmentStudentDOARCalculationRepository
+            .findAllByAssessmentIDAndAssessmentStudentIDIn(assessmentID, allStudentIds);
+
+    Map<UUID, AssessmentStudentDOARCalculationEntity> doarCalcMap = allDOARCalc.stream()
+            .collect(Collectors.toMap(AssessmentStudentDOARCalculationEntity::getAssessmentStudentID, Function.identity()));
+
+    List<AssessmentStudentDOARCalculationEntity> schoolLevelDOARCalc =
+            filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get(SCHOOL));
+    List<AssessmentStudentDOARCalculationEntity> provinceLevelDOARCalc =
+            filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get("Province"));
 
     if(isIndependent) {
-      List<UUID> indpLevelStudents = getStudentsByLevel(students, school, INDEPENDENT).stream().map(AssessmentStudentLightEntity::getAssessmentStudentID).toList();
-      var indpLevelDOARCalc = assessmentStudentDOARCalculationRepository.findAllByAssessmentIDAndAssessmentStudentIDIn(assessmentID, indpLevelStudents);
-
-      populateRawScoresForIndependentSchools(schoolLevelDOARCalc, provinceLevelDOARCalc, indpLevelDOARCalc, doarSummaryPage, assessmentType);
+      List<AssessmentStudentDOARCalculationEntity> indpLevelDOARCalc =
+              filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get(INDEPENDENT));
+      populateRawScoresForIndependentSchools(schoolLevelDOARCalc, provinceLevelDOARCalc,
+              indpLevelDOARCalc, doarSummaryPage, assessmentType);
     } else {
-      List<UUID> districtLevelStudents = getStudentsByLevel(students, school, DISTRICT).stream().map(AssessmentStudentLightEntity::getAssessmentStudentID).toList();
-      var districtLevelDOARCalc = assessmentStudentDOARCalculationRepository.findAllByAssessmentIDAndAssessmentStudentIDIn(assessmentID, districtLevelStudents);
-
-      List<UUID> publicLevelStudents = getStudentsByLevel(students, school, PUBLIC).stream().map(AssessmentStudentLightEntity::getAssessmentStudentID).toList();
-      var publicLevelDOARCalc = assessmentStudentDOARCalculationRepository.findAllByAssessmentIDAndAssessmentStudentIDIn(assessmentID, publicLevelStudents);
-
-      populateRawScoresForPublicSchools(schoolLevelDOARCalc, districtLevelDOARCalc, publicLevelDOARCalc, provinceLevelDOARCalc, doarSummaryPage, assessmentType);
+      List<AssessmentStudentDOARCalculationEntity> districtLevelDOARCalc =
+              filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get(DISTRICT));
+      List<AssessmentStudentDOARCalculationEntity> publicLevelDOARCalc =
+              filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get(PUBLIC));
+      populateRawScoresForPublicSchools(schoolLevelDOARCalc, districtLevelDOARCalc,
+              publicLevelDOARCalc, provinceLevelDOARCalc, doarSummaryPage, assessmentType);
     }
+  }
+
+  private List<AssessmentStudentDOARCalculationEntity> filterDOARCalcByStudentIds(
+          Map<UUID, AssessmentStudentDOARCalculationEntity> doarCalcMap, Set<UUID> studentIds) {
+    return studentIds.stream()
+            .map(doarCalcMap::get)
+            .filter(Objects::nonNull)
+            .toList();
+  }
+
+  private Map<String, Set<UUID>> categorizeStudentsByLevel(
+          List<AssessmentStudentLightEntity> students, SchoolTombstone school, boolean isIndependent) {
+
+    Map<String, Set<UUID>> result = new HashMap<>();
+    UUID schoolId = UUID.fromString(school.getSchoolId());
+
+    Set<UUID> districtSchoolIds = isIndependent ? Collections.emptySet() :
+            getSchoolsByLevel(DISTRICT, school.getDistrictId()).stream()
+                    .map(s -> UUID.fromString(s.getSchoolId()))
+                    .collect(Collectors.toSet());
+
+    Set<UUID> publicSchoolIds = isIndependent ? Collections.emptySet() :
+            getSchoolsByLevel(PUBLIC, null).stream()
+                    .map(s -> UUID.fromString(s.getSchoolId()))
+                    .collect(Collectors.toSet());
+
+    Set<UUID> independentSchoolIds = isIndependent ?
+            getSchoolsByLevel(INDEPENDENT, school.getIndependentAuthorityId()).stream()
+                    .map(s -> UUID.fromString(s.getSchoolId()))
+                    .collect(Collectors.toSet()) : Collections.emptySet();
+
+    Set<UUID> schoolLevel = new HashSet<>();
+    Set<UUID> districtLevel = new HashSet<>();
+    Set<UUID> publicLevel = new HashSet<>();
+    Set<UUID> independentLevel = new HashSet<>();
+    Set<UUID> provinceLevel = new HashSet<>();
+
+    for (AssessmentStudentLightEntity student : students) {
+      UUID studentSchoolId = student.getSchoolAtWriteSchoolID();
+      UUID studentId = student.getAssessmentStudentID();
+
+      provinceLevel.add(studentId);
+
+      if (schoolId.equals(studentSchoolId)) {
+        schoolLevel.add(studentId);
+      }
+      if (districtSchoolIds.contains(studentSchoolId)) {
+        districtLevel.add(studentId);
+      }
+      if (publicSchoolIds.contains(studentSchoolId)) {
+        publicLevel.add(studentId);
+      }
+      if (independentSchoolIds.contains(studentSchoolId)) {
+        independentLevel.add(studentId);
+      }
+    }
+
+    result.put(SCHOOL, schoolLevel);
+    result.put(DISTRICT, districtLevel);
+    result.put(PUBLIC, publicLevel);
+    result.put(INDEPENDENT, independentLevel);
+    result.put("Province", provinceLevel);
+
+    return result;
   }
 
   private void populateRawScoresForIndependentSchools(List<AssessmentStudentDOARCalculationEntity> schoolLevel, List<AssessmentStudentDOARCalculationEntity> provinceLevel, List<AssessmentStudentDOARCalculationEntity> indpLevel, DOARSummaryPage doarSummaryPage, String assessmentType) {
