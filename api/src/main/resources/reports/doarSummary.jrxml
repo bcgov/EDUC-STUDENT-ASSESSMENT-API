@@ -680,7 +680,7 @@
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Not Counted]]></text>
+										<text><![CDATA[NC]]></text>
 									</staticText>
 								</jr:columnHeader>
 								<jr:detailCell style="Table 2_TD" height="20">

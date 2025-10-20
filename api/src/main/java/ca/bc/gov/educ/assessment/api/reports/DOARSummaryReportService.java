@@ -32,6 +32,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static ca.bc.gov.educ.assessment.api.constants.v1.SchoolCategoryCodes.YUKON;
+
 /**
  * Service class for generating School Students by Assessment Report
  */
@@ -95,20 +97,22 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
 
       var studentsByAssessment = organizeStudentsInEachAssessment(students);
       studentsByAssessment.forEach((assessmentType, studentList) -> {
-        DOARSummaryPage doarSummaryPage =  new DOARSummaryPage();
-        setReportTombstoneValues(session, doarSummaryPage, assessmentType, school);
-        doarSummaryPage.setProficiencySection(new ArrayList<>());
-        doarSummaryPage.setTaskScore(new ArrayList<>());
-        doarSummaryPage.setComprehendScore(new ArrayList<>());
-        doarSummaryPage.setCommunicateScore(new ArrayList<>());
-        doarSummaryPage.setCommunicateOralScore(new ArrayList<>());
-        doarSummaryPage.setNumeracyScore(new ArrayList<>());
-        doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
+        if(!studentList.isEmpty()) {
+          DOARSummaryPage doarSummaryPage = new DOARSummaryPage();
+          setReportTombstoneValues(session, doarSummaryPage, assessmentType, school);
+          doarSummaryPage.setProficiencySection(new ArrayList<>());
+          doarSummaryPage.setTaskScore(new ArrayList<>());
+          doarSummaryPage.setComprehendScore(new ArrayList<>());
+          doarSummaryPage.setCommunicateScore(new ArrayList<>());
+          doarSummaryPage.setCommunicateOralScore(new ArrayList<>());
+          doarSummaryPage.setNumeracyScore(new ArrayList<>());
+          doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
 
-        setProficiencyLevels(studentList, isIndependent, school, doarSummaryPage);
-        setAssessmentRawScores(studentList, isIndependent, school, doarSummaryPage, assessmentType);
+          setProficiencyLevels(studentList, isIndependent, school, doarSummaryPage);
+          setAssessmentRawScores(studentList, isIndependent, school, doarSummaryPage, assessmentType);
 
-        doarSummaryNode.getReports().add(doarSummaryPage);
+          doarSummaryNode.getReports().add(doarSummaryPage);
+        }
       });
       String payload = objectWriter.writeValueAsString(doarSummaryNode);
       return generateJasperReport(payload, doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
@@ -540,7 +544,6 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     Map<String, List<AssessmentStudentLightEntity>> result = new HashMap<>();
     UUID schoolId = UUID.fromString(school.getSchoolId());
 
-    // Get school IDs by level ONCE and convert to Set for O(1) lookup
     Set<UUID> districtSchoolIds = isIndependent ? Collections.emptySet() :
             getSchoolsByLevel(DISTRICT, school.getDistrictId()).stream()
                     .map(s -> UUID.fromString(s.getSchoolId()))
@@ -587,16 +590,6 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     return result;
   }
 
-//  private List<AssessmentStudentLightEntity> getStudentsInSameSchool(List<AssessmentStudentLightEntity> students, SchoolTombstone school) {
-//    return students.stream().filter(student -> Objects.equals(student.getSchoolAtWriteSchoolID(), UUID.fromString(school.getSchoolId()))).toList();
-//  }
-//
-//  private List<AssessmentStudentLightEntity> getStudentsByLevel(List<AssessmentStudentLightEntity> students, SchoolTombstone school, String level) {
-//    return students.stream().filter(student ->
-//                    getSchoolsByLevel(level, school.getDistrictId()).stream().anyMatch(schoolByLevel -> Objects.equals(student.getSchoolAtWriteSchoolID(), UUID.fromString(school.getSchoolId()))))
-//            .toList();
-//  }
-
   private ProficiencyLevel createProficiencyLevelSection(String level, List<AssessmentStudentLightEntity> students) {
     int totalCount = students.size();
     ProficiencyLevel schoolProficiencyLevel =  new ProficiencyLevel();
@@ -611,33 +604,36 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     return schoolProficiencyLevel;
   }
 
-  private Integer getSpecialCasePercent(List<AssessmentStudentLightEntity> students, String caseCode, int count) {
+  private BigDecimal getSpecialCasePercent(List<AssessmentStudentLightEntity> students, String caseCode, int count) {
     if(count == 0) {
-      return 0;
+      return BigDecimal.ZERO;
     }
     var studentsWithProfScore = students.stream().filter(student -> StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) && student.getProvincialSpecialCaseCode().equalsIgnoreCase(caseCode)).toList();
     if(studentsWithProfScore.isEmpty()) {
-      return 0;
+      return BigDecimal.ZERO;
     }
-    return (studentsWithProfScore.size() * 100) / count;
+    return new BigDecimal(studentsWithProfScore.size()).multiply(new BigDecimal(100)).divide(new BigDecimal(count), 2, RoundingMode.DOWN);
   }
 
-  private Integer getProficiencyScorePercent(List<AssessmentStudentLightEntity> students, int score, int count) {
+  private BigDecimal getProficiencyScorePercent(List<AssessmentStudentLightEntity> students, int score, int count) {
     if(count == 0) {
-      return 0;
+      return BigDecimal.ZERO;
     }
     var studentsWithProfScore = students.stream().filter(student -> student.getProficiencyScore() != null && student.getProficiencyScore() == score).toList();
     if(studentsWithProfScore.isEmpty()) {
-      return 0;
+      return BigDecimal.ZERO;
     }
-    return (studentsWithProfScore.size() * 100) / count;
+    return new BigDecimal(studentsWithProfScore.size()).multiply(new BigDecimal(100)).divide(new BigDecimal(count), 2, RoundingMode.DOWN);
   }
 
   private List<SchoolTombstone> getSchoolsByLevel(String level, String districtOrAuthorityID) {
     var schools = restUtils.getAllSchoolTombstones();
     return switch (level) {
-      case DISTRICT, INDEPENDENT -> schools.stream().filter(school -> school.getDistrictId().equals(districtOrAuthorityID)).toList();
-      case PUBLIC -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)).toList();
+      case DISTRICT -> schools.stream().filter(school -> school.getDistrictId().equals(districtOrAuthorityID) && StringUtils.isBlank(school.getIndependentAuthorityId())
+              && (school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC) || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode()))).toList();
+      case INDEPENDENT -> schools.stream().filter(school -> school.getIndependentAuthorityId().equals(districtOrAuthorityID)).toList();
+      case PUBLIC -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
+              || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode())).toList();
       default -> Collections.emptyList();
     };
   }
