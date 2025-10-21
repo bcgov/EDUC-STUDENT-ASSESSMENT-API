@@ -250,7 +250,7 @@ public class CSVReportService {
     }
     
     private boolean sessionIsApproved(AssessmentSessionEntity assessmentSessionEntity) {
-        return assessmentSessionEntity.getApprovalStudentCertSignDate() != null && assessmentSessionEntity.getApprovalAssessmentAnalysisSignDate() != null && assessmentSessionEntity.getApprovalAssessmentDesignSignDate() != null;
+        return assessmentSessionEntity.getCompletionDate() != null;
     }
     
     public DownloadableReportResponse generateSummaryResultsByGradeInSession(UUID sessionID) {
