@@ -88,7 +88,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
   public DownloadableReportResponse generateDOARSummaryReport(UUID assessmentSessionID, UUID schoolID){
     try {
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
-      var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode());
+      var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), "X");
 
       var school = validateAndReturnSchool(schoolID);
       boolean isIndependent = school.getIndependentAuthorityId() != null;
@@ -614,7 +614,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     schoolProficiencyLevel.setStudentsWithProficiency2(String.valueOf(getProficiencyScorePercent(students, 2, totalCount)));
     schoolProficiencyLevel.setStudentsWithProficiency3(String.valueOf(getProficiencyScorePercent(students, 3, totalCount)));
     schoolProficiencyLevel.setStudentsWithProficiency4(String.valueOf(getProficiencyScorePercent(students, 4, totalCount)));
-    schoolProficiencyLevel.setNotCounted(String.valueOf(getSpecialCasePercent(students, "NC", totalCount)));
+    schoolProficiencyLevel.setNotCounted(String.valueOf(getSpecialCasePercent(students, "X", totalCount)));
 
     return schoolProficiencyLevel;
   }
@@ -651,7 +651,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
               || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode())).toList();
       case "Province" -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
               || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode()) ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDEPEND.getCode())
-              ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDP_FNS.getCode())).toList();
+              ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDP_FNS.getCode()) || school.getSchoolCategoryCode().equalsIgnoreCase(OFFSHORE.getCode())).toList();
 
       default -> Collections.emptyList();
     };

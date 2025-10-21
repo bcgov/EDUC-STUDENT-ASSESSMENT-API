@@ -18,6 +18,8 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
 
     List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCode(UUID sessionID, String studentStatusCode);
 
+    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(UUID sessionID, String studentStatusCode, String provincialSpecialCaseCode);
+
     @Query("""
     select stud from AssessmentStudentLightEntity stud
     where stud.assessmentEntity.assessmentTypeCode = :assessmentTypeCode
