@@ -32,10 +32,10 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ca.bc.gov.educ.assessment.api.constants.v1.SchoolCategoryCodes.YUKON;
+import static ca.bc.gov.educ.assessment.api.constants.v1.SchoolCategoryCodes.*;
 
 /**
- * Service class for generating School Students by Assessment Report
+ * Service class for generating DOAR Summary
  */
 @Service
 @Slf4j
@@ -218,6 +218,10 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                     .map(s -> UUID.fromString(s.getSchoolId()))
                     .collect(Collectors.toSet()) : Collections.emptySet();
 
+    Set<UUID> provinceSchoolIds = getSchoolsByLevel("Province", null).stream()
+            .map(s -> UUID.fromString(s.getSchoolId()))
+            .collect(Collectors.toSet());
+
     Set<UUID> schoolLevel = new HashSet<>();
     Set<UUID> districtLevel = new HashSet<>();
     Set<UUID> publicLevel = new HashSet<>();
@@ -228,7 +232,9 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       UUID studentSchoolId = student.getSchoolAtWriteSchoolID();
       UUID studentId = student.getAssessmentStudentID();
 
-      provinceLevel.add(studentId);
+      if (provinceSchoolIds.contains(studentSchoolId)) {
+        provinceLevel.add(studentId);
+      }
 
       if (schoolId.equals(studentSchoolId)) {
         schoolLevel.add(studentId);
@@ -521,7 +527,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     Map<String, List<AssessmentStudentLightEntity>> studentsByLevel =
             categorizeStudentsEntitiesByLevel(students, school, isIndependent);
 
-    var provinceLevel = createProficiencyLevelSection("Province", students);
+    var provinceLevel = createProficiencyLevelSection("Province", studentsByLevel.get("Province"));
     if(isIndependent) {
       doarSummaryPage.getProficiencySection().addAll(List.of(
               createProficiencyLevelSection(SCHOOL, studentsByLevel.get(SCHOOL)),
@@ -559,11 +565,16 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                     .map(s -> UUID.fromString(s.getSchoolId()))
                     .collect(Collectors.toSet()) : Collections.emptySet();
 
+    Set<UUID> provinceSchoolIds = getSchoolsByLevel("Province", null).stream()
+            .map(s -> UUID.fromString(s.getSchoolId()))
+            .collect(Collectors.toSet());
+
     // Single pass through students
     List<AssessmentStudentLightEntity> schoolLevel = new ArrayList<>();
     List<AssessmentStudentLightEntity> districtLevel = new ArrayList<>();
     List<AssessmentStudentLightEntity> publicLevel = new ArrayList<>();
     List<AssessmentStudentLightEntity> independentLevel = new ArrayList<>();
+    List<AssessmentStudentLightEntity> provinceLevel = new ArrayList<>();
 
     for (AssessmentStudentLightEntity student : students) {
       UUID studentSchoolId = student.getSchoolAtWriteSchoolID();
@@ -580,12 +591,16 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       if (independentSchoolIds.contains(studentSchoolId)) {
         independentLevel.add(student);
       }
+      if (provinceSchoolIds.contains(studentSchoolId)) {
+        provinceLevel.add(student);
+      }
     }
 
     result.put(SCHOOL, schoolLevel);
     result.put(DISTRICT, districtLevel);
     result.put(PUBLIC, publicLevel);
     result.put(INDEPENDENT, independentLevel);
+    result.put("Province", provinceLevel);
 
     return result;
   }
@@ -634,6 +649,10 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       case INDEPENDENT -> schools.stream().filter(school -> school.getIndependentAuthorityId().equals(districtOrAuthorityID)).toList();
       case PUBLIC -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
               || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode())).toList();
+      case "Province" -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
+              || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode()) ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDEPEND.getCode())
+              ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDP_FNS.getCode())).toList();
+
       default -> Collections.emptyList();
     };
   }
