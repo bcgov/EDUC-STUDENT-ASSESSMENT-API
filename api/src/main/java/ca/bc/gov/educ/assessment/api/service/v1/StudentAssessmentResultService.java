@@ -181,15 +181,21 @@ public class StudentAssessmentResultService {
             var componentEntity = stagedStudent.getStagedAssessmentStudentComponentEntities().stream()
                     .filter(comp -> Objects.equals(comp.getAssessmentComponentID(), component.get().getAssessmentComponentID()))
                     .findFirst();
-            var totalStudentScore = componentEntity.map(stagedAssessmentStudentComponentEntity -> stagedAssessmentStudentComponentEntity.getStagedAssessmentStudentAnswerEntities().stream()
-                    .map(StagedAssessmentStudentAnswerEntity::getScore)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)).orElse(BigDecimal.ZERO);
 
-            var totalScale = component.get().getAssessmentQuestionEntities()
-                    .stream()
-                    .map(AssessmentQuestionEntity::getScaleFactor)
-                    .reduce(0, Integer::sum);
-            return (totalStudentScore.multiply(BigDecimal.valueOf(totalScale))).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            if(componentEntity.isPresent()) {
+                var studentAnswers = componentEntity.get().getStagedAssessmentStudentAnswerEntities().stream().toList();
+
+                BigDecimal scaledScore = BigDecimal.ZERO;
+                for (var answer : studentAnswers) {
+                    var score = answer.getScore();
+                    var scale = component.get().getAssessmentQuestionEntities().stream().filter(questionEntity -> Objects.equals(questionEntity.getAssessmentQuestionID(), answer.getAssessmentQuestionID())).findFirst();
+                    if (scale.isPresent()) {
+                        var multipliedScore = score.multiply(BigDecimal.valueOf(scale.get().getScaleFactor()));
+                        scaledScore = scaledScore.add(multipliedScore);
+                    }
+                }
+                return scaledScore.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            }
         }
         return BigDecimal.ZERO;
     }
@@ -202,16 +208,21 @@ public class StudentAssessmentResultService {
             var componentEntity = assessmentStudent.getAssessmentStudentComponentEntities().stream()
                     .filter(comp -> Objects.equals(comp.getAssessmentComponentID(), component.get().getAssessmentComponentID()))
                     .findFirst();
-            var totalStudentScore = componentEntity.map(stagedAssessmentStudentComponentEntity -> stagedAssessmentStudentComponentEntity.getAssessmentStudentAnswerEntities().stream()
-                    .map(AssessmentStudentAnswerEntity::getScore)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)).orElse(BigDecimal.ZERO);
 
-            var totalScale = component.get().getAssessmentQuestionEntities()
-                    .stream()
-                    .map(AssessmentQuestionEntity::getScaleFactor)
-                    .filter(Objects::nonNull)
-                    .reduce(0, Integer::sum);
-            return (totalStudentScore.multiply(BigDecimal.valueOf(totalScale))).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            if(componentEntity.isPresent()) {
+                var studentAnswers = componentEntity.get().getAssessmentStudentAnswerEntities().stream().toList();
+
+                BigDecimal scaledScore = BigDecimal.ZERO;
+                for (var answer : studentAnswers) {
+                    var score = answer.getScore();
+                    var scale = component.get().getAssessmentQuestionEntities().stream().filter(questionEntity -> Objects.equals(questionEntity.getAssessmentQuestionID(), answer.getAssessmentQuestionID())).findFirst();
+                    if (scale.isPresent()) {
+                        var multipliedScore = score.multiply(BigDecimal.valueOf(scale.get().getScaleFactor()));
+                        scaledScore = scaledScore.add(multipliedScore);
+                    }
+                }
+                return scaledScore.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            }
         }
         return BigDecimal.ZERO;
     }
