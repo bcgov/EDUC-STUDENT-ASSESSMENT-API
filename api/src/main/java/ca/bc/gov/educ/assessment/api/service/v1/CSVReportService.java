@@ -306,7 +306,7 @@ public class CSVReportService {
                 formSummaries = stagedAssessmentStudentLightRepository.getSummaryByFormForSession(sessionID);
             }
             
-            populateCSVPrinterForFormSummary(formSummaries, csvPrinter, forms);
+            populateCSVPrinterForFormSummary(formSummaries, csvPrinter, forms, session);
 
             csvPrinter.flush();
 
@@ -353,12 +353,12 @@ public class CSVReportService {
         }
     }
 
-    private void populateCSVPrinterForFormSummary(List<SummaryByFormQueryResponse> results, CSVPrinter csvPrinter, List<AssessmentFormEntity> forms) throws IOException {
+    private void populateCSVPrinterForFormSummary(List<SummaryByFormQueryResponse> results, CSVPrinter csvPrinter, List<AssessmentFormEntity> forms, AssessmentSessionEntity session) throws IOException {
         for (SummaryByFormQueryResponse result : results) {
             var form = result.getFormID() != null ? forms.stream()
                     .filter(assessmentFormEntity ->  assessmentFormEntity.getAssessmentFormID().equals(result.getFormID())).findFirst()
                     .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "AssessmentForm", result.getFormID().toString())).getFormCode() : "";
-            List<String> csvRowData = prepareFormSummaryDetailsDataForCsv(result, form);
+            List<String> csvRowData = prepareFormSummaryDetailsDataForCsv(result, form, session);
             csvPrinter.printRecord(csvRowData);
         }
     }
@@ -630,9 +630,10 @@ public class CSVReportService {
         ));
     }
 
-    private List<String> prepareFormSummaryDetailsDataForCsv(SummaryByFormQueryResponse formSummary, String form) {
+    private List<String> prepareFormSummaryDetailsDataForCsv(SummaryByFormQueryResponse formSummary, String form, AssessmentSessionEntity assessmentSession) {
         return new ArrayList<>(Arrays.asList(
                 formSummary.getAssessmentTypeCode(),
+                assessmentSession.getCourseYear() + assessmentSession.getCourseMonth(),
                 form,
                 Long.toString(formSummary.getProfScore1()),
                 Long.toString(formSummary.getProfScore2()),
