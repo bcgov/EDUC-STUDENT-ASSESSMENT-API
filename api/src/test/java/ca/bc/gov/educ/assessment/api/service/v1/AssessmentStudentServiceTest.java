@@ -277,6 +277,45 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
+  void testCreateStudent_WithValidationIssues_SetsStudentIdAndCreatesEvent() throws JsonProcessingException {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    AssessmentStudentEntity assessmentStudentEntity = createMockStudentEntity(assessmentEntity);
+    assessmentStudentEntity.setSchoolOfRecordSchoolID(schoolID);
+    assessmentStudentEntity.setAssessmentStudentID(null);
+    assessmentStudentEntity.setStudentID(null);
+
+    var studentAPIStudent = this.createMockStudentAPIStudent();
+    studentAPIStudent.setPen(assessmentStudentEntity.getPen());
+    studentAPIStudent.setLegalFirstName("DifferentFirst");
+    studentAPIStudent.setLegalLastName("DifferentLast");
+    when(this.restUtils.getStudentByPEN(any(UUID.class), anyString())).thenReturn(Optional.of(studentAPIStudent));
+
+    var gradStudentRecord = new GradStudentRecord();
+    gradStudentRecord.setStudentID(UUID.randomUUID().toString());
+    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
+
+    var pair = assessmentStudentService.createStudent(assessmentStudentEntity, false, "UNKNOWN");
+    AssessmentStudent student = pair.getLeft();
+    AssessmentEventEntity event = pair.getRight();
+
+    assertNotNull(student);
+    assertThat(student.getAssessmentStudentValidationIssues()).isNotNull();
+    assertThat(student.getAssessmentStudentValidationIssues()).isNotEmpty();
+    assertThat(student.getStudentID()).isEqualTo(studentAPIStudent.getStudentID());
+
+    assertNotNull(event);
+    assertThat(event.getEventPayload()).isEqualTo(JsonUtil.getJsonStringFromObject(studentAPIStudent.getStudentID()));
+  }
+
+  @Test
   void testGetStudentsByAssessmentIDsInAndStudentID_WithNumeracyCodes_ReturnsAllNumeracyRegistrations() {
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentNME10 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.NME10.getCode()));

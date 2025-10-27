@@ -178,7 +178,9 @@ public class AssessmentStudentService {
                 return assessmentStudentListItemMapper.toStructure(saveAssessmentStudentWithHistory(assessmentStudentEntity));
             }
         }
-
+        if(currentAssessmentStudentEntity == null) { //set studentID on creates with validation issues for the event to use
+            assessmentStudentEntity.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
+        }
         AssessmentStudentListItem studentWithValidationIssues = assessmentStudentListItemMapper.toStructure(assessmentStudentEntity);
         studentWithValidationIssues.setAssessmentStudentValidationIssues(validationIssues);
 
