@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum SummaryByFormHeader {
 
     ASSESSMENT_CODE("Assessment"),
+    SESSION_CODE("Session"),
     FORM("Form"),
     PROF_SCORE_1("Proficiency Score 1"),
     PROF_SCORE_2("Proficiency Score 2"),
