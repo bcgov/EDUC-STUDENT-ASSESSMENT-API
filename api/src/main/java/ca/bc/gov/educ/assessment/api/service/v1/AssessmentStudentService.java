@@ -307,8 +307,6 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int markStagedStudentsReadyForTransfer() {
-        log.debug("Marking all staged students as ready for transfer");
-
         LocalDateTime updateTime = LocalDateTime.now();
         int updatedCount = stagedAssessmentStudentRepository.updateAllStagedAssessmentStudentStatus(
             "TRANSFER",
@@ -322,7 +320,6 @@ public class AssessmentStudentService {
     }
 
     public List<StagedAssessmentStudentEntity> findBatchOfTransferStudentIds(int batchSize) {
-        log.debug("Finding batch of {} students with TRANSFER status", batchSize);
         Pageable pageable = PageRequest.of(0, batchSize);
         return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("TRANSFER", pageable);
     }

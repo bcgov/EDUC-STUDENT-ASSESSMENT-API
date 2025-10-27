@@ -90,41 +90,31 @@ public class DOARReportService {
         map.put(DOARColumnLookup.ENTRY1, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, OPEN_ENDED);
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, MUL_CHOICE);
-
-            log.debug("ENTRY1 openEndedQues: {}", selectedOeAssessmentQuestionsByTypeCode.size());
-            log.debug("ENTRY1 mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
         map.put(DOARColumnLookup.ENTRY2, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getClaimCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, MUL_CHOICE, includeChoiceCalc);
-            log.debug("ENTRY2 mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateMCTotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
         map.put(DOARColumnLookup.ENTRY3, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedOeAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, OPEN_ENDED, false);
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getCognitiveLevelCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, MUL_CHOICE, includeChoiceCalc);
-            log.debug("ENTRY3 openEndedQues: {}", selectedOeAssessmentQuestionsByTypeCode.size());
-            log.debug("ENTRY3 mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateTotal(student, selectedOeAssessmentQuestionsByTypeCode, selectedMcAssessmentQuestionsByTypeCode));
         });
         map.put(DOARColumnLookup.ENTRY4, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getClaimCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, OPEN_ENDED, false);
-            log.debug("ENTRY4 mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateOETotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
         map.put(DOARColumnLookup.ENTRY5, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getTaskCodeQuestionsForSelectedForm(selectedAssessmentForm, code, MUL_CHOICE);
-            log.debug("ENTRY5 mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateMCTotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
         map.put(DOARColumnLookup.ENTRY6, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getConceptsCodeQuestionsForSelectedForm(selectedAssessmentForm, code, student, OPEN_ENDED, false);
-            log.debug("ENTRY6 mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateOETotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
         map.put(DOARColumnLookup.ENTRY7, (selectedAssessmentForm, student, code, includeChoiceCalc) -> {
             List<AssessmentQuestionEntity> selectedMcAssessmentQuestionsByTypeCode = getQuestionsWithAssessmentSectionForSelectedForm(selectedAssessmentForm, code, student, MUL_CHOICE, includeChoiceCalc);
-            log.debug("ENTRY7 mcQuestions: {}", selectedMcAssessmentQuestionsByTypeCode.size());
             return String.valueOf(doarCalculateService.calculateMCTotal(selectedMcAssessmentQuestionsByTypeCode, student));
         });
     }
