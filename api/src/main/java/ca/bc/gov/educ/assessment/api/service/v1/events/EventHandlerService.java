@@ -194,9 +194,7 @@ public class EventHandlerService {
 
     @Transactional(propagation = REQUIRES_NEW)
     public void handleProcessStudentResultEvent(final Event event) throws JsonProcessingException {
-        log.debug("Inside handleProcessStudentResultEvent :: {}", event.getEventOutcome());
         if (event.getEventOutcome() == EventOutcome.READ_STUDENT_RESULT_FOR_PROCESSING_SUCCESS) {
-            log.debug("event payload :: {}", event.getEventPayload());
             final StudentResultSagaData sagaData = JsonUtil.getJsonObjectFromString(StudentResultSagaData.class, event.getEventPayload());
             final var sagaList = sagaService.findByAssessmentIDAndPenAndSagaNameAndStatusNot(UUID.fromString(sagaData.getAssessmentID()), sagaData.getPen(), SagaEnum.PROCESS_STUDENT_RESULT.toString(), SagaStatusEnum.COMPLETED.toString());
             if (!sagaList.isEmpty()) { // possible duplicate message.
