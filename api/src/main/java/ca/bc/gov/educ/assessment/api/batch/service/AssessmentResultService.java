@@ -77,8 +77,8 @@ public class AssessmentResultService {
     private void validatePENsInFile(AssessmentResultFile batchFile, String correlationID) throws ResultsFileUnProcessableException {
         for(var assessmentResultData: batchFile.getAssessmentResultData()){
             var pen = assessmentResultData.getPen();
-            var formCode = assessmentResultData.getFormCode();
-            var filteredPEN = batchFile.getAssessmentResultData().stream().filter(student -> student.getPen().equals(pen) && student.getFormCode().equalsIgnoreCase(formCode)).count();
+            var componentType = assessmentResultData.getComponentType();
+            var filteredPEN = batchFile.getAssessmentResultData().stream().filter(student -> student.getPen().equals(pen) && student.getComponentType().equalsIgnoreCase(componentType)).count();
             if(filteredPEN > 1) {
                 throw new ResultsFileUnProcessableException(INVALID_PEN_DUPLICATE_IN_FILE, correlationID, pen);
             }
