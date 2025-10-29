@@ -18,10 +18,9 @@ public interface StagedStudentResultRepository extends JpaRepository<StagedStude
 
     @Query(value="""
     SELECT stud.assessmentEntity.assessmentID as assessmentID, stud.pen as pen
-    FROM StagedStudentResultEntity stud WHERE stud.stagedStudentResultID
-    NOT IN (SELECT saga.stagedStudentResultID FROM AssessmentSagaEntity saga WHERE saga.status != 'COMPLETED'
-    AND saga.stagedStudentResultID IS NOT NULL)
-    AND stud.stagedStudentResultStatus = 'LOADED'
+    FROM StagedStudentResultEntity stud
+    WHERE stud.stagedStudentResultStatus = 'LOADED'
+    AND (SELECT COUNT(saga) FROM AssessmentSagaEntity saga WHERE saga.status != 'COMPLETED' AND saga.pen = stud.pen AND saga.assessmentID=stud.assessmentEntity.assessmentID) = 0
     GROUP BY stud.pen, stud.assessmentEntity.assessmentID
     ORDER BY stud.pen
     LIMIT :numberOfStudentsToProcess""")
