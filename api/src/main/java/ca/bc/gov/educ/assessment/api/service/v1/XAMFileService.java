@@ -221,17 +221,26 @@ public class XAMFileService {
         List<SchoolTombstone> myEdSchools = schools.stream()
                 .filter(school -> "MYED".equalsIgnoreCase(school.getVendorSourceSystemCode()))
                 .toList();
-        log.debug("Starting generation and upload of XAM files for {} MYED schools, session {}", myEdSchools.size(), assessmentSessionEntity.getSessionID());
+        String folderName = generateXamFolderName(assessmentSessionEntity);
+        log.debug("Starting generation and upload of XAM files for {} MYED schools, session {} to folder {}", myEdSchools.size(), assessmentSessionEntity.getSessionID(), folderName);
         for (SchoolTombstone school : myEdSchools) {
             log.debug("Generating XAM file for school: {}", school.getMincode());
             byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);
             log.debug("Uploading XAM file for school: {}", school.getMincode());
             String fileName = generateXamFileName(school, assessmentSessionEntity);
-            String key = "xam-files/" + fileName;
+            String key = folderName + "/" + fileName;
             uploadToS3(xamFileContent, key);
             log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
         }
-        log.debug("Completed processing XAM files for session {}", assessmentSessionEntity.getSessionID());
+        log.debug("Completed processing XAM files for session {} to folder {}", assessmentSessionEntity.getSessionID(), folderName);
+    }
+
+    /**
+     * Generate the XAM folder name based on session information
+     * Format: xam-files-yyyymm
+     */
+    private String generateXamFolderName(AssessmentSessionEntity assessmentSessionEntity) {
+        return "xam-files-" + assessmentSessionEntity.getCourseYear() + assessmentSessionEntity.getCourseMonth();
     }
 
     /**

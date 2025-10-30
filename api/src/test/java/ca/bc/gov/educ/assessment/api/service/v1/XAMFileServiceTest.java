@@ -198,6 +198,85 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         doNothing().when(xamFileService).uploadToS3(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
-        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files/MINCODE4-202309-Results.xam"));
+        // Verify files are uploaded to the dynamic folder structure: xam-files-yyyymm/
+        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files-202309/MINCODE4-202309-Results.xam"));
+    }
+
+    @Test
+    void testGenerateAndUploadXamFiles_withDifferentYearAndMonth() {
+        // Test with a different year and month to ensure dynamic folder creation
+        AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
+        when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
+        when(sessionEntity.getCourseYear()).thenReturn("2025");
+        when(sessionEntity.getCourseMonth()).thenReturn("10");
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+                .thenReturn(List.of());
+
+        SchoolTombstone myEdSchool = mock(SchoolTombstone.class);
+        when(myEdSchool.getVendorSourceSystemCode()).thenReturn("MYED");
+        when(myEdSchool.getMincode()).thenReturn("12345678");
+        when(myEdSchool.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+        when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(myEdSchool));
+
+        doNothing().when(xamFileService).uploadToS3(any(byte[].class), any());
+        xamFileService.generateAndUploadXamFiles(sessionEntity);
+
+        // Verify files are uploaded to xam-files-202510/
+        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files-202510/12345678-202510-Results.xam"));
+    }
+
+    @Test
+    void testGenerateAndUploadXamFiles_multipleSchools() {
+        // Test that multiple schools all go to the same session-specific folder
+        AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
+        when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
+        when(sessionEntity.getCourseYear()).thenReturn("2024");
+        when(sessionEntity.getCourseMonth()).thenReturn("03");
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+                .thenReturn(List.of());
+
+        SchoolTombstone school1 = mock(SchoolTombstone.class);
+        when(school1.getVendorSourceSystemCode()).thenReturn("MYED");
+        when(school1.getMincode()).thenReturn("11111111");
+        when(school1.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+
+        SchoolTombstone school2 = mock(SchoolTombstone.class);
+        when(school2.getVendorSourceSystemCode()).thenReturn("MYED");
+        when(school2.getMincode()).thenReturn("22222222");
+        when(school2.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+
+        SchoolTombstone nonMyEdSchool = mock(SchoolTombstone.class);
+        when(nonMyEdSchool.getVendorSourceSystemCode()).thenReturn("OTHER");
+        when(nonMyEdSchool.getMincode()).thenReturn("33333333");
+
+        when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2, nonMyEdSchool));
+
+        doNothing().when(xamFileService).uploadToS3(any(byte[].class), any());
+        xamFileService.generateAndUploadXamFiles(sessionEntity);
+
+        // Verify both MYED schools upload to the same folder (xam-files-202403/)
+        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files-202403/11111111-202403-Results.xam"));
+        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files-202403/22222222-202403-Results.xam"));
+        // Verify non-MYED school is not processed
+        verify(xamFileService, never()).uploadToS3(any(byte[].class), contains("33333333"));
+    }
+
+    @Test
+    void testUploadToS3_verifyFolderPathFormat() {
+        // Test that S3 upload accepts folder-prefixed keys without requiring folder to exist
+        byte[] testContent = "test XAM file content".getBytes();
+        String folderKey = "xam-files-202510/TEST-202510-Results.xam";
+
+        assertDoesNotThrow(() -> xamFileService.uploadToS3(testContent, folderKey));
+
+        // Verify the put request was made with the full path including folder prefix
+        verify(s3Client).putObject(argThat((PutObjectRequest request) ->
+            request.key().equals(folderKey) && request.bucket().equals("test-bucket")
+        ), any(RequestBody.class));
+
+        // Verify head object call to confirm upload (which proves S3 accepts the folder prefix)
+        verify(s3Client).headObject(argThat((HeadObjectRequest request) ->
+            request.key().equals(folderKey) && request.bucket().equals("test-bucket")
+        ));
     }
 }
