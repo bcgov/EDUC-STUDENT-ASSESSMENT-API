@@ -56,13 +56,12 @@ public class DOARReportService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<List<String>> generateDetailedDOARBySchoolAndAssessmentType(UUID sessionID, UUID schoolID, String assessmentTypeCode) {
+    public List<List<String>> generateDetailedDOARBySchoolAndAssessmentType(UUID sessionID, SchoolTombstone schoolTombstone, String assessmentTypeCode) {
         List<List<String>> csvRecords = new ArrayList<>();
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, schoolID.toString()));
 
         AssessmentEntity assessmentEntity = session.getAssessments().stream().filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode)).findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentTypeCode", assessmentTypeCode));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCode(assessmentEntity.getAssessmentID(), schoolID, StudentStatusCodes.ACTIVE.getCode());
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCode(assessmentEntity.getAssessmentID(), UUID.fromString(schoolTombstone.getSchoolId()), StudentStatusCodes.ACTIVE.getCode());
 
         for (AssessmentStudentEntity result : results) {
             var studentDOARCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentIDAndAssessmentID(result.getAssessmentStudentID(), result.getAssessmentEntity().getAssessmentID());

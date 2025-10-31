@@ -3,17 +3,17 @@ package ca.bc.gov.educ.assessment.api.constants.v1.reports;
 import lombok.Getter;
 
 @Getter
-public enum NMFDoarHeader {
+public enum FrenchNMFDoarHeader {
 
-    SESSION("Assessment Session "),
-    SCHOOL_CODE("School Code"),
-    ASSESSMENT_CODE("Assessment Code"),
-    PEN("PEN"),
-    LOCAL_ID("Student Local ID"),
-    SURNAME("Student Surname"),
-    GIVEN_NAME("Student Given"),
-    PROFICIENCY_SCORE("Proficiency Score"),
-    SPECIAL_CASE("Special Case"),
+    SESSION("Session d’évaluation"),
+    SCHOOL_CODE("Code de l’école"),
+    ASSESSMENT_CODE("Code de l’évaluation"),
+    PEN("NSP"),
+    LOCAL_ID("Identifiant local de l’élève"),
+    SURNAME("Nom de famille de l’élève"),
+    GIVEN_NAME("Prénoms de l’élève"),
+    PROFICIENCY_SCORE("Palier de compétence"),
+    SPECIAL_CASE("Circonstances inhabituelles"),
     TASK1("Tâche 1: Planification et conception (%)"),
     TASK2("Tâche 2: Estimations raisonnées (%)"),
     TASK3("Tâche 3: Partage équitable (%)"),
@@ -28,5 +28,5 @@ public enum NMFDoarHeader {
     ;
 
     private final String code;
-    NMFDoarHeader(String code) { this.code = code; }
+    FrenchNMFDoarHeader(String code) { this.code = code; }
 }

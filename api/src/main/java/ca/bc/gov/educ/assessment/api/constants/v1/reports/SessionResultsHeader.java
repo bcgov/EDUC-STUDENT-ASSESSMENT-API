@@ -7,11 +7,11 @@ public enum SessionResultsHeader {
     ASSESSMENT_SESSION("Assessment Session"),
     SCHOOL_CODE("School Code"),
     ASSESSMENT_CODE("Assessment Code"),
-    STUDENT_PEN("Student PEN"),
+    STUDENT_PEN("PEN"),
     STUDENT_LOCAL_ID("Student Local ID"),
     STUDENT_SURNAME("Student Surname"),
     STUDENT_GIVEN("Student Given"),
-    ASSESSMENT_PROFICIENCY_SCORE("Student Proficiency Score"),
+    ASSESSMENT_PROFICIENCY_SCORE("Proficiency Score"),
     SPECIAL_CASE("Special Case"),
     ASSESSMENT_CENTRE_SCHOOL_CODE("Assessment Centre School Code");
 

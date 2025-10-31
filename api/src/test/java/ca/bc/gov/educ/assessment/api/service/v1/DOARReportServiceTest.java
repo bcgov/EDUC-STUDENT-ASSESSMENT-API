@@ -158,7 +158,7 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
 
         var studentTotal = doarReportService
-                .generateDetailedDOARBySchoolAndAssessmentType(formEntity.getAssessmentEntity().getAssessmentSessionEntity().getSessionID(), UUID.fromString(school.getSchoolId()), "NME10");
+                .generateDetailedDOARBySchoolAndAssessmentType(formEntity.getAssessmentEntity().getAssessmentSessionEntity().getSessionID(), school, "NME10");
         assertThat(studentTotal).hasSize(1);
     }
 
@@ -197,7 +197,7 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
 
         var studentTotal = doarReportService
-                .generateDetailedDOARBySchoolAndAssessmentType(formEntity.getAssessmentEntity().getAssessmentSessionEntity().getSessionID(), UUID.fromString(school.getSchoolId()), "NMF10");
+                .generateDetailedDOARBySchoolAndAssessmentType(formEntity.getAssessmentEntity().getAssessmentSessionEntity().getSessionID(), school, "NMF10");
         assertThat(studentTotal).hasSize(1);
         var row = studentTotal.get(0);
         assertThat(row.get(0)).isEqualTo("202501");
