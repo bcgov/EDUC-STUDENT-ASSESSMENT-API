@@ -451,7 +451,7 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateDetailedDOARBySchool(UUID sessionID, UUID schoolID, String assessmentTypeCode) {
-        List<String> headers = getDOARHeaders(assessmentTypeCode);
+        var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, schoolID.toString()));
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
         try {
@@ -459,9 +459,13 @@ public class CSVReportService {
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
 
-            csvPrinter.printRecord(headers);
+            if(schoolTombstone.getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode())) {
+                csvPrinter.printRecord(getFrenchDOARHeaders(assessmentTypeCode));
+            } else {
+                csvPrinter.printRecord(getDOARHeaders(assessmentTypeCode));
+            }
 
-            for (List<String> row : doarReportService.generateDetailedDOARBySchoolAndAssessmentType(sessionID, schoolID, assessmentTypeCode)) {
+            for (List<String> row : doarReportService.generateDetailedDOARBySchoolAndAssessmentType(sessionID, schoolTombstone, assessmentTypeCode)) {
                 csvPrinter.printRecord(row);
             }
             csvPrinter.flush();
@@ -590,6 +594,18 @@ public class CSVReportService {
             case "LTP12" -> Arrays.stream(LTP12DoarHeader.values()).map(LTP12DoarHeader::getCode).toList();
             case "LTP10" -> Arrays.stream(LTP10DoarHeader.values()).map(LTP10DoarHeader::getCode).toList();
             case "LTF12" -> Arrays.stream(LTF12DoarHeader.values()).map(LTF12DoarHeader::getCode).toList();
+            default -> Collections.emptyList();
+        };
+    }
+
+    private List<String> getFrenchDOARHeaders(String assessmentTypeCode) {
+        return switch (assessmentTypeCode) {
+            case "NME10" -> Arrays.stream(FrenchNMEDoarHeader.values()).map(FrenchNMEDoarHeader::getCode).toList();
+            case "NMF10" -> Arrays.stream(FrenchNMFDoarHeader.values()).map(FrenchNMFDoarHeader::getCode).toList();
+            case "LTE10", "LTE12" -> Arrays.stream(FrenchLTEDoarHeader.values()).map(FrenchLTEDoarHeader::getCode).toList();
+            case "LTP12" -> Arrays.stream(FrenchLTP12DoarHeader.values()).map(FrenchLTP12DoarHeader::getCode).toList();
+            case "LTP10" -> Arrays.stream(FrenchLTP10DoarHeader.values()).map(FrenchLTP10DoarHeader::getCode).toList();
+            case "LTF12" -> Arrays.stream(FrenchLTF12DoarHeader.values()).map(FrenchLTF12DoarHeader::getCode).toList();
             default -> Collections.emptyList();
         };
     }
