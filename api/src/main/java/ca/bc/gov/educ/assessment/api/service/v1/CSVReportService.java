@@ -1,10 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 
-import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
-import ca.bc.gov.educ.assessment.api.constants.v1.PenStatusCodeDesc;
-import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
-import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.*;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.*;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
@@ -185,14 +182,17 @@ public class CSVReportService {
         var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, schoolID.toString()));
 
         List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(sessionID, schoolID, activeStatus);
-        List<String> headers = Arrays.stream(SessionResultsHeader.values()).map(SessionResultsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
 
-            csvPrinter.printRecord(headers);
+            if(schoolTombstone.getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode())) {
+                csvPrinter.printRecord(Arrays.stream(FrenchSessionResultsHeader.values()).map(FrenchSessionResultsHeader::getCode).toList());
+            } else {
+                csvPrinter.printRecord(Arrays.stream(SessionResultsHeader.values()).map(SessionResultsHeader::getCode).toList());
+            }
 
             for (AssessmentStudentEntity result : results) {
                 Optional<SchoolTombstone> assessmentCenter = (result.getAssessmentCenterSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString()) : Optional.empty();
