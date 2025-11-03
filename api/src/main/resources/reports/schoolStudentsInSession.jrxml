@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.21.3.final using JasperReports Library version 6.21.3-4a3078d20785ebe464f18037d738d12fc98c13cf  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SchoolStudentsInSession" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ellHeadcount"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="resultByStudentAdapter"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -150,9 +150,14 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="schoolMincodeAndName"/>
 			<fieldDescription><![CDATA[schoolMincodeAndName]]></fieldDescription>
 		</field>
+		<field name="isCSF" class="java.lang.Boolean">
+			<property name="net.sf.jasperreports.json.field.expression" value="isCSF"/>
+			<fieldDescription><![CDATA[isCSF]]></fieldDescription>
+		</field>
 	</subDataset>
 	<subDataset name="EllSet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="EllPrograms"/>
+		<parameter name="CSF_PARAM" class="java.lang.Boolean"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -190,14 +195,14 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="name"/>
 			<fieldDescription><![CDATA[gradAssessments.name]]></fieldDescription>
 		</field>
-        <field name="proficiencyScore" class="java.lang.String">
-            <property name="net.sf.jasperreports.json.field.expression" value="proficiencyScore"/>
-            <fieldDescription><![CDATA[gradAssessments.proficiencyScore]]></fieldDescription>
-        </field>
-        <field name="specialCase" class="java.lang.String">
-            <property name="net.sf.jasperreports.json.field.expression" value="specialCase"/>
-            <fieldDescription><![CDATA[gradAssessments.specialCase]]></fieldDescription>
-        </field>
+		<field name="proficiencyScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="proficiencyScore"/>
+			<fieldDescription><![CDATA[gradAssessments.proficiencyScore]]></fieldDescription>
+		</field>
+		<field name="specialCase" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="specialCase"/>
+			<fieldDescription><![CDATA[gradAssessments.specialCase]]></fieldDescription>
+		</field>
 	</subDataset>
 	<queryString language="JSON">
 		<![CDATA[report]]>
@@ -222,6 +227,11 @@
 		<property name="net.sf.jasperreports.jsonql.field.expression" value="schoolMincodeAndName"/>
 		<fieldDescription><![CDATA[schoolMincodeAndName]]></fieldDescription>
 	</field>
+	<field name="isCSF" class="java.lang.Boolean">
+		<property name="net.sf.jasperreports.json.field.expression" value="isCSF"/>
+		<property name="net.sf.jasperreports.jsonql.field.expression" value="isCSF"/>
+		<fieldDescription><![CDATA[isCSF]]></fieldDescription>
+	</field>
 	<field name="students" class="java.lang.String">
 		<property name="net.sf.jasperreports.json.field.expression" value="students"/>
 		<property name="net.sf.jasperreports.jsonql.field.expression" value="students"/>
@@ -232,13 +242,13 @@
 	</background>
 	<pageHeader>
 		<band height="72" splitType="Stretch">
-			<staticText>
+			<textField>
 				<reportElement x="287" y="20" width="301" height="20" forecolor="#003366" uuid="8ef7f15d-0e1e-47ce-862d-01e8577c31eb"/>
 				<textElement>
 					<font fontName="BCSans"/>
 				</textElement>
-				<text><![CDATA[Session Results by Student]]></text>
-			</staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "Résultats de la session par évaluation" : "Session Results by Student"]]></textFieldExpression>
+			</textField>
 			<textField>
 				<reportElement x="609" y="35" width="132" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -258,11 +268,22 @@
 				<textFieldExpression><![CDATA[$F{reportGeneratedDate}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="615" y="-14" width="142" height="17" forecolor="#B3B3B3" uuid="c7514b99-e3d3-4301-bbd8-1c9c8ce72e3e"/>
+				<reportElement x="615" y="-14" width="142" height="17" forecolor="#B3B3B3" uuid="c7514b99-e3d3-4301-bbd8-1c9c8ce72e3e">
+					<printWhenExpression><![CDATA[!$F{isCSF}]]></printWhenExpression>
+				</reportElement>
 				<textElement>
 					<font fontName="BCSans" size="8"/>
 				</textElement>
 				<text><![CDATA[Ministry of Education and Child Care]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="530" y="-14" width="230" height="17" forecolor="#B3B3B3" uuid="c7514b99-e3d3-4301-bbd8-1c9c8ce72e3e">
+					<printWhenExpression><![CDATA[$F{isCSF}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="BCSans" size="8"/>
+				</textElement>
+				<text><![CDATA[Ministre de l’Éducation et des Services à la petite enfance]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="0" y="40" width="280" height="15" uuid="8650a750-21b2-4c0f-8b34-49b5a5815d49">
@@ -294,6 +315,9 @@
 				<reportElement x="33" y="72" width="669" height="148" uuid="f4a9dd19-5486-48d6-b224-82292deeed42"/>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
 					<datasetRun subDataset="EllSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
+						<datasetParameter name="CSF_PARAM">
+							<datasetParameterExpression><![CDATA[$F{isCSF}]]></datasetParameterExpression>
+						</datasetParameter>
 						<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("students")]]></dataSourceExpression>
 					</datasetRun>
 					<jr:columnGroup width="335" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
@@ -301,14 +325,14 @@
 						<jr:column width="185" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 							<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-								<staticText>
+								<textField>
 									<reportElement style="Table 2_CH" x="0" y="0" width="185" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
 										<font fontName="BCSans" size="7"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
-									<text><![CDATA[Name (Last, First)]]></text>
-								</staticText>
+									<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Nom (famille, prénom 1)" : "Name (Last, First)"]]></textFieldExpression>
+								</textField>
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
@@ -329,14 +353,14 @@
 						<jr:column width="75" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 							<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column2"/>
 							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-								<staticText>
+								<textField>
 									<reportElement style="Table 2_CH" x="0" y="0" width="75" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
 										<font fontName="BCSans" size="7"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
-									<text><![CDATA[PEN]]></text>
-								</staticText>
+									<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "NSP" : "PEN"]]></textFieldExpression>
+								</textField>
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
@@ -354,14 +378,14 @@
 						<jr:column width="75" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 							<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column3"/>
 							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-								<staticText>
+								<textField>
 									<reportElement style="Table 2_CH" x="0" y="0" width="75" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
 										<font fontName="BCSans" size="7"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
-									<text><![CDATA[Student Local ID]]></text>
-								</staticText>
+									<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Identifiant local" : "Local ID"]]></textFieldExpression>
+								</textField>
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
@@ -379,7 +403,7 @@
 					</jr:columnGroup>
 					<jr:column width="334" uuid="28232cfb-c180-4536-85cb-1375d812c148">
 						<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-							<staticText>
+							<textField>
 								<reportElement x="0" y="0" width="140" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="881fd51c-4a11-4b1a-8e70-6dd7e9189de5">
 									<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 								</reportElement>
@@ -387,28 +411,18 @@
 									<font fontName="BCSans" size="7"/>
 									<paragraph leftIndent="5"/>
 								</textElement>
-								<text><![CDATA[Graduation Assessment(s)]]></text>
-							</staticText>
-							<staticText>
-								<reportElement x="140" y="0" width="71" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="6f4c8296-e16d-4954-8e08-adb0bc39b822">
+								<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Évaluation du secondaire" : "Graduation Assessment(s)"]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="140" y="0" width="90" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="6f4c8296-e16d-4954-8e08-adb0bc39b822">
 									<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 								</reportElement>
 								<textElement textAlignment="Left" verticalAlignment="Middle">
 									<font fontName="BCSans" size="7"/>
 									<paragraph leftIndent="5"/>
 								</textElement>
-								<text><![CDATA[Proficiency Score]]></text>
-							</staticText>
-                            <staticText>
-                                <reportElement x="211" y="0" width="123" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="6f4c8296-e16d-4954-8e08-adb0bc39b822">
-                                    <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
-                                </reportElement>
-                                <textElement textAlignment="Left" verticalAlignment="Middle">
-                                    <font fontName="BCSans" size="7"/>
-                                    <paragraph leftIndent="5"/>
-                                </textElement>
-                                <text><![CDATA[Special Case]]></text>
-                            </staticText>
+								<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Résultat à l’évaluation" : "Assessment Score"]]></textFieldExpression>
+							</textField>
 						</jr:columnHeader>
 						<jr:detailCell style="Table 2_TD" height="20">
 							<componentElement>
@@ -441,99 +455,85 @@
 													<font fontName="BCSans" size="8"/>
 													<paragraph leftIndent="5"/>
 												</textElement>
-												<textFieldExpression><![CDATA[$F{proficiencyScore}]]></textFieldExpression>
+												<textFieldExpression><![CDATA[$F{proficiencyScore} != null ? $F{proficiencyScore} : $F{specialCase}]]></textFieldExpression>
 											</textField>
 										</jr:detailCell>
 									</jr:column>
-                                    <jr:column width="123" uuid="50c12a2f-886a-4818-a50a-4e5bfcdf9b7d">
-                                        <jr:detailCell height="15">
-                                            <textField>
-                                                <reportElement x="0" y="0" width="123" height="15" uuid="50c12a2f-886a-4818-a50a-4e5bfcdf9b7c">
-                                                    <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
-                                                </reportElement>
-                                                <textElement textAlignment="Left" verticalAlignment="Middle">
-                                                    <font fontName="BCSans" size="8"/>
-                                                    <paragraph leftIndent="5"/>
-                                                </textElement>
-                                                <textFieldExpression><![CDATA[$F{specialCase}]]></textFieldExpression>
-                                            </textField>
-                                        </jr:detailCell>
-                                    </jr:column>
 								</jr:table>
 							</componentElement>
 						</jr:detailCell>
 					</jr:column>
 				</jr:table>
 			</componentElement>
-			<staticText>
+			<textField>
 				<reportElement x="44" y="10" width="104" height="12" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="a465496e-bb6e-4fa3-8bb3-6ea08b5e615d"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[Legend]]></text>
-			</staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "Résultats aux évaluations" : "Assessment Scores"]]></textFieldExpression>
+			</textField>
 			<rectangle>
 				<reportElement x="33" y="22" width="669" height="31" backcolor="#EDEDED" uuid="686d5055-93e3-4fef-b3c8-46fb68292717"/>
 				<graphicElement>
 					<pen lineColor="#FFFFFF"/>
 				</graphicElement>
 			</rectangle>
-			<staticText>
+			<textField>
 				<reportElement x="53" y="27" width="76" height="12" uuid="1a40a69b-5e0b-4b3c-97f9-948ec8349046"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[1 = Emerging]]></text>
-			</staticText>
-			<staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "1 = Émergente" : "1 = Emerging"]]></textFieldExpression>
+			</textField>
+			<textField>
 				<reportElement x="53" y="39" width="76" height="12" uuid="1de9c363-8aa6-41b2-93d0-7b3ca002abe5"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[2 = Developing]]></text>
-			</staticText>
-			<staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "2 = En voie d’acquisition" : "2 = Developing"]]></textFieldExpression>
+			</textField>
+			<textField>
 				<reportElement x="148" y="27" width="80" height="12" uuid="a31dc43c-c9fa-4572-8a1a-10892c982183"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[3 = Proficient]]></text>
-			</staticText>
-			<staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "3 = Acquise" : "3 = Proficient"]]></textFieldExpression>
+			</textField>
+			<textField>
 				<reportElement x="147" y="39" width="78" height="12" uuid="804c8239-40e5-4855-bfd2-451979427233"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[4 = Extending]]></text>
-			</staticText>
-			<staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "4 = Approfondie" : "4 = Extending"]]></textFieldExpression>
+			</textField>
+			<textField>
 				<reportElement x="249" y="27" width="246" height="12" uuid="470c2c15-66e2-4c13-a577-1adc911659d2"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[AEG = Aegrotat Standing Granted]]></text>
-			</staticText>
-			<staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "AEG = Cote aegrotat accordée" : "AEG = Aegrotat Standing Granted"]]></textFieldExpression>
+			</textField>
+			<textField>
 				<reportElement x="249" y="39" width="244" height="12" uuid="e280cc1f-71bf-4321-85f7-eb21aa87d468"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[NC = Student did not complete enough of the assessment]]></text>
-			</staticText>
-			<staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "NC = L’élève n’a pas répondu à suffisamment de questions" : "NC = Student did not complete enough of the assessment"]]></textFieldExpression>
+			</textField>
+			<textField>
 				<reportElement x="496" y="27" width="198" height="12" uuid="8fa4f57f-dbc5-4598-8bac-19848d3f6854"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[DSQ = Assessment writing was disqualified]]></text>
-			</staticText>
-			<staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "DSQ = Disqualification" : "DSQ = Assessment writing was disqualified"]]></textFieldExpression>
+			</textField>
+			<textField>
 				<reportElement x="496" y="39" width="198" height="12" uuid="61d83dcd-6ff8-4995-b226-c488e1e71301"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<text><![CDATA[XMT = Student is exempt from writing]]></text>
-			</staticText>
+				<textFieldExpression><![CDATA[$F{isCSF} ? "XMT = Exemption accordée pour l’évaluation" : "XMT = Student is exempt from writing"]]></textFieldExpression>
+			</textField>
 			<line>
 				<reportElement x="33" y="7" width="669" height="1" forecolor="rgba(153, 153, 153, 0.8235294)" backcolor="rgba(255, 255, 255, 0.8235294)" uuid="a71b7dd2-1827-47da-9dc5-209cac926a81"/>
 				<graphicElement>
