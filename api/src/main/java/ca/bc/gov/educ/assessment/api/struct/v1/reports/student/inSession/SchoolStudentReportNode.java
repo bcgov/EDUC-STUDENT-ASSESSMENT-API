@@ -24,6 +24,8 @@ public class SchoolStudentReportNode implements Serializable {
 
   private String schoolMincodeAndName;
 
+  private boolean isCSF;
+
   private List<SchoolStudentNode> students;
 
 }
