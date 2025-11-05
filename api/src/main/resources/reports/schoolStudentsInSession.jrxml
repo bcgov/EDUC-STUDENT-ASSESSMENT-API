@@ -150,9 +150,9 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="schoolMincodeAndName"/>
 			<fieldDescription><![CDATA[schoolMincodeAndName]]></fieldDescription>
 		</field>
-		<field name="isCSF" class="java.lang.Boolean">
-			<property name="net.sf.jasperreports.json.field.expression" value="isCSF"/>
-			<fieldDescription><![CDATA[isCSF]]></fieldDescription>
+		<field name="csf" class="java.lang.Boolean">
+			<property name="net.sf.jasperreports.json.field.expression" value="csf"/>
+			<fieldDescription><![CDATA[csf]]></fieldDescription>
 		</field>
 	</subDataset>
 	<subDataset name="EllSet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
@@ -227,10 +227,10 @@
 		<property name="net.sf.jasperreports.jsonql.field.expression" value="schoolMincodeAndName"/>
 		<fieldDescription><![CDATA[schoolMincodeAndName]]></fieldDescription>
 	</field>
-	<field name="isCSF" class="java.lang.Boolean">
-		<property name="net.sf.jasperreports.json.field.expression" value="isCSF"/>
-		<property name="net.sf.jasperreports.jsonql.field.expression" value="isCSF"/>
-		<fieldDescription><![CDATA[isCSF]]></fieldDescription>
+	<field name="csf" class="java.lang.Boolean">
+		<property name="net.sf.jasperreports.json.field.expression" value="csf"/>
+		<property name="net.sf.jasperreports.jsonql.field.expression" value="csf"/>
+		<fieldDescription><![CDATA[csf]]></fieldDescription>
 	</field>
 	<field name="students" class="java.lang.String">
 		<property name="net.sf.jasperreports.json.field.expression" value="students"/>
@@ -247,7 +247,7 @@
 				<textElement>
 					<font fontName="BCSans"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "Résultats de la session par évaluation" : "Session Results by Student"]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{csf} ? "Résultats de la session par évaluation" : "Session Results by Student"]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="609" y="35" width="132" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
@@ -269,7 +269,7 @@
 			</textField>
 			<staticText>
 				<reportElement x="615" y="-14" width="142" height="17" forecolor="#B3B3B3" uuid="c7514b99-e3d3-4301-bbd8-1c9c8ce72e3e">
-					<printWhenExpression><![CDATA[!$F{isCSF}]]></printWhenExpression>
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
 				</reportElement>
 				<textElement>
 					<font fontName="BCSans" size="8"/>
@@ -278,7 +278,7 @@
 			</staticText>
 			<staticText>
 				<reportElement x="530" y="-14" width="230" height="17" forecolor="#B3B3B3" uuid="c7514b99-e3d3-4301-bbd8-1c9c8ce72e3e">
-					<printWhenExpression><![CDATA[$F{isCSF}]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
 				</reportElement>
 				<textElement>
 					<font fontName="BCSans" size="8"/>
@@ -304,8 +304,16 @@
 				<textFieldExpression><![CDATA[$F{schoolMincodeAndName}]]></textFieldExpression>
 			</textField>
 			<image>
-				<reportElement x="-9" y="-17" width="100" height="44" uuid="c139017e-89b8-438d-b893-49e771231c44"/>
+				<reportElement x="-9" y="-17" width="100" height="44" uuid="c139017e-89b8-438d-b893-49e771231c44">
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+				</reportElement>
 				<imageExpression><![CDATA["bc_gov_logo.jpg"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="-9" y="-17" width="100" height="44" uuid="c139017e-89b8-438d-b893-49e771231c44">
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+				</reportElement>
+				<imageExpression><![CDATA["bc_gov_logo_fr.png"]]></imageExpression>
 			</image>
 		</band>
 	</pageHeader>
@@ -316,7 +324,7 @@
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
 					<datasetRun subDataset="EllSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
 						<datasetParameter name="CSF_PARAM">
-							<datasetParameterExpression><![CDATA[$F{isCSF}]]></datasetParameterExpression>
+							<datasetParameterExpression><![CDATA[$F{csf}]]></datasetParameterExpression>
 						</datasetParameter>
 						<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("students")]]></dataSourceExpression>
 					</datasetRun>
@@ -470,7 +478,7 @@
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "Résultats aux évaluations" : "Assessment Scores"]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{csf} ? "Résultats aux évaluations" : "Assessment Scores"]]></textFieldExpression>
 			</textField>
 			<rectangle>
 				<reportElement x="33" y="22" width="669" height="31" backcolor="#EDEDED" uuid="686d5055-93e3-4fef-b3c8-46fb68292717"/>
@@ -478,62 +486,150 @@
 					<pen lineColor="#FFFFFF"/>
 				</graphicElement>
 			</rectangle>
-			<textField>
-				<reportElement x="53" y="27" width="76" height="12" uuid="1a40a69b-5e0b-4b3c-97f9-948ec8349046"/>
+			<staticText>
+				<reportElement x="53" y="27" width="76" height="12" uuid="1a40a69b-5e0b-4b3c-97f9-948ec8349046">
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+				</reportElement>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "1 = Émergente" : "1 = Emerging"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="53" y="39" width="76" height="12" uuid="1de9c363-8aa6-41b2-93d0-7b3ca002abe5"/>
+				<text><![CDATA[1 = Emerging]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="53" y="27" width="76" height="12" uuid="1a40a69b-5e0b-4b3c-97f9-948ec8349046">
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+				</reportElement>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "2 = En voie d’acquisition" : "2 = Developing"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="148" y="27" width="80" height="12" uuid="a31dc43c-c9fa-4572-8a1a-10892c982183"/>
+				<text><![CDATA[1 = Émergente]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="53" y="39" width="76" height="12" uuid="1de9c363-8aa6-41b2-93d0-7b3ca002abe5">
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+				</reportElement>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "3 = Acquise" : "3 = Proficient"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="147" y="39" width="78" height="12" uuid="804c8239-40e5-4855-bfd2-451979427233"/>
+				<text><![CDATA[2 = Developing]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="53" y="39" width="100" height="12" uuid="1de9c363-8aa6-41b2-93d0-7b3ca002abe5">
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+				</reportElement>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "4 = Approfondie" : "4 = Extending"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="249" y="27" width="246" height="12" uuid="470c2c15-66e2-4c13-a577-1adc911659d2"/>
+				<text><![CDATA[2 = En voie d’acquisition]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="148" y="27" width="80" height="12" uuid="a31dc43c-c9fa-4572-8a1a-10892c982183">
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+				</reportElement>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "AEG = Cote aegrotat accordée" : "AEG = Aegrotat Standing Granted"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="249" y="39" width="244" height="12" uuid="e280cc1f-71bf-4321-85f7-eb21aa87d468"/>
+				<text><![CDATA[3 = Proficient]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="155" y="27" width="80" height="12" uuid="a31dc43c-c9fa-4572-8a1a-10892c982183">
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+				</reportElement>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "NC = L’élève n’a pas répondu à suffisamment de questions" : "NC = Student did not complete enough of the assessment"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="496" y="27" width="198" height="12" uuid="8fa4f57f-dbc5-4598-8bac-19848d3f6854"/>
+				<text><![CDATA[3 = Acquise]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="147" y="39" width="78" height="12" uuid="804c8239-40e5-4855-bfd2-451979427233">
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+				</reportElement>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "DSQ = Disqualification" : "DSQ = Assessment writing was disqualified"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="496" y="39" width="198" height="12" uuid="61d83dcd-6ff8-4995-b226-c488e1e71301"/>
+				<text><![CDATA[4 = Extending]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="155" y="39" width="78" height="12" uuid="804c8239-40e5-4855-bfd2-451979427233">
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+				</reportElement>
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{isCSF} ? "XMT = Exemption accordée pour l’évaluation" : "XMT = Student is exempt from writing"]]></textFieldExpression>
-			</textField>
+				<text><![CDATA[4 = Approfondie]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="249" y="27" width="246" height="12" uuid="470c2c15-66e2-4c13-a577-1adc911659d2">
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[AEG = Aegrotat Standing Granted]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="249" y="27" width="246" height="12" uuid="470c2c15-66e2-4c13-a577-1adc911659d2">
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[AEG = Cote aegrotat accordée]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="249" y="39" width="244" height="12" uuid="e280cc1f-71bf-4321-85f7-eb21aa87d468">
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[NC = Student did not complete enough of the assessment]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="249" y="39" width="244" height="12" uuid="e280cc1f-71bf-4321-85f7-eb21aa87d468">
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[NC = L’élève n’a pas répondu à suffisamment de questions]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="496" y="27" width="198" height="12" uuid="8fa4f57f-dbc5-4598-8bac-19848d3f6854">
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[DSQ = Assessment writing was disqualified]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="496" y="27" width="198" height="12" uuid="8fa4f57f-dbc5-4598-8bac-19848d3f6854">
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[DSQ = Disqualification]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="496" y="39" width="198" height="12" uuid="61d83dcd-6ff8-4995-b226-c488e1e71301">
+					<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[XMT = Student is exempt from writing]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="496" y="39" width="198" height="12" uuid="61d83dcd-6ff8-4995-b226-c488e1e71301">
+					<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[XMT = Exemption accordée pour l’évaluation]]></text>
+			</staticText>
 			<line>
 				<reportElement x="33" y="7" width="669" height="1" forecolor="rgba(153, 153, 153, 0.8235294)" backcolor="rgba(255, 255, 255, 0.8235294)" uuid="a71b7dd2-1827-47da-9dc5-209cac926a81"/>
 				<graphicElement>

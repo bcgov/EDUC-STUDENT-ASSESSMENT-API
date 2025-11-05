@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.reports;
 
 import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.SchoolReportingRequirementCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
@@ -131,11 +132,16 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
       reportNode.setDistrictNumberAndName(district.getDistrictNumber() + " - " + district.getDisplayName());
     }
 
-    reportNode.setReportGeneratedDate("Report Generated: " + LocalDate.now().format(formatter));
+    if(school.getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode())) {
+      reportNode.setReportGeneratedDate("Rapport généré le : " + LocalDate.now().format(formatter));
+    } else {
+      reportNode.setReportGeneratedDate("Report Generated: " + LocalDate.now().format(formatter));
+    }
     reportNode.setSessionDetail(assessmentSession.getCourseYear() + "/" + assessmentSession.getCourseMonth() + " Session");
     reportNode.setSchoolMincodeAndName(school.getMincode() + " - " + school.getDisplayName());
     reportNode.setAssessmentType(assessmentTypes.get(assessmentType));
     reportNode.setReportId(UUID.randomUUID().toString());
+    reportNode.setCSF(school.getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode()));
 
     return school;
   }

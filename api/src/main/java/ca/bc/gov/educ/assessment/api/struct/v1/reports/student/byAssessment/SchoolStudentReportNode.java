@@ -28,6 +28,8 @@ public class SchoolStudentReportNode implements Serializable {
   
   private String assessmentType;
 
+  private boolean isCSF;
+
   private List<SchoolStudentNode> students;
 
 }
