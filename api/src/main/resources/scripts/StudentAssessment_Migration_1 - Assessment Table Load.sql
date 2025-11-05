@@ -1148,6 +1148,9 @@ SELECT
         ELSE  assmnt_stud.ASSMT_PROFICIENCY_SCORE
     END as PROFICIENCY_SCORE,
     TRIM(assmnt_stud.SPECIAL_CASE) as PROVINCIAL_SPECIAL_CASE_CODE,
+    assmnt_stud.MC_TOTAL as MC_TOTAL,
+    assmnt_stud.OE_TOTAL as OE_TOTAL,
+    assmnt_stud.RAW_SCORE as RAW_SCORE,
     assmnt_stud.IRT_SCORE as IRT_SCORE,
     TRIM(assmnt_stud.ADAPTED_ASSMT) as ADAPTED_ASSESSMENT_CODE,
     TRIM(assmnt_stud.MARKING_SESSION) as MARKING_SESSION,
