@@ -1203,6 +1203,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         var district = this.createMockDistrict();
         var school = this.createMockSchool();
+        school.setSchoolReportingRequirementCode("CSF");
         school.setDistrictId(district.getDistrictId());
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
         when(restUtils.getDistrictByDistrictID(school.getDistrictId())).thenReturn(Optional.of(district));
@@ -1227,6 +1228,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         var studentEntity1 = createMockStudentEntity(assessment);
         studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        studentEntity1.setProficiencyScore(1);
         var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
         var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
 
