@@ -102,7 +102,7 @@ public class ComsRestUtils {
             builder.part("path", path.contains("/") ? path.substring(0, path.lastIndexOf('/')) : "");
 
             ObjectMetadata response = comsWebClient.post()
-                    .uri(buildComsUri("/object"))
+                    .uri(buildComsUri(OBJECT_PATH))
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(BodyInserters.fromMultipartData(builder.build()))
                     .retrieve()
