@@ -91,7 +91,7 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
                 .path(testKey)
                 .size((long) testContent.length)
                 .build();
-        when(comsRestUtils.getObjectMetadata(eq("test-object-id")))
+        when(comsRestUtils.getObjectMetadata("test-object-id"))
 
                 .thenReturn(metadataResponse);
 
@@ -101,7 +101,7 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(comsRestUtils).uploadObject(contentCaptor.capture(), keyCaptor.capture());
-        verify(comsRestUtils).getObjectMetadata(eq("test-object-id"));
+        verify(comsRestUtils).getObjectMetadata("test-object-id");
 
         assertArrayEquals(testContent, contentCaptor.getValue());
         assertEquals(testKey, keyCaptor.getValue());
@@ -138,7 +138,7 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         when(comsRestUtils.uploadObject(any(byte[].class), eq(testKey)))
                 .thenReturn(uploadResponse);
 
-        when(comsRestUtils.getObjectMetadata(eq("test-object-id")))
+        when(comsRestUtils.getObjectMetadata("test-object-id"))
                 .thenThrow(new StudentAssessmentAPIRuntimeException("Object not found"));
 
         StudentAssessmentAPIRuntimeException exception = assertThrows(StudentAssessmentAPIRuntimeException.class,
@@ -147,7 +147,7 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         assertTrue(exception.getMessage().contains("File upload appeared successful but verification failed"));
 
         verify(comsRestUtils).uploadObject(any(byte[].class), eq(testKey));
-        verify(comsRestUtils).getObjectMetadata(eq("test-object-id"));
+        verify(comsRestUtils).getObjectMetadata("test-object-id");
     }
 
     @Test

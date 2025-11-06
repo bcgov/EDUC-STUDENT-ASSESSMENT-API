@@ -95,7 +95,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(assessment.getAssessmentSessionEntity()).thenReturn(sessionEntity);
         when(student.getAssessmentEntity()).thenReturn(assessment);
 
-        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(sessionEntity.getSessionID(), any(), List.of("ACTIVE")))
                 .thenReturn(List.of(student));
 
         SchoolTombstone school = mock(SchoolTombstone.class);
@@ -179,7 +179,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2023");
         when(sessionEntity.getCourseMonth()).thenReturn("09");
-        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(sessionEntity.getSessionID(), any(), List.of("ACTIVE")))
                 .thenReturn(List.of());
 
         SchoolTombstone myEdSchool = mock(SchoolTombstone.class);
@@ -202,7 +202,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2025");
         when(sessionEntity.getCourseMonth()).thenReturn("10");
-        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(sessionEntity.getSessionID(), any(), List.of("ACTIVE")))
                 .thenReturn(List.of());
 
         SchoolTombstone myEdSchool = mock(SchoolTombstone.class);
@@ -225,7 +225,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2024");
         when(sessionEntity.getCourseMonth()).thenReturn("03");
-        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(sessionEntity.getSessionID(), any(), List.of("ACTIVE")))
                 .thenReturn(List.of());
 
         SchoolTombstone school1 = mock(SchoolTombstone.class);

@@ -179,32 +179,50 @@ public class XAMFileService {
             log.info("COMS Upload Response - Object ID: {}, Path: {}, Name: {}",
                     response.getId(), response.getPath(), response.getName());
 
-            // Make the object accessible in BCBox
-            // Objects are private by default in COMS, so we need to make them public or set permissions
-            try {
-                comsRestUtils.makeObjectPublic(response.getId());
-                log.info("Made object public in BCBox - ID: {}", response.getId());
-            } catch (Exception permEx) {
-                log.warn("Could not make object public - ID: {}. File uploaded but may not be visible in BCBox: {}",
-                        response.getId(), permEx.getMessage());
-                // Continue - file is uploaded, just may need manual permission setting
-            }
-
-            // Verify the object actually exists in COMS
-            try {
-                var metadata = comsRestUtils.getObjectMetadata(response.getId());
-                log.info("Verification SUCCESS - Object exists in COMS. Size: {}, Path: {}",
-                        metadata.getSize(), metadata.getPath());
-                log.debug("Successfully uploaded file to COMS: {} (size: {} bytes)", key, content.length);
-            } catch (Exception verifyEx) {
-                log.error("VERIFICATION FAILED - Object does NOT exist in COMS after upload: {}", key, verifyEx);
-                throw new StudentAssessmentAPIRuntimeException("File upload appeared successful but verification failed: " + verifyEx.getMessage());
-            }
+            makeObjectPublicSafely(response.getId());
+            verifyObjectUpload(response.getId(), key, content.length);
 
         } catch (Exception e) {
             log.error("Failed to upload file to COMS: {} to bucket: {} - Error: {}",
                     key, applicationProperties.getS3BucketName(), e.getMessage(), e);
             throw new StudentAssessmentAPIRuntimeException("Failed to upload file to COMS: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Attempts to make the uploaded object public in BCBox.
+     * Logs a warning if it fails but does not throw an exception.
+     *
+     * @param objectId the COMS object ID
+     */
+    private void makeObjectPublicSafely(String objectId) {
+        try {
+            comsRestUtils.makeObjectPublic(objectId);
+            log.info("Made object public in BCBox - ID: {}", objectId);
+        } catch (Exception permEx) {
+            log.warn("Could not make object public - ID: {}. File uploaded but may not be visible in BCBox: {}",
+                    objectId, permEx.getMessage());
+            // Continue - file is uploaded, just may need manual permission setting
+        }
+    }
+
+    /**
+     * Verifies that the uploaded object actually exists in COMS by retrieving its metadata.
+     *
+     * @param objectId the COMS object ID
+     * @param key the file path/key
+     * @param contentLength the size of the uploaded content
+     * @throws StudentAssessmentAPIRuntimeException if verification fails
+     */
+    private void verifyObjectUpload(String objectId, String key, int contentLength) {
+        try {
+            var metadata = comsRestUtils.getObjectMetadata(objectId);
+            log.info("Verification SUCCESS - Object exists in COMS. Size: {}, Path: {}",
+                    metadata.getSize(), metadata.getPath());
+            log.debug("Successfully uploaded file to COMS: {} (size: {} bytes)", key, contentLength);
+        } catch (Exception verifyEx) {
+            log.error("VERIFICATION FAILED - Object does NOT exist in COMS after upload: {}", key, verifyEx);
+            throw new StudentAssessmentAPIRuntimeException("File upload appeared successful but verification failed: " + verifyEx.getMessage());
         }
     }
 

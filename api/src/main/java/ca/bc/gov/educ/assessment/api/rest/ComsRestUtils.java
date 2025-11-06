@@ -21,6 +21,10 @@ import java.util.List;
 @Component
 @Slf4j
 public class ComsRestUtils {
+    private static final String OBJECT_PATH = "/object/";
+    private static final String BUCKET_PATH = "/bucket";
+    private static final String OBJECT_SYNC_PATH = "/object/sync";
+
     private final WebClient comsWebClient;
     private final ApplicationProperties applicationProperties;
 
@@ -36,7 +40,7 @@ public class ComsRestUtils {
         try {
             log.info("Creating bucket in COMS: {}", bucket.getBucket());
             return comsWebClient.post()
-                    .uri(applicationProperties.getComsEndpointUrl() + "/bucket")
+                    .uri(applicationProperties.getComsEndpointUrl() + BUCKET_PATH)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(bucket)
                     .retrieve()
@@ -55,7 +59,7 @@ public class ComsRestUtils {
         try {
             log.debug("Retrieving buckets from COMS");
             return comsWebClient.get()
-                    .uri(applicationProperties.getComsEndpointUrl() + "/bucket")
+                    .uri(applicationProperties.getComsEndpointUrl() + BUCKET_PATH)
                     .retrieve()
                     .bodyToFlux(Bucket.class)
                     .collectList()
@@ -113,7 +117,7 @@ public class ComsRestUtils {
         try {
             log.info("Deleting object from COMS - ID: {}", objectId);
             comsWebClient.delete()
-                    .uri(applicationProperties.getComsEndpointUrl() + "/object/" + objectId)
+                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_PATH + objectId)
                     .retrieve()
                     .bodyToMono(Void.class)
                     .block();
@@ -131,7 +135,7 @@ public class ComsRestUtils {
         try {
             log.debug("Retrieving object metadata from COMS - ID: {}", objectId);
             return comsWebClient.get()
-                    .uri(applicationProperties.getComsEndpointUrl() + "/object/" + objectId)
+                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_PATH + objectId)
                     .retrieve()
                     .bodyToMono(ObjectMetadata.class)
                     .block();
@@ -153,7 +157,7 @@ public class ComsRestUtils {
 
             // Toggle object to public
             comsWebClient.patch()
-                    .uri(applicationProperties.getComsEndpointUrl() + "/object/" + objectId + "/public")
+                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_PATH + objectId + "/public")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue("{\"public\": true}")
                     .retrieve()
@@ -183,7 +187,7 @@ public class ComsRestUtils {
                 : String.format("{\"permCodes\": [\"%s\"]}", permissionType);
 
             comsWebClient.put()
-                    .uri(applicationProperties.getComsEndpointUrl() + "/object/" + objectId + "/permission")
+                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_PATH + objectId + "/permission")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
@@ -208,7 +212,7 @@ public class ComsRestUtils {
             log.info("Syncing path in COMS - Path: {}", path);
 
             comsWebClient.post()
-                    .uri(applicationProperties.getComsEndpointUrl() + "/object/sync")
+                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_SYNC_PATH)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(String.format("{\"path\": \"%s\"}", path))
                     .retrieve()
