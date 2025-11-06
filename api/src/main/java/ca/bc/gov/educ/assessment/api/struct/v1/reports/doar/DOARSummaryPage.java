@@ -23,6 +23,7 @@ public class DOARSummaryPage {
     private String districtNumberAndName;
     private String schoolMincodeAndName;
     private String assessmentType;
+    private boolean isCSF;
     List<ProficiencyLevel> proficiencySection;
     List<TaskScore> taskScore;
     List<ComprehendScore> comprehendScore;
