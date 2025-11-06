@@ -21,7 +21,7 @@ import java.util.List;
 @Component
 @Slf4j
 public class ComsRestUtils {
-    private static final String OBJECT_PATH = "/object/";
+    private static final String OBJECT_PATH = "/object";
     private static final String BUCKET_PATH = "/bucket";
     private static final String OBJECT_SYNC_PATH = "/object/sync";
 
@@ -126,7 +126,7 @@ public class ComsRestUtils {
         try {
             log.info("Deleting object from COMS - ID: {}", objectId);
             comsWebClient.delete()
-                    .uri(buildComsUri(OBJECT_PATH + objectId))
+                    .uri(buildComsUri(OBJECT_PATH + "/" + objectId))
                     .retrieve()
                     .bodyToMono(Void.class)
                     .block();
@@ -144,7 +144,7 @@ public class ComsRestUtils {
         try {
             log.debug("Retrieving object metadata from COMS - ID: {}", objectId);
             return comsWebClient.get()
-                    .uri(buildComsUri(OBJECT_PATH + objectId))
+                    .uri(buildComsUri(OBJECT_PATH + "/" + objectId))
                     .retrieve()
                     .bodyToMono(ObjectMetadata.class)
                     .block();
@@ -166,7 +166,7 @@ public class ComsRestUtils {
 
             // Toggle object to public
             comsWebClient.patch()
-                    .uri(buildComsUri(OBJECT_PATH + objectId + "/public"))
+                    .uri(buildComsUri(OBJECT_PATH + "/" + objectId + "/public"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue("{\"public\": true}")
                     .retrieve()
@@ -196,7 +196,7 @@ public class ComsRestUtils {
                 : String.format("{\"permCodes\": [\"%s\"]}", permissionType);
 
             comsWebClient.put()
-                    .uri(buildComsUri(OBJECT_PATH + objectId + "/permission"))
+                    .uri(buildComsUri(OBJECT_PATH + "/" + objectId + "/permission"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
