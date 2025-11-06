@@ -34,13 +34,22 @@ public class ComsRestUtils {
     }
 
     /**
+     * Builds a complete COMS API URI from the configured endpoint and path
+     * @param path the API path (e.g., "/bucket", "/object/")
+     * @return complete URI
+     */
+    private String buildComsUri(String path) {
+        return applicationProperties.getComsEndpointUrl() + path;
+    }
+
+    /**
      * Create a bucket in COMS
      */
     public Bucket createBucket(Bucket bucket) {
         try {
             log.info("Creating bucket in COMS: {}", bucket.getBucket());
             return comsWebClient.post()
-                    .uri(applicationProperties.getComsEndpointUrl() + BUCKET_PATH)
+                    .uri(buildComsUri(BUCKET_PATH))
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(bucket)
                     .retrieve()
@@ -59,7 +68,7 @@ public class ComsRestUtils {
         try {
             log.debug("Retrieving buckets from COMS");
             return comsWebClient.get()
-                    .uri(applicationProperties.getComsEndpointUrl() + BUCKET_PATH)
+                    .uri(buildComsUri(BUCKET_PATH))
                     .retrieve()
                     .bodyToFlux(Bucket.class)
                     .collectList()
@@ -93,7 +102,7 @@ public class ComsRestUtils {
             builder.part("path", path.contains("/") ? path.substring(0, path.lastIndexOf('/')) : "");
 
             ObjectMetadata response = comsWebClient.post()
-                    .uri(applicationProperties.getComsEndpointUrl() + "/object")
+                    .uri(buildComsUri("/object"))
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(BodyInserters.fromMultipartData(builder.build()))
                     .retrieve()
@@ -117,7 +126,7 @@ public class ComsRestUtils {
         try {
             log.info("Deleting object from COMS - ID: {}", objectId);
             comsWebClient.delete()
-                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_PATH + objectId)
+                    .uri(buildComsUri(OBJECT_PATH + objectId))
                     .retrieve()
                     .bodyToMono(Void.class)
                     .block();
@@ -135,7 +144,7 @@ public class ComsRestUtils {
         try {
             log.debug("Retrieving object metadata from COMS - ID: {}", objectId);
             return comsWebClient.get()
-                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_PATH + objectId)
+                    .uri(buildComsUri(OBJECT_PATH + objectId))
                     .retrieve()
                     .bodyToMono(ObjectMetadata.class)
                     .block();
@@ -157,7 +166,7 @@ public class ComsRestUtils {
 
             // Toggle object to public
             comsWebClient.patch()
-                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_PATH + objectId + "/public")
+                    .uri(buildComsUri(OBJECT_PATH + objectId + "/public"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue("{\"public\": true}")
                     .retrieve()
@@ -187,7 +196,7 @@ public class ComsRestUtils {
                 : String.format("{\"permCodes\": [\"%s\"]}", permissionType);
 
             comsWebClient.put()
-                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_PATH + objectId + "/permission")
+                    .uri(buildComsUri(OBJECT_PATH + objectId + "/permission"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
@@ -212,7 +221,7 @@ public class ComsRestUtils {
             log.info("Syncing path in COMS - Path: {}", path);
 
             comsWebClient.post()
-                    .uri(applicationProperties.getComsEndpointUrl() + OBJECT_SYNC_PATH)
+                    .uri(buildComsUri(OBJECT_SYNC_PATH))
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(String.format("{\"path\": \"%s\"}", path))
                     .retrieve()

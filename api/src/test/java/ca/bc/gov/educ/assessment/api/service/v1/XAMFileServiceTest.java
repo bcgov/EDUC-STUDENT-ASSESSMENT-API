@@ -263,7 +263,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         assertDoesNotThrow(() -> xamFileService.uploadToComs(testContent, folderKey));
 
         // Verify the upload was made with the full path including folder prefix
-        verify(comsRestUtils).uploadObject(eq(testContent), eq(folderKey));
+        verify(comsRestUtils).uploadObject(testContent, folderKey);
         verify(comsRestUtils).getObjectMetadata(anyString());
     }
 }
