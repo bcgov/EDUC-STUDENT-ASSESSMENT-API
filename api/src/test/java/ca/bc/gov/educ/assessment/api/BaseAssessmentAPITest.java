@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api;
 
 import ca.bc.gov.educ.assessment.api.config.TestDataSourceConfig;
+import ca.bc.gov.educ.assessment.api.support.MockConfigurationWebClient;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
@@ -38,7 +39,7 @@ import java.util.*;
 @SpringBootTest(classes = {StudentAssessmentApiApplication.class})
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-@Import(TestDataSourceConfig.class)
+@Import({TestDataSourceConfig.class, MockConfigurationWebClient.class})
 public abstract class BaseAssessmentAPITest {
 
   @Autowired

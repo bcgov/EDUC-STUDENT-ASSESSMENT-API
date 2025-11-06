@@ -11,16 +11,14 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.StagedAssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.rest.ComsRestUtils;
+import ca.bc.gov.educ.assessment.api.struct.external.coms.v1.ObjectMetadata;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
 
-import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,7 +33,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     private AssessmentStudentRepository studentRepository;
     private StagedAssessmentStudentRepository stagedStudentRepository;
     private RestUtils restUtils;
-    private S3Client s3Client;
+    private ComsRestUtils comsRestUtils;
     private ApplicationProperties applicationProperties;
 
     @BeforeEach
@@ -44,36 +42,31 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         studentRepository = mock(AssessmentStudentRepository.class);
         stagedStudentRepository = mock(StagedAssessmentStudentRepository.class);
         restUtils = mock(RestUtils.class);
-        s3Client = mock(S3Client.class);
+        comsRestUtils = mock(ComsRestUtils.class);
         applicationProperties = mock(ApplicationProperties.class);
 
         when(applicationProperties.getS3BucketName()).thenReturn("test-bucket");
-        when(applicationProperties.getS3EndpointUrl()).thenReturn("https://test-endpoint.com");
-        when(applicationProperties.getS3AccessKeyId()).thenReturn("test-access-key");
-        when(applicationProperties.getS3AccessSecretKey()).thenReturn("test-secret-key");
+        when(applicationProperties.getComsEndpointUrl()).thenReturn("https://test-endpoint.com");
 
-        S3ResponseMetadata responseMetadata = mock(S3ResponseMetadata.class);
-        when(responseMetadata.requestId()).thenReturn("test-request-id");
-
-        PutObjectResponse putResponse = PutObjectResponse.builder()
-                .eTag("test-etag")
-                .versionId("test-version")
+        ObjectMetadata uploadResponse = ObjectMetadata.builder()
+                .id("test-object-id")
+                .path("test-path")
+                .name("test-file.xam")
+                .size(100L)
                 .build();
 
-        PutObjectResponse spyPutResponse = spy(putResponse);
-        when(spyPutResponse.responseMetadata()).thenReturn(responseMetadata);
+        when(comsRestUtils.uploadObject(any(byte[].class), any(String.class)))
+                .thenReturn(uploadResponse);
 
-        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
-                .thenReturn(spyPutResponse);
-
-        HeadObjectResponse headResponse = HeadObjectResponse.builder()
-                .contentLength(12L)
-                .lastModified(Instant.now())
+        ObjectMetadata metadataResponse = ObjectMetadata.builder()
+                .id("test-object-id")
+                .path("test-path")
+                .size(100L)
                 .build();
-        when(s3Client.headObject(any(HeadObjectRequest.class)))
-                .thenReturn(headResponse);
+        when(comsRestUtils.getObjectMetadata(any(String.class)))
+                .thenReturn(metadataResponse);
 
-        xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, s3Client, applicationProperties, stagedStudentRepository));
+        xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, comsRestUtils, applicationProperties, stagedStudentRepository));
     }
 
     @AfterEach
@@ -172,12 +165,12 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testUploadToS3_success() {
+    void testUploadToComs_success() {
         byte[] testContent = "test content".getBytes();
-        assertDoesNotThrow(() -> xamFileService.uploadToS3(testContent, "dummyKey.txt"));
+        assertDoesNotThrow(() -> xamFileService.uploadToComs(testContent, "dummyKey.txt"));
 
-        verify(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
-        verify(s3Client).headObject(any(HeadObjectRequest.class));
+        verify(comsRestUtils).uploadObject(any(byte[].class), eq("dummyKey.txt"));
+        verify(comsRestUtils).getObjectMetadata(anyString());
     }
 
     @Test
@@ -195,11 +188,11 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(myEdSchool.getSchoolId()).thenReturn(UUID.randomUUID().toString());
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(myEdSchool));
 
-        doNothing().when(xamFileService).uploadToS3(any(byte[].class), any());
+        doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
         // Verify files are uploaded to the dynamic folder structure: xam-files-yyyymm/
-        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files-202309/MINCODE4-202309-Results.xam"));
+        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202309/MINCODE4-202309-Results.xam"));
     }
 
     @Test
@@ -218,11 +211,11 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(myEdSchool.getSchoolId()).thenReturn(UUID.randomUUID().toString());
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(myEdSchool));
 
-        doNothing().when(xamFileService).uploadToS3(any(byte[].class), any());
+        doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
         // Verify files are uploaded to xam-files-202510/
-        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files-202510/12345678-202510-Results.xam"));
+        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202510/12345678-202510-Results.xam"));
     }
 
     @Test
@@ -251,32 +244,26 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
 
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2, nonMyEdSchool));
 
-        doNothing().when(xamFileService).uploadToS3(any(byte[].class), any());
+        doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
         // Verify both MYED schools upload to the same folder (xam-files-202403/)
-        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files-202403/11111111-202403-Results.xam"));
-        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files-202403/22222222-202403-Results.xam"));
+        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202403/11111111-202403-Results.xam"));
+        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202403/22222222-202403-Results.xam"));
         // Verify non-MYED school is not processed
-        verify(xamFileService, never()).uploadToS3(any(byte[].class), contains("33333333"));
+        verify(xamFileService, never()).uploadToComs(any(byte[].class), contains("33333333"));
     }
 
     @Test
-    void testUploadToS3_verifyFolderPathFormat() {
-        // Test that S3 upload accepts folder-prefixed keys without requiring folder to exist
+    void testUploadToComs_verifyFolderPathFormat() {
+        // Test that COMS upload accepts folder-prefixed keys
         byte[] testContent = "test XAM file content".getBytes();
         String folderKey = "xam-files-202510/TEST-202510-Results.xam";
 
-        assertDoesNotThrow(() -> xamFileService.uploadToS3(testContent, folderKey));
+        assertDoesNotThrow(() -> xamFileService.uploadToComs(testContent, folderKey));
 
-        // Verify the put request was made with the full path including folder prefix
-        verify(s3Client).putObject(argThat((PutObjectRequest request) ->
-            request.key().equals(folderKey) && request.bucket().equals("test-bucket")
-        ), any(RequestBody.class));
-
-        // Verify head object call to confirm upload (which proves S3 accepts the folder prefix)
-        verify(s3Client).headObject(argThat((HeadObjectRequest request) ->
-            request.key().equals(folderKey) && request.bucket().equals("test-bucket")
-        ));
+        // Verify the upload was made with the full path including folder prefix
+        verify(comsRestUtils).uploadObject(eq(testContent), eq(folderKey));
+        verify(comsRestUtils).getObjectMetadata(anyString());
     }
 }
