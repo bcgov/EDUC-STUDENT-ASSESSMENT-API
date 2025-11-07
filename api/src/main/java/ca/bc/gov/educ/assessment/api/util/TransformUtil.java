@@ -82,6 +82,12 @@ public class TransformUtil {
 
   public static List<String> splitStringEveryNChars(String text, int n) {
     List<String> result = new ArrayList<>();
+
+    // Handle null or empty string - return empty list
+    if (text == null || text.isEmpty()) {
+      return result;
+    }
+
     int length = text.length();
 
     for (int i = 0; i < length; i += n) {
