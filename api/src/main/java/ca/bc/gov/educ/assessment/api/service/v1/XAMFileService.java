@@ -11,14 +11,12 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.StagedAssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.rest.ComsRestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -32,16 +30,16 @@ public class XAMFileService {
     private final AssessmentStudentRepository assessmentStudentRepository;
     private AssessmentSessionRepository assessmentSessionRepository;
     private RestUtils restUtils;
-    private final S3Client s3Client;
+    private final ComsRestUtils comsRestUtils;
     private final ApplicationProperties applicationProperties;
     private StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
 
     @Autowired
-    public XAMFileService(AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, RestUtils restUtils, S3Client s3Client, ApplicationProperties applicationProperties, StagedAssessmentStudentRepository stagedAssessmentStudentRepository) {
+    public XAMFileService(AssessmentStudentRepository assessmentStudentRepository, AssessmentSessionRepository assessmentSessionRepository, RestUtils restUtils, ComsRestUtils comsRestUtils, ApplicationProperties applicationProperties, StagedAssessmentStudentRepository stagedAssessmentStudentRepository) {
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.restUtils = restUtils;
-        this.s3Client = s3Client;
+        this.comsRestUtils = comsRestUtils;
         this.applicationProperties = applicationProperties;
         this.stagedAssessmentStudentRepository = stagedAssessmentStudentRepository;
     }
@@ -168,46 +166,63 @@ public class XAMFileService {
         return generateXamContent(assessmentSession, schoolTombstone, false);
     }
 
-    public void uploadToS3(byte[] content, String key) {
+    public void uploadToComs(byte[] content, String key) {
         try {
             String bucketName = applicationProperties.getS3BucketName();
-            String endpoint = applicationProperties.getS3EndpointUrl();
+            String endpoint = applicationProperties.getComsEndpointUrl();
 
-            log.info("S3 Upload Configuration - Bucket: {}, Key: {}, Endpoint: {}, Content Size: {} bytes",
+            log.info("COMS Upload Configuration - Bucket: {}, Key: {}, Endpoint: {}, Content Size: {} bytes",
                     bucketName, key, endpoint, content.length);
 
-            // Log S3 client configuration details
-            log.debug("S3 Access Key ID: {}", applicationProperties.getS3AccessKeyId() != null ? "***configured***" : "NULL");
-            log.debug("S3 Secret Key: {}", applicationProperties.getS3AccessSecretKey() != null ? "***configured***" : "NULL");
+            var response = comsRestUtils.uploadObject(content, key);
 
-            PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(key)
-                    .build();
+            log.info("COMS Upload Response - Object ID: {}, Path: {}, Name: {}",
+                    response.getId(), response.getPath(), response.getName());
 
-            var response = s3Client.putObject(request, RequestBody.fromBytes(content));
-
-            log.info("S3 Upload Response - ETag: {}, VersionId: {}, RequestId: {}",
-                    response.eTag(), response.versionId(), response.responseMetadata().requestId());
-
-            // Verify the object actually exists in S3
-            try {
-                var headResponse = s3Client.headObject(software.amazon.awssdk.services.s3.model.HeadObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(key)
-                        .build());
-                log.info("Verification SUCCESS - Object exists in S3. Size: {}, LastModified: {}",
-                        headResponse.contentLength(), headResponse.lastModified());
-                log.debug("Successfully uploaded file to BCBox S3: {} (size: {} bytes)", key, content.length);
-            } catch (Exception verifyEx) {
-                log.error("VERIFICATION FAILED - Object does NOT exist in S3 after upload: {}", key, verifyEx);
-                throw new StudentAssessmentAPIRuntimeException("File upload appeared successful but verification failed: " + verifyEx.getMessage());
-            }
+            makeObjectPublicSafely(response.getId());
+            verifyObjectUpload(response.getId(), key, content.length);
 
         } catch (Exception e) {
-            log.error("Failed to upload file to BCBox S3: {} to bucket: {} - Error: {}",
+            log.error("Failed to upload file to COMS: {} to bucket: {} - Error: {}",
                     key, applicationProperties.getS3BucketName(), e.getMessage(), e);
-            throw new StudentAssessmentAPIRuntimeException("Failed to upload file to BCBox S3: " + e.getMessage());
+            throw new StudentAssessmentAPIRuntimeException("Failed to upload file to COMS: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Attempts to make the uploaded object public in BCBox.
+     * Logs a warning if it fails but does not throw an exception.
+     *
+     * @param objectId the COMS object ID
+     */
+    private void makeObjectPublicSafely(String objectId) {
+        try {
+            comsRestUtils.makeObjectPublic(objectId);
+            log.info("Made object public in BCBox - ID: {}", objectId);
+        } catch (Exception permEx) {
+            log.warn("Could not make object public - ID: {}. File uploaded but may not be visible in BCBox: {}",
+                    objectId, permEx.getMessage());
+            // Continue - file is uploaded, just may need manual permission setting
+        }
+    }
+
+    /**
+     * Verifies that the uploaded object actually exists in COMS by retrieving its metadata.
+     *
+     * @param objectId the COMS object ID
+     * @param key the file path/key
+     * @param contentLength the size of the uploaded content
+     * @throws StudentAssessmentAPIRuntimeException if verification fails
+     */
+    private void verifyObjectUpload(String objectId, String key, int contentLength) {
+        try {
+            var metadata = comsRestUtils.getObjectMetadata(objectId);
+            log.info("Verification SUCCESS - Object exists in COMS. Size: {}, Path: {}",
+                    metadata.getSize(), metadata.getPath());
+            log.debug("Successfully uploaded file to COMS: {} (size: {} bytes)", key, contentLength);
+        } catch (Exception verifyEx) {
+            log.error("VERIFICATION FAILED - Object does NOT exist in COMS after upload: {}", key, verifyEx);
+            throw new StudentAssessmentAPIRuntimeException("File upload appeared successful but verification failed: " + verifyEx.getMessage());
         }
     }
 
@@ -221,17 +236,26 @@ public class XAMFileService {
         List<SchoolTombstone> myEdSchools = schools.stream()
                 .filter(school -> "MYED".equalsIgnoreCase(school.getVendorSourceSystemCode()))
                 .toList();
-        log.debug("Starting generation and upload of XAM files for {} MYED schools, session {}", myEdSchools.size(), assessmentSessionEntity.getSessionID());
+        String folderName = generateXamFolderName(assessmentSessionEntity);
+        log.debug("Starting generation and upload of XAM files for {} MYED schools, session {} to folder {}", myEdSchools.size(), assessmentSessionEntity.getSessionID(), folderName);
         for (SchoolTombstone school : myEdSchools) {
             log.debug("Generating XAM file for school: {}", school.getMincode());
             byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);
             log.debug("Uploading XAM file for school: {}", school.getMincode());
             String fileName = generateXamFileName(school, assessmentSessionEntity);
-            String key = "xam-files/" + fileName;
-            uploadToS3(xamFileContent, key);
+            String key = folderName + "/" + fileName;
+            uploadToComs(xamFileContent, key);
             log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
         }
-        log.debug("Completed processing XAM files for session {}", assessmentSessionEntity.getSessionID());
+        log.debug("Completed processing XAM files for session {} to folder {}", assessmentSessionEntity.getSessionID(), folderName);
+    }
+
+    /**
+     * Generate the XAM folder name based on session information
+     * Format: xam-files-yyyymm
+     */
+    private String generateXamFolderName(AssessmentSessionEntity assessmentSessionEntity) {
+        return "xam-files-" + assessmentSessionEntity.getCourseYear() + assessmentSessionEntity.getCourseMonth();
     }
 
     /**

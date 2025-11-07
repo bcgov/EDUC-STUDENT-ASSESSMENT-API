@@ -105,6 +105,26 @@ public class RestWebClient {
             .build();
   }
 
+  @Bean
+  WebClient comsWebClient() {
+    // COMS uses basic authentication with S3 credentials
+    // Username: s3.access.key.id, Password: s3.access.secret.key
+    // Custom headers: x-amz-bucket and x-amz-endpoint
+    return WebClient.builder()
+            .defaultHeaders(headers -> {
+              headers.setBasicAuth(this.props.getS3AccessKeyId(), this.props.getS3AccessSecretKey());
+              headers.set("x-amz-bucket", this.props.getS3BucketName());
+              headers.set("x-amz-endpoint", this.props.getS3EndpointUrl());
+            })
+            .codecs(configurer -> configurer
+                    .defaultCodecs()
+                    .maxInMemorySize(100 * 1024 * 1024))
+            .filter(this.log())
+            .clientConnector(this.connector)
+            .uriBuilderFactory(this.factory)
+            .build();
+  }
+
   private ExchangeFilterFunction log() {
     return (clientRequest, next) ->
       next

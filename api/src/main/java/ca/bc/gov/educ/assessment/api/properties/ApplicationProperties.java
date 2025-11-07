@@ -74,6 +74,8 @@ public class ApplicationProperties {
   private String s3BucketName;
   @Value("${s3.endpoint.url}")
   private String s3EndpointUrl;
+  @Value("${coms.endpoint.url}")
+  private String comsEndpointUrl;
 
   @Value("${url.api.sdc}")
   private String sdcApiURL;
