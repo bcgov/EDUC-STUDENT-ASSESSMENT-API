@@ -247,7 +247,7 @@
 				<textElement>
 					<font fontName="BCSans"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{csf} ? "Résultats de la session par évaluation" : "Session Results by Student"]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{csf} ? "Resultants de la session par eleve" : "Session Results by Student"]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="609" y="35" width="132" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
