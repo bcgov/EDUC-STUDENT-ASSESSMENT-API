@@ -80,6 +80,23 @@ public class ComsRestUtils {
     }
 
     /**
+     * Get bucket by name
+     */
+    public Bucket getBucketByName(String bucketName) {
+        try {
+            log.debug("Retrieving bucket by name from COMS: {}", bucketName);
+            List<Bucket> buckets = getBuckets();
+            return buckets.stream()
+                    .filter(b -> bucketName.equals(b.getBucket()))
+                    .findFirst()
+                    .orElseThrow(() -> new StudentAssessmentAPIRuntimeException("Bucket not found: " + bucketName));
+        } catch (Exception e) {
+            log.error("Failed to retrieve bucket by name from COMS: {}", bucketName, e);
+            throw new StudentAssessmentAPIRuntimeException("Failed to retrieve bucket from COMS: " + e.getMessage());
+        }
+    }
+
+    /**
      * Upload a file to COMS
      *
      * @param content the file content as byte array
@@ -88,8 +105,14 @@ public class ComsRestUtils {
      */
     public ObjectMetadata uploadObject(byte[] content, String path) {
         try {
-            String bucketId = applicationProperties.getS3BucketName();
-            log.info("Uploading object to COMS - Bucket: {}, Path: {}, Size: {} bytes", bucketId, path, content.length);
+            String bucketName = applicationProperties.getS3BucketName();
+
+            // Get the bucket ID from the bucket name
+            Bucket bucket = getBucketByName(bucketName);
+            String bucketId = bucket.getBucketId();
+
+            log.info("Uploading object to COMS - Bucket: {} (ID: {}), Path: {}, Size: {} bytes",
+                    bucketName, bucketId, path, content.length);
 
             MultipartBodyBuilder builder = new MultipartBodyBuilder();
             builder.part("file", new ByteArrayResource(content) {
@@ -112,7 +135,8 @@ public class ComsRestUtils {
                     .bodyToMono(ObjectMetadata.class)
                     .block();
 
-            log.info("Successfully uploaded object to COMS - response {}", response);
+            log.info("Successfully uploaded object to COMS - ID: {}, Path: {}",
+                    response.getId(), response.getPath());
 
             return response;
         } catch (Exception e) {
