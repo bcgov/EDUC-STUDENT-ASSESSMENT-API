@@ -31,22 +31,13 @@ public class ComsRestUtils {
     }
 
     /**
-     * Builds a complete COMS API URI from the configured endpoint and path
-     * @param path the API path (e.g., "/bucket", "/object/")
-     * @return complete URI
-     */
-    private String buildComsUri(String path) {
-        return applicationProperties.getComsEndpointUrl() + path;
-    }
-
-    /**
      * Create a bucket in COMS
      */
     public Bucket createBucket(Bucket bucket) {
         try {
             log.info("Creating bucket in COMS: {}", bucket.getBucket());
             return comsWebClient.post()
-                    .uri(buildComsUri(BUCKET_PATH))
+                    .uri(BUCKET_PATH)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(bucket)
                     .retrieve()
@@ -65,7 +56,7 @@ public class ComsRestUtils {
         try {
             log.debug("Retrieving buckets from COMS");
             return comsWebClient.get()
-                    .uri(buildComsUri(BUCKET_PATH))
+                    .uri(BUCKET_PATH)
                     .retrieve()
                     .bodyToFlux(Bucket.class)
                     .collectList()
@@ -154,9 +145,7 @@ public class ComsRestUtils {
             return response;
         } catch (Exception e) {
             log.error("Failed to upload object to COMS - Path: {}", path, e);
-            if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException) {
-                org.springframework.web.reactive.function.client.WebClientResponseException webEx =
-                    (org.springframework.web.reactive.function.client.WebClientResponseException) e;
+            if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException webEx) {
                 log.error("COMS Response Status: {}, Body: {}", webEx.getStatusCode(), webEx.getResponseBodyAsString());
             }
             throw new StudentAssessmentAPIRuntimeException("Failed to upload file to COMS: " + e.getMessage());
@@ -170,7 +159,7 @@ public class ComsRestUtils {
         try {
             log.info("Deleting object from COMS - ID: {}", objectId);
             comsWebClient.delete()
-                    .uri(buildComsUri(OBJECT_PATH + "/" + objectId))
+                    .uri(OBJECT_PATH + "/" + objectId)
                     .retrieve()
                     .bodyToMono(Void.class)
                     .block();
@@ -188,7 +177,7 @@ public class ComsRestUtils {
         try {
             log.debug("Retrieving object metadata from COMS - ID: {}", objectId);
             return comsWebClient.get()
-                    .uri(buildComsUri(OBJECT_PATH + "/" + objectId))
+                    .uri(OBJECT_PATH + "/" + objectId)
                     .retrieve()
                     .bodyToMono(ObjectMetadata.class)
                     .block();
@@ -210,7 +199,7 @@ public class ComsRestUtils {
 
             // Toggle object to public
             comsWebClient.patch()
-                    .uri(buildComsUri(OBJECT_PATH + "/" + objectId + "/public"))
+                    .uri(OBJECT_PATH + "/" + objectId + "/public")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue("{\"public\": true}")
                     .retrieve()
@@ -240,7 +229,7 @@ public class ComsRestUtils {
                 : String.format("{\"permCodes\": [\"%s\"]}", permissionType);
 
             comsWebClient.put()
-                    .uri(buildComsUri(OBJECT_PATH + "/" + objectId + "/permission"))
+                    .uri(OBJECT_PATH + "/" + objectId + "/permission")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
@@ -265,7 +254,7 @@ public class ComsRestUtils {
             log.info("Syncing path in COMS - Path: {}", path);
 
             comsWebClient.post()
-                    .uri(buildComsUri(OBJECT_SYNC_PATH))
+                    .uri(OBJECT_SYNC_PATH)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(String.format("{\"path\": \"%s\"}", path))
                     .retrieve()

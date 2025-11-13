@@ -103,7 +103,7 @@ public class SessionService {
     }
 
     public AssessmentSessionEntity approveAssessment(final AssessmentApproval assessmentApproval) {
-        var session = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID().toString()));
+        var session = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID()));
 
         if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(session.getApprovalStudentCertUserID())){
             throw new InvalidParameterException("Assessment session has already been approved by Student Cert User");
@@ -122,18 +122,22 @@ public class SessionService {
             session.setApprovalAssessmentAnalysisSignDate(LocalDateTime.now());
         }
 
-        if(StringUtils.isNotBlank(session.getApprovalStudentCertUserID())
-                && StringUtils.isNotBlank(session.getApprovalAssessmentDesignUserID())
-                && StringUtils.isNotBlank(session.getApprovalAssessmentAnalysisUserID())) {
-            log.info("All three signoffs present for session {}. Triggering generate XAM file saga.", session.getSessionID());
+        session.setActiveUntilDate(LocalDateTime.now());
+
+        AssessmentSessionEntity savedSession = assessmentSessionRepository.save(session);
+
+        if(StringUtils.isNotBlank(savedSession.getApprovalStudentCertUserID())
+                && StringUtils.isNotBlank(savedSession.getApprovalAssessmentDesignUserID())
+                && StringUtils.isNotBlank(savedSession.getApprovalAssessmentAnalysisUserID())) {
+            log.info("All three signoffs present for session {}. Triggering generate XAM file saga.", savedSession.getSessionID());
             try {
-                sessionApprovalOrchestrator.startXamFileGenerationSaga(session.getSessionID());
+                sessionApprovalOrchestrator.startXamFileGenerationSaga(savedSession.getSessionID());
             } catch (JsonProcessingException e) {
-                log.debug("Error starting XAM file generation saga for session {}: {}", session.getSessionID(), e.getMessage());
+                log.error("Error starting XAM file generation saga for session {}: {}", savedSession.getSessionID(), e.getMessage());
             }
         }
-        session.setActiveUntilDate(LocalDateTime.now());
-        return assessmentSessionRepository.save(session);
+
+        return savedSession;
     }
 
     public List<AssessmentSessionEntity> getSessionsBySchoolYear(String schoolYear) {
