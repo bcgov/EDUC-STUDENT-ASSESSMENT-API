@@ -49,7 +49,7 @@ class ComsRestUtilsTest {
 
     @BeforeEach
     void setUp() {
-        when(applicationProperties.getComsEndpointUrl()).thenReturn("https://coms.api.test");
+        lenient().when(applicationProperties.getS3BucketName()).thenReturn("test-bucket");
         comsRestUtils = new ComsRestUtils(comsWebClient, applicationProperties);
     }
 
@@ -82,7 +82,7 @@ class ComsRestUtilsTest {
         assertEquals("bucket-123", result.getBucketId());
         assertEquals("test-bucket", result.getBucket());
         verify(comsWebClient).post();
-        verify(requestBodyUriSpec).uri("https://coms.api.test/bucket");
+        verify(requestBodyUriSpec).uri("/bucket");
     }
 
     @Test
@@ -156,7 +156,7 @@ class ComsRestUtilsTest {
         assertDoesNotThrow(() -> comsRestUtils.deleteObject(objectId));
 
         // Assert
-        verify(requestHeadersUriSpec).uri("https://coms.api.test/object/obj-123");
+        verify(requestHeadersUriSpec).uri("/object/obj-123");
     }
 
     @Test
@@ -199,7 +199,7 @@ class ComsRestUtilsTest {
         assertNotNull(result);
         assertEquals(objectId, result.getId());
         assertEquals(1024L, result.getSize());
-        verify(requestHeadersUriSpec).uri("https://coms.api.test/object/obj-123");
+        verify(requestHeadersUriSpec).uri("/object/obj-123");
     }
 
     @Test
@@ -236,7 +236,7 @@ class ComsRestUtilsTest {
         assertDoesNotThrow(() -> comsRestUtils.makeObjectPublic(objectId));
 
         // Assert
-        verify(requestBodyUriSpec).uri("https://coms.api.test/object/obj-123/public");
+        verify(requestBodyUriSpec).uri("/object/obj-123/public");
         verify(requestBodySpec).bodyValue("{\"public\": true}");
     }
 
@@ -345,7 +345,7 @@ class ComsRestUtilsTest {
         assertDoesNotThrow(() -> comsRestUtils.syncPath(path));
 
         // Assert
-        verify(requestBodyUriSpec).uri("https://coms.api.test/object/sync");
+        verify(requestBodyUriSpec).uri("/object/sync");
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         verify(requestBodySpec).bodyValue(bodyCaptor.capture());
         assertTrue(bodyCaptor.getValue().contains("xam-files-202309/"));

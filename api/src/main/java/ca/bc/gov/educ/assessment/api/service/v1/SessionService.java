@@ -102,8 +102,9 @@ public class SessionService {
         assessmentSessionRepository.save(session);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public AssessmentSessionEntity approveAssessment(final AssessmentApproval assessmentApproval) {
-        var session = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID().toString()));
+        var session = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID()));
 
         if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(session.getApprovalStudentCertUserID())){
             throw new InvalidParameterException("Assessment session has already been approved by Student Cert User");
@@ -122,6 +123,26 @@ public class SessionService {
             session.setApprovalAssessmentAnalysisSignDate(LocalDateTime.now());
         }
 
+        session.setActiveUntilDate(LocalDateTime.now());
+
+        AssessmentSessionEntity savedSession = assessmentSessionRepository.save(session);
+
+        triggerXamGenerationIfAllApprovalsPresent(savedSession.getSessionID());
+
+        return savedSession;
+    }
+
+    /**
+     * Check if all three approvals are present and trigger XAM file generation saga.
+     * This runs in a new transaction to ensure the approval save is committed before the saga runs.
+     *
+     * @param sessionID the session ID to check
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void triggerXamGenerationIfAllApprovalsPresent(UUID sessionID) {
+        var session = assessmentSessionRepository.findById(sessionID)
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", sessionID.toString()));
+
         if(StringUtils.isNotBlank(session.getApprovalStudentCertUserID())
                 && StringUtils.isNotBlank(session.getApprovalAssessmentDesignUserID())
                 && StringUtils.isNotBlank(session.getApprovalAssessmentAnalysisUserID())) {
@@ -129,11 +150,9 @@ public class SessionService {
             try {
                 sessionApprovalOrchestrator.startXamFileGenerationSaga(session.getSessionID());
             } catch (JsonProcessingException e) {
-                log.debug("Error starting XAM file generation saga for session {}: {}", session.getSessionID(), e.getMessage());
+                log.error("Error starting XAM file generation saga for session {}: {}", session.getSessionID(), e.getMessage());
             }
         }
-        session.setActiveUntilDate(LocalDateTime.now());
-        return assessmentSessionRepository.save(session);
     }
 
     public List<AssessmentSessionEntity> getSessionsBySchoolYear(String schoolYear) {

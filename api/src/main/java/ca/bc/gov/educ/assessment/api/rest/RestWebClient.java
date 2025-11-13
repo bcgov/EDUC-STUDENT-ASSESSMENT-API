@@ -111,6 +111,7 @@ public class RestWebClient {
     // Username: s3.access.key.id, Password: s3.access.secret.key
     // Custom headers: x-amz-bucket and x-amz-endpoint
     return WebClient.builder()
+            .baseUrl(this.props.getComsEndpointUrl())
             .defaultHeaders(headers -> {
               headers.setBasicAuth(this.props.getS3AccessKeyId(), this.props.getS3AccessSecretKey());
               headers.set("x-amz-bucket", this.props.getS3BucketName());
@@ -121,7 +122,6 @@ public class RestWebClient {
                     .maxInMemorySize(100 * 1024 * 1024))
             .filter(this.log())
             .clientConnector(this.connector)
-            .uriBuilderFactory(this.factory)
             .build();
   }
 
