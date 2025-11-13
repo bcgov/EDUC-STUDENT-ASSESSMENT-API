@@ -113,18 +113,17 @@ public class ComsRestUtils {
             log.info("Uploading object to COMS - Bucket: {} (ID: {}), FolderPath: {}, Filename: {}, Size: {} bytes",
                     bucketName, bucketId, folderPath, filename, content.length);
 
-            // Build Content-Disposition header per RFC 6266
-            // Include path in the filename if folder path exists
             String contentDisposition;
             if (folderPath != null && !folderPath.isEmpty()) {
-                // Include folder path in filename: "attachment; filename=folder/file.xam"
                 contentDisposition = String.format("attachment; filename=\"%s/%s\"", folderPath, filename);
             } else {
                 contentDisposition = String.format("attachment; filename=\"%s\"", filename);
             }
 
-            // Send file as raw binary body with proper headers per COMS API spec
-            ObjectMetadata response = comsWebClient.post()
+            log.info("COMS Upload - URL: {}/object?bucketId={}, Content-Disposition: {}, Content-Length: {}",
+                    applicationProperties.getComsEndpointUrl(), bucketId, contentDisposition, content.length);
+
+            ObjectMetadata response = comsWebClient.put()
                     .uri(uriBuilder -> uriBuilder
                             .path(OBJECT_PATH)
                             .queryParam("bucketId", bucketId)
