@@ -6,11 +6,8 @@ import ca.bc.gov.educ.assessment.api.struct.external.coms.v1.Bucket;
 import ca.bc.gov.educ.assessment.api.struct.external.coms.v1.ObjectMetadata;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
@@ -111,36 +108,57 @@ public class ComsRestUtils {
             Bucket bucket = getBucketByName(bucketName);
             String bucketId = bucket.getBucketId();
 
-            log.info("Uploading object to COMS - Bucket: {} (ID: {}), Path: {}, Size: {} bytes",
-                    bucketName, bucketId, path, content.length);
+            // Extract filename and folder path
+            String filename;
+            String folderPath = null;
+            int lastSlash = path.lastIndexOf('/');
+            if (lastSlash >= 0) {
+                filename = path.substring(lastSlash + 1);
+                folderPath = path.substring(0, lastSlash);
+            } else {
+                filename = path;
+            }
 
-            MultipartBodyBuilder builder = new MultipartBodyBuilder();
-            builder.part("file", new ByteArrayResource(content) {
-                @Override
-                public String getFilename() {
-                    // Extract filename from path
-                    int lastSlash = path.lastIndexOf('/');
-                    return lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
-                }
-            });
+            log.info("Uploading object to COMS - Bucket: {} (ID: {}), FolderPath: {}, Filename: {}, Size: {} bytes",
+                    bucketName, bucketId, folderPath, filename, content.length);
 
-            builder.part("bucketId", bucketId);
-            builder.part("path", path.contains("/") ? path.substring(0, path.lastIndexOf('/')) : "");
+            // Build Content-Disposition header per RFC 6266
+            // Include path in the filename if folder path exists
+            String contentDisposition;
+            if (folderPath != null && !folderPath.isEmpty()) {
+                // Include folder path in filename: "attachment; filename=folder/file.xam"
+                contentDisposition = String.format("attachment; filename=\"%s/%s\"", folderPath, filename);
+            } else {
+                contentDisposition = String.format("attachment; filename=\"%s\"", filename);
+            }
 
+            // Send file as raw binary body with proper headers per COMS API spec
             ObjectMetadata response = comsWebClient.post()
-                    .uri(buildComsUri(OBJECT_PATH))
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(BodyInserters.fromMultipartData(builder.build()))
+                    .uri(uriBuilder -> uriBuilder
+                            .path(OBJECT_PATH)
+                            .queryParam("bucketId", bucketId)
+                            .build())
+                    .header("Content-Disposition", contentDisposition)
+                    .header("Content-Length", String.valueOf(content.length))
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .bodyValue(content)
                     .retrieve()
                     .bodyToMono(ObjectMetadata.class)
                     .block();
 
-            log.info("Successfully uploaded object to COMS - ID: {}, Path: {}",
-                    response.getId(), response.getPath());
+            log.info("Successfully uploaded object to COMS - ID: {}, Name: {}, Path: {}",
+                    response != null ? response.getId() : "null",
+                    response != null ? response.getName() : "null",
+                    response != null ? response.getPath() : "null");
 
             return response;
         } catch (Exception e) {
             log.error("Failed to upload object to COMS - Path: {}", path, e);
+            if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException) {
+                org.springframework.web.reactive.function.client.WebClientResponseException webEx =
+                    (org.springframework.web.reactive.function.client.WebClientResponseException) e;
+                log.error("COMS Response Status: {}, Body: {}", webEx.getStatusCode(), webEx.getResponseBodyAsString());
+            }
             throw new StudentAssessmentAPIRuntimeException("Failed to upload file to COMS: " + e.getMessage());
         }
     }
