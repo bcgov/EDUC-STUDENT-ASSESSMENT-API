@@ -59,10 +59,19 @@ public class FilterSpecifications<E, T extends Comparable<T>> {
         map.put(FilterOperation.NOT_EQUAL, filterCriteria -> (root, criteriaQuery, criteriaBuilder) -> {
             if (filterCriteria.getFieldName().contains(".")) {
                 String[] splits = filterCriteria.getFieldName().split("\\.");
-                if(filterCriteria.getConvertedSingleValue() == null) {
-                    return criteriaBuilder.isNotNull(root.join(splits[0]).get(splits[1]));
-                }else {
-                    return criteriaBuilder.notEqual(root.join(splits[0]).get(splits[1]), filterCriteria.getConvertedSingleValue());
+
+                if(splits.length == 2) {
+                    if(filterCriteria.getConvertedSingleValue() == null) {
+                        return criteriaBuilder.isNotNull(root.join(splits[0]).get(splits[1]));
+                    }else {
+                        return criteriaBuilder.notEqual(root.join(splits[0]).get(splits[1]), filterCriteria.getConvertedSingleValue());
+                    }
+                } else {
+                    if(filterCriteria.getConvertedSingleValue() == null) {
+                        return criteriaBuilder.isNotNull(root.get(splits[0]).get(splits[1]).get(splits[2]));
+                    }else {
+                        return criteriaBuilder.notEqual(root.join(splits[0]).get(splits[1]).get(splits[2]), filterCriteria.getConvertedSingleValue());
+                    }
                 }
             } else if(filterCriteria.getConvertedSingleValue() == null) {
                 return criteriaBuilder.isNotNull(root.get(filterCriteria.getFieldName()));
