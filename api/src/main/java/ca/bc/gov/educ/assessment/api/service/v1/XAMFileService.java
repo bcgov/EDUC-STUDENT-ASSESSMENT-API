@@ -187,8 +187,7 @@ public class XAMFileService {
 
             var response = comsRestUtils.uploadObject(content, key);
 
-            log.info("COMS Upload Response - Object ID: {}, Path: {}, Name: {}",
-                    response.getId(), response.getPath(), response.getName());
+            log.info("COMS Upload Response - Object ID: {}, Path: {}, Name: {}", response.getId(), response.getPath(), response.getName());
 
             makeObjectPublicSafely(response.getId());
             verifyObjectUpload(response.getId(), key, content.length);
@@ -248,7 +247,7 @@ public class XAMFileService {
                 .filter(school -> "MYED".equalsIgnoreCase(school.getVendorSourceSystemCode()))
                 .toList();
         String folderName = generateXamFolderName(assessmentSessionEntity);
-        log.debug("Starting generation and upload of XAM files for {} MYED schools, session {} to folder {}", myEdSchools.size(), assessmentSessionEntity.getSessionID(), folderName);
+        log.info("Starting generation and upload of XAM files for {} MYED schools, session {} to folder {}", myEdSchools.size(), assessmentSessionEntity.getSessionID(), folderName);
         for (SchoolTombstone school : myEdSchools) {
             log.debug("Generating XAM file for school: {}", school.getMincode());
             byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);

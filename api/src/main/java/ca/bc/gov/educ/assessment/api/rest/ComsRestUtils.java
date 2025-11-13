@@ -85,6 +85,60 @@ public class ComsRestUtils {
     }
 
     /**
+     * Create a child bucket (subfolder) in COMS
+     * Per COMS API: POST /bucket/{bucketId}
+     *
+     * @param parentBucketId the parent bucket ID
+     * @param bucketName the subfolder name
+     * @param subKey the relative path (e.g., "xam-files-202606")
+     * @return the created child bucket
+     */
+    public Bucket createChildBucket(String parentBucketId, String bucketName, String subKey) {
+        try {
+            log.info("Creating child bucket in COMS - Parent: {}, Name: {}, SubKey: {}", parentBucketId, bucketName, subKey);
+
+            String requestBody = String.format("{\"bucketName\": \"%s\", \"subKey\": \"%s\"}", bucketName, subKey);
+
+            Bucket childBucket = comsWebClient.post()
+                    .uri(BUCKET_PATH + "/" + parentBucketId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(Bucket.class)
+                    .block();
+
+            log.info("Successfully created child bucket - ID: {}, Name: {}",
+                    childBucket != null ? childBucket.getBucketId() : "null",
+                    childBucket != null ? childBucket.getBucket() : "null");
+
+            return childBucket;
+        } catch (Exception e) {
+            log.error("Failed to create child bucket in COMS - SubKey: {}", subKey, e);
+            throw new StudentAssessmentAPIRuntimeException("Failed to create child bucket in COMS: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get or create a child bucket by subKey
+     * Attempts to find existing bucket first, creates if not found
+     */
+    public Bucket getOrCreateChildBucket(String parentBucketId, String bucketName, String subKey) {
+        try {
+            // Try to find existing child bucket
+            List<Bucket> buckets = getBuckets();
+            String fullPath = bucketName + "/" + subKey;
+
+            return buckets.stream()
+                    .filter(b -> fullPath.equals(b.getBucket()) || subKey.equals(b.getKey()))
+                    .findFirst()
+                    .orElseGet(() -> createChildBucket(parentBucketId, bucketName + "/" + subKey, subKey));
+        } catch (Exception e) {
+            log.warn("Failed to get existing child bucket, attempting to create: {}", subKey);
+            return createChildBucket(parentBucketId, bucketName + "/" + subKey, subKey);
+        }
+    }
+
+    /**
      * Upload a file to COMS
      *
      * @param content the file content as byte array
@@ -95,10 +149,11 @@ public class ComsRestUtils {
         try {
             String bucketName = applicationProperties.getS3BucketName();
 
-            // Get the bucket ID from the bucket name
-            Bucket bucket = getBucketByName(bucketName);
-            String bucketId = bucket.getBucketId();
+            // Get the parent bucket ID from the bucket name
+            Bucket parentBucket = getBucketByName(bucketName);
+            String parentBucketId = parentBucket.getBucketId();
 
+            // Extract filename and folder path
             final String filename;
             final String folderPath;
             int lastSlash = path.lastIndexOf('/');
@@ -110,22 +165,31 @@ public class ComsRestUtils {
                 folderPath = null;
             }
 
-            log.info("Uploading object to COMS - Bucket: {} (ID: {}), FolderPath: {}, Filename: {}, Size: {} bytes",
-                    bucketName, bucketId, folderPath, filename, content.length);
+            // Determine which bucket to upload to
+            String targetBucketId;
+            if (folderPath != null && !folderPath.isEmpty()) {
+                // Create or get child bucket (subfolder)
+                log.info("Creating/getting child bucket for folder: {}", folderPath);
+                Bucket childBucket = getOrCreateChildBucket(parentBucketId, bucketName, folderPath);
+                targetBucketId = childBucket.getBucketId();
+                log.info("Using child bucket - ID: {}, Name: {}", targetBucketId, childBucket.getBucket());
+            } else {
+                targetBucketId = parentBucketId;
+            }
+
+            log.info("Uploading object to COMS - Bucket: {} (ID: {}), Filename: {}, Size: {} bytes",
+                    bucketName, targetBucketId, filename, content.length);
 
             String contentDisposition = String.format("attachment; filename=\"%s\"", filename);
 
-            log.info("COMS Upload - URL: {}/object?bucketId={}&path={}, Content-Disposition: {}, Content-Length: {}",
-                    applicationProperties.getComsEndpointUrl(), bucketId, folderPath, contentDisposition, content.length);
+            log.info("COMS Upload - URL: {}/object?bucketId={}, Content-Disposition: {}, Content-Length: {}",
+                    applicationProperties.getComsEndpointUrl(), targetBucketId, contentDisposition, content.length);
 
             ObjectMetadata response = comsWebClient.put()
-                    .uri(uriBuilder -> {
-                        uriBuilder.path(OBJECT_PATH).queryParam("bucketId", bucketId);
-                        if (folderPath != null && !folderPath.isEmpty()) {
-                            uriBuilder.queryParam("path", folderPath);
-                        }
-                        return uriBuilder.build();
-                    })
+                    .uri(uriBuilder -> uriBuilder
+                            .path(OBJECT_PATH)
+                            .queryParam("bucketId", targetBucketId)
+                            .build())
                     .header("Content-Disposition", contentDisposition)
                     .header("Content-Length", String.valueOf(content.length))
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
