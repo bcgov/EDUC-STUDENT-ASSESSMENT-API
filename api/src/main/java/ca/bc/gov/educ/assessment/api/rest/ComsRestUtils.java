@@ -215,21 +215,20 @@ public class ComsRestUtils {
 
     /**
      * Add permissions to an object for specific users/roles
+     * COMS API spec: PUT /object/{objectId}/permissions with array body
      *
      * @param objectId the COMS object ID
-     * @param permissionType the permission type (e.g., "READ", "WRITE", "DELETE")
-     * @param userId the user ID to grant permission to (optional)
+     * @param permissionType the permission code (e.g., "READ", "UPDATE", "DELETE", "MANAGE")
+     * @param userId the user ID to grant permission to (required)
      */
     public void addObjectPermission(String objectId, String permissionType, String userId) {
         try {
             log.info("Adding {} permission to object {} for user {}", permissionType, objectId, userId);
 
-            String requestBody = userId != null
-                ? String.format("{\"permCodes\": [\"%s\"], \"userId\": \"%s\"}", permissionType, userId)
-                : String.format("{\"permCodes\": [\"%s\"]}", permissionType);
+            String requestBody = String.format("[{\"permCode\": \"%s\", \"userId\": \"%s\"}]", permissionType, userId);
 
             comsWebClient.put()
-                    .uri(OBJECT_PATH + "/" + objectId + "/permission")
+                    .uri(OBJECT_PATH + "/" + objectId + "/permissions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
