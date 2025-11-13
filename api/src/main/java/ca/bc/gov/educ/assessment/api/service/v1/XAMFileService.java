@@ -78,6 +78,11 @@ public class XAMFileService {
     private StringBuilder generateRowsAssessmentStudent(List<AssessmentStudentEntity> assessmentStudents, SchoolTombstone school) {
         StringBuilder sb = new StringBuilder();
 
+        if (assessmentStudents.isEmpty()) {
+            sb.append("# No assessment results for this school\n");
+            return sb;
+        }
+
         for (AssessmentStudentEntity student : assessmentStudents) {
             var examSchool = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
             var examMincode = examSchool.map(SchoolTombstone::getMincode).orElse("");
@@ -118,6 +123,12 @@ public class XAMFileService {
 
     private StringBuilder generateRowsStagedAssessmentStudent(List<StagedAssessmentStudentEntity> assessmentStudents, SchoolTombstone school) {
         StringBuilder sb = new StringBuilder();
+
+        // required to not upload zero byte files to COMS
+        if (assessmentStudents.isEmpty()) {
+            sb.append("# No assessment results for this school\n");
+            return sb;
+        }
 
         for (StagedAssessmentStudentEntity student : assessmentStudents) {
             var examSchool = restUtils.getSchoolBySchoolID(String.valueOf(student.getAssessmentCenterSchoolID()));
