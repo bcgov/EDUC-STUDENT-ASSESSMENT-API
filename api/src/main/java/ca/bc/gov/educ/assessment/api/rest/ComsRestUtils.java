@@ -99,35 +99,33 @@ public class ComsRestUtils {
             Bucket bucket = getBucketByName(bucketName);
             String bucketId = bucket.getBucketId();
 
-            // Extract filename and folder path
-            String filename;
-            String folderPath = null;
+            final String filename;
+            final String folderPath;
             int lastSlash = path.lastIndexOf('/');
             if (lastSlash >= 0) {
                 filename = path.substring(lastSlash + 1);
                 folderPath = path.substring(0, lastSlash);
             } else {
                 filename = path;
+                folderPath = null;
             }
 
             log.info("Uploading object to COMS - Bucket: {} (ID: {}), FolderPath: {}, Filename: {}, Size: {} bytes",
                     bucketName, bucketId, folderPath, filename, content.length);
 
-            String contentDisposition;
-            if (folderPath != null && !folderPath.isEmpty()) {
-                contentDisposition = String.format("attachment; filename=\"%s/%s\"", folderPath, filename);
-            } else {
-                contentDisposition = String.format("attachment; filename=\"%s\"", filename);
-            }
+            String contentDisposition = String.format("attachment; filename=\"%s\"", filename);
 
-            log.info("COMS Upload - URL: {}/object?bucketId={}, Content-Disposition: {}, Content-Length: {}",
-                    applicationProperties.getComsEndpointUrl(), bucketId, contentDisposition, content.length);
+            log.info("COMS Upload - URL: {}/object?bucketId={}&path={}, Content-Disposition: {}, Content-Length: {}",
+                    applicationProperties.getComsEndpointUrl(), bucketId, folderPath, contentDisposition, content.length);
 
             ObjectMetadata response = comsWebClient.put()
-                    .uri(uriBuilder -> uriBuilder
-                            .path(OBJECT_PATH)
-                            .queryParam("bucketId", bucketId)
-                            .build())
+                    .uri(uriBuilder -> {
+                        uriBuilder.path(OBJECT_PATH).queryParam("bucketId", bucketId);
+                        if (folderPath != null && !folderPath.isEmpty()) {
+                            uriBuilder.queryParam("path", folderPath);
+                        }
+                        return uriBuilder.build();
+                    })
                     .header("Content-Disposition", contentDisposition)
                     .header("Content-Length", String.valueOf(content.length))
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -176,7 +174,10 @@ public class ComsRestUtils {
         try {
             log.debug("Retrieving object metadata from COMS - ID: {}", objectId);
             return comsWebClient.get()
-                    .uri(OBJECT_PATH + "/" + objectId)
+                    .uri(uriBuilder -> uriBuilder
+                            .path(OBJECT_PATH + "/" + objectId)
+                            .queryParam("s3Mode", "false")
+                            .build())
                     .retrieve()
                     .bodyToMono(ObjectMetadata.class)
                     .block();
