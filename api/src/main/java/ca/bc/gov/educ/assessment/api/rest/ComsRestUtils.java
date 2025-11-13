@@ -88,7 +88,8 @@ public class ComsRestUtils {
      */
     public ObjectMetadata uploadObject(byte[] content, String path) {
         try {
-            log.info("Uploading object to COMS - Path: {}, Size: {} bytes", path, content.length);
+            String bucketId = applicationProperties.getS3BucketName();
+            log.info("Uploading object to COMS - Bucket: {}, Path: {}, Size: {} bytes", bucketId, path, content.length);
 
             MultipartBodyBuilder builder = new MultipartBodyBuilder();
             builder.part("file", new ByteArrayResource(content) {
@@ -99,6 +100,8 @@ public class ComsRestUtils {
                     return lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
                 }
             });
+
+            builder.part("bucketId", bucketId);
             builder.part("path", path.contains("/") ? path.substring(0, path.lastIndexOf('/')) : "");
 
             ObjectMetadata response = comsWebClient.post()
@@ -109,8 +112,7 @@ public class ComsRestUtils {
                     .bodyToMono(ObjectMetadata.class)
                     .block();
 
-            log.info("Successfully uploaded object to COMS - ID: {}, Path: {}",
-                    response.getId(), response.getPath());
+            log.info("Successfully uploaded object to COMS - response {}", response);
 
             return response;
         } catch (Exception e) {

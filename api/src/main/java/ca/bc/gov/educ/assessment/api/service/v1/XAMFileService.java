@@ -241,13 +241,13 @@ public class XAMFileService {
         for (SchoolTombstone school : myEdSchools) {
             log.debug("Generating XAM file for school: {}", school.getMincode());
             byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);
-            log.debug("Uploading XAM file for school: {}", school.getMincode());
+            log.info("Uploading XAM file for school: {} ({} bytes)", school.getMincode(), xamFileContent.length);
             String fileName = generateXamFileName(school, assessmentSessionEntity);
             String key = folderName + "/" + fileName;
             uploadToComs(xamFileContent, key);
             log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
         }
-        log.debug("Completed processing XAM files for session {} to folder {}", assessmentSessionEntity.getSessionID(), folderName);
+        log.info("Completed processing XAM files for session {} to folder {}", assessmentSessionEntity.getSessionID(), folderName);
     }
 
     /**
