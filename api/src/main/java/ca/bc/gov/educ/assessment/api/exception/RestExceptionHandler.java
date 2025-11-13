@@ -73,6 +73,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     return buildResponseEntity(apiError);
   }
 
+  @ExceptionHandler(PreconditionRequiredException.class)
+  protected ResponseEntity<Object> handleEntityNotFound(
+          PreconditionRequiredException ex) {
+    ApiError apiError = new ApiError(PRECONDITION_REQUIRED);
+    apiError.setMessage(ex.getMessage());
+    log.info("{} ", apiError.getMessage(), ex);
+    return buildResponseEntity(apiError);
+  }
+
   @ExceptionHandler(EntityExistsException.class)
   protected ResponseEntity<Object> handleEntityExists(
           EntityExistsException ex) {

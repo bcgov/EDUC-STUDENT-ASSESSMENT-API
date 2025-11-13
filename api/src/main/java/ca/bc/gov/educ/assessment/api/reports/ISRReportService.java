@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
+import ca.bc.gov.educ.assessment.api.exception.PreconditionRequiredException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
@@ -139,6 +140,10 @@ public class ISRReportService extends BaseReportGenerationService {
   public DownloadableReportResponse generateIndividualStudentReport(UUID studentID){
     try {
       var studentAssessments = assessmentStudentRepository.findAllWrittenAssessmentsForStudent(studentID);
+      if(studentAssessments.isEmpty()){
+        log.warn("No assessments were found for student with ID :: " + studentID);
+        throw new PreconditionRequiredException(Student.class, "No assessments were found for student with ID :: ", studentID.toString());
+      }
       var gradStudentRecord = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), studentID).orElseThrow(() -> new EntityNotFoundException(GradStudentRecord.class, "studentID", studentID.toString()));
       var students = restUtils.getStudents(UUID.randomUUID(), Set.of(studentID.toString()));
       if(students.isEmpty()){
