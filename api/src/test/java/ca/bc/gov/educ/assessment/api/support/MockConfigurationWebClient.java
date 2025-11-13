@@ -14,7 +14,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * The type Mock configuration.
  */
-@Profile("testWebclient")
+@Profile("test")
 @Configuration
 public class MockConfigurationWebClient {
 
@@ -33,6 +33,18 @@ public class MockConfigurationWebClient {
   @Bean
   @Primary
   public WebClient webClient() {
+    return Mockito.mock(WebClient.class);
+  }
+
+  @Bean("chesWebClient")
+  @Primary
+  public WebClient chesWebClient() {
+    return Mockito.mock(WebClient.class);
+  }
+
+  @Bean("comsWebClient")
+  @Primary
+  public WebClient comsWebClient() {
     return Mockito.mock(WebClient.class);
   }
 

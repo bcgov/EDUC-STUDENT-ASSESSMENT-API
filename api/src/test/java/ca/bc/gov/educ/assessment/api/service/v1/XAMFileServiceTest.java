@@ -11,16 +11,14 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.StagedAssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.rest.ComsRestUtils;
+import ca.bc.gov.educ.assessment.api.struct.external.coms.v1.ObjectMetadata;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
 
-import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,7 +33,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     private AssessmentStudentRepository studentRepository;
     private StagedAssessmentStudentRepository stagedStudentRepository;
     private RestUtils restUtils;
-    private S3Client s3Client;
+    private ComsRestUtils comsRestUtils;
     private ApplicationProperties applicationProperties;
 
     @BeforeEach
@@ -44,36 +42,31 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         studentRepository = mock(AssessmentStudentRepository.class);
         stagedStudentRepository = mock(StagedAssessmentStudentRepository.class);
         restUtils = mock(RestUtils.class);
-        s3Client = mock(S3Client.class);
+        comsRestUtils = mock(ComsRestUtils.class);
         applicationProperties = mock(ApplicationProperties.class);
 
         when(applicationProperties.getS3BucketName()).thenReturn("test-bucket");
-        when(applicationProperties.getS3EndpointUrl()).thenReturn("https://test-endpoint.com");
-        when(applicationProperties.getS3AccessKeyId()).thenReturn("test-access-key");
-        when(applicationProperties.getS3AccessSecretKey()).thenReturn("test-secret-key");
+        when(applicationProperties.getComsEndpointUrl()).thenReturn("https://test-endpoint.com");
 
-        S3ResponseMetadata responseMetadata = mock(S3ResponseMetadata.class);
-        when(responseMetadata.requestId()).thenReturn("test-request-id");
-
-        PutObjectResponse putResponse = PutObjectResponse.builder()
-                .eTag("test-etag")
-                .versionId("test-version")
+        ObjectMetadata uploadResponse = ObjectMetadata.builder()
+                .id("test-object-id")
+                .path("test-path")
+                .name("test-file.xam")
+                .size(100L)
                 .build();
 
-        PutObjectResponse spyPutResponse = spy(putResponse);
-        when(spyPutResponse.responseMetadata()).thenReturn(responseMetadata);
+        when(comsRestUtils.uploadObject(any(byte[].class), any(String.class)))
+                .thenReturn(uploadResponse);
 
-        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
-                .thenReturn(spyPutResponse);
-
-        HeadObjectResponse headResponse = HeadObjectResponse.builder()
-                .contentLength(12L)
-                .lastModified(Instant.now())
+        ObjectMetadata metadataResponse = ObjectMetadata.builder()
+                .id("test-object-id")
+                .path("test-path")
+                .size(100L)
                 .build();
-        when(s3Client.headObject(any(HeadObjectRequest.class)))
-                .thenReturn(headResponse);
+        when(comsRestUtils.getObjectMetadata(any(String.class)))
+                .thenReturn(metadataResponse);
 
-        xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, s3Client, applicationProperties, stagedStudentRepository));
+        xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, comsRestUtils, applicationProperties, stagedStudentRepository));
     }
 
     @AfterEach
@@ -172,12 +165,12 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testUploadToS3_success() {
+    void testUploadToComs_success() {
         byte[] testContent = "test content".getBytes();
-        assertDoesNotThrow(() -> xamFileService.uploadToS3(testContent, "dummyKey.txt"));
+        assertDoesNotThrow(() -> xamFileService.uploadToComs(testContent, "dummyKey.txt"));
 
-        verify(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
-        verify(s3Client).headObject(any(HeadObjectRequest.class));
+        verify(comsRestUtils).uploadObject(any(byte[].class), eq("dummyKey.txt"));
+        verify(comsRestUtils).getObjectMetadata(anyString());
     }
 
     @Test
@@ -195,9 +188,82 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(myEdSchool.getSchoolId()).thenReturn(UUID.randomUUID().toString());
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(myEdSchool));
 
-        doNothing().when(xamFileService).uploadToS3(any(byte[].class), any());
+        doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
-        verify(xamFileService).uploadToS3(any(byte[].class), eq("xam-files/MINCODE4-202309-Results.xam"));
+        // Verify files are uploaded to the dynamic folder structure: xam-files-yyyymm/
+        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202309/MINCODE4-202309-Results.xam"));
+    }
+
+    @Test
+    void testGenerateAndUploadXamFiles_withDifferentYearAndMonth() {
+        // Test with a different year and month to ensure dynamic folder creation
+        AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
+        when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
+        when(sessionEntity.getCourseYear()).thenReturn("2025");
+        when(sessionEntity.getCourseMonth()).thenReturn("10");
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+                .thenReturn(List.of());
+
+        SchoolTombstone myEdSchool = mock(SchoolTombstone.class);
+        when(myEdSchool.getVendorSourceSystemCode()).thenReturn("MYED");
+        when(myEdSchool.getMincode()).thenReturn("12345678");
+        when(myEdSchool.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+        when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(myEdSchool));
+
+        doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
+        xamFileService.generateAndUploadXamFiles(sessionEntity);
+
+        // Verify files are uploaded to xam-files-202510/
+        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202510/12345678-202510-Results.xam"));
+    }
+
+    @Test
+    void testGenerateAndUploadXamFiles_multipleSchools() {
+        // Test that multiple schools all go to the same session-specific folder
+        AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
+        when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
+        when(sessionEntity.getCourseYear()).thenReturn("2024");
+        when(sessionEntity.getCourseMonth()).thenReturn("03");
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+                .thenReturn(List.of());
+
+        SchoolTombstone school1 = mock(SchoolTombstone.class);
+        when(school1.getVendorSourceSystemCode()).thenReturn("MYED");
+        when(school1.getMincode()).thenReturn("11111111");
+        when(school1.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+
+        SchoolTombstone school2 = mock(SchoolTombstone.class);
+        when(school2.getVendorSourceSystemCode()).thenReturn("MYED");
+        when(school2.getMincode()).thenReturn("22222222");
+        when(school2.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+
+        SchoolTombstone nonMyEdSchool = mock(SchoolTombstone.class);
+        when(nonMyEdSchool.getVendorSourceSystemCode()).thenReturn("OTHER");
+        when(nonMyEdSchool.getMincode()).thenReturn("33333333");
+
+        when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2, nonMyEdSchool));
+
+        doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
+        xamFileService.generateAndUploadXamFiles(sessionEntity);
+
+        // Verify both MYED schools upload to the same folder (xam-files-202403/)
+        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202403/11111111-202403-Results.xam"));
+        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202403/22222222-202403-Results.xam"));
+        // Verify non-MYED school is not processed
+        verify(xamFileService, never()).uploadToComs(any(byte[].class), contains("33333333"));
+    }
+
+    @Test
+    void testUploadToComs_verifyFolderPathFormat() {
+        // Test that COMS upload accepts folder-prefixed keys
+        byte[] testContent = "test XAM file content".getBytes();
+        String folderKey = "xam-files-202510/TEST-202510-Results.xam";
+
+        assertDoesNotThrow(() -> xamFileService.uploadToComs(testContent, folderKey));
+
+        // Verify the upload was made with the full path including folder prefix
+        verify(comsRestUtils).uploadObject(testContent, folderKey);
+        verify(comsRestUtils).getObjectMetadata(anyString());
     }
 }

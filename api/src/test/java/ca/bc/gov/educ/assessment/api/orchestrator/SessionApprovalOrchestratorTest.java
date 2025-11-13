@@ -15,6 +15,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
+import ca.bc.gov.educ.assessment.api.rest.ComsRestUtils;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.v1.ApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
@@ -31,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.lang.reflect.Method;
 import java.util.UUID;
@@ -204,10 +204,10 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         AssessmentStudentRepository dummyStudentRepo = Mockito.mock(AssessmentStudentRepository.class);
         AssessmentSessionRepository dummySessionRepo = Mockito.mock(AssessmentSessionRepository.class);
         RestUtils dummyRestUtils = Mockito.mock(RestUtils.class);
-        S3Client dummyS3Client = Mockito.mock(S3Client.class);
+        ComsRestUtils dummyComsRestUtils = Mockito.mock(ComsRestUtils.class);
         ApplicationProperties dummyApplicationProperties = Mockito.mock(ApplicationProperties.class);
         StagedAssessmentStudentRepository dummyStagedAssessmentStudentRepository = Mockito.mock(StagedAssessmentStudentRepository.class);
-        XAMFileService dummyService = new XAMFileService(dummyStudentRepo, dummySessionRepo, dummyRestUtils, dummyS3Client, dummyApplicationProperties, dummyStagedAssessmentStudentRepository);
+        XAMFileService dummyService = new XAMFileService(dummyStudentRepo, dummySessionRepo, dummyRestUtils, dummyComsRestUtils, dummyApplicationProperties, dummyStagedAssessmentStudentRepository);
         XAMFileService spyService = Mockito.spy(dummyService);
         ReflectionTestUtils.setField(sessionApprovalOrchestrator, "xamFileService", spyService);
 

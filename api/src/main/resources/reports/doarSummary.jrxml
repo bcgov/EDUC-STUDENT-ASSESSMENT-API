@@ -154,9 +154,14 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="assessmentType"/>
 			<fieldDescription><![CDATA[assessmentType]]></fieldDescription>
 		</field>
+		<field name="csf" class="java.lang.Boolean">
+			<property name="net.sf.jasperreports.json.field.expression" value="csf"/>
+			<fieldDescription><![CDATA[csf]]></fieldDescription>
+		</field>
 	</subDataset>
 	<subDataset name="StudentSet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="studentsInSessionByAssessment"/>
+		<parameter name="CSF_PARAM" class="java.lang.Boolean"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -196,6 +201,7 @@
 	<subDataset name="taskSet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="studentsInSessionByAssessment"/>
 		<parameter name="ASSESSMENT_TYPE_PARAM" class="java.lang.String"/>
+		<parameter name="CSF_PARAM" class="java.lang.Boolean"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -239,6 +245,7 @@
 	<subDataset name="numeracySet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="studentsInSessionByAssessment"/>
 		<parameter name="ASSESSMENT_TYPE_PARAM" class="java.lang.String"/>
+		<parameter name="CSF_PARAM" class="java.lang.Boolean"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -269,6 +276,7 @@
 	</subDataset>
 	<subDataset name="comprehendSet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="studentsInSessionByAssessment"/>
+		<parameter name="CSF_PARAM" class="java.lang.Boolean"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -304,6 +312,7 @@
 	<subDataset name="communicateSet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="studentsInSessionByAssessment"/>
 		<parameter name="ASSESSMENT_TYPE_PARAM" class="java.lang.String"/>
+		<parameter name="CSF_PARAM" class="java.lang.Boolean"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -343,6 +352,7 @@
 	<subDataset name="communicateOralSet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="studentsInSessionByAssessment"/>
 		<parameter name="ASSESSMENT_TYPE_PARAM" class="java.lang.String"/>
+		<parameter name="CSF_PARAM" class="java.lang.Boolean"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -394,6 +404,7 @@
 	<subDataset name="cognitiveLevelSet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="studentsInSessionByAssessment"/>
 		<parameter name="ASSESSMENT_TYPE_PARAM" class="java.lang.String"/>
+		<parameter name="CSF_PARAM" class="java.lang.Boolean"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -455,6 +466,10 @@
 		<property name="net.sf.jasperreports.jsonql.field.expression" value="reportId"/>
 		<fieldDescription><![CDATA[reportId]]></fieldDescription>
 	</field>
+	<field name="csf" class="java.lang.Boolean">
+		<property name="net.sf.jasperreports.json.field.expression" value="csf"/>
+		<fieldDescription><![CDATA[csf]]></fieldDescription>
+	</field>
 	<group name="ReportGroup" isStartNewPage="true" isResetPageNumber="true">
 		<groupExpression><![CDATA[$F{reportId}]]></groupExpression>
 		<groupHeader>
@@ -478,11 +493,22 @@
 					<textFieldExpression><![CDATA[$F{reportGeneratedDate}]]></textFieldExpression>
 				</textField>
 				<staticText>
-					<reportElement x="615" y="-14" width="142" height="17" forecolor="#B3B3B3" uuid="c7514b99-e3d3-4301-bbd8-1c9c8ce72e3e"/>
+					<reportElement x="615" y="-14" width="142" height="17" forecolor="#B3B3B3" uuid="c7514b99-e3d3-4301-bbd8-1c9c8ce72e3e">
+						<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+					</reportElement>
 					<textElement>
 						<font fontName="BCSans" size="8"/>
 					</textElement>
 					<text><![CDATA[Ministry of Education and Child Care]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="530" y="-14" width="230" height="17" forecolor="#B3B3B3" uuid="c7514b99-e3d3-4301-bbd8-1c9c8ce72e3e">
+						<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font fontName="BCSans" size="8"/>
+					</textElement>
+					<text><![CDATA[Ministre de l’Éducation et des Services à la petite enfance]]></text>
 				</staticText>
 				<textField>
 					<reportElement x="0" y="40" width="280" height="15" uuid="8650a750-21b2-4c0f-8b34-49b5a5815d49">
@@ -503,13 +529,24 @@
 					<textFieldExpression><![CDATA[$F{schoolMincodeAndName}]]></textFieldExpression>
 				</textField>
 				<image>
-					<reportElement x="-9" y="-17" width="100" height="44" uuid="c139017e-89b8-438d-b893-49e771231c44"/>
+					<reportElement x="-9" y="-17" width="100" height="44" uuid="c139017e-89b8-438d-b893-49e771231c44">
+						<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+					</reportElement>
 					<imageExpression><![CDATA["bc_gov_logo.jpg"]]></imageExpression>
+				</image>
+				<image>
+					<reportElement x="-9" y="-17" width="100" height="44" uuid="c139017e-89b8-438d-b893-49e771231c44">
+						<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+					</reportElement>
+					<imageExpression><![CDATA["bc_gov_logo_fr.png"]]></imageExpression>
 				</image>
 				<componentElement>
 					<reportElement x="30" y="100" width="669" height="90" uuid="f4a9dd19-5486-48d6-b224-82292deeed42"/>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
 						<datasetRun subDataset="StudentSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
+							<datasetParameter name="CSF_PARAM">
+								<datasetParameterExpression><![CDATA[$F{csf}]]></datasetParameterExpression>
+							</datasetParameter>
 							<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("proficiencySection")]]></dataSourceExpression>
 						</datasetRun>
 						<jr:columnGroup width="685" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
@@ -517,14 +554,14 @@
 							<jr:column width="99" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 								<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 								<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-									<staticText>
+									<textField>
 										<reportElement style="Table 2_CH" x="0" y="0" width="99" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 										<textElement textAlignment="Left" verticalAlignment="Middle">
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Level]]></text>
-									</staticText>
+										<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Échelon" : "Level"]]></textFieldExpression>
+									</textField>
 								</jr:columnHeader>
 								<jr:detailCell height="20">
 									<textField textAdjust="StretchHeight" isBlankWhenNull="true">
@@ -545,14 +582,14 @@
 							<jr:column width="91" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 								<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column2"/>
 								<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-									<staticText>
+									<textField>
 										<reportElement style="Table 2_CH" x="0" y="0" width="91" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 										<textElement textAlignment="Left" verticalAlignment="Middle">
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Number Counted]]></text>
-									</staticText>
+										<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Nombre d’élèves" : "Number Counted"]]></textFieldExpression>
+									</textField>
 								</jr:columnHeader>
 								<jr:detailCell height="20">
 									<textField textAdjust="StretchHeight" isBlankWhenNull="true">
@@ -700,15 +737,27 @@
 					</jr:table>
 				</componentElement>
 				<textField>
-					<reportElement x="180" y="20" width="400" height="20" forecolor="#003366" uuid="f1952c66-e7ae-453a-a01e-c08e09a4bdef"/>
+					<reportElement x="180" y="20" width="400" height="20" forecolor="#003366" uuid="f1952c66-e7ae-453a-a01e-c08e09a4bdef">
+						<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+					</reportElement>
 					<textElement>
 						<font fontName="BCSans"/>
 					</textElement>
 					<textFieldExpression><![CDATA["Distribution of Assessment Results Summary - " + $F{assessmentType}]]></textFieldExpression>
 				</textField>
+				<textField>
+					<reportElement x="180" y="20" width="400" height="20" forecolor="#003366" uuid="f1952c66-e7ae-453a-a01e-c08e09a4bdef">
+						<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font fontName="BCSans"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Récapitulatif de la distribution des résultats - " + $F{assessmentType}]]></textFieldExpression>
+				</textField>
 				<staticText>
 					<reportElement x="30" y="80" width="193" height="20" uuid="0903abd2-bec6-482f-8a37-888bb0be12ef">
 						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
 					</reportElement>
 					<textElement>
 						<font fontName="BCSans" size="9"/>
@@ -716,11 +765,32 @@
 					<text><![CDATA[Proficiency Level Distribution (%)]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="30" y="210" width="193" height="20" uuid="0e932c22-100e-4c40-9fac-a1b3dbe4e46a"/>
+					<reportElement x="30" y="80" width="193" height="20" uuid="0903abd2-bec6-482f-8a37-888bb0be12ef">
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+					</reportElement>
 					<textElement>
 						<font fontName="BCSans" size="9"/>
 					</textElement>
-					<text><![CDATA[Assessment Raw Scores (Mean)]]></text>
+					<text><![CDATA[Distribution des paliers de compétence (%)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="30" y="210" width="193" height="20" uuid="0e932c22-100e-4c40-9fac-a1b3dbe4e46a">
+						<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font fontName="BCSans" size="9"/>
+					</textElement>
+					<text><![CDATA[Assessment Raw Score (Mean)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="30" y="210" width="193" height="20" uuid="0e932c22-100e-4c40-9fac-a1b3dbe4e46a">
+						<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font fontName="BCSans" size="9"/>
+					</textElement>
+					<text><![CDATA[Résultats bruts aux évaluations (moyenne)]]></text>
 				</staticText>
 				<staticText>
 					<reportElement x="330" y="220" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
@@ -749,6 +819,9 @@
 							<datasetParameter name="ASSESSMENT_TYPE_PARAM">
 								<datasetParameterExpression><![CDATA[$F{assessmentType}]]></datasetParameterExpression>
 							</datasetParameter>
+							<datasetParameter name="CSF_PARAM">
+								<datasetParameterExpression><![CDATA[$F{csf}]]></datasetParameterExpression>
+							</datasetParameter>
 							<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("taskScore")]]></dataSourceExpression>
 						</datasetRun>
 						<jr:columnGroup width="685" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
@@ -756,7 +829,7 @@
 							<jr:column width="137" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 								<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 								<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-									<staticText>
+									<textField>
 										<reportElement style="Table 2_CH" x="0" y="0" width="137" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb">
 											<printWhenExpression><![CDATA[$P{ASSESSMENT_TYPE_PARAM} != null && $P{ASSESSMENT_TYPE_PARAM}.equals("NME10")]]></printWhenExpression>
 										</reportElement>
@@ -764,8 +837,8 @@
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Level]]></text>
-									</staticText>
+										<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Échelon" : "Level"]]></textFieldExpression>
+									</textField>
 									<staticText>
 										<reportElement style="Table 2_CH" x="0" y="0" width="137" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb">
 											<printWhenExpression><![CDATA[$P{ASSESSMENT_TYPE_PARAM} != null && $P{ASSESSMENT_TYPE_PARAM}.equals("NMF10")]]></printWhenExpression>
@@ -1069,6 +1142,9 @@
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
 						<datasetRun subDataset="taskSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
+							<datasetParameter name="CSF_PARAM">
+								<datasetParameterExpression><![CDATA[$F{csf}]]></datasetParameterExpression>
+							</datasetParameter>
 							<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("taskScore")]]></dataSourceExpression>
 						</datasetRun>
 						<jr:columnGroup width="685" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
@@ -1076,14 +1152,14 @@
 							<jr:column width="227" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 								<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 								<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-									<staticText>
+									<textField>
 										<reportElement style="Table 2_CH" x="0" y="0" width="227" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 										<textElement textAlignment="Left" verticalAlignment="Middle">
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Level]]></text>
-									</staticText>
+										<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Échelon" : "Level"]]></textFieldExpression>
+									</textField>
 								</jr:columnHeader>
 								<jr:detailCell height="20">
 									<textField textAdjust="StretchHeight" isBlankWhenNull="true">
@@ -1199,6 +1275,9 @@
 							<datasetParameter name="ASSESSMENT_TYPE_PARAM">
 								<datasetParameterExpression><![CDATA[$F{assessmentType}]]></datasetParameterExpression>
 							</datasetParameter>
+							<datasetParameter name="CSF_PARAM">
+								<datasetParameterExpression><![CDATA[$F{csf}]]></datasetParameterExpression>
+							</datasetParameter>
 							<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("numeracyScore")]]></dataSourceExpression>
 						</datasetRun>
 						<jr:columnGroup width="685" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
@@ -1206,7 +1285,7 @@
 							<jr:column width="137" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 								<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 								<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-									<staticText>
+									<textField>
 										<reportElement style="Table 2_CH" x="0" y="0" width="137" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb">
 											<printWhenExpression><![CDATA[$P{ASSESSMENT_TYPE_PARAM} != null && $P{ASSESSMENT_TYPE_PARAM}.equals("NME10")]]></printWhenExpression>
 										</reportElement>
@@ -1214,8 +1293,8 @@
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Level]]></text>
-									</staticText>
+										<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Échelon" : "Level"]]></textFieldExpression>
+									</textField>
 									<staticText>
 										<reportElement style="Table 2_CH" x="0" y="0" width="137" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb">
 											<printWhenExpression><![CDATA[$P{ASSESSMENT_TYPE_PARAM} != null && $P{ASSESSMENT_TYPE_PARAM}.equals("NMF10")]]></printWhenExpression>
@@ -1607,6 +1686,9 @@
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
 						<datasetRun subDataset="comprehendSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
+							<datasetParameter name="CSF_PARAM">
+								<datasetParameterExpression><![CDATA[$F{csf}]]></datasetParameterExpression>
+							</datasetParameter>
 							<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("comprehendScore")]]></dataSourceExpression>
 						</datasetRun>
 						<jr:columnGroup width="685" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
@@ -1614,14 +1696,14 @@
 							<jr:column width="227" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 								<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 								<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-									<staticText>
+									<textField>
 										<reportElement style="Table 2_CH" x="0" y="0" width="227" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 										<textElement textAlignment="Left" verticalAlignment="Middle">
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Level]]></text>
-									</staticText>
+										<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Échelon" : "Level"]]></textFieldExpression>
+									</textField>
 								</jr:columnHeader>
 								<jr:detailCell height="20">
 									<textField textAdjust="StretchHeight" isBlankWhenNull="true">
@@ -1716,6 +1798,9 @@
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
 						<datasetRun subDataset="communicateSet" uuid="6cc83e12-637e-46c7-b038-9f204da9bd0d">
+							<datasetParameter name="CSF_PARAM">
+								<datasetParameterExpression><![CDATA[$F{csf}]]></datasetParameterExpression>
+							</datasetParameter>
 							<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("communicateScore")]]></dataSourceExpression>
 						</datasetRun>
 						<jr:columnGroup width="685" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
@@ -1723,14 +1808,14 @@
 							<jr:column width="171" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 								<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 								<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-									<staticText>
+									<textField>
 										<reportElement style="Table 2_CH" x="0" y="0" width="171" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 										<textElement textAlignment="Left" verticalAlignment="Middle">
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Level]]></text>
-									</staticText>
+										<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Échelon" : "Level"]]></textFieldExpression>
+									</textField>
 								</jr:columnHeader>
 								<jr:detailCell height="20">
 									<textField textAdjust="StretchHeight" isBlankWhenNull="true">
@@ -2245,6 +2330,9 @@
 							<datasetParameter name="ASSESSMENT_TYPE_PARAM">
 								<datasetParameterExpression><![CDATA[$F{assessmentType}]]></datasetParameterExpression>
 							</datasetParameter>
+							<datasetParameter name="CSF_PARAM">
+								<datasetParameterExpression><![CDATA[$F{csf}]]></datasetParameterExpression>
+							</datasetParameter>
 							<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("cognitiveLevelScore")]]></dataSourceExpression>
 						</datasetRun>
 						<jr:columnGroup width="685" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
@@ -2252,7 +2340,7 @@
 							<jr:column width="171" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 								<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 								<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-									<staticText>
+									<textField>
 										<reportElement style="Table 2_CH" x="0" y="0" width="171" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb">
 											<printWhenExpression><![CDATA[$P{ASSESSMENT_TYPE_PARAM} != null && $P{ASSESSMENT_TYPE_PARAM}.equals("NME10")]]></printWhenExpression>
 										</reportElement>
@@ -2260,8 +2348,8 @@
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Level]]></text>
-									</staticText>
+										<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Échelon" : "Level"]]></textFieldExpression>
+									</textField>
 									<staticText>
 										<reportElement style="Table 2_CH" x="0" y="0" width="171" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb">
 											<printWhenExpression><![CDATA[$P{ASSESSMENT_TYPE_PARAM} != null && $P{ASSESSMENT_TYPE_PARAM}.equals("NMF10")]]></printWhenExpression>
@@ -2557,6 +2645,9 @@
 							<datasetParameter name="ASSESSMENT_TYPE_PARAM">
 								<datasetParameterExpression><![CDATA[$F{assessmentType}]]></datasetParameterExpression>
 							</datasetParameter>
+							<datasetParameter name="CSF_PARAM">
+								<datasetParameterExpression><![CDATA[$F{csf}]]></datasetParameterExpression>
+							</datasetParameter>
 							<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("cognitiveLevelScore")]]></dataSourceExpression>
 						</datasetRun>
 						<jr:columnGroup width="685" uuid="982787d0-c53b-4594-8c5d-0a8f78b2972e">
@@ -2564,7 +2655,7 @@
 							<jr:column width="171" uuid="91f36667-bc08-4e19-866b-d83f59a65a51">
 								<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 								<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
-									<staticText>
+									<textField>
 										<reportElement style="Table 2_CH" x="0" y="0" width="171" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb">
 											<printWhenExpression><![CDATA[$P{ASSESSMENT_TYPE_PARAM} != null && ($P{ASSESSMENT_TYPE_PARAM}.equals("LTE10") || $P{ASSESSMENT_TYPE_PARAM}.equals("LTE12"))]]></printWhenExpression>
 										</reportElement>
@@ -2572,8 +2663,8 @@
 											<font fontName="BCSans" size="7"/>
 											<paragraph leftIndent="5"/>
 										</textElement>
-										<text><![CDATA[Level]]></text>
-									</staticText>
+										<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Échelon" : "Level"]]></textFieldExpression>
+									</textField>
 								</jr:columnHeader>
 								<jr:detailCell height="20">
 									<textField textAdjust="StretchHeight" isBlankWhenNull="true">
