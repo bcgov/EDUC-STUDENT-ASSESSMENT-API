@@ -308,22 +308,36 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public int markStagedStudentsReadyForTransfer() {
+    public int markStagedStudentsReadyForTransferOrDelete() {
         LocalDateTime updateTime = LocalDateTime.now();
-        int updatedCount = stagedAssessmentStudentRepository.updateAllStagedAssessmentStudentStatus(
+
+        // Mark MERGED and NOPENFOUND students for deletion
+        int deletedCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusToDeleteIfInMergedNoPenFound(
+            "DELETE",
+            ApplicationProperties.STUDENT_ASSESSMENT_API,
+            updateTime
+        );
+
+        // Mark all other students for transfer
+        int transferCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusToTransferIfNotInMergedNoPenFound(
             "TRANSFER",
             ApplicationProperties.STUDENT_ASSESSMENT_API,
             updateTime
         );
 
-        log.debug("Successfully marked {} staged students as ready for transfer", updatedCount);
+        log.debug("Successfully marked {} staged students as ready for transfer and {} for deletion", transferCount, deletedCount);
 
-        return updatedCount;
+        return transferCount + deletedCount;
     }
 
     public List<StagedAssessmentStudentEntity> findBatchOfTransferStudentIds(int batchSize) {
         Pageable pageable = PageRequest.of(0, batchSize);
         return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("TRANSFER", pageable);
+    }
+
+    public List<StagedAssessmentStudentEntity> findBatchOfDeleteStudentIds(int batchSize) {
+        Pageable pageable = PageRequest.of(0, batchSize);
+        return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("DELETE", pageable);
     }
 
     public StagedAssessmentStudentEntity getStagedStudentById(UUID stagedStudentId) {
@@ -334,6 +348,10 @@ public class AssessmentStudentService {
 
     public void deleteStagedStudent(StagedAssessmentStudentEntity stagedAssessmentStudentEntity) {
         stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID());
+    }
+
+    public void deleteStagedStudents(List<StagedAssessmentStudentEntity> stagedAssessmentStudents) {
+        stagedAssessmentStudentRepository.deleteAll(stagedAssessmentStudents);
     }
 
     @Transactional(readOnly = true)

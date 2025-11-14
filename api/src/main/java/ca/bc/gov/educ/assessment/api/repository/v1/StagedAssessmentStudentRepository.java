@@ -21,8 +21,8 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
     List<UUID> findAllStagedStudentsInSession(UUID sessionID);
 
     @Query("""
-        SELECT s FROM StagedAssessmentStudentEntity s 
-        WHERE s.assessmentEntity.assessmentID = :assessmentID 
+        SELECT s FROM StagedAssessmentStudentEntity s
+        WHERE s.assessmentEntity.assessmentID = :assessmentID
         AND s.assessmentFormID IN (:formIDs) 
         ORDER BY s.createDate DESC 
         LIMIT 1 """)
@@ -37,13 +37,23 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
         UPDATE StagedAssessmentStudentEntity s
         SET s.stagedAssessmentStudentStatus = :status,
             s.updateUser = :updateUser,
-            s.updateDate = :updateDate""")
-    int updateAllStagedAssessmentStudentStatus(String status, String updateUser, LocalDateTime updateDate);
+            s.updateDate = :updateDate
+        WHERE s.stagedAssessmentStudentStatus NOT IN ('MERGED', 'NOPENFOUND')""")
+    int updateStagedAssessmentStudentStatusToTransferIfNotInMergedNoPenFound(String status, String updateUser, LocalDateTime updateDate);
+
+    @Modifying
+    @Query("""
+        UPDATE StagedAssessmentStudentEntity s
+        SET s.stagedAssessmentStudentStatus = :status,
+            s.updateUser = :updateUser,
+            s.updateDate = :updateDate
+        WHERE s.stagedAssessmentStudentStatus IN ('MERGED', 'NOPENFOUND')""")
+    int updateStagedAssessmentStudentStatusToDeleteIfInMergedNoPenFound(String status, String updateUser, LocalDateTime updateDate);
 
     @Query(value = """
         SELECT s
-        FROM StagedAssessmentStudentEntity s 
-        WHERE s.stagedAssessmentStudentStatus = :status 
+        FROM StagedAssessmentStudentEntity s
+        WHERE s.stagedAssessmentStudentStatus = :status
         ORDER BY s.updateDate DESC""")
     List<StagedAssessmentStudentEntity> findStudentIdsByStatusOrderByUpdateDate(String status, Pageable pageable);
 

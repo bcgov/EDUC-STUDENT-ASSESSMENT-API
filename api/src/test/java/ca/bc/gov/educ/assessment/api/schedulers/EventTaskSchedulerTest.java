@@ -156,4 +156,81 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     final var newEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(this.eventCaptor.getValue()));
     assertThat(newEvent.getEventType()).isEqualTo(EventType.TRANSFER_STUDENT_RESULT);
   }
+
+  @Test
+  void processDeleteStudents_WhenDeleteStudentsExist_ShouldDeleteThem() {
+    var stagedStudent1 = createMockStagedStudentEntity(savedAssessmentEntity);
+    stagedStudent1.setStagedAssessmentStudentStatus("DELETE");
+    var stagedStudent2 = createMockStagedStudentEntity(savedAssessmentEntity);
+    stagedStudent2.setStagedAssessmentStudentStatus("DELETE");
+
+    var saved1 = stagedAssessmentStudentRepository.save(stagedStudent1);
+    var saved2 = stagedAssessmentStudentRepository.save(stagedStudent2);
+
+    assertThat(stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID())).isPresent();
+    assertThat(stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID())).isPresent();
+
+    taskSchedulerAsyncService.findAndPublishLoadedStudentRecordsForProcessing();
+
+    assertThat(stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID())).isEmpty();
+    assertThat(stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID())).isEmpty();
+
+    verify(this.messagePublisher, never()).dispatchMessage(eq(TopicsEnum.READ_TRANSFER_STUDENT_TOPIC.toString()), any());
+  }
+
+  @Test
+  void processDeleteStudents_WhenNoDeleteStudentsExist_ShouldNotDeleteAnything() {
+    var stagedStudent = createMockStagedStudentEntity(savedAssessmentEntity);
+    stagedStudent.setStagedAssessmentStudentStatus("PENMATCHED");
+    var saved = stagedAssessmentStudentRepository.save(stagedStudent);
+
+    taskSchedulerAsyncService.findAndPublishLoadedStudentRecordsForProcessing();
+
+    assertThat(stagedAssessmentStudentRepository.findById(saved.getAssessmentStudentID())).isPresent();
+  }
+
+  @Test
+  void processStudents_WhenMixedStatusesExist_ShouldProcessCorrectly() {
+    var transferStudent = createMockStagedStudentEntity(savedAssessmentEntity);
+    transferStudent.setStagedAssessmentStudentStatus("TRANSFER");
+
+    var deleteStudent1 = createMockStagedStudentEntity(savedAssessmentEntity);
+    deleteStudent1.setStagedAssessmentStudentStatus("DELETE");
+    var deleteStudent2 = createMockStagedStudentEntity(savedAssessmentEntity);
+    deleteStudent2.setStagedAssessmentStudentStatus("DELETE");
+
+    stagedAssessmentStudentRepository.save(transferStudent);
+    var savedDelete1 = stagedAssessmentStudentRepository.save(deleteStudent1);
+    var savedDelete2 = stagedAssessmentStudentRepository.save(deleteStudent2);
+
+    taskSchedulerAsyncService.findAndPublishLoadedStudentRecordsForProcessing();
+
+    assertThat(stagedAssessmentStudentRepository.findAll()).hasSize(3);
+
+    stagedAssessmentStudentRepository.findAll().stream()
+        .filter(s -> "TRANSFER".equals(s.getStagedAssessmentStudentStatus()))
+        .forEach(s -> stagedAssessmentStudentRepository.deleteById(s.getAssessmentStudentID()));
+
+    taskSchedulerAsyncService.findAndPublishLoadedStudentRecordsForProcessing();
+
+    assertThat(stagedAssessmentStudentRepository.findById(savedDelete1.getAssessmentStudentID())).isEmpty();
+    assertThat(stagedAssessmentStudentRepository.findById(savedDelete2.getAssessmentStudentID())).isEmpty();
+  }
+
+  @Test
+  void processDeleteStudents_WhenBatchSizeIsSmaller_ShouldRespectBatchSize() {
+    for (int i = 0; i < 5; i++) {
+      var deleteStudent = createMockStagedStudentEntity(savedAssessmentEntity);
+      deleteStudent.setStagedAssessmentStudentStatus("DELETE");
+      stagedAssessmentStudentRepository.save(deleteStudent);
+    }
+
+    assertThat(stagedAssessmentStudentRepository.findAll()).hasSize(5);
+
+    taskSchedulerAsyncService.findAndPublishLoadedStudentRecordsForProcessing();
+
+    assertThat(stagedAssessmentStudentRepository.findAll()).isEmpty();
+  }
 }
+
+
