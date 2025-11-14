@@ -36,7 +36,7 @@ public class ComsRestUtils {
     public Bucket createBucket(Bucket bucket) {
         try {
             log.info("Creating bucket in COMS: {}", bucket.getBucket());
-            return comsWebClient.post()
+            return comsWebClient.put()
                     .uri(BUCKET_PATH)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(bucket)
@@ -86,7 +86,7 @@ public class ComsRestUtils {
 
     /**
      * Create a child bucket (subfolder) in COMS
-     * Per COMS API: POST /bucket/{bucketId}
+     * Per COMS API: PUT /bucket/{bucketId}
      *
      * @param parentBucketId the parent bucket ID
      * @param bucketName the subfolder name
@@ -99,7 +99,7 @@ public class ComsRestUtils {
 
             String requestBody = String.format("{\"bucketName\": \"%s\", \"subKey\": \"%s\"}", bucketName, subKey);
 
-            Bucket childBucket = comsWebClient.post()
+            Bucket childBucket = comsWebClient.put()
                     .uri(BUCKET_PATH + "/" + parentBucketId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)

@@ -69,7 +69,7 @@ class ComsRestUtilsTest {
                 .endpoint("https://s3.test")
                 .build();
 
-        when(comsWebClient.post()).thenReturn(requestBodyUriSpec);
+        when(comsWebClient.put()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
         when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
@@ -83,7 +83,7 @@ class ComsRestUtilsTest {
         assertNotNull(result);
         assertEquals("bucket-123", result.getBucketId());
         assertEquals("test-bucket", result.getBucket());
-        verify(comsWebClient).post();
+        verify(comsWebClient).put();
         verify(requestBodyUriSpec).uri("/bucket");
     }
 
@@ -92,7 +92,7 @@ class ComsRestUtilsTest {
         // Arrange
         Bucket inputBucket = Bucket.builder().bucket("test-bucket").build();
 
-        when(comsWebClient.post()).thenReturn(requestBodyUriSpec);
+        when(comsWebClient.put()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
         when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
@@ -379,15 +379,14 @@ class ComsRestUtilsTest {
         lenient().when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.bodyToFlux(Bucket.class)).thenReturn(Flux.just(parentBucket));
 
-        // Mock createChildBucket - called in getOrCreateChildBucket
-        when(comsWebClient.post()).thenReturn(requestBodyUriSpec);
+        // Mock createChildBucket
+        when(comsWebClient.put()).thenReturn(requestBodyUriSpec);
         lenient().when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
         lenient().when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
         lenient().when(requestBodySpec.bodyValue(anyString())).thenReturn(requestHeadersSpec);
         lenient().when(responseSpec.bodyToMono(Bucket.class)).thenReturn(Mono.just(childBucket));
 
         // Mock uploadObject PUT request
-        when(comsWebClient.put()).thenReturn(requestBodyUriSpec);
         lenient().when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
         lenient().when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         lenient().when(requestBodySpec.contentType(MediaType.APPLICATION_OCTET_STREAM)).thenReturn(requestBodySpec);
