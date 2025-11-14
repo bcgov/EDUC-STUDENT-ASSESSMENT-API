@@ -59,11 +59,11 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
         this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
 
-        UUID studentId = UUID.fromString(transferOnApprovalSagaData.getStagedStudentAssessmentID());
-        log.debug("Processing transfer for student: {}", studentId);
+        UUID stagedStudentAssessmentId = UUID.fromString(transferOnApprovalSagaData.getStagedStudentAssessmentID());
+        log.debug("Processing transfer for staged student assessment: {}", stagedStudentAssessmentId);
 
         // Transfer student data from staging to main tables and delete from staging (same transaction)
-        transferStudentOrchestrationService.transferStagedStudentToMainTables(studentId);
+        transferStudentOrchestrationService.transferStagedStudentToMainTables(stagedStudentAssessmentId);
 
         final Event nextEvent = Event.builder()
                 .sagaId(saga.getSagaId())
