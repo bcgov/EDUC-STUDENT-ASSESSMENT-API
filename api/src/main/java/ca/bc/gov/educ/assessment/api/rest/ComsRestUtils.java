@@ -89,7 +89,7 @@ public class ComsRestUtils {
      * Per COMS API: PUT /bucket/{bucketId}/child
      *
      * @param parentBucketId the parent bucket ID
-     * @param bucketName the subfolder name
+     * @param bucketName the subfolder display name (just the folder name, e.g., "xam-files-202606")
      * @param subKey the relative path (e.g., "xam-files-202606")
      * @return the created child bucket
      */
@@ -131,10 +131,10 @@ public class ComsRestUtils {
             return buckets.stream()
                     .filter(b -> fullPath.equals(b.getBucket()) || subKey.equals(b.getKey()))
                     .findFirst()
-                    .orElseGet(() -> createChildBucket(parentBucketId, bucketName + "/" + subKey, subKey));
+                    .orElseGet(() -> createChildBucket(parentBucketId, subKey, subKey));
         } catch (Exception e) {
             log.warn("Failed to get existing child bucket, attempting to create: {}", subKey);
-            return createChildBucket(parentBucketId, bucketName + "/" + subKey, subKey);
+            return createChildBucket(parentBucketId, subKey, subKey);
         }
     }
 
@@ -142,6 +142,7 @@ public class ComsRestUtils {
      * Upload a file to COMS
      * If the path contains a folder (e.g., "xam-files-202606/file.xam"),
      * a child bucket will be created for that folder.
+     * If the file already exists (409 Conflict), it will be deleted and replaced.
      *
      * @param content the file content as byte array
      * @param path the path/key in the bucket (e.g., "xam-files-202606/12345678-202606-Results.xam")
@@ -188,25 +189,65 @@ public class ComsRestUtils {
             log.info("COMS Upload - URL: {}/object?bucketId={}, Content-Disposition: {}, Content-Length: {}",
                     applicationProperties.getComsEndpointUrl(), targetBucketId, contentDisposition, content.length);
 
-            ObjectMetadata response = comsWebClient.put()
-                    .uri(uriBuilder -> uriBuilder
-                            .path(OBJECT_PATH)
-                            .queryParam("bucketId", targetBucketId)
-                            .build())
-                    .header("Content-Disposition", contentDisposition)
-                    .header("Content-Length", String.valueOf(content.length))
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .bodyValue(content)
-                    .retrieve()
-                    .bodyToMono(ObjectMetadata.class)
-                    .block();
+            try {
+                ObjectMetadata response = comsWebClient.put()
+                        .uri(uriBuilder -> uriBuilder
+                                .path(OBJECT_PATH)
+                                .queryParam("bucketId", targetBucketId)
+                                .build())
+                        .header("Content-Disposition", contentDisposition)
+                        .header("Content-Length", String.valueOf(content.length))
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .bodyValue(content)
+                        .retrieve()
+                        .bodyToMono(ObjectMetadata.class)
+                        .block();
 
-            log.info("Successfully uploaded object to COMS - ID: {}, Name: {}, Path: {}",
-                    response != null ? response.getId() : "null",
-                    response != null ? response.getName() : "null",
-                    response != null ? response.getPath() : "null");
+                log.info("Successfully uploaded object to COMS - ID: {}, Name: {}, Path: {}",
+                        response != null ? response.getId() : "null",
+                        response != null ? response.getName() : "null",
+                        response != null ? response.getPath() : "null");
 
-            return response;
+                return response;
+            } catch (org.springframework.web.reactive.function.client.WebClientResponseException.Conflict conflictEx) {
+                // 409 Conflict - object already exists, extract the ID and replace it
+                log.warn("Object already exists in COMS, deleting and replacing: {}", filename);
+                String responseBody = conflictEx.getResponseBodyAsString();
+
+                // Extract existingObjectId from response
+                String existingObjectId = null;
+                if (responseBody.contains("existingObjectId")) {
+                    int startIdx = responseBody.indexOf("existingObjectId\":\"") + 19;
+                    int endIdx = responseBody.indexOf("\"", startIdx);
+                    if (startIdx > 18 && endIdx > startIdx) {
+                        existingObjectId = responseBody.substring(startIdx, endIdx);
+                    }
+                }
+
+                if (existingObjectId != null) {
+                    log.info("Object already exists, updating existing object - ID: {}", existingObjectId);
+
+                    // Use PUT /object/{objectId} to update the existing object
+                    ObjectMetadata response = comsWebClient.put()
+                            .uri(OBJECT_PATH + "/" + existingObjectId)
+                            .header("Content-Length", String.valueOf(content.length))
+                            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                            .bodyValue(content)
+                            .retrieve()
+                            .bodyToMono(ObjectMetadata.class)
+                            .block();
+
+                    log.info("Successfully updated object in COMS - ID: {}, Name: {}, Path: {}",
+                            response != null ? response.getId() : "null",
+                            response != null ? response.getName() : "null",
+                            response != null ? response.getPath() : "null");
+
+                    return response;
+                } else {
+                    log.error("Could not extract existing object ID from conflict response: {}", responseBody);
+                    throw conflictEx;
+                }
+            }
         } catch (Exception e) {
             log.error("Failed to upload object to COMS - Path: {}", path, e);
             if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException webEx) {
