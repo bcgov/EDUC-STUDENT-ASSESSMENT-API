@@ -59,16 +59,19 @@ public class AssessmentStudentService {
     private final StagedStudentResultRepository stagedStudentResultRepository;
     private final AssessmentSessionRepository assessmentSessionRepository;
 
+    public static final String ASSESSMENT_STUDENT_ID = "assessmentStudentID";
+    public static final String ERROR = "ERROR";
+
     public AssessmentStudentEntity getStudentByID(UUID assessmentStudentID) {
         return assessmentStudentRepository.findById(assessmentStudentID).orElseThrow(() ->
-                new EntityNotFoundException(AssessmentStudent.class, "assessmentStudentID", assessmentStudentID.toString())
+                new EntityNotFoundException(AssessmentStudent.class, ASSESSMENT_STUDENT_ID, assessmentStudentID.toString())
         );
     }
 
     @Transactional(readOnly = true)
     public AssessmentStudentEntity getStudentWithAssessmentDetailsByID(UUID assessmentStudentID, UUID assessmentID) {
         return assessmentStudentRepository.findByIdWithAssessmentDetails(assessmentStudentID, assessmentID).orElseThrow(() ->
-                new EntityNotFoundException(AssessmentStudent.class, "assessmentStudentID", assessmentStudentID.toString())
+                new EntityNotFoundException(AssessmentStudent.class, ASSESSMENT_STUDENT_ID, assessmentStudentID.toString())
         );
     }
 
@@ -227,7 +230,7 @@ public class AssessmentStudentService {
 
     private AssessmentStudentEntity performDeleteStudent(UUID assessmentStudentID, boolean allowRuleOverride) {
         Optional<AssessmentStudentEntity> entityOptional = assessmentStudentRepository.findById(assessmentStudentID);
-        AssessmentStudentEntity entity = entityOptional.orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "assessmentStudentID", assessmentStudentID.toString()));
+        AssessmentStudentEntity entity = entityOptional.orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, ASSESSMENT_STUDENT_ID, assessmentStudentID.toString()));
 
         LocalDateTime sessionEnd = entity.getAssessmentEntity().getAssessmentSessionEntity().getActiveUntilDate();
         boolean sessionEnded = !allowRuleOverride && sessionEnd.isBefore(LocalDateTime.now());
@@ -349,7 +352,7 @@ public class AssessmentStudentService {
     @Transactional(readOnly = true)
     public AssessmentStudentShowItem getStudentWithAssessmentDetailsById(UUID assessmentStudentID, UUID assessmentID) {
         AssessmentStudentEntity entity = assessmentStudentRepository.findByIdWithAssessmentDetails(assessmentStudentID, assessmentID)
-                .orElseThrow(() -> new EntityNotFoundException(AssessmentStudent.class, "assessmentStudentID", assessmentStudentID.toString()));
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentStudent.class, ASSESSMENT_STUDENT_ID, assessmentStudentID.toString()));
 
         // Map the main DTO while we're inside the transaction so Hibernate Session is open
         AssessmentStudentShowItem dto = AssessmentStudentShowItemMapper.mapper.toStructure(entity);
@@ -439,7 +442,7 @@ public class AssessmentStudentService {
         // Validation 1: Check if transferring to same PEN
         if (sourceStudentApiStudent.getPen().equals(targetStudentApiStudent.getPen())) {
             AssessmentStudentValidationIssue issue = AssessmentStudentValidationIssue.builder()
-                .validationIssueSeverityCode("ERROR")
+                .validationIssueSeverityCode(ERROR)
                 .validationIssueCode("TRANSFER_SAME_PEN")
                 .validationIssueFieldCode("PEN")
                 .validationMessage("Cannot transfer assessment to the same student.")
@@ -451,7 +454,7 @@ public class AssessmentStudentService {
         // Validation 2: Check if target PEN is merged
         if ("M".equals(targetStudentApiStudent.getStatusCode())) {
             AssessmentStudentValidationIssue issue = AssessmentStudentValidationIssue.builder()
-                .validationIssueSeverityCode("ERROR")
+                .validationIssueSeverityCode(ERROR)
                 .validationIssueCode("TRANSFER_TO_MERGED_PEN")
                 .validationIssueFieldCode("PEN")
                 .validationMessage("Cannot transfer assessment to a merged PEN.")
@@ -463,34 +466,38 @@ public class AssessmentStudentService {
         List<AssessmentStudentEntity> validatedEntities = new ArrayList<>();
         for (UUID assessmentStudentID : assessmentStudentIDs) {
             AssessmentStudentEntity entity = assessmentStudentRepository.findById(assessmentStudentID)
-                    .orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "assessmentStudentID", assessmentStudentID.toString()));
+                    .orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, ASSESSMENT_STUDENT_ID, assessmentStudentID.toString()));
 
             // Validation 3: Must have a result (proficiency score OR special case)
             boolean hasProficiencyScore = entity.getProficiencyScore() != null;
             boolean hasProvincialSpecialCaseCode = entity.getProvincialSpecialCaseCode() != null;
             boolean hasResult = hasProficiencyScore || hasProvincialSpecialCaseCode;
+            boolean hasValidationIssue = false;
             if (!hasResult) {
                 AssessmentStudentValidationIssue issue = AssessmentStudentValidationIssue.builder()
-                    .validationIssueSeverityCode("ERROR")
+                    .validationIssueSeverityCode(ERROR)
                     .validationIssueCode("TRANSFER_NO_RESULT")
                     .validationIssueFieldCode("ASSESSMENT_STUDENT_ID")
                     .validationMessage("Can only transfer assessments that have a proficiency score or special case code.")
                     .assessmentStudentID(assessmentStudentID.toString())
                     .build();
                 allValidationIssues.add(issue);
-                continue;
+                hasValidationIssue = true;
             }
             //Validation 4: Target student must not already have the same assessment in the same session
             boolean sourceStudentHasDuplicate = assessmentRulesService.hasStudentAssessmentDuplicate(UUID.fromString(sourceStudentApiStudent.getStudentID()), entity.getAssessmentEntity(), assessmentStudentID);
             if(sourceStudentHasDuplicate) {
                 AssessmentStudentValidationIssue issue = AssessmentStudentValidationIssue.builder()
-                    .validationIssueSeverityCode("ERROR")
+                    .validationIssueSeverityCode(ERROR)
                     .validationIssueCode("TRANSFER_HAS_DUPLICATE")
                     .validationIssueFieldCode("ASSESSMENT_STUDENT_ID")
                     .validationMessage("Cannot transfer assessment to student who already has the same assessment/session.")
                     .assessmentStudentID(assessmentStudentID.toString())
                     .build();
                 allValidationIssues.add(issue);
+                hasValidationIssue = true;
+            }
+            if(hasValidationIssue) {
                 continue;
             }
             validatedEntities.add(entity);

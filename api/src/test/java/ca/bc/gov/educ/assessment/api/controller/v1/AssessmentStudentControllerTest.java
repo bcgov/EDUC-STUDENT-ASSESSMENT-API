@@ -995,7 +995,6 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     UUID assessmentStudentID = studentRepository.save(sourceStudent).getAssessmentStudentID();
 
     UUID targetStudentID = UUID.randomUUID();
-    String targetPEN = "987654321";
 
     ObjectMapper objectMapper = new ObjectMapper();
     AssessmentStudentTransfer transferRequest = AssessmentStudentTransfer.builder()

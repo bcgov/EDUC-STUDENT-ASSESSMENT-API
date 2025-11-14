@@ -129,7 +129,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testCreateStudent_WhenStudentDoesNotExistInDB_ShouldReturnStudent() throws JsonProcessingException {
+  void testCreateStudent_WhenStudentDoesNotExistInDB_ShouldReturnStudent() {
     //given session exists
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
@@ -177,7 +177,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testUpdateStudent_WhenStudentExistInDB_ShouldReturnUpdatedStudent() throws JsonProcessingException {
+  void testUpdateStudent_WhenStudentExistInDB_ShouldReturnUpdatedStudent() {
     //given student exists in db
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
@@ -255,7 +255,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testCreateStudent_WhenNamesDoNotMatchStudentAPI_ShouldReturnValidationErrors() throws JsonProcessingException {
+  void testCreateStudent_WhenNamesDoNotMatchStudentAPI_ShouldReturnValidationErrors() {
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
 
@@ -700,7 +700,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testUpdateStudent_WhenAssessmentIDsMatch_ShouldUseCurrentAssessmentEntity() throws JsonProcessingException {
+  void testUpdateStudent_WhenAssessmentIDsMatch_ShouldUseCurrentAssessmentEntity() {
     //given student exists in db with current assessment
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity currentAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
@@ -744,7 +744,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testUpdateStudent_WhenAssessmentIDsDifferAndAssessmentDNE_ShouldThrowException() throws JsonProcessingException {
+  void testUpdateStudent_WhenAssessmentIDsDifferAndAssessmentDNE_ShouldThrowException() {
     //given student exists in db with current assessment
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity currentAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
@@ -783,7 +783,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testUpdateStudent_WhenNewAssessmentExists_ShouldUseNewAssessmentEntity() throws JsonProcessingException {
+  void testUpdateStudent_WhenNewAssessmentExists_ShouldUseNewAssessmentEntity() {
     //given student exists in db with current assessment
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity currentAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
@@ -1310,7 +1310,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testTransferStudentAssessments_WhenValidTransferWithResult_ShouldUpdateStudentIDInPlace() throws JsonProcessingException {
+  void testTransferStudentAssessments_WhenValidTransferWithResult_ShouldUpdateStudentIDInPlace() {
     // given: source student with assessment that HAS results
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
@@ -1377,7 +1377,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testTransferStudentAssessments_WhenSamePEN_ShouldReturnValidationIssue() throws JsonProcessingException {
+  void testTransferStudentAssessments_WhenSamePEN_ShouldReturnValidationIssue() {
     // given: source assessment with PEN, attempting to transfer to same PEN
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
@@ -1424,7 +1424,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testTransferStudentAssessments_WhenTargetPENIsMerged_ShouldReturnValidationIssue() throws JsonProcessingException {
+  void testTransferStudentAssessments_WhenTargetPENIsMerged_ShouldReturnValidationIssue() {
     // given: target PEN is merged
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
@@ -1467,7 +1467,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testTransferStudentAssessments_WhenNoResult_ShouldReturnValidationIssue() throws JsonProcessingException {
+  void testTransferStudentAssessments_WhenNoResult_ShouldReturnValidationIssue() {
     // given: assessment with NO result (invalid scenario)
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
@@ -1522,7 +1522,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testTransferStudentAssessments_WhenTargetHasSameAssessment_ShouldReturnDuplicateIssue() throws JsonProcessingException {
+  void testTransferStudentAssessments_WhenTargetHasSameAssessment_ShouldReturnDuplicateIssue() {
     // given: target already has same assessment/session with a result
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
@@ -1587,7 +1587,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testTransferStudentAssessments_WhenSpecialCasePresent_ShouldTransferSuccessfully() throws JsonProcessingException {
+  void testTransferStudentAssessments_WhenSpecialCasePresent_ShouldTransferSuccessfully() {
     // given: source assessment with provincial special case but no proficiency score
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
@@ -1643,7 +1643,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testTransferStudentAssessments_WhenMultipleAssessmentsWithResults_ShouldTransferAll() throws JsonProcessingException {
+  void testTransferStudentAssessments_WhenMultipleAssessmentsWithResults_ShouldTransferAll() {
     // given: source student with multiple assessments, all with results
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
@@ -1741,7 +1741,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testTransferStudentAssessments_WithMixedValidation_ShouldTransferNoneWhenAnyFails() throws JsonProcessingException {
+  void testTransferStudentAssessments_WithMixedValidation_ShouldTransferNoneWhenAnyFails() {
     // given: multiple assessments, one with result (valid), one without result (invalid) - testing all-or-nothing behavior
     AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
 
