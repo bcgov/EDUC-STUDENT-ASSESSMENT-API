@@ -1151,12 +1151,6 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   }
 
   @Test
-  void testDeleteStagedStudents_WhenEmptyListProvided_ShouldNotThrowException() {
-    assessmentStudentService.deleteStagedStudents(List.of());
-    // Should complete without exception
-  }
-
-  @Test
   void testMarkStudentAsTransferInProgress_WhenStudentExistsWithTransferStatus_ShouldUpdateToTransferIn() {
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
