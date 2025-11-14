@@ -210,8 +210,8 @@ public class ComsRestUtils {
 
                 return response;
             } catch (org.springframework.web.reactive.function.client.WebClientResponseException.Conflict conflictEx) {
-                // 409 Conflict - object already exists, extract the ID and replace it
-                log.warn("Object already exists in COMS, deleting and replacing: {}", filename);
+                // 409 Conflict - object already exists, update it with new content
+                log.warn("Object already exists in COMS, updating with new content: {}", filename);
                 String responseBody = conflictEx.getResponseBodyAsString();
 
                 // Extract existingObjectId from response
