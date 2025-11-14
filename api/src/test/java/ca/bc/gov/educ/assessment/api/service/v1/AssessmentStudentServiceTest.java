@@ -834,20 +834,175 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     stagedAssessmentStudentRepository.save(stagedStudent1);
     stagedAssessmentStudentRepository.save(stagedStudent2);
 
-    int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransfer();
+    int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
 
     assertThat(updatedCount).isEqualTo(2);
 
-    List<StagedAssessmentStudentEntity> transferStudents = stagedAssessmentStudentRepository.findAll();
-    assertThat(transferStudents).hasSize(2);
-    assertThat(transferStudents).allMatch(student -> "TRANSFER".equals(student.getStagedAssessmentStudentStatus()));
-    assertThat(transferStudents).allMatch(student -> ApplicationProperties.STUDENT_ASSESSMENT_API.equals(student.getUpdateUser()));
+    List<StagedAssessmentStudentEntity> allStudents = stagedAssessmentStudentRepository.findAll();
+    assertThat(allStudents).hasSize(2);
+    assertThat(allStudents).allMatch(student -> "TRANSFER".equals(student.getStagedAssessmentStudentStatus()));
+    assertThat(allStudents).allMatch(student -> ApplicationProperties.STUDENT_ASSESSMENT_API.equals(student.getUpdateUser()));
   }
 
   @Test
   void testMarkStagedStudentsReadyForTransfer_WhenNoStagedStudentsExist_ShouldReturnZero() {
-    int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransfer();
+    int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
     assertThat(updatedCount).isZero();
+  }
+
+  @Test
+  void testMarkStagedStudentsReadyForTransferOrDelete_WhenMergedStudentsExist_ShouldMarkThemForDeletion() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    StagedAssessmentStudentEntity mergedStudent1 = createMockStagedStudentEntity(assessmentEntity);
+    mergedStudent1.setStagedAssessmentStudentStatus("MERGED");
+    StagedAssessmentStudentEntity mergedStudent2 = createMockStagedStudentEntity(assessmentEntity);
+    mergedStudent2.setStagedAssessmentStudentStatus("MERGED");
+
+    StagedAssessmentStudentEntity saved1 = stagedAssessmentStudentRepository.save(mergedStudent1);
+    StagedAssessmentStudentEntity saved2 = stagedAssessmentStudentRepository.save(mergedStudent2);
+
+    int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
+
+    assertThat(updatedCount).isGreaterThanOrEqualTo(2);
+
+    // Verify the specific students we created were marked for deletion
+    StagedAssessmentStudentEntity updated1 = stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updated2 = stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updated1.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated1.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updated2.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated2.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+  }
+
+  @Test
+  void testMarkStagedStudentsReadyForTransferOrDelete_WhenNoPenFoundStudentsExist_ShouldMarkThemForDeletion() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    StagedAssessmentStudentEntity noPenStudent1 = createMockStagedStudentEntity(assessmentEntity);
+    noPenStudent1.setStagedAssessmentStudentStatus("NOPENFOUND");
+    StagedAssessmentStudentEntity noPenStudent2 = createMockStagedStudentEntity(assessmentEntity);
+    noPenStudent2.setStagedAssessmentStudentStatus("NOPENFOUND");
+
+    StagedAssessmentStudentEntity saved1 = stagedAssessmentStudentRepository.save(noPenStudent1);
+    StagedAssessmentStudentEntity saved2 = stagedAssessmentStudentRepository.save(noPenStudent2);
+
+    int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
+
+    assertThat(updatedCount).isGreaterThanOrEqualTo(2);
+
+    StagedAssessmentStudentEntity updated1 = stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updated2 = stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updated1.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated1.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updated2.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated2.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+  }
+
+  @Test
+  void testMarkStagedStudentsReadyForTransferOrDelete_WhenMixedStatusesExist_ShouldMarkCorrectly() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    // Students that should be marked for TRANSFER
+    StagedAssessmentStudentEntity penMatchedStudent = createMockStagedStudentEntity(assessmentEntity);
+    penMatchedStudent.setStagedAssessmentStudentStatus("PENMATCHED");
+    StagedAssessmentStudentEntity loadedStudent = createMockStagedStudentEntity(assessmentEntity);
+    loadedStudent.setStagedAssessmentStudentStatus("LOADED");
+    StagedAssessmentStudentEntity processingStudent = createMockStagedStudentEntity(assessmentEntity);
+    processingStudent.setStagedAssessmentStudentStatus("PROCESSING");
+
+    // Students that should be marked for DELETE
+    StagedAssessmentStudentEntity mergedStudent = createMockStagedStudentEntity(assessmentEntity);
+    mergedStudent.setStagedAssessmentStudentStatus("MERGED");
+    StagedAssessmentStudentEntity noPenStudent = createMockStagedStudentEntity(assessmentEntity);
+    noPenStudent.setStagedAssessmentStudentStatus("NOPENFOUND");
+
+    StagedAssessmentStudentEntity savedPenMatched = stagedAssessmentStudentRepository.save(penMatchedStudent);
+    StagedAssessmentStudentEntity savedLoaded = stagedAssessmentStudentRepository.save(loadedStudent);
+    StagedAssessmentStudentEntity savedProcessing = stagedAssessmentStudentRepository.save(processingStudent);
+    StagedAssessmentStudentEntity savedMerged = stagedAssessmentStudentRepository.save(mergedStudent);
+    StagedAssessmentStudentEntity savedNoPen = stagedAssessmentStudentRepository.save(noPenStudent);
+
+    int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
+
+    assertThat(updatedCount).isGreaterThanOrEqualTo(5);
+
+    // Verify TRANSFER students
+    StagedAssessmentStudentEntity updatedPenMatched = stagedAssessmentStudentRepository.findById(savedPenMatched.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updatedLoaded = stagedAssessmentStudentRepository.findById(savedLoaded.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updatedProcessing = stagedAssessmentStudentRepository.findById(savedProcessing.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updatedPenMatched.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
+    assertThat(updatedPenMatched.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updatedLoaded.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
+    assertThat(updatedLoaded.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updatedProcessing.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
+    assertThat(updatedProcessing.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+
+    // Verify DELETE students
+    StagedAssessmentStudentEntity updatedMerged = stagedAssessmentStudentRepository.findById(savedMerged.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updatedNoPen = stagedAssessmentStudentRepository.findById(savedNoPen.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updatedMerged.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updatedMerged.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updatedNoPen.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updatedNoPen.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+  }
+
+  @Test
+  void testMarkStagedStudentsReadyForTransferOrDelete_WhenOnlyMergedAndNoPenFoundExist_ShouldMarkAllForDeletion() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    StagedAssessmentStudentEntity mergedStudent = createMockStagedStudentEntity(assessmentEntity);
+    mergedStudent.setStagedAssessmentStudentStatus("MERGED");
+    StagedAssessmentStudentEntity noPenStudent = createMockStagedStudentEntity(assessmentEntity);
+    noPenStudent.setStagedAssessmentStudentStatus("NOPENFOUND");
+
+    StagedAssessmentStudentEntity savedMerged = stagedAssessmentStudentRepository.save(mergedStudent);
+    StagedAssessmentStudentEntity savedNoPen = stagedAssessmentStudentRepository.save(noPenStudent);
+
+    int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
+
+    assertThat(updatedCount).isGreaterThanOrEqualTo(2);
+
+    // Verify both students were marked for deletion
+    StagedAssessmentStudentEntity updatedMerged = stagedAssessmentStudentRepository.findById(savedMerged.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updatedNoPen = stagedAssessmentStudentRepository.findById(savedNoPen.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updatedMerged.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updatedNoPen.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+  }
+
+  @Test
+  void testMarkStagedStudentsReadyForTransferOrDelete_WhenOnlyNonMergedNonNoPenFoundExist_ShouldMarkAllForTransfer() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    StagedAssessmentStudentEntity student1 = createMockStagedStudentEntity(assessmentEntity);
+    student1.setStagedAssessmentStudentStatus("PENMATCHED");
+    StagedAssessmentStudentEntity student2 = createMockStagedStudentEntity(assessmentEntity);
+    student2.setStagedAssessmentStudentStatus("LOADED");
+    StagedAssessmentStudentEntity student3 = createMockStagedStudentEntity(assessmentEntity);
+    student3.setStagedAssessmentStudentStatus("PROCESSING");
+
+    stagedAssessmentStudentRepository.save(student1);
+    stagedAssessmentStudentRepository.save(student2);
+    stagedAssessmentStudentRepository.save(student3);
+
+    int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
+
+    assertThat(updatedCount).isEqualTo(3);
+
+    List<StagedAssessmentStudentEntity> allStudents = stagedAssessmentStudentRepository.findAll();
+    assertThat(allStudents).hasSize(3);
+    assertThat(allStudents).allMatch(student -> "TRANSFER".equals(student.getStagedAssessmentStudentStatus()));
+    assertThat(allStudents).noneMatch(student -> "DELETE".equals(student.getStagedAssessmentStudentStatus()));
   }
 
   @Test
@@ -893,6 +1048,106 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   void testFindBatchOfTransferStudentIds_WhenNoTransferStudentsExist_ShouldReturnEmptyList() {
     List<StagedAssessmentStudentEntity> transferStudentIds = assessmentStudentService.findBatchOfTransferStudentIds(10);
     assertThat(transferStudentIds).isEmpty();
+  }
+
+  @Test
+  void testFindBatchOfDeleteStudentIds_WhenDeleteStudentsExist_ShouldReturnBatch() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    StagedAssessmentStudentEntity deleteStudent1 = createMockStagedStudentEntity(assessmentEntity);
+    deleteStudent1.setStagedAssessmentStudentStatus("DELETE");
+    StagedAssessmentStudentEntity deleteStudent2 = createMockStagedStudentEntity(assessmentEntity);
+    deleteStudent2.setStagedAssessmentStudentStatus("DELETE");
+    StagedAssessmentStudentEntity nonDeleteStudent = createMockStagedStudentEntity(assessmentEntity);
+    nonDeleteStudent.setStagedAssessmentStudentStatus("TRANSFER");
+
+    StagedAssessmentStudentEntity saved1 = stagedAssessmentStudentRepository.save(deleteStudent1);
+    StagedAssessmentStudentEntity saved2 = stagedAssessmentStudentRepository.save(deleteStudent2);
+    stagedAssessmentStudentRepository.save(nonDeleteStudent);
+
+    List<StagedAssessmentStudentEntity> deleteStudents = assessmentStudentService.findBatchOfDeleteStudentIds(10);
+
+    assertThat(deleteStudents).hasSize(2);
+    var deleteStudentIds = deleteStudents.stream().map(StagedAssessmentStudentEntity::getAssessmentStudentID).toList();
+    assertThat(deleteStudentIds).containsExactlyInAnyOrder(saved1.getAssessmentStudentID(), saved2.getAssessmentStudentID());
+  }
+
+  @Test
+  void testFindBatchOfDeleteStudentIds_WhenBatchSizeIsSmaller_ShouldRespectBatchSize() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    for (int i = 0; i < 5; i++) {
+      StagedAssessmentStudentEntity deleteStudent = createMockStagedStudentEntity(assessmentEntity);
+      deleteStudent.setStagedAssessmentStudentStatus("DELETE");
+      stagedAssessmentStudentRepository.save(deleteStudent);
+    }
+
+    List<StagedAssessmentStudentEntity> deleteStudentIds = assessmentStudentService.findBatchOfDeleteStudentIds(3);
+
+    assertThat(deleteStudentIds).hasSize(3);
+  }
+
+  @Test
+  void testFindBatchOfDeleteStudentIds_WhenNoDeleteStudentsExist_ShouldReturnEmptyList() {
+    List<StagedAssessmentStudentEntity> deleteStudentIds = assessmentStudentService.findBatchOfDeleteStudentIds(10);
+    assertThat(deleteStudentIds).isEmpty();
+  }
+
+  @Test
+  void testFindBatchOfDeleteStudentIds_WhenMixedStatusesExist_ShouldReturnOnlyDelete() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    StagedAssessmentStudentEntity deleteStudent = createMockStagedStudentEntity(assessmentEntity);
+    deleteStudent.setStagedAssessmentStudentStatus("DELETE");
+    StagedAssessmentStudentEntity transferStudent = createMockStagedStudentEntity(assessmentEntity);
+    transferStudent.setStagedAssessmentStudentStatus("TRANSFER");
+    StagedAssessmentStudentEntity mergedStudent = createMockStagedStudentEntity(assessmentEntity);
+    mergedStudent.setStagedAssessmentStudentStatus("MERGED");
+
+    StagedAssessmentStudentEntity savedDelete = stagedAssessmentStudentRepository.save(deleteStudent);
+    stagedAssessmentStudentRepository.save(transferStudent);
+    stagedAssessmentStudentRepository.save(mergedStudent);
+
+    List<StagedAssessmentStudentEntity> deleteStudents = assessmentStudentService.findBatchOfDeleteStudentIds(10);
+
+    assertThat(deleteStudents).hasSize(1);
+    assertThat(deleteStudents.getFirst().getAssessmentStudentID()).isEqualTo(savedDelete.getAssessmentStudentID());
+    assertThat(deleteStudents).allMatch(student -> "DELETE".equals(student.getStagedAssessmentStudentStatus()));
+  }
+
+  @Test
+  void testDeleteStagedStudents_WhenMultipleStudentsProvided_ShouldDeleteAllInBatch() {
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+    StagedAssessmentStudentEntity student1 = createMockStagedStudentEntity(assessmentEntity);
+    student1.setStagedAssessmentStudentStatus("DELETE");
+    StagedAssessmentStudentEntity student2 = createMockStagedStudentEntity(assessmentEntity);
+    student2.setStagedAssessmentStudentStatus("DELETE");
+    StagedAssessmentStudentEntity student3 = createMockStagedStudentEntity(assessmentEntity);
+    student3.setStagedAssessmentStudentStatus("DELETE");
+
+    StagedAssessmentStudentEntity saved1 = stagedAssessmentStudentRepository.save(student1);
+    StagedAssessmentStudentEntity saved2 = stagedAssessmentStudentRepository.save(student2);
+    StagedAssessmentStudentEntity saved3 = stagedAssessmentStudentRepository.save(student3);
+
+    // Verify students exist before batch delete
+    assertThat(stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID())).isPresent();
+    assertThat(stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID())).isPresent();
+    assertThat(stagedAssessmentStudentRepository.findById(saved3.getAssessmentStudentID())).isPresent();
+
+    // Perform batch delete
+    List<StagedAssessmentStudentEntity> studentsToDelete = List.of(saved1, saved2, saved3);
+    assessmentStudentService.deleteStagedStudents(studentsToDelete);
+
+    // Verify all students are deleted
+    assertThat(stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID())).isEmpty();
+    assertThat(stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID())).isEmpty();
+    assertThat(stagedAssessmentStudentRepository.findById(saved3.getAssessmentStudentID())).isEmpty();
+    assertThat(stagedAssessmentStudentRepository.findAll()).isEmpty();
   }
 
   @Test

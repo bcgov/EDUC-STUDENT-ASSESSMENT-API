@@ -3,8 +3,6 @@ package ca.bc.gov.educ.assessment.api.service.v1.events.schedulers;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.helpers.LogHelper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.orchestrator.TransferStudentProcessingOrchestrator;
 import ca.bc.gov.educ.assessment.api.orchestrator.base.Orchestrator;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
@@ -14,7 +12,6 @@ import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
 import ca.bc.gov.educ.assessment.api.service.v1.SessionService;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
 import ca.bc.gov.educ.assessment.api.service.v1.TransferStudentOrchestrationService;
-import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -122,6 +119,13 @@ public class EventTaskSchedulerAsyncService {
             log.debug("Found :: {} students marked for transfer in this batch", transferStudents.size());
             if(!transferStudents.isEmpty()) {
                 transferStudentOrchestrationService.prepareAndSendStudentsForFurtherProcessing(transferStudents);
+            } else {
+                final var deleteStudents = assessmentStudentService.findBatchOfDeleteStudentIds(batchSize);
+                log.debug("Found :: {} students marked for deletion in this batch", deleteStudents.size());
+                if(!deleteStudents.isEmpty()) {
+                    assessmentStudentService.deleteStagedStudents(deleteStudents);
+                    log.info("Successfully deleted {} staged students", deleteStudents.size());
+                }
             }
         }
     }

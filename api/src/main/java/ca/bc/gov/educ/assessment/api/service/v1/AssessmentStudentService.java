@@ -308,15 +308,15 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public int markStagedStudentsReadyForTransfer() {
+    public int markStagedStudentsReadyForTransferOrDelete() {
         LocalDateTime updateTime = LocalDateTime.now();
-        int updatedCount = stagedAssessmentStudentRepository.updateAllStagedAssessmentStudentStatus(
-            "TRANSFER",
+
+        int updatedCount = stagedAssessmentStudentRepository.updateAllStagedStudentsForTransferOrDelete(
             ApplicationProperties.STUDENT_ASSESSMENT_API,
             updateTime
         );
 
-        log.debug("Successfully marked {} staged students as ready for transfer", updatedCount);
+        log.debug("Successfully marked {} staged students as ready for transfer or deletion", updatedCount);
 
         return updatedCount;
     }
@@ -324,6 +324,11 @@ public class AssessmentStudentService {
     public List<StagedAssessmentStudentEntity> findBatchOfTransferStudentIds(int batchSize) {
         Pageable pageable = PageRequest.of(0, batchSize);
         return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("TRANSFER", pageable);
+    }
+
+    public List<StagedAssessmentStudentEntity> findBatchOfDeleteStudentIds(int batchSize) {
+        Pageable pageable = PageRequest.of(0, batchSize);
+        return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("DELETE", pageable);
     }
 
     public StagedAssessmentStudentEntity getStagedStudentById(UUID stagedStudentId) {
@@ -334,6 +339,10 @@ public class AssessmentStudentService {
 
     public void deleteStagedStudent(StagedAssessmentStudentEntity stagedAssessmentStudentEntity) {
         stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID());
+    }
+
+    public void deleteStagedStudents(List<StagedAssessmentStudentEntity> stagedAssessmentStudents) {
+        stagedAssessmentStudentRepository.deleteAll(stagedAssessmentStudents);
     }
 
     @Transactional(readOnly = true)
