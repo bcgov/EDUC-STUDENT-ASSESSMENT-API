@@ -83,17 +83,10 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
                 .size((long) testContent.length)
                 .build();
 
-        when(comsRestUtils.uploadObject(any(byte[].class), eq(testKey)))
+        when(comsRestUtils.uploadObject(any(byte[].class), anyString()))
                 .thenReturn(uploadResponse);
 
-        ObjectMetadata metadataResponse = ObjectMetadata.builder()
-                .id("test-object-id")
-                .path(testKey)
-                .size((long) testContent.length)
-                .build();
-        when(comsRestUtils.getObjectMetadata("test-object-id"))
-
-                .thenReturn(metadataResponse);
+        doNothing().when(comsRestUtils).makeObjectPublic(anyString());
 
         assertDoesNotThrow(() -> xamFileService.uploadToComs(testContent, testKey));
 
@@ -101,7 +94,7 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(comsRestUtils).uploadObject(contentCaptor.capture(), keyCaptor.capture());
-        verify(comsRestUtils).getObjectMetadata("test-object-id");
+        verify(comsRestUtils).makeObjectPublic(eq("test-object-id"));
 
         assertArrayEquals(testContent, contentCaptor.getValue());
         assertEquals(testKey, keyCaptor.getValue());
@@ -112,7 +105,7 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         byte[] testContent = "test content".getBytes();
         String testKey = "xam-files/12345678_" + UUID.randomUUID() + ".xam";
 
-        when(comsRestUtils.uploadObject(any(byte[].class), eq(testKey)))
+        when(comsRestUtils.uploadObject(any(byte[].class), anyString()))
             .thenThrow(new StudentAssessmentAPIRuntimeException("COMS upload failed"));
 
         StudentAssessmentAPIRuntimeException exception = assertThrows(StudentAssessmentAPIRuntimeException.class,
@@ -120,7 +113,7 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
 
         assertTrue(exception.getMessage().contains("Failed to upload file to COMS"));
 
-        verify(comsRestUtils, never()).getObjectMetadata(anyString());
+        verify(comsRestUtils, never()).makeObjectPublic(anyString());
     }
 
     @Test
@@ -128,26 +121,25 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         byte[] testContent = "test content".getBytes();
         String testKey = "xam-files/12345678_" + UUID.randomUUID() + ".xam";
 
+        // Upload response with null ID - validation should fail
         ObjectMetadata uploadResponse = ObjectMetadata.builder()
-                .id("test-object-id")
+                .id(null)  // NULL ID!
                 .path(testKey)
                 .name("test-file.xam")
                 .size((long) testContent.length)
                 .build();
 
-        when(comsRestUtils.uploadObject(any(byte[].class), eq(testKey)))
+        when(comsRestUtils.uploadObject(any(byte[].class), anyString()))
                 .thenReturn(uploadResponse);
-
-        when(comsRestUtils.getObjectMetadata("test-object-id"))
-                .thenThrow(new StudentAssessmentAPIRuntimeException("Object not found"));
 
         StudentAssessmentAPIRuntimeException exception = assertThrows(StudentAssessmentAPIRuntimeException.class,
                 () -> xamFileService.uploadToComs(testContent, testKey));
 
-        assertTrue(exception.getMessage().contains("File upload appeared successful but verification failed"));
+        assertTrue(exception.getMessage().contains("ID or Path is null"));
 
-        verify(comsRestUtils).uploadObject(any(byte[].class), eq(testKey));
-        verify(comsRestUtils).getObjectMetadata("test-object-id");
+        verify(comsRestUtils).uploadObject(any(byte[].class), anyString());
+        // Should not attempt to make public if validation failed
+        verify(comsRestUtils, never()).makeObjectPublic(anyString());
     }
 
     @Test
