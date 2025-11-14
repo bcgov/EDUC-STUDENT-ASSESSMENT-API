@@ -71,6 +71,8 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
     assessmentSessionRepository.deleteAll();
     stagedAssessmentStudentRepository.deleteAll();
 
+    reset(messagePublisher);
+
     AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
     savedAssessmentEntity = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTP10.getCode()));
     savedAssessmentFormEntity = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessmentEntity, "A"));
@@ -159,6 +161,9 @@ class EventTaskSchedulerTest extends BaseAssessmentAPITest {
 
   @Test
   void processDeleteStudents_WhenDeleteStudentsExist_ShouldDeleteThem() {
+    var allStudents = stagedAssessmentStudentRepository.findAll();
+    assertThat(allStudents).isEmpty();
+
     var stagedStudent1 = createMockStagedStudentEntity(savedAssessmentEntity);
     stagedStudent1.setStagedAssessmentStudentStatus("DELETE");
     var stagedStudent2 = createMockStagedStudentEntity(savedAssessmentEntity);

@@ -38,8 +38,8 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
         SET s.stagedAssessmentStudentStatus = :status,
             s.updateUser = :updateUser,
             s.updateDate = :updateDate
-        WHERE s.stagedAssessmentStudentStatus NOT IN ('MERGED', 'NOPENFOUND')""")
-    int updateStagedAssessmentStudentStatusToTransferIfNotInMergedNoPenFound(String status, String updateUser, LocalDateTime updateDate);
+        WHERE s.stagedAssessmentStudentStatus NOT IN ('MERGED', 'NOPENFOUND', 'DELETE', 'TRANSFER')""")
+    int updateStagedAssessmentStudentStatusToTransferIfNotIn(String status, String updateUser, LocalDateTime updateDate);
 
     @Modifying
     @Query("""

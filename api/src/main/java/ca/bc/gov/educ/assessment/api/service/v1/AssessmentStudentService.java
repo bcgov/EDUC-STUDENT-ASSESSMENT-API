@@ -319,7 +319,7 @@ public class AssessmentStudentService {
         );
 
         // Mark all other students for transfer
-        int transferCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusToTransferIfNotInMergedNoPenFound(
+        int transferCount = stagedAssessmentStudentRepository.updateStagedAssessmentStudentStatusToTransferIfNotIn(
             "TRANSFER",
             ApplicationProperties.STUDENT_ASSESSMENT_API,
             updateTime

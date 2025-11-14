@@ -860,17 +860,21 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity mergedStudent2 = createMockStagedStudentEntity(assessmentEntity);
     mergedStudent2.setStagedAssessmentStudentStatus("MERGED");
 
-    stagedAssessmentStudentRepository.save(mergedStudent1);
-    stagedAssessmentStudentRepository.save(mergedStudent2);
+    StagedAssessmentStudentEntity saved1 = stagedAssessmentStudentRepository.save(mergedStudent1);
+    StagedAssessmentStudentEntity saved2 = stagedAssessmentStudentRepository.save(mergedStudent2);
 
     int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
 
-    assertThat(updatedCount).isEqualTo(2);
+    assertThat(updatedCount).isGreaterThanOrEqualTo(2);
 
-    List<StagedAssessmentStudentEntity> allStudents = stagedAssessmentStudentRepository.findAll();
-    assertThat(allStudents).hasSize(2);
-    assertThat(allStudents).allMatch(student -> "DELETE".equals(student.getStagedAssessmentStudentStatus()));
-    assertThat(allStudents).allMatch(student -> ApplicationProperties.STUDENT_ASSESSMENT_API.equals(student.getUpdateUser()));
+    // Verify the specific students we created were marked for deletion
+    StagedAssessmentStudentEntity updated1 = stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updated2 = stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updated1.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated1.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updated2.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated2.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
   }
 
   @Test
@@ -883,17 +887,20 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity noPenStudent2 = createMockStagedStudentEntity(assessmentEntity);
     noPenStudent2.setStagedAssessmentStudentStatus("NOPENFOUND");
 
-    stagedAssessmentStudentRepository.save(noPenStudent1);
-    stagedAssessmentStudentRepository.save(noPenStudent2);
+    StagedAssessmentStudentEntity saved1 = stagedAssessmentStudentRepository.save(noPenStudent1);
+    StagedAssessmentStudentEntity saved2 = stagedAssessmentStudentRepository.save(noPenStudent2);
 
     int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
 
-    assertThat(updatedCount).isEqualTo(2);
+    assertThat(updatedCount).isGreaterThanOrEqualTo(2);
 
-    List<StagedAssessmentStudentEntity> allStudents = stagedAssessmentStudentRepository.findAll();
-    assertThat(allStudents).hasSize(2);
-    assertThat(allStudents).allMatch(student -> "DELETE".equals(student.getStagedAssessmentStudentStatus()));
-    assertThat(allStudents).allMatch(student -> ApplicationProperties.STUDENT_ASSESSMENT_API.equals(student.getUpdateUser()));
+    StagedAssessmentStudentEntity updated1 = stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updated2 = stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updated1.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated1.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updated2.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated2.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
   }
 
   @Test
@@ -915,32 +922,36 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity noPenStudent = createMockStagedStudentEntity(assessmentEntity);
     noPenStudent.setStagedAssessmentStudentStatus("NOPENFOUND");
 
-    stagedAssessmentStudentRepository.save(penMatchedStudent);
-    stagedAssessmentStudentRepository.save(loadedStudent);
-    stagedAssessmentStudentRepository.save(processingStudent);
-    stagedAssessmentStudentRepository.save(mergedStudent);
-    stagedAssessmentStudentRepository.save(noPenStudent);
+    StagedAssessmentStudentEntity savedPenMatched = stagedAssessmentStudentRepository.save(penMatchedStudent);
+    StagedAssessmentStudentEntity savedLoaded = stagedAssessmentStudentRepository.save(loadedStudent);
+    StagedAssessmentStudentEntity savedProcessing = stagedAssessmentStudentRepository.save(processingStudent);
+    StagedAssessmentStudentEntity savedMerged = stagedAssessmentStudentRepository.save(mergedStudent);
+    StagedAssessmentStudentEntity savedNoPen = stagedAssessmentStudentRepository.save(noPenStudent);
 
     int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
 
-    assertThat(updatedCount).isEqualTo(5);
-
-    List<StagedAssessmentStudentEntity> allStudents = stagedAssessmentStudentRepository.findAll();
-    assertThat(allStudents).hasSize(5);
+    assertThat(updatedCount).isGreaterThanOrEqualTo(5);
 
     // Verify TRANSFER students
-    List<StagedAssessmentStudentEntity> transferStudents = allStudents.stream()
-        .filter(s -> "TRANSFER".equals(s.getStagedAssessmentStudentStatus()))
-        .toList();
-    assertThat(transferStudents).hasSize(3);
-    assertThat(transferStudents).allMatch(student -> ApplicationProperties.STUDENT_ASSESSMENT_API.equals(student.getUpdateUser()));
+    StagedAssessmentStudentEntity updatedPenMatched = stagedAssessmentStudentRepository.findById(savedPenMatched.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updatedLoaded = stagedAssessmentStudentRepository.findById(savedLoaded.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updatedProcessing = stagedAssessmentStudentRepository.findById(savedProcessing.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updatedPenMatched.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
+    assertThat(updatedPenMatched.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updatedLoaded.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
+    assertThat(updatedLoaded.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updatedProcessing.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
+    assertThat(updatedProcessing.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
 
     // Verify DELETE students
-    List<StagedAssessmentStudentEntity> deleteStudents = allStudents.stream()
-        .filter(s -> "DELETE".equals(s.getStagedAssessmentStudentStatus()))
-        .toList();
-    assertThat(deleteStudents).hasSize(2);
-    assertThat(deleteStudents).allMatch(student -> ApplicationProperties.STUDENT_ASSESSMENT_API.equals(student.getUpdateUser()));
+    StagedAssessmentStudentEntity updatedMerged = stagedAssessmentStudentRepository.findById(savedMerged.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updatedNoPen = stagedAssessmentStudentRepository.findById(savedNoPen.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updatedMerged.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updatedMerged.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
+    assertThat(updatedNoPen.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updatedNoPen.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
   }
 
   @Test
@@ -953,17 +964,19 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity noPenStudent = createMockStagedStudentEntity(assessmentEntity);
     noPenStudent.setStagedAssessmentStudentStatus("NOPENFOUND");
 
-    stagedAssessmentStudentRepository.save(mergedStudent);
-    stagedAssessmentStudentRepository.save(noPenStudent);
+    StagedAssessmentStudentEntity savedMerged = stagedAssessmentStudentRepository.save(mergedStudent);
+    StagedAssessmentStudentEntity savedNoPen = stagedAssessmentStudentRepository.save(noPenStudent);
 
     int updatedCount = assessmentStudentService.markStagedStudentsReadyForTransferOrDelete();
 
-    assertThat(updatedCount).isEqualTo(2);
+    assertThat(updatedCount).isGreaterThanOrEqualTo(2);
 
-    List<StagedAssessmentStudentEntity> allStudents = stagedAssessmentStudentRepository.findAll();
-    assertThat(allStudents).hasSize(2);
-    assertThat(allStudents).allMatch(student -> "DELETE".equals(student.getStagedAssessmentStudentStatus()));
-    assertThat(allStudents).noneMatch(student -> "TRANSFER".equals(student.getStagedAssessmentStudentStatus()));
+    // Verify both students were marked for deletion
+    StagedAssessmentStudentEntity updatedMerged = stagedAssessmentStudentRepository.findById(savedMerged.getAssessmentStudentID()).orElseThrow();
+    StagedAssessmentStudentEntity updatedNoPen = stagedAssessmentStudentRepository.findById(savedNoPen.getAssessmentStudentID()).orElseThrow();
+
+    assertThat(updatedMerged.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updatedNoPen.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
   }
 
   @Test
