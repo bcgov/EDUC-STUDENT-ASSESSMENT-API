@@ -3,9 +3,7 @@ package ca.bc.gov.educ.assessment.api.endpoint.v1;
 import ca.bc.gov.educ.assessment.api.constants.v1.URL;
 import ca.bc.gov.educ.assessment.api.struct.OnCreate;
 import ca.bc.gov.educ.assessment.api.struct.OnUpdate;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentListItem;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentShowItem;
+import ca.bc.gov.educ.assessment.api.struct.v1.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -65,5 +63,14 @@ public interface AssessmentStudentEndpoint {
     @ResponseStatus(NO_CONTENT)
     ResponseEntity<Void> deleteStudents(@RequestBody List<UUID> assessmentStudentIDs,
                                         @RequestParam(name = "allowRuleOverride", defaultValue = "false") boolean allowRuleOverride) throws JsonProcessingException;
+
+    @PostMapping("/transfer")
+    @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_STUDENT')")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "404", description = "NOT FOUND"),
+        @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+        @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
+    List<AssessmentStudentValidationIssue> transferStudents(@RequestBody AssessmentStudentTransfer assessmentStudentTransfer) throws JsonProcessingException;
 
 }

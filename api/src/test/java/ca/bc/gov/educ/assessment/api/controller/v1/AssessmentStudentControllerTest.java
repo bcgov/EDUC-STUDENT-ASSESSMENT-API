@@ -11,6 +11,7 @@ import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentTransfer;
 import ca.bc.gov.educ.assessment.api.struct.v1.Search;
 import ca.bc.gov.educ.assessment.api.struct.v1.SearchCriteria;
 import ca.bc.gov.educ.assessment.api.struct.v1.ValueType;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static ca.bc.gov.educ.assessment.api.struct.v1.Condition.AND;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -862,5 +864,153 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[*].assessmentComponents[*].componentTypeCode").value(containsInAnyOrder("MUL_CHOICE", "OPEN_ENDED")))
             .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[0].assessmentComponents[0].assessmentQuestions", hasSize(1)))
             .andExpect(MockMvcResultMatchers.jsonPath("$.assessmentDetails.assessmentForms[1].assessmentComponents[0].assessmentQuestions", hasSize(1)));
+  }
+
+  @Test
+  void testTransferStudents_WhenValidTransfer_ShouldReturn200WithTransferredStudents() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    // Setup
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    AssessmentStudentEntity sourceStudent = createMockStudentEntity(assessment);
+    sourceStudent.setStudentID(sourceStudentID);
+    sourceStudent.setSchoolOfRecordSchoolID(schoolID);
+    sourceStudent.setProficiencyScore(3); // transfer requires result
+    UUID assessmentStudentID = studentRepository.save(sourceStudent).getAssessmentStudentID();
+
+    var sourceStudentApiStudent = this.createMockStudentAPIStudent();
+    sourceStudentApiStudent.setStudentID(sourceStudentID.toString());
+    sourceStudentApiStudent.setPen(sourceStudent.getPen());
+    sourceStudentApiStudent.setStatusCode("C");
+
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+
+    var targetStudentApiStudent = this.createMockStudentAPIStudent();
+    targetStudentApiStudent.setStudentID(targetStudentID.toString());
+    targetStudentApiStudent.setPen(targetPEN);
+    targetStudentApiStudent.setStatusCode("C"); // NOT merged
+    targetStudentApiStudent.setLegalFirstName(sourceStudent.getGivenName());
+    targetStudentApiStudent.setLegalLastName(sourceStudent.getSurname());
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudentApiStudent, targetStudentApiStudent));
+
+    var gradStudentRecord = this.createMockGradStudentAPIRecord();
+    gradStudentRecord.setStudentID(targetStudentID.toString());
+    gradStudentRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradStudentRecord.setStudentGrade("12");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    AssessmentStudentTransfer transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(assessmentStudentID))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    String requestBody = objectMapper.writeValueAsString(transferRequest);
+
+    // Test
+    this.mockMvc.perform(
+                    post(URL.BASE_URL_STUDENT + "/transfer")
+                            .with(mockAuthority)
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+    
+    assertThat(studentRepository.findById(assessmentStudentID).get().getStudentID()).isEqualTo(targetStudentID);
+    assertThat(studentRepository.findById(assessmentStudentID).get().getPen()).isEqualTo(targetPEN);
+  }
+
+  @Test
+  void testTransferStudents_WhenNoResult_ShouldReturn200WithValidationIssues() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    
+    UUID sourceStudentID = UUID.randomUUID();
+    AssessmentStudentEntity sourceStudent = createMockStudentEntity(assessment);
+    sourceStudent.setStudentID(sourceStudentID);
+    sourceStudent.setProficiencyScore(null); // NO result - should fail
+    UUID assessmentStudentID = studentRepository.save(sourceStudent).getAssessmentStudentID();
+
+
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+    
+    var sourceStudentApiStudent = this.createMockStudentAPIStudent();
+    sourceStudentApiStudent.setStudentID(sourceStudentID.toString());
+    sourceStudentApiStudent.setPen(sourceStudent.getPen());
+    sourceStudentApiStudent.setStatusCode("C");
+
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(targetPEN);
+    targetStudent.setStatusCode("C");
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudentApiStudent, targetStudent));
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    AssessmentStudentTransfer transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(assessmentStudentID))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    String requestBody = objectMapper.writeValueAsString(transferRequest);
+
+    this.mockMvc.perform(
+                    post(URL.BASE_URL_STUDENT + "/transfer")
+                            .with(mockAuthority)
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$[0].validationIssueCode", equalTo("TRANSFER_NO_RESULT")));
+  }
+
+  @Test
+  void testTransferStudents_WhenIncorrectScope_ShouldReturn403() throws Exception {
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+    final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    
+    UUID sourceStudentID = UUID.randomUUID();
+    AssessmentStudentEntity sourceStudent = createMockStudentEntity(assessment);
+    sourceStudent.setStudentID(sourceStudentID);
+    UUID assessmentStudentID = studentRepository.save(sourceStudent).getAssessmentStudentID();
+
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    AssessmentStudentTransfer transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(assessmentStudentID))
+        .build();
+    String requestBody = objectMapper.writeValueAsString(transferRequest);
+
+    this.mockMvc.perform(
+                    post(URL.BASE_URL_STUDENT + "/transfer")
+                            .with(mockAuthority)
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+            .andDo(print())
+            .andExpect(status().isForbidden());
   }
 }

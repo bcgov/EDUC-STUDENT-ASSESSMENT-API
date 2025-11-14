@@ -11,6 +11,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentTransfer;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,17 +20,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -69,6 +75,9 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
   @Autowired
   private AssessmentQuestionRepository assessmentQuestionRepository;
+
+  @SpyBean
+  private AssessmentRulesService assessmentRulesService;
 
   @AfterEach
   public void after() {
@@ -1298,5 +1307,508 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         assertThat(component.getAssessmentQuestionEntities()).hasSize(1);
       }
     }
+  }
+
+  @Test
+  void testTransferStudentAssessments_WhenValidTransferWithResult_ShouldUpdateStudentIDInPlace() throws JsonProcessingException {
+    // given: source student with assessment that HAS results
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    // Create source student assessment without results
+    UUID sourceStudentID = UUID.randomUUID();
+    AssessmentStudentEntity sourceStudentEntity = createMockStudentEntity(assessmentEntity);
+    sourceStudentEntity.setStudentID(sourceStudentID);
+    sourceStudentEntity.setSchoolOfRecordSchoolID(schoolID);
+    sourceStudentEntity.setPen("123456789");
+    sourceStudentEntity.setProficiencyScore(3); // HAS result
+    AssessmentStudentEntity savedStudent = assessmentStudentRepository.save(sourceStudentEntity);
+    UUID originalAssessmentStudentID = savedStudent.getAssessmentStudentID();
+
+
+    // Setup source and target students
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    sourceStudent.setStatusCode("C");
+    
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(targetPEN);
+    targetStudent.setStatusCode("C"); // Current/Active (NOT merged)
+    targetStudent.setLegalFirstName(sourceStudentEntity.getGivenName());
+    targetStudent.setLegalLastName(sourceStudentEntity.getSurname());
+    
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
+
+    GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
+    targetGradRecord.setStudentID(targetStudentID.toString());
+    targetGradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    targetGradRecord.setStudentGrade("12");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
+
+    // when: transferring assessment to target student
+    var transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(originalAssessmentStudentID))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    
+    var result = assessmentStudentService.transferStudentAssessments(transferRequest);
+
+    // then: assessment should still exist with same UUID but updated studentID
+    Optional<AssessmentStudentEntity> updatedEntity = assessmentStudentRepository.findById(originalAssessmentStudentID);
+    assertThat(updatedEntity).isPresent();
+    assertThat(updatedEntity.get().getStudentID()).isEqualTo(targetStudentID);
+    assertThat(updatedEntity.get().getPen()).isEqualTo(targetPEN);
+    assertThat(updatedEntity.get().getUpdateUser()).isEqualTo("TEST_USER");
+
+    // and: result should contain transferred assessment with no validation issues
+    assertThat(result.getLeft()).isEmpty(); // No validation issues
+    assertThat(result.getRight()).hasSize(2); // Events for source and target
+  }
+
+  @Test
+  void testTransferStudentAssessments_WhenSamePEN_ShouldReturnValidationIssue() throws JsonProcessingException {
+    // given: source assessment with PEN, attempting to transfer to same PEN
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+    String samePEN = "123456789";
+
+    AssessmentStudentEntity sourceAssessment = createMockStudentEntity(assessmentEntity);
+    sourceAssessment.setStudentID(sourceStudentID);
+    sourceAssessment.setPen(samePEN);
+    sourceAssessment.setProficiencyScore(3); // HAS result
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen(samePEN);
+    
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(samePEN); // SAME PEN as source
+    
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
+    
+    GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
+    targetGradRecord.setStudentID(targetStudentID.toString());
+    targetGradRecord.setSchoolOfRecordId(UUID.randomUUID().toString());
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
+
+    // when: attempting to transfer
+    var transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    
+    var result = assessmentStudentService.transferStudentAssessments(transferRequest);
+
+    // then: should return validation issue
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_SAME_PEN");
+    assertThat(result.getRight()).isEmpty();
+  }
+
+  @Test
+  void testTransferStudentAssessments_WhenTargetPENIsMerged_ShouldReturnValidationIssue() throws JsonProcessingException {
+    // given: target PEN is merged
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+
+    AssessmentStudentEntity sourceAssessment = createMockStudentEntity(assessmentEntity);
+    sourceAssessment.setStudentID(sourceStudentID);
+    sourceAssessment.setPen("123456789");
+    sourceAssessment.setProficiencyScore(3); // HAS result
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(targetPEN);
+    targetStudent.setStatusCode("M"); // MERGED
+    
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
+
+    // when: attempting to transfer
+    var transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    
+    var result = assessmentStudentService.transferStudentAssessments(transferRequest);
+
+    // then: should return validation issue
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_TO_MERGED_PEN");
+    assertThat(result.getRight()).isEmpty();
+  }
+
+  @Test
+  void testTransferStudentAssessments_WhenNoResult_ShouldReturnValidationIssue() throws JsonProcessingException {
+    // given: assessment with NO result (invalid scenario)
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    AssessmentStudentEntity student = createMockStudentEntity(assessmentEntity);
+    student.setStudentID(sourceStudentID);
+    student.setSchoolOfRecordSchoolID(schoolID);
+    student.setProficiencyScore(null); // NO result
+    student.setProvincialSpecialCaseCode(null); // NO special case
+    student = assessmentStudentRepository.save(student);
+
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(targetPEN);
+    targetStudent.setStatusCode("C");
+    
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
+
+    GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
+    targetGradRecord.setStudentID(targetStudentID.toString());
+    targetGradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    targetGradRecord.setStudentGrade("12");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
+
+    // when: attempting to transfer
+    var transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(student.getAssessmentStudentID()))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    
+    var result = assessmentStudentService.transferStudentAssessments(transferRequest);
+
+    // then: should return validation issue
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_NO_RESULT");
+    assertThat(result.getRight()).isEmpty();
+  }
+
+  @Test
+  void testTransferStudentAssessments_WhenTargetHasSameAssessment_ShouldReturnDuplicateIssue() throws JsonProcessingException {
+    // given: target already has same assessment/session with a result
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+
+    // Source assessment with result
+    AssessmentStudentEntity sourceAssessment = createMockStudentEntity(assessmentEntity);
+    sourceAssessment.setStudentID(sourceStudentID);
+    sourceAssessment.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment.setProficiencyScore(3); // HAS result
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    // Target already has same assessment in same session
+    AssessmentStudentEntity targetExistingAssessment = createMockStudentEntity(assessmentEntity);
+    targetExistingAssessment.setStudentID(targetStudentID);
+    targetExistingAssessment.setSchoolOfRecordSchoolID(schoolID);
+    targetExistingAssessment.setProficiencyScore(4);
+    assessmentStudentRepository.save(targetExistingAssessment);
+
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(targetPEN);
+    targetStudent.setStatusCode("C");
+    
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
+
+    GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
+    targetGradRecord.setStudentID(targetStudentID.toString());
+    targetGradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    targetGradRecord.setStudentGrade("12");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
+
+    // when: attempting to transfer
+    var transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    
+    doReturn(true).when(this.assessmentRulesService).hasStudentAssessmentDuplicate(eq(sourceStudentID), any(), any());
+
+    var result = assessmentStudentService.transferStudentAssessments(transferRequest);
+
+    // then: should return duplicate validation issue
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_HAS_DUPLICATE");
+    assertThat(result.getRight()).isEmpty();
+    assertThat(assessmentStudentRepository.findById(sourceAssessment.getAssessmentStudentID()).get().getStudentID()).isEqualTo(sourceStudentID);
+  }
+
+  @Test
+  void testTransferStudentAssessments_WhenSpecialCasePresent_ShouldTransferSuccessfully() throws JsonProcessingException {
+    // given: source assessment with provincial special case but no proficiency score
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    AssessmentStudentEntity sourceAssessment = createMockStudentEntity(assessmentEntity);
+    sourceAssessment.setStudentID(sourceStudentID);
+    sourceAssessment.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment.setProficiencyScore(null);
+    sourceAssessment.setProvincialSpecialCaseCode("A"); // special case counts as result
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen(sourceAssessment.getPen());
+    sourceStudent.setStatusCode("C");
+
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(targetPEN);
+    targetStudent.setStatusCode("C");
+    targetStudent.setLegalFirstName(sourceAssessment.getGivenName());
+    targetStudent.setLegalLastName(sourceAssessment.getSurname());
+
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
+
+    GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
+    targetGradRecord.setStudentID(targetStudentID.toString());
+    targetGradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    targetGradRecord.setStudentGrade("12");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
+
+    var transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+
+    var result = assessmentStudentService.transferStudentAssessments(transferRequest);
+
+    assertThat(result.getLeft()).isEmpty();
+    assertThat(result.getRight()).hasSize(2);
+    assertThat(assessmentStudentRepository.findById(sourceAssessment.getAssessmentStudentID()).get().getStudentID()).isEqualTo(targetStudentID);
+  }
+
+  @Test
+  void testTransferStudentAssessments_WhenMultipleAssessmentsWithResults_ShouldTransferAll() throws JsonProcessingException {
+    // given: source student with multiple assessments, all with results
+    AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    
+    AssessmentStudentEntity student1 = createMockStudentEntity(assessment1);
+    student1.setStudentID(sourceStudentID);
+    student1.setSchoolOfRecordSchoolID(schoolID);
+    student1.setProficiencyScore(3); // HAS result
+    student1 = assessmentStudentRepository.save(student1);
+
+    AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
+    student2.setStudentID(sourceStudentID);
+    student2.setSchoolOfRecordSchoolID(schoolID);
+    student2.setProvincialSpecialCaseCode("A"); // special case counts as result
+    student2 = assessmentStudentRepository.save(student2);
+
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+    
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    sourceStudent.setStatusCode("C");
+    
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(targetPEN);
+    targetStudent.setStatusCode("C");
+    targetStudent.setLegalFirstName(student1.getGivenName());
+    targetStudent.setLegalLastName(student1.getSurname());
+    
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
+
+    GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
+    targetGradRecord.setStudentID(targetStudentID.toString());
+    targetGradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    targetGradRecord.setStudentGrade("12");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
+
+    // when: transferring both assessments
+    var transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(student1.getAssessmentStudentID(), student2.getAssessmentStudentID()))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    
+    var result = assessmentStudentService.transferStudentAssessments(transferRequest);
+
+    // then: both assessments should be transferred
+    assertThat(result.getLeft()).isEmpty();
+    assertThat(result.getRight()).hasSize(2);
+    
+    assertThat(assessmentStudentRepository.findById(student1.getAssessmentStudentID()).get().getStudentID()).isEqualTo(targetStudentID);
+    assertThat(assessmentStudentRepository.findById(student2.getAssessmentStudentID()).get().getStudentID()).isEqualTo(targetStudentID);
+  }
+
+  @Test
+  void testTransferStudentAssessments_WhenAssessmentNotFound_ShouldThrowEntityNotFound() {
+    // given: non-existent assessment student ID
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+    UUID nonExistentAssessmentStudentID = UUID.randomUUID();
+
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(targetPEN);
+    
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
+
+    // when: attempting to transfer non-existent assessment
+    var transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(nonExistentAssessmentStudentID))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    
+    // then: should throw entity not found exception
+    assertThatThrownBy(() -> assessmentStudentService.transferStudentAssessments(transferRequest))
+        .isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
+  void testTransferStudentAssessments_WithMixedValidation_ShouldTransferNoneWhenAnyFails() throws JsonProcessingException {
+    // given: multiple assessments, one with result (valid), one without result (invalid) - testing all-or-nothing behavior
+    AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
+
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTP12.getCode()));
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTF12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    
+    // First student with result - valid for transfer
+    AssessmentStudentEntity validStudent = createMockStudentEntity(assessment1);
+    validStudent.setStudentID(sourceStudentID);
+    validStudent.setSchoolOfRecordSchoolID(schoolID);
+    validStudent.setProficiencyScore(3); // HAS result
+    validStudent = assessmentStudentRepository.save(validStudent);
+
+    // Second student without result - invalid for transfer
+    AssessmentStudentEntity invalidStudent = createMockStudentEntity(assessment2);
+    invalidStudent.setStudentID(sourceStudentID);
+    invalidStudent.setSchoolOfRecordSchoolID(schoolID);
+    invalidStudent.setProficiencyScore(null); // NO result
+    invalidStudent = assessmentStudentRepository.save(invalidStudent);
+
+    UUID targetStudentID = UUID.randomUUID();
+    String targetPEN = "987654321";
+    
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    sourceStudent.setStatusCode("C");
+    
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen(targetPEN);
+    targetStudent.setStatusCode("C");
+    targetStudent.setLegalFirstName(validStudent.getGivenName());
+    targetStudent.setLegalLastName(validStudent.getSurname());
+    
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
+
+    GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
+    targetGradRecord.setStudentID(targetStudentID.toString());
+    targetGradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    targetGradRecord.setStudentGrade("12");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
+
+    // when: transferring both
+    var transferRequest = AssessmentStudentTransfer.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(validStudent.getAssessmentStudentID(), invalidStudent.getAssessmentStudentID()))
+        .build();
+    transferRequest.setUpdateUser("TEST_USER");
+    
+    var result = assessmentStudentService.transferStudentAssessments(transferRequest);
+
+    // then: NOTHING transferred (all or nothing - one failed so all fail), one validation issue (result not allowed)
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_NO_RESULT");
+    assertThat(result.getRight()).isEmpty();
+    
+    // and: both remain unchanged (atomic transaction - all or nothing)
+    assertThat(assessmentStudentRepository.findById(validStudent.getAssessmentStudentID()).get().getStudentID()).isEqualTo(sourceStudentID);
+    assertThat(assessmentStudentRepository.findById(invalidStudent.getAssessmentStudentID()).get().getStudentID()).isEqualTo(sourceStudentID);
   }
 }

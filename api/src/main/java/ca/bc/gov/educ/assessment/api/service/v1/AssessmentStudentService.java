@@ -53,6 +53,7 @@ public class AssessmentStudentService {
     private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
     private final AssessmentStudentHistoryService assessmentStudentHistoryService;
     private final AssessmentRepository assessmentRepository;
+    private final AssessmentRulesService assessmentRulesService;
     private final AssessmentStudentRulesProcessor assessmentStudentRulesProcessor;
     private final RestUtils restUtils;
     private final StagedStudentResultRepository stagedStudentResultRepository;
@@ -378,5 +379,122 @@ public class AssessmentStudentService {
         }
 
         return dto;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Pair<List<AssessmentStudentValidationIssue>,  List<AssessmentEventEntity>> transferStudentAssessments(AssessmentStudentTransfer assessmentStudentTransfer) {
+
+        String sourceStudentID = String.valueOf(assessmentStudentTransfer.getSourceStudentID());
+        String targetStudentID = String.valueOf(assessmentStudentTransfer.getTargetStudentID());
+        
+        log.info("Transferring {} assessment students from {} to {}", assessmentStudentTransfer.getStudentAssessmentIDsToMove().size(), assessmentStudentTransfer.getSourceStudentID(), assessmentStudentTransfer.getTargetStudentID());
+
+        UUID correlationID = UUID.randomUUID();
+        Set<String> studentIDs = new HashSet<>();
+        studentIDs.add(sourceStudentID);
+        studentIDs.add(targetStudentID);
+        
+        List<Student> students = restUtils.getStudents(correlationID, studentIDs);
+
+        Student sourceStudentApiStudent = students.stream()
+                .filter(s -> s.getStudentID().equals(sourceStudentID))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException(Student.class, "sourceStudentID", sourceStudentID));
+
+        Student targetStudentApiStudent = students.stream()
+                .filter(s -> s.getStudentID().equals(targetStudentID))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException(Student.class, "targetStudentID", targetStudentID));
+
+        GradStudentRecord targetGradStudent = restUtils.getGradStudentRecordByStudentID(correlationID, assessmentStudentTransfer.getTargetStudentID())
+            .orElseThrow(() -> new EntityNotFoundException(GradStudentRecord.class, "targetStudentID", targetStudentID));
+
+        Pair<List<AssessmentStudentEntity>, List<AssessmentStudentValidationIssue>> validationResult = validateAssessments(sourceStudentApiStudent, targetStudentApiStudent, assessmentStudentTransfer.getStudentAssessmentIDsToMove());
+
+        List<AssessmentStudentEntity> validatedEntities = validationResult.getLeft();
+        List<AssessmentStudentValidationIssue> allValidationIssues = validationResult.getRight();
+        List<AssessmentEventEntity> events = new ArrayList<>();
+
+        if (allValidationIssues.isEmpty()) {
+            for (AssessmentStudentEntity assessmentStudentEntity : validatedEntities) {
+                assessmentStudentEntity.setStudentID(assessmentStudentTransfer.getTargetStudentID());
+                assessmentStudentEntity.setPen(targetStudentApiStudent.getPen());
+                assessmentStudentEntity.setSchoolOfRecordSchoolID(UUID.fromString(targetGradStudent.getSchoolOfRecordId()));
+                assessmentStudentEntity.setUpdateUser(assessmentStudentTransfer.getUpdateUser());
+                assessmentStudentEntity.setUpdateDate(LocalDateTime.now());
+                saveAssessmentStudentWithHistory(assessmentStudentEntity);
+            }
+            events.add(generateStudentUpdatedEvent(sourceStudentID));
+            events.add(generateStudentUpdatedEvent(targetStudentID));
+            assessmentEventRepository.saveAll(events);
+        }
+        
+        return Pair.of(allValidationIssues, events);
+    }
+
+    private Pair<List<AssessmentStudentEntity>, List<AssessmentStudentValidationIssue>> validateAssessments(Student sourceStudentApiStudent, Student targetStudentApiStudent, List<UUID> assessmentStudentIDs) {
+        
+        List<AssessmentStudentValidationIssue> allValidationIssues = new ArrayList<>();
+        
+        // Validation 1: Check if transferring to same PEN
+        if (sourceStudentApiStudent.getPen().equals(targetStudentApiStudent.getPen())) {
+            AssessmentStudentValidationIssue issue = AssessmentStudentValidationIssue.builder()
+                .validationIssueSeverityCode("ERROR")
+                .validationIssueCode("TRANSFER_SAME_PEN")
+                .validationIssueFieldCode("PEN")
+                .validationMessage("Cannot transfer assessment to the same student.")
+                .build();
+            allValidationIssues.add(issue);
+            return Pair.of(new ArrayList<>(), allValidationIssues);
+        }
+        
+        // Validation 2: Check if target PEN is merged
+        if ("M".equals(targetStudentApiStudent.getStatusCode())) {
+            AssessmentStudentValidationIssue issue = AssessmentStudentValidationIssue.builder()
+                .validationIssueSeverityCode("ERROR")
+                .validationIssueCode("TRANSFER_TO_MERGED_PEN")
+                .validationIssueFieldCode("PEN")
+                .validationMessage("Cannot transfer assessment to a merged PEN.")
+                .build();
+            allValidationIssues.add(issue);
+            return Pair.of(new ArrayList<>(), allValidationIssues);
+        }
+
+        List<AssessmentStudentEntity> validatedEntities = new ArrayList<>();
+        for (UUID assessmentStudentID : assessmentStudentIDs) {
+            AssessmentStudentEntity entity = assessmentStudentRepository.findById(assessmentStudentID)
+                    .orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "assessmentStudentID", assessmentStudentID.toString()));
+
+            // Validation 3: Must have a result (proficiency score OR special case)
+            boolean hasProficiencyScore = entity.getProficiencyScore() != null;
+            boolean hasProvincialSpecialCaseCode = entity.getProvincialSpecialCaseCode() != null;
+            boolean hasResult = hasProficiencyScore || hasProvincialSpecialCaseCode;
+            if (!hasResult) {
+                AssessmentStudentValidationIssue issue = AssessmentStudentValidationIssue.builder()
+                    .validationIssueSeverityCode("ERROR")
+                    .validationIssueCode("TRANSFER_NO_RESULT")
+                    .validationIssueFieldCode("ASSESSMENT_STUDENT_ID")
+                    .validationMessage("Can only transfer assessments that have a proficiency score or special case code.")
+                    .assessmentStudentID(assessmentStudentID.toString())
+                    .build();
+                allValidationIssues.add(issue);
+                continue;
+            }
+            //Validation 4: Target student must not already have the same assessment in the same session
+            boolean sourceStudentHasDuplicate = assessmentRulesService.hasStudentAssessmentDuplicate(UUID.fromString(sourceStudentApiStudent.getStudentID()), entity.getAssessmentEntity(), assessmentStudentID);
+            if(sourceStudentHasDuplicate) {
+                AssessmentStudentValidationIssue issue = AssessmentStudentValidationIssue.builder()
+                    .validationIssueSeverityCode("ERROR")
+                    .validationIssueCode("TRANSFER_HAS_DUPLICATE")
+                    .validationIssueFieldCode("ASSESSMENT_STUDENT_ID")
+                    .validationMessage("Cannot transfer assessment to student who already has the same assessment/session.")
+                    .assessmentStudentID(assessmentStudentID.toString())
+                    .build();
+                allValidationIssues.add(issue);
+                continue;
+            }
+            validatedEntities.add(entity);
+        }
+        return Pair.of(validatedEntities, allValidationIssues);
     }
 }
