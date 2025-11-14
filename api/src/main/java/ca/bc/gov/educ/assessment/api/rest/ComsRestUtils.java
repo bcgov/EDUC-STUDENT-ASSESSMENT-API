@@ -86,7 +86,7 @@ public class ComsRestUtils {
 
     /**
      * Create a child bucket (subfolder) in COMS
-     * Per COMS API: PUT /bucket/{bucketId}
+     * Per COMS API: PUT /bucket/{bucketId}/child
      *
      * @param parentBucketId the parent bucket ID
      * @param bucketName the subfolder name
@@ -100,7 +100,7 @@ public class ComsRestUtils {
             String requestBody = String.format("{\"bucketName\": \"%s\", \"subKey\": \"%s\"}", bucketName, subKey);
 
             Bucket childBucket = comsWebClient.put()
-                    .uri(BUCKET_PATH + "/" + parentBucketId)
+                    .uri(BUCKET_PATH + "/" + parentBucketId + "/child")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
@@ -140,9 +140,11 @@ public class ComsRestUtils {
 
     /**
      * Upload a file to COMS
+     * If the path contains a folder (e.g., "xam-files-202606/file.xam"),
+     * a child bucket will be created for that folder.
      *
      * @param content the file content as byte array
-     * @param path the path/key in the bucket (e.g., "xam-files-202501/12345678-202501-Results.xam")
+     * @param path the path/key in the bucket (e.g., "xam-files-202606/12345678-202606-Results.xam")
      * @return the uploaded object metadata
      */
     public ObjectMetadata uploadObject(byte[] content, String path) {
@@ -180,6 +182,7 @@ public class ComsRestUtils {
             log.info("Uploading object to COMS - Bucket: {} (ID: {}), Filename: {}, Size: {} bytes",
                     bucketName, targetBucketId, filename, content.length);
 
+            // Content-Disposition should only contain the filename, not the full path
             String contentDisposition = String.format("attachment; filename=\"%s\"", filename);
 
             log.info("COMS Upload - URL: {}/object?bucketId={}, Content-Disposition: {}, Content-Length: {}",
