@@ -65,14 +65,14 @@ class SessionServiceTest extends BaseAssessmentAPITest {
     private AssessmentSessionEntity testSession;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         Mockito.reset(sessionApprovalOrchestrator);
         testSession = assessmentSessionRepository.save(createMockSessionEntity());
         assessmentRepository.save(createMockAssessmentEntity(testSession, AssessmentTypeCodes.LTF12.getCode()));
     }
 
     @AfterEach
-    public void after() {
+    void after() {
         sagaEventRepository.deleteAll();
         sagaRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
@@ -145,8 +145,6 @@ class SessionServiceTest extends BaseAssessmentAPITest {
         assertTrue(sagaStarted, "Saga should have been triggered asynchronously");
         assertTrue(sagaWasCalledAsync.get(), "Saga method should have been called");
 
-        Thread.sleep(500);
-
         // Assert: Verify saga record was created in the background
         List<AssessmentSagaEntity> sagas = sagaRepository.findAll();
         assertThat(sagas).isNotEmpty();
@@ -190,8 +188,6 @@ class SessionServiceTest extends BaseAssessmentAPITest {
 
         // Assert: Verify saga was NOT triggered (only 2 signatures present)
         verify(sessionApprovalOrchestrator, never()).startXamFileGenerationSaga(any(UUID.class));
-
-        Thread.sleep(500);
 
         // Assert: No saga should exist
         List<AssessmentSagaEntity> sagas = sagaRepository.findAll();
