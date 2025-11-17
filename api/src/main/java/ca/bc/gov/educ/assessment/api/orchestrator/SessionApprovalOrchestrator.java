@@ -14,6 +14,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.ApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -129,6 +130,7 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
         log.debug("Posted completion message for saga step notifyGradOfUpdatedStudents: {}", saga.getSagaId());
     }
 
+    @Async("subscriberExecutor")
     public void startXamFileGenerationSaga(UUID sessionID) throws JsonProcessingException {
         var approvalSaga = ApprovalSagaData.builder().sessionID(sessionID.toString()).build();
         String payload = JsonUtil.getJsonStringFromObject(approvalSaga);
