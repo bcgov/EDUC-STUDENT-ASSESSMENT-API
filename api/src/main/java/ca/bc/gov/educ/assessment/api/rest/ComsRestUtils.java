@@ -36,7 +36,7 @@ public class ComsRestUtils {
     public Bucket createBucket(Bucket bucket) {
         try {
             log.info("Creating bucket in COMS: {}", bucket.getBucket());
-            return comsWebClient.post()
+            return comsWebClient.put()
                     .uri(BUCKET_PATH)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(bucket)
@@ -85,63 +85,169 @@ public class ComsRestUtils {
     }
 
     /**
+     * Create a child bucket (subfolder) in COMS
+     * Per COMS API: PUT /bucket/{bucketId}/child
+     *
+     * @param parentBucketId the parent bucket ID
+     * @param bucketName the subfolder display name (just the folder name, e.g., "xam-files-202606")
+     * @param subKey the relative path (e.g., "xam-files-202606")
+     * @return the created child bucket
+     */
+    public Bucket createChildBucket(String parentBucketId, String bucketName, String subKey) {
+        try {
+            log.info("Creating child bucket in COMS - Parent: {}, Name: {}, SubKey: {}", parentBucketId, bucketName, subKey);
+
+            String requestBody = String.format("{\"bucketName\": \"%s\", \"subKey\": \"%s\"}", bucketName, subKey);
+
+            Bucket childBucket = comsWebClient.put()
+                    .uri(BUCKET_PATH + "/" + parentBucketId + "/child")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(Bucket.class)
+                    .block();
+
+            log.info("Successfully created child bucket - ID: {}, Name: {}",
+                    childBucket != null ? childBucket.getBucketId() : "null",
+                    childBucket != null ? childBucket.getBucket() : "null");
+
+            return childBucket;
+        } catch (Exception e) {
+            log.error("Failed to create child bucket in COMS - SubKey: {}", subKey, e);
+            throw new StudentAssessmentAPIRuntimeException("Failed to create child bucket in COMS: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get or create a child bucket by subKey
+     * Attempts to find existing bucket first, creates if not found
+     */
+    public Bucket getOrCreateChildBucket(String parentBucketId, String bucketName, String subKey) {
+        try {
+            // Try to find existing child bucket
+            List<Bucket> buckets = getBuckets();
+            String fullPath = bucketName + "/" + subKey;
+
+            return buckets.stream()
+                    .filter(b -> fullPath.equals(b.getBucket()) || subKey.equals(b.getKey()))
+                    .findFirst()
+                    .orElseGet(() -> createChildBucket(parentBucketId, subKey, subKey));
+        } catch (Exception e) {
+            log.warn("Failed to get existing child bucket, attempting to create: {}", subKey);
+            return createChildBucket(parentBucketId, subKey, subKey);
+        }
+    }
+
+    /**
      * Upload a file to COMS
+     * If the path contains a folder (e.g., "xam-files-202606/file.xam"),
+     * a child bucket will be created for that folder.
+     * If the file already exists (409 Conflict), it will be deleted and replaced.
      *
      * @param content the file content as byte array
-     * @param path the path/key in the bucket (e.g., "xam-files-202501/12345678-202501-Results.xam")
+     * @param path the path/key in the bucket (e.g., "xam-files-202606/12345678-202606-Results.xam")
      * @return the uploaded object metadata
      */
     public ObjectMetadata uploadObject(byte[] content, String path) {
         try {
             String bucketName = applicationProperties.getS3BucketName();
 
-            // Get the bucket ID from the bucket name
-            Bucket bucket = getBucketByName(bucketName);
-            String bucketId = bucket.getBucketId();
+            // Get the parent bucket ID from the bucket name
+            Bucket parentBucket = getBucketByName(bucketName);
+            String parentBucketId = parentBucket.getBucketId();
 
             // Extract filename and folder path
-            String filename;
-            String folderPath = null;
+            final String filename;
+            final String folderPath;
             int lastSlash = path.lastIndexOf('/');
             if (lastSlash >= 0) {
                 filename = path.substring(lastSlash + 1);
                 folderPath = path.substring(0, lastSlash);
             } else {
                 filename = path;
+                folderPath = null;
             }
 
-            log.info("Uploading object to COMS - Bucket: {} (ID: {}), FolderPath: {}, Filename: {}, Size: {} bytes",
-                    bucketName, bucketId, folderPath, filename, content.length);
-
-            String contentDisposition;
+            // Determine which bucket to upload to
+            String targetBucketId;
             if (folderPath != null && !folderPath.isEmpty()) {
-                contentDisposition = String.format("attachment; filename=\"%s/%s\"", folderPath, filename);
+                // Create or get child bucket (subfolder)
+                log.info("Creating/getting child bucket for folder: {}", folderPath);
+                Bucket childBucket = getOrCreateChildBucket(parentBucketId, bucketName, folderPath);
+                targetBucketId = childBucket.getBucketId();
+                log.info("Using child bucket - ID: {}, Name: {}", targetBucketId, childBucket.getBucket());
             } else {
-                contentDisposition = String.format("attachment; filename=\"%s\"", filename);
+                targetBucketId = parentBucketId;
             }
+
+            log.info("Uploading object to COMS - Bucket: {} (ID: {}), Filename: {}, Size: {} bytes",
+                    bucketName, targetBucketId, filename, content.length);
+
+            // Content-Disposition should only contain the filename, not the full path
+            String contentDisposition = String.format("attachment; filename=\"%s\"", filename);
 
             log.info("COMS Upload - URL: {}/object?bucketId={}, Content-Disposition: {}, Content-Length: {}",
-                    applicationProperties.getComsEndpointUrl(), bucketId, contentDisposition, content.length);
+                    applicationProperties.getComsEndpointUrl(), targetBucketId, contentDisposition, content.length);
 
-            ObjectMetadata response = comsWebClient.put()
-                    .uri(uriBuilder -> uriBuilder
-                            .path(OBJECT_PATH)
-                            .queryParam("bucketId", bucketId)
-                            .build())
-                    .header("Content-Disposition", contentDisposition)
-                    .header("Content-Length", String.valueOf(content.length))
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .bodyValue(content)
-                    .retrieve()
-                    .bodyToMono(ObjectMetadata.class)
-                    .block();
+            try {
+                ObjectMetadata response = comsWebClient.put()
+                        .uri(uriBuilder -> uriBuilder
+                                .path(OBJECT_PATH)
+                                .queryParam("bucketId", targetBucketId)
+                                .build())
+                        .header("Content-Disposition", contentDisposition)
+                        .header("Content-Length", String.valueOf(content.length))
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .bodyValue(content)
+                        .retrieve()
+                        .bodyToMono(ObjectMetadata.class)
+                        .block();
 
-            log.info("Successfully uploaded object to COMS - ID: {}, Name: {}, Path: {}",
-                    response != null ? response.getId() : "null",
-                    response != null ? response.getName() : "null",
-                    response != null ? response.getPath() : "null");
+                log.info("Successfully uploaded object to COMS - ID: {}, Name: {}, Path: {}",
+                        response != null ? response.getId() : "null",
+                        response != null ? response.getName() : "null",
+                        response != null ? response.getPath() : "null");
 
-            return response;
+                return response;
+            } catch (org.springframework.web.reactive.function.client.WebClientResponseException.Conflict conflictEx) {
+                // 409 Conflict - object already exists, update it with new content
+                log.warn("Object already exists in COMS, updating with new content: {}", filename);
+                String responseBody = conflictEx.getResponseBodyAsString();
+
+                // Extract existingObjectId from response
+                String existingObjectId = null;
+                if (responseBody.contains("existingObjectId")) {
+                    int startIdx = responseBody.indexOf("existingObjectId\":\"") + 19;
+                    int endIdx = responseBody.indexOf("\"", startIdx);
+                    if (startIdx > 18 && endIdx > startIdx) {
+                        existingObjectId = responseBody.substring(startIdx, endIdx);
+                    }
+                }
+
+                if (existingObjectId != null) {
+                    log.info("Object already exists, updating existing object - ID: {}", existingObjectId);
+
+                    // Use PUT /object/{objectId} to update the existing object
+                    ObjectMetadata response = comsWebClient.put()
+                            .uri(OBJECT_PATH + "/" + existingObjectId)
+                            .header("Content-Length", String.valueOf(content.length))
+                            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                            .bodyValue(content)
+                            .retrieve()
+                            .bodyToMono(ObjectMetadata.class)
+                            .block();
+
+                    log.info("Successfully updated object in COMS - ID: {}, Name: {}, Path: {}",
+                            response != null ? response.getId() : "null",
+                            response != null ? response.getName() : "null",
+                            response != null ? response.getPath() : "null");
+
+                    return response;
+                } else {
+                    log.error("Could not extract existing object ID from conflict response: {}", responseBody);
+                    throw conflictEx;
+                }
+            }
         } catch (Exception e) {
             log.error("Failed to upload object to COMS - Path: {}", path, e);
             if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException webEx) {
@@ -176,7 +282,10 @@ public class ComsRestUtils {
         try {
             log.debug("Retrieving object metadata from COMS - ID: {}", objectId);
             return comsWebClient.get()
-                    .uri(OBJECT_PATH + "/" + objectId)
+                    .uri(uriBuilder -> uriBuilder
+                            .path(OBJECT_PATH + "/" + objectId)
+                            .queryParam("s3Mode", "false")
+                            .build())
                     .retrieve()
                     .bodyToMono(ObjectMetadata.class)
                     .block();
@@ -214,21 +323,20 @@ public class ComsRestUtils {
 
     /**
      * Add permissions to an object for specific users/roles
+     * COMS API spec: PUT /object/{objectId}/permissions with array body
      *
      * @param objectId the COMS object ID
-     * @param permissionType the permission type (e.g., "READ", "WRITE", "DELETE")
-     * @param userId the user ID to grant permission to (optional)
+     * @param permissionType the permission code (e.g., "READ", "UPDATE", "DELETE", "MANAGE")
+     * @param userId the user ID to grant permission to (required)
      */
     public void addObjectPermission(String objectId, String permissionType, String userId) {
         try {
             log.info("Adding {} permission to object {} for user {}", permissionType, objectId, userId);
 
-            String requestBody = userId != null
-                ? String.format("{\"permCodes\": [\"%s\"], \"userId\": \"%s\"}", permissionType, userId)
-                : String.format("{\"permCodes\": [\"%s\"]}", permissionType);
+            String requestBody = String.format("[{\"permCode\": \"%s\", \"userId\": \"%s\"}]", permissionType, userId);
 
             comsWebClient.put()
-                    .uri(OBJECT_PATH + "/" + objectId + "/permission")
+                    .uri(OBJECT_PATH + "/" + objectId + "/permissions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()

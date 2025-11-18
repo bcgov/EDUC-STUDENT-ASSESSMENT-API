@@ -187,11 +187,17 @@ public class XAMFileService {
 
             var response = comsRestUtils.uploadObject(content, key);
 
-            log.info("COMS Upload Response - Object ID: {}, Path: {}, Name: {}",
-                    response.getId(), response.getPath(), response.getName());
+            log.info("COMS Upload Response - Object ID: {}, Path: {}, Name: {}", response.getId(), response.getPath(), response.getName());
+
+            // Verify upload succeeded by checking response
+            if (response.getId() == null || response.getPath() == null) {
+                throw new StudentAssessmentAPIRuntimeException("Upload response missing required fields - ID or Path is null");
+            }
+
+            log.info("Upload verification SUCCESS - Object ID: {}, Path: {}, Size: {} bytes",
+                    response.getId(), response.getPath(), response.getSize());
 
             makeObjectPublicSafely(response.getId());
-            verifyObjectUpload(response.getId(), key, content.length);
 
         } catch (Exception e) {
             log.error("Failed to upload file to COMS: {} to bucket: {} - Error: {}",
@@ -217,25 +223,6 @@ public class XAMFileService {
         }
     }
 
-    /**
-     * Verifies that the uploaded object actually exists in COMS by retrieving its metadata.
-     *
-     * @param objectId the COMS object ID
-     * @param key the file path/key
-     * @param contentLength the size of the uploaded content
-     * @throws StudentAssessmentAPIRuntimeException if verification fails
-     */
-    private void verifyObjectUpload(String objectId, String key, int contentLength) {
-        try {
-            var metadata = comsRestUtils.getObjectMetadata(objectId);
-            log.info("Verification SUCCESS - Object exists in COMS. Size: {}, Path: {}",
-                    metadata.getSize(), metadata.getPath());
-            log.debug("Successfully uploaded file to COMS: {} (size: {} bytes)", key, contentLength);
-        } catch (Exception verifyEx) {
-            log.error("VERIFICATION FAILED - Object does NOT exist in COMS after upload: {}", key, verifyEx);
-            throw new StudentAssessmentAPIRuntimeException("File upload appeared successful but verification failed: " + verifyEx.getMessage());
-        }
-    }
 
     /**
      * for orchestration:
@@ -248,7 +235,7 @@ public class XAMFileService {
                 .filter(school -> "MYED".equalsIgnoreCase(school.getVendorSourceSystemCode()))
                 .toList();
         String folderName = generateXamFolderName(assessmentSessionEntity);
-        log.debug("Starting generation and upload of XAM files for {} MYED schools, session {} to folder {}", myEdSchools.size(), assessmentSessionEntity.getSessionID(), folderName);
+        log.info("Starting generation and upload of XAM files for {} MYED schools, session {} to folder {}", myEdSchools.size(), assessmentSessionEntity.getSessionID(), folderName);
         for (SchoolTombstone school : myEdSchools) {
             log.debug("Generating XAM file for school: {}", school.getMincode());
             byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);

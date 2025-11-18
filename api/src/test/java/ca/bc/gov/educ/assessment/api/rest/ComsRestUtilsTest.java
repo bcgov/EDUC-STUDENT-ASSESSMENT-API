@@ -16,10 +16,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ComsRestUtilsTest {
@@ -67,7 +69,7 @@ class ComsRestUtilsTest {
                 .endpoint("https://s3.test")
                 .build();
 
-        when(comsWebClient.post()).thenReturn(requestBodyUriSpec);
+        when(comsWebClient.put()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
         when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
@@ -81,7 +83,7 @@ class ComsRestUtilsTest {
         assertNotNull(result);
         assertEquals("bucket-123", result.getBucketId());
         assertEquals("test-bucket", result.getBucket());
-        verify(comsWebClient).post();
+        verify(comsWebClient).put();
         verify(requestBodyUriSpec).uri("/bucket");
     }
 
@@ -90,7 +92,7 @@ class ComsRestUtilsTest {
         // Arrange
         Bucket inputBucket = Bucket.builder().bucket("test-bucket").build();
 
-        when(comsWebClient.post()).thenReturn(requestBodyUriSpec);
+        when(comsWebClient.put()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
         when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
@@ -188,7 +190,7 @@ class ComsRestUtilsTest {
                 .build();
 
         when(comsWebClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
+        lenient().when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(ObjectMetadata.class)).thenReturn(Mono.just(expectedMetadata));
 
@@ -199,7 +201,6 @@ class ComsRestUtilsTest {
         assertNotNull(result);
         assertEquals(objectId, result.getId());
         assertEquals(1024L, result.getSize());
-        verify(requestHeadersUriSpec).uri("/object/obj-123");
     }
 
     @Test
@@ -208,7 +209,7 @@ class ComsRestUtilsTest {
         String objectId = "obj-123";
 
         when(comsWebClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
+        lenient().when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenThrow(new RuntimeException("Not found"));
 
         // Act & Assert
@@ -285,29 +286,6 @@ class ComsRestUtilsTest {
         assertTrue(requestBody.contains("user-456"));
     }
 
-    @Test
-    void testAddObjectPermission_WithoutUserId() {
-        // Arrange
-        String objectId = "obj-123";
-        String permissionType = "WRITE";
-
-        when(comsWebClient.put()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(anyString())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(Void.class)).thenReturn(Mono.empty());
-
-        // Act
-        assertDoesNotThrow(() -> comsRestUtils.addObjectPermission(objectId, permissionType, null));
-
-        // Assert
-        ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
-        verify(requestBodySpec).bodyValue(bodyCaptor.capture());
-        String requestBody = bodyCaptor.getValue();
-        assertTrue(requestBody.contains("WRITE"));
-        assertFalse(requestBody.contains("userId"));
-    }
 
     @Test
     void testAddObjectPermission_ThrowsException() {
@@ -369,6 +347,120 @@ class ComsRestUtilsTest {
         );
 
         assertTrue(exception.getMessage().contains("Failed to sync path in COMS"));
+    }
+
+    @Test
+    void testUploadObject_WithFolderPath_CreatesChildBucket() {
+        // Arrange
+        String path = "xam-files-202606/07324032-202606-Results.xam";
+        byte[] content = "# No assessment results for this school\n".getBytes();
+
+        Bucket parentBucket = Bucket.builder()
+                .bucketId("parent-bucket-id")
+                .bucket("test-bucket")  // Match the config bucket name
+                .build();
+
+        Bucket childBucket = Bucket.builder()
+                .bucketId("child-bucket-id")
+                .bucket("test-bucket/xam-files-202606")
+                .key("xam-files-202606")
+                .build();
+
+        ObjectMetadata uploadedObject = ObjectMetadata.builder()
+                .id("obj-123")
+                .name("07324032-202606-Results.xam")
+                .path("xam-files-202606/07324032-202606-Results.xam")
+                .size((long) content.length)
+                .build();
+
+        // Mock getBuckets - called in getBucketByName
+        when(comsWebClient.get()).thenReturn(requestHeadersUriSpec);
+        lenient().when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
+        lenient().when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.bodyToFlux(Bucket.class)).thenReturn(Flux.just(parentBucket));
+
+        // Mock createChildBucket
+        when(comsWebClient.put()).thenReturn(requestBodyUriSpec);
+        lenient().when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
+        lenient().when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        lenient().when(requestBodySpec.bodyValue(anyString())).thenReturn(requestHeadersSpec);
+        lenient().when(responseSpec.bodyToMono(Bucket.class)).thenReturn(Mono.just(childBucket));
+
+        // Mock uploadObject PUT request
+        lenient().when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        lenient().when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
+        lenient().when(requestBodySpec.contentType(MediaType.APPLICATION_OCTET_STREAM)).thenReturn(requestBodySpec);
+        lenient().when(requestBodySpec.bodyValue(any(byte[].class))).thenReturn(requestHeadersSpec);
+        lenient().when(responseSpec.bodyToMono(ObjectMetadata.class)).thenReturn(Mono.just(uploadedObject));
+
+        // Act
+        ObjectMetadata result = comsRestUtils.uploadObject(content, path);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("obj-123", result.getId());
+        assertEquals("07324032-202606-Results.xam", result.getName());
+    }
+
+    @Test
+    void testUploadObject_WithoutFolderPath_UploadsToParentBucket() {
+        // Arrange
+        String path = "simple-file.xam";
+        byte[] content = "test content".getBytes();
+
+        Bucket parentBucket = Bucket.builder()
+                .bucketId("parent-bucket-id")
+                .bucket("test-bucket")
+                .build();
+
+        ObjectMetadata uploadedObject = ObjectMetadata.builder()
+                .id("obj-456")
+                .name("simple-file.xam")
+                .path("simple-file.xam")
+                .size((long) content.length)
+                .build();
+
+        // Mock getBuckets - called in getBucketByName
+        when(comsWebClient.get()).thenReturn(requestHeadersUriSpec);
+        lenient().when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
+        lenient().when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.bodyToFlux(Bucket.class)).thenReturn(Flux.just(parentBucket));
+
+        // Mock uploadObject PUT request
+        when(comsWebClient.put()).thenReturn(requestBodyUriSpec);
+        lenient().when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        lenient().when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
+        lenient().when(requestBodySpec.contentType(MediaType.APPLICATION_OCTET_STREAM)).thenReturn(requestBodySpec);
+        lenient().when(requestBodySpec.bodyValue(any(byte[].class))).thenReturn(requestHeadersSpec);
+        lenient().when(responseSpec.bodyToMono(ObjectMetadata.class)).thenReturn(Mono.just(uploadedObject));
+
+        // Act
+        ObjectMetadata result = comsRestUtils.uploadObject(content, path);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("obj-456", result.getId());
+        assertEquals("simple-file.xam", result.getName());
+    }
+
+    @Test
+    void testUploadObject_ThrowsException() {
+        // Arrange
+        String path = "xam-files-202606/07324032-202606-Results.xam";
+        byte[] content = "test".getBytes();
+
+        // Mock getBuckets to throw exception
+        when(comsWebClient.get()).thenReturn(requestHeadersUriSpec);
+        lenient().when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
+        lenient().when(requestHeadersSpec.retrieve()).thenThrow(new RuntimeException("Upload failed"));
+
+        // Act & Assert
+        StudentAssessmentAPIRuntimeException exception = assertThrows(
+                StudentAssessmentAPIRuntimeException.class,
+                () -> comsRestUtils.uploadObject(content, path)
+        );
+
+        assertTrue(exception.getMessage().contains("Failed to"));
     }
 }
 

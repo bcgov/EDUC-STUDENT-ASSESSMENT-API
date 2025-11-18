@@ -58,13 +58,8 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(comsRestUtils.uploadObject(any(byte[].class), any(String.class)))
                 .thenReturn(uploadResponse);
 
-        ObjectMetadata metadataResponse = ObjectMetadata.builder()
-                .id("test-object-id")
-                .path("test-path")
-                .size(100L)
-                .build();
-        when(comsRestUtils.getObjectMetadata(any(String.class)))
-                .thenReturn(metadataResponse);
+        // Mock makeObjectPublic to do nothing (void method)
+        doNothing().when(comsRestUtils).makeObjectPublic(any(String.class));
 
         xamFileService = spy(new XAMFileService(studentRepository, sessionRepository, restUtils, comsRestUtils, applicationProperties, stagedStudentRepository));
     }
@@ -170,7 +165,55 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         assertDoesNotThrow(() -> xamFileService.uploadToComs(testContent, "dummyKey.txt"));
 
         verify(comsRestUtils).uploadObject(any(byte[].class), eq("dummyKey.txt"));
-        verify(comsRestUtils).getObjectMetadata(anyString());
+        verify(comsRestUtils).makeObjectPublic(eq("test-object-id"));
+    }
+
+    @Test
+    void testUploadToComs_failsWhenResponseMissingId() {
+        byte[] testContent = "test content".getBytes();
+
+        // Mock upload to return response with null ID
+        ObjectMetadata invalidResponse = ObjectMetadata.builder()
+                .id(null)  // Missing ID!
+                .path("test-path")
+                .name("test-file.xam")
+                .size(100L)
+                .build();
+        when(comsRestUtils.uploadObject(any(byte[].class), any(String.class)))
+                .thenReturn(invalidResponse);
+
+        // Should throw exception because ID is null
+        Exception exception = assertThrows(Exception.class,
+            () -> xamFileService.uploadToComs(testContent, "dummyKey.txt"));
+
+        assertTrue(exception.getMessage().contains("ID or Path is null"));
+
+        // Should not attempt to make public if validation failed
+        verify(comsRestUtils, never()).makeObjectPublic(anyString());
+    }
+
+    @Test
+    void testUploadToComs_failsWhenResponseMissingPath() {
+        byte[] testContent = "test content".getBytes();
+
+        // Mock upload to return response with null path
+        ObjectMetadata invalidResponse = ObjectMetadata.builder()
+                .id("test-id")
+                .path(null)  // Missing path!
+                .name("test-file.xam")
+                .size(100L)
+                .build();
+        when(comsRestUtils.uploadObject(any(byte[].class), any(String.class)))
+                .thenReturn(invalidResponse);
+
+        // Should throw exception because path is null
+        Exception exception = assertThrows(Exception.class,
+            () -> xamFileService.uploadToComs(testContent, "dummyKey.txt"));
+
+        assertTrue(exception.getMessage().contains("ID or Path is null"));
+
+        // Should not attempt to make public if validation failed
+        verify(comsRestUtils, never()).makeObjectPublic(anyString());
     }
 
     @Test
@@ -256,7 +299,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
 
     @Test
     void testUploadToComs_verifyFolderPathFormat() {
-        // Test that COMS upload accepts folder-prefixed keys
+        // Test that COMS upload accepts folder-prefixed keys and validates response
         byte[] testContent = "test XAM file content".getBytes();
         String folderKey = "xam-files-202510/TEST-202510-Results.xam";
 
@@ -264,6 +307,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
 
         // Verify the upload was made with the full path including folder prefix
         verify(comsRestUtils).uploadObject(testContent, folderKey);
-        verify(comsRestUtils).getObjectMetadata(anyString());
+        // Verify upload response was validated (makeObjectPublic only called if validation passed)
+        verify(comsRestUtils).makeObjectPublic(eq("test-object-id"));
     }
 }

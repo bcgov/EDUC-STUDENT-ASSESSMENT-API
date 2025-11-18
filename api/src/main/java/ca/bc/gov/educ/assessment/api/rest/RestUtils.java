@@ -491,7 +491,7 @@ public class RestUtils {
       if (responseMessage != null) {
         String responseData = new String(responseMessage.getData(), StandardCharsets.UTF_8);
 
-        Map<String, String> response = objectMapper.readValue(responseData, new TypeReference<>() {});
+        Map<String, Object> response = objectMapper.readValue(responseData, new TypeReference<>() {});
 
         log.debug("getGradStudentRecordByStudentID response{}", response.toString());
 

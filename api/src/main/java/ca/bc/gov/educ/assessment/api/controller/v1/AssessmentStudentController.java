@@ -9,9 +9,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentSearchService;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentListItem;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentShowItem;
+import ca.bc.gov.educ.assessment.api.struct.v1.*;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import ca.bc.gov.educ.assessment.api.util.RequestUtil;
 import ca.bc.gov.educ.assessment.api.util.ValidationUtil;
@@ -107,5 +105,17 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
     List<AssessmentEventEntity> events = studentService.deleteStudents(assessmentStudentIDs, allowRuleOverride);
     events.forEach(publisher::dispatchChoreographyEvent);
     return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  public List<AssessmentStudentValidationIssue> transferStudents(AssessmentStudentTransfer assessmentStudentTransfer) {
+    log.debug("Transfer student assessments request received: sourceStudentID={}, targetStudentID={}, count={}, updateUser={}",
+        assessmentStudentTransfer.getSourceStudentID(), assessmentStudentTransfer.getTargetStudentID(), assessmentStudentTransfer.getStudentAssessmentIDsToMove().size(), assessmentStudentTransfer.getUpdateUser());
+    
+    var pair = studentService.transferStudentAssessments(assessmentStudentTransfer);
+    if(pair.getRight() != null) {
+      pair.getRight().forEach(publisher::dispatchChoreographyEvent);
+    }
+    return pair.getLeft();
   }
 }
