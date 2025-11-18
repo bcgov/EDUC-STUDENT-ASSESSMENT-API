@@ -17,11 +17,11 @@ import java.util.UUID;
 public interface StagedStudentResultRepository extends JpaRepository<StagedStudentResultEntity, UUID>, JpaSpecificationExecutor<StagedStudentResultEntity> {
 
     @Query(value="""
-    SELECT stud.assessmentEntity.assessmentID as assessmentID, stud.stagedStudentResultID as stagedStudentResultID
+    SELECT stud.assessmentEntity.assessmentID as assessmentID, stud.pen as pen, stud.stagedStudentResultID as stagedStudentResultID
     FROM StagedStudentResultEntity stud
     WHERE stud.stagedStudentResultStatus = 'LOADED'
     AND (SELECT COUNT(saga) FROM AssessmentSagaEntity saga WHERE saga.status != 'COMPLETED' AND saga.stagedStudentResultID = stud.stagedStudentResultID AND saga.assessmentID=stud.assessmentEntity.assessmentID) = 0
-    GROUP BY stud.stagedStudentResultID, stud.assessmentEntity.assessmentID
+    GROUP BY stud.stagedStudentResultID, stud.assessmentEntity.assessmentID, stud.pen
     ORDER BY stud.stagedStudentResultID
     LIMIT :numberOfStudentsToProcess""")
     List<IStudentResultLoad> findTopLoadedStudentForProcessing(String numberOfStudentsToProcess);
