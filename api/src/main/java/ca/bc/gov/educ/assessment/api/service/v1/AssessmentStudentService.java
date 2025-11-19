@@ -296,8 +296,8 @@ public class AssessmentStudentService {
         return AssessmentResultsSummary
                 .builder()
                 .assessmentType(assessment.getAssessmentTypeCode())
-                .uploadedBy(stagedStudentResult.map(StagedStudentResultEntity::getCreateUser).orElseGet(() -> student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null)))
-                .uploadDate(stagedStudentResult.map(r -> r.getCreateDate().toString()).orElseGet(() -> student.map(s -> s.getCreateDate().toString()).orElse(null)))
+                .uploadedBy(stagedStudentResult.isPresent() ? null : student.map(StagedAssessmentStudentEntity::getCreateUser).orElse(null))
+                .uploadDate(stagedStudentResult.isPresent() ? null : student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
                 .build();
     }
 
