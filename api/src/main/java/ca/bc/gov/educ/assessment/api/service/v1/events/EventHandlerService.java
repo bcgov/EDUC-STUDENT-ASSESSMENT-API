@@ -207,7 +207,7 @@ public class EventHandlerService {
                     .createSaga(event.getEventPayload(),
                             ApplicationProperties.STUDENT_ASSESSMENT_API,
                             null,
-                            UUID.fromString(sagaData.getStagedStudentResultID()),
+                            null,
                             UUID.fromString(sagaData.getAssessmentID()),
                             sagaData.getPen());
             log.debug("Starting course student processing orchestrator :: {}", saga);

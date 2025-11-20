@@ -60,7 +60,6 @@ public class StudentAssessmentResultService {
                     val studentResultSagaData = new StudentResultSagaData();
                     studentResultSagaData.setAssessmentID(el.getAssessmentID());
                     studentResultSagaData.setPen(el.getPen());
-                    studentResultSagaData.setStagedStudentResultID(el.getStagedStudentResultID());
                     return studentResultSagaData;
                 }).toList();
         this.publishUnprocessedStudentRecordsForProcessing(resultSagaDatas);
