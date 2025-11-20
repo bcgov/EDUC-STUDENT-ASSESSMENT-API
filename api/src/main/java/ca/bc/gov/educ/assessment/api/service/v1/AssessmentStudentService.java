@@ -175,10 +175,12 @@ public class AssessmentStudentService {
                 BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "schoolID", "studentID", "givenName", "surName", "pen", "localID", "courseStatusCode", "createUser", "createDate");
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
                 currentAssessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), currentAssessmentStudentEntity.getStudentID())));
+                setSchoolOfRecordAtWriteIfExempt(currentAssessmentStudentEntity);
                 return assessmentStudentListItemMapper.toStructure(saveAssessmentStudentWithHistory(currentAssessmentStudentEntity));
             } else {
                 assessmentStudentEntity.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
                 assessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), assessmentStudentEntity.getStudentID())));
+                setSchoolOfRecordAtWriteIfExempt(assessmentStudentEntity);
                 return assessmentStudentListItemMapper.toStructure(saveAssessmentStudentWithHistory(assessmentStudentEntity));
             }
         }
@@ -189,6 +191,13 @@ public class AssessmentStudentService {
         studentWithValidationIssues.setAssessmentStudentValidationIssues(validationIssues);
 
         return studentWithValidationIssues;
+    }
+    
+    private void setSchoolOfRecordAtWriteIfExempt(AssessmentStudentEntity assessmentStudentEntity) {
+        if(assessmentStudentEntity.getSchoolOfRecordSchoolID() != null && assessmentStudentEntity.getSchoolAtWriteSchoolID() == null &&
+        StringUtils.isNotBlank(assessmentStudentEntity.getProvincialSpecialCaseCode()) && assessmentStudentEntity.getProvincialSpecialCaseCode().equalsIgnoreCase("E")) {
+            assessmentStudentEntity.setSchoolAtWriteSchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID());
+        }
     }
 
     public AssessmentStudentEntity saveAssessmentStudentWithHistory(AssessmentStudentEntity assessmentStudentEntity) {
