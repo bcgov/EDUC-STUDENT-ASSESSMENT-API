@@ -194,8 +194,7 @@ public class AssessmentStudentService {
     }
     
     private void setSchoolOfRecordAtWriteIfExempt(AssessmentStudentEntity assessmentStudentEntity) {
-        if(assessmentStudentEntity.getSchoolOfRecordSchoolID() != null && assessmentStudentEntity.getSchoolAtWriteSchoolID() == null &&
-        StringUtils.isNotBlank(assessmentStudentEntity.getProvincialSpecialCaseCode()) && assessmentStudentEntity.getProvincialSpecialCaseCode().equalsIgnoreCase("E")) {
+        if(assessmentStudentEntity.getSchoolOfRecordSchoolID() != null && assessmentStudentEntity.getSchoolAtWriteSchoolID() == null && StringUtils.isNotBlank(assessmentStudentEntity.getProvincialSpecialCaseCode())) {
             assessmentStudentEntity.setSchoolAtWriteSchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID());
         }
     }
