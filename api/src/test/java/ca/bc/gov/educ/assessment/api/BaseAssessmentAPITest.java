@@ -396,7 +396,7 @@ public abstract class BaseAssessmentAPITest {
 
 
   public StagedStudentResultEntity createMockStagedStudentResultEntity(AssessmentEntity assessmentEntity, UUID formID) {
-      StagedStudentResultEntity stagedStudentResultEntity = StagedStudentResultEntity.builder()
+      return StagedStudentResultEntity.builder()
       		.stagedStudentResultID(UUID.randomUUID())
       		.assessmentEntity(assessmentEntity)
       		.pen("120164447")
@@ -409,7 +409,6 @@ public abstract class BaseAssessmentAPITest {
       		.updateUser(assessmentEntity.getUpdateUser())
       		.updateDate(assessmentEntity.getUpdateDate())
       		.build();
-      return stagedStudentResultEntity;
   }
 
 
