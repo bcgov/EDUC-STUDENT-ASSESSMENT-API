@@ -108,10 +108,16 @@ public class AssessmentResultService {
 
         List<UUID> formIds = assessmentEntity.getAssessmentForms().stream().map(AssessmentFormEntity::getAssessmentFormID).toList();
 
+        var stud = stagedStudentResultRepository.findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(assessmentEntity.getAssessmentID());
+        if(stud.isPresent()) {
+            throw new ResultsFileUnProcessableException(RESULT_LOAD_ALREADY_IN_FLIGHT, correlationID, LOAD_FAIL);
+        }
+        
         Optional<StagedAssessmentStudentEntity> student = stagedAssessmentStudentRepository.findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(assessmentEntity.getAssessmentID(), formIds);
         if("N".equalsIgnoreCase(fileUpload.getReplaceResultsFlag()) && student.isPresent()) {
             throw new ConfirmationRequiredException(ApiError.builder().timestamp(LocalDateTime.now()).message(typeCode).status(PRECONDITION_REQUIRED).build());
         }
+        
         stagedAssessmentStudentRepository.deleteAllByAssessmentID(assessmentEntity.getAssessmentID());
 
         for(val studentResult : batchFile.getAssessmentResultData()) {

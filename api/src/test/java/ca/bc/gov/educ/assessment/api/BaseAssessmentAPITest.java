@@ -394,6 +394,25 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
+
+  public StagedStudentResultEntity createMockStagedStudentResultEntity(AssessmentEntity assessmentEntity, UUID formID) {
+      StagedStudentResultEntity stagedStudentResultEntity = StagedStudentResultEntity.builder()
+      		.stagedStudentResultID(UUID.randomUUID())
+      		.assessmentEntity(assessmentEntity)
+      		.pen("120164447")
+      		.mincode("00800008")
+      		.stagedStudentResultStatus("LOADED")
+      		.componentType("M")
+      		.assessmentFormID(formID)
+      		.createUser(assessmentEntity.getCreateUser())
+      		.createDate(assessmentEntity.getCreateDate())
+      		.updateUser(assessmentEntity.getUpdateUser())
+      		.updateDate(assessmentEntity.getUpdateDate())
+      		.build();
+      return stagedStudentResultEntity;
+  }
+
+
   public AssessmentStudentHistoryEntity createMockStudentHistoryEntity(AssessmentStudentEntity assessmentStudentEntity) {
     return AssessmentStudentHistoryEntity.builder()
             .assessmentStudentHistoryID(UUID.randomUUID())
