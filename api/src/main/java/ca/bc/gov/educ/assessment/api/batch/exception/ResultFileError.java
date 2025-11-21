@@ -35,6 +35,7 @@ public enum ResultFileError {
   INVALID_PEN("Invalid personal education number (PEN) on line $?."),
   INVALID_FORM_CODE("Invalid form code provided on line $?."),
   INVALID_KEY("Key does not exist for this assessment."),
+  RESULT_LOAD_ALREADY_IN_FLIGHT("Results are already being processed for this assessment."),
   INVALID_COMPONENT("Could not find valid component key on line $?."),
   INVALID_QUESTION("Could not find valid question key on line $?.");
 
