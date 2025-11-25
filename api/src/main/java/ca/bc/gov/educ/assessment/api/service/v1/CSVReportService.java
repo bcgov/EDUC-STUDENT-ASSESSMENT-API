@@ -110,10 +110,10 @@ public class CSVReportService {
     public DownloadableReportResponse generateNumberOfAttemptsReport(UUID sessionID) {
         assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         List<NumberOfAttemptsStudent> resultsNotNM = assessmentStudentRepository.findNumberOfAttemptsCountsNotNM();
-        List<NumberOfAttemptsStudent> resultsNM = assessmentStudentRepository.findNumberOfAttemptsCountsNM();
+//        List<NumberOfAttemptsStudent> resultsNM = assessmentStudentRepository.findNumberOfAttemptsCountsNM();
         var results = new ArrayList<NumberOfAttemptsStudent>();
         results.addAll(resultsNotNM);
-        results.addAll(resultsNM);
+//        results.addAll(resultsNM);
         List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values()).map(NumberOfAttemptsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .build();
