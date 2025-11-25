@@ -429,7 +429,7 @@
 					<textElement>
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{csf} ? "Résultats de la session par évaluation" : "Assessment Scores"]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{csf} ? "Résultats aux évaluations" : "Assessment Scores"]]></textFieldExpression>
 				</textField>
 				<rectangle>
 					<reportElement x="33" y="94" width="669" height="31" backcolor="#EDEDED" uuid="686d5055-93e3-4fef-b3c8-46fb68292717"/>
