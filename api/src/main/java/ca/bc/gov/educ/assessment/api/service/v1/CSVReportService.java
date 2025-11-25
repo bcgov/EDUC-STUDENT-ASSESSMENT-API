@@ -109,7 +109,11 @@ public class CSVReportService {
 
     public DownloadableReportResponse generateNumberOfAttemptsReport(UUID sessionID) {
         assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        List<NumberOfAttemptsStudent> results = assessmentStudentRepository.findNumberOfAttemptsCounts();
+        List<NumberOfAttemptsStudent> resultsNotNM = assessmentStudentRepository.findNumberOfAttemptsCountsNotNM();
+        List<NumberOfAttemptsStudent> resultsNM = assessmentStudentRepository.findNumberOfAttemptsCountsNM();
+        var results = new ArrayList<NumberOfAttemptsStudent>();
+        results.addAll(resultsNotNM);
+        results.addAll(resultsNM);
         List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values()).map(NumberOfAttemptsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .build();
@@ -612,10 +616,8 @@ public class CSVReportService {
     }
 
     private List<String> prepareNumberOfAttemptsDataForCsv(NumberOfAttemptsStudent student) {
-        String normalizedAssessmentTypeCode = student.getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NME10.getCode())
-                || student.getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NMF10.getCode()) ? "NM" : student.getAssessmentTypeCode();
         return new ArrayList<>(Arrays.asList(
-                normalizedAssessmentTypeCode,
+                student.getAssessmentTypeCode(),
                 student.getPen(),
                 student.getNumberOfAttempts()
         ));

@@ -65,10 +65,20 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     @Query(value="""
           select stud.pen as pen, stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode, count(*) as numberOfAttempts
           from AssessmentStudentEntity as stud
-          where (stud.proficiencyScore is not null
+          where stud.assessmentEntity.assessmentTypeCode not in ('NME', 'NMF', 'NME10', 'NMF10')
+          and (stud.proficiencyScore is not null
           or stud.provincialSpecialCaseCode in ('X','Q'))
           group by stud.pen, stud.assessmentEntity.assessmentTypeCode""")
-    List<NumberOfAttemptsStudent> findNumberOfAttemptsCounts();
+    List<NumberOfAttemptsStudent> findNumberOfAttemptsCountsNotNM();
+
+    @Query(value="""
+          select stud.pen as pen, SUBSTRING(stud.assessmentEntity.assessmentTypeCode, 1, 2) as assessmentTypeCode, count(*) as numberOfAttempts
+          from AssessmentStudentEntity as stud
+          where stud.assessmentEntity.assessmentTypeCode in ('NME', 'NMF', 'NME10', 'NMF10')
+          and (stud.proficiencyScore is not null
+          or stud.provincialSpecialCaseCode in ('X','Q'))
+          group by stud.pen, SUBSTRING(stud.assessmentEntity.assessmentTypeCode, 1, 2)""")
+    List<NumberOfAttemptsStudent> findNumberOfAttemptsCountsNM();
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> statuses);
 
