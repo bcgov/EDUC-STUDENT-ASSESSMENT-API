@@ -2,6 +2,7 @@ package ca.bc.gov.educ.assessment.api.repository.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentRegistrationTotalsBySchoolResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -60,6 +61,14 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     void updateDownloadDataAllByAssessmentSessionAndNoExemption(UUID assessmentSessionID, LocalDateTime downloadDate, String updateUser, LocalDateTime updateDate);
 
     List<AssessmentStudentEntity> findByStudentID(UUID studentID);
+
+    @Query(value="""
+          select stud.pen as pen, stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode, count(*) as numberOfAttempts
+          from AssessmentStudentEntity as stud
+          where (stud.proficiencyScore is not null
+          or stud.provincialSpecialCaseCode in ('X','Q'))
+          group by stud.pen, stud.assessmentEntity.assessmentTypeCode""")
+    List<NumberOfAttemptsStudent> findNumberOfAttemptsCounts();
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> statuses);
 

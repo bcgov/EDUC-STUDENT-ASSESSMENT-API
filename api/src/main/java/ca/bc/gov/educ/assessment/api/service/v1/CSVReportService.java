@@ -17,6 +17,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByFormQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -108,7 +109,7 @@ public class CSVReportService {
 
     public DownloadableReportResponse generateNumberOfAttemptsReport(UUID sessionID) {
         assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(sessionID, activeStatus);
+        List<NumberOfAttemptsStudent> results = assessmentStudentRepository.findNumberOfAttemptsCounts();
         List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values()).map(NumberOfAttemptsHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .build();
@@ -122,7 +123,7 @@ public class CSVReportService {
 
             csvPrinter.printRecord(headers);
 
-            for (AssessmentStudentEntity result : results) {
+            for (NumberOfAttemptsStudent result : results) {
                 List<String> csvRowData = prepareNumberOfAttemptsDataForCsv(result);
                 csvPrinter.printRecord(csvRowData);
             }
@@ -610,13 +611,13 @@ public class CSVReportService {
         };
     }
 
-    private List<String> prepareNumberOfAttemptsDataForCsv(AssessmentStudentEntity student) {
-        String normalizedAssessmentTypeCode = student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NME10.getCode())
-                || student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NMF10.getCode()) ? "NM" : student.getAssessmentEntity().getAssessmentTypeCode();
+    private List<String> prepareNumberOfAttemptsDataForCsv(NumberOfAttemptsStudent student) {
+        String normalizedAssessmentTypeCode = student.getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NME10.getCode())
+                || student.getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NMF10.getCode()) ? "NM" : student.getAssessmentTypeCode();
         return new ArrayList<>(Arrays.asList(
                 normalizedAssessmentTypeCode,
                 student.getPen(),
-                student.getNumberOfAttempts() != null ? Integer.toString(student.getNumberOfAttempts()) : null
+                student.getNumberOfAttempts()
         ));
     }
 
