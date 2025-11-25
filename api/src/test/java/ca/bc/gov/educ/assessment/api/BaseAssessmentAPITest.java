@@ -490,10 +490,36 @@ public abstract class BaseAssessmentAPITest {
             .build();
   }
 
+  public StagedAssessmentStudentComponentEntity createMockStagedAssessmentStudentComponentEntity(StagedAssessmentStudentEntity assessmentStudentEntity, UUID assessmentComponentID) {
+    return StagedAssessmentStudentComponentEntity.builder()
+            .assessmentStudentComponentID(UUID.randomUUID())
+            .stagedAssessmentStudentEntity(assessmentStudentEntity)
+            .assessmentComponentID(assessmentComponentID)
+            .choicePath("A")
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
   public AssessmentStudentAnswerEntity createMockAssessmentStudentAnswerEntity(UUID assessmentQuestionID, BigDecimal score, AssessmentStudentComponentEntity assessmentStudentComponentEntity) {
     return AssessmentStudentAnswerEntity.builder()
             .assessmentStudentAnswerID(UUID.randomUUID())
             .assessmentStudentComponentEntity(assessmentStudentComponentEntity)
+            .assessmentQuestionID(assessmentQuestionID)
+            .score(score)
+            .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .createDate(LocalDateTime.now())
+            .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+            .updateDate(LocalDateTime.now())
+            .build();
+  }
+
+  public StagedAssessmentStudentAnswerEntity createMockStagedAssessmentStudentAnswerEntity(UUID assessmentQuestionID, BigDecimal score, StagedAssessmentStudentComponentEntity assessmentStudentComponentEntity) {
+    return StagedAssessmentStudentAnswerEntity.builder()
+            .assessmentStudentAnswerID(UUID.randomUUID())
+            .stagedAssessmentStudentComponentEntity(assessmentStudentComponentEntity)
             .assessmentQuestionID(assessmentQuestionID)
             .score(score)
             .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)

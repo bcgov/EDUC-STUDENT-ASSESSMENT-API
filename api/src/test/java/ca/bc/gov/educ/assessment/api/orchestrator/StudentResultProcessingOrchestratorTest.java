@@ -6,10 +6,7 @@ import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentResultMapper;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentFormEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.StagedStudentResultEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
@@ -18,6 +15,7 @@ import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
+import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -30,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -81,6 +80,9 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
     @Autowired
     AssessmentChoiceRepository  assessmentChoiceRepository;
 
+    private AssessmentComponentEntity savedMultiComp;
+    private AssessmentComponentEntity savedOpenEndedComp;
+
     @BeforeEach
     void setUp() {
         sagaEventRepository.deleteAll();
@@ -101,21 +103,15 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
         savedAssessmentFormEntity = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessmentEntity, "A"));
 
         // Setup multiple choice questions (28 questions)
-        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedAssessmentFormEntity, "MUL_CHOICE", "NONE"));
+        savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedAssessmentFormEntity, "MUL_CHOICE", "NONE"));
         for(int i = 1; i < 29; i++) {
             assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
         }
 
         // Setup open-ended questions (4 questions)
-        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedAssessmentFormEntity, "OPEN_ENDED", "NONE"));
+        savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedAssessmentFormEntity, "OPEN_ENDED", "NONE"));
         assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(savedOpenEndedComp, 2, 1));
         assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(savedOpenEndedComp, 4, 4));
-
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
-
 
         GradStudentRecord gradStudentRecord = new GradStudentRecord();
         gradStudentRecord.setSchoolOfRecordId(UUID.randomUUID().toString());
@@ -131,6 +127,11 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
         var school = this.createMockSchoolTombstone();
         school.setMincode("07965039");
         when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
+
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
 
         Student stud1 = new Student();
         stud1.setStudentID(UUID.randomUUID().toString());
@@ -214,7 +215,10 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
         stud1.setTrueStudentID(UUID.randomUUID().toString());
         when(this.restUtils.getStudentByPEN(any(), any())).thenReturn(Optional.of(stud1));
 
-
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
         when(restUtils.getStudents(any(), any())).thenReturn(List.of(stud1));
 
         var studentResult = StagedStudentResultEntity
@@ -282,6 +286,10 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
         school.setMincode("07965039");
         when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
 
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
         when(this.restUtils.getStudentByPEN(any(), any())).thenReturn(Optional.empty());
 
         var studentResult = StagedStudentResultEntity
@@ -339,6 +347,72 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
         val stagedResult = stagedStudentResultRepository.findById(savedStudentResult.getStagedStudentResultID());
         assertThat(stagedResult).isPresent();
         assertThat(stagedResult.get().getStagedStudentResultStatus()).isEqualTo("COMPLETED");
+    }
+
+    @SneakyThrows
+    @Test
+    void testOrchestratorHandles_givenEventType_CALCULATE_STUDENT_DOAR_shouldExecuteCreateAndPopulateDOARCalculations() {
+        var studentEntity1 = createMockStagedStudentEntity(savedAssessmentEntity);
+        var componentEntity1 = createMockStagedAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
+        var componentEntity2 = createMockStagedAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
+
+        var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
+        for(int i = 1;i < multiQues.size() ;i++) {
+            if(i % 2 == 0) {
+                componentEntity1.getStagedAssessmentStudentAnswerEntities().add(createMockStagedAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ZERO, componentEntity1));
+            } else {
+                componentEntity1.getStagedAssessmentStudentAnswerEntities().add(createMockStagedAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ONE, componentEntity1));
+
+            }
+        }
+        var q1 = createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2);
+        q1.setMasterQuestionNumber(2);
+        var oe1 = assessmentQuestionRepository.save(q1);
+
+        var q2 = createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3);
+        q2.setMasterQuestionNumber(2);
+        assessmentQuestionRepository.save(q2);
+
+        var q3 = createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5);
+        q3.setMasterQuestionNumber(4);
+        assessmentQuestionRepository.save(q3);
+
+        var q4 = createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6);
+        q4.setMasterQuestionNumber(4);
+        var oe4 = assessmentQuestionRepository.save(q4);
+
+        componentEntity2.getStagedAssessmentStudentAnswerEntities().add(createMockStagedAssessmentStudentAnswerEntity(oe1.getAssessmentQuestionID(), BigDecimal.ONE, componentEntity2));
+        componentEntity2.getStagedAssessmentStudentAnswerEntities().add(createMockStagedAssessmentStudentAnswerEntity(oe4.getAssessmentQuestionID(), new BigDecimal(9999), componentEntity2));
+
+        studentEntity1.getStagedAssessmentStudentComponentEntities().addAll(List.of(componentEntity1, componentEntity2));
+        studentEntity1.setAssessmentFormID(savedAssessmentFormEntity.getAssessmentFormID());
+        studentEntity1.setStudentID(UUID.randomUUID());
+        stagedAssessmentStudentRepository.save(studentEntity1);
+
+        var sagaData = StudentResultSagaData
+                .builder()
+                .assessmentID(String.valueOf(studentEntity1.getAssessmentEntity().getAssessmentID()))
+                .pen(studentEntity1.getPen())
+                .build();
+
+        val saga = this.createStudentResultMockSaga(sagaData);
+        saga.setSagaId(null);
+        this.sagaRepository.save(saga);
+
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.CREATE_STUDENT_RESULT)
+                .eventOutcome(EventOutcome.STUDENT_RESULT_CREATED)
+                .eventPayload(JsonUtil.getJsonStringFromObject(sagaData))
+                .build();
+
+        studentResultProcessingOrchestrator.handleEvent(event);
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(studentResultProcessingOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.CALCULATE_STAGED_STUDENT_DOAR);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.STAGED_STUDENT_DOAR_CALCULATED);
     }
 
 }
