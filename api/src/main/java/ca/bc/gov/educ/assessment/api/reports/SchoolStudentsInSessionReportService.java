@@ -95,6 +95,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
           studentGradAssessmentNode.setSpecialCase(student.getProficiencyScore() == null && StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : "");
           studentNode.setGradAssessments(new ArrayList<>());
           studentNode.getGradAssessments().add(studentGradAssessmentNode);
+          log.info("Student is: " + studentNode);
           studentList.put(student.getStudentID(), studentNode);
         }else{
           var loadedStudent = studentList.get(student.getStudentID());
@@ -103,6 +104,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
           studentGradAssessmentNode.setProficiencyScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "");
           studentGradAssessmentNode.setSpecialCase(student.getProficiencyScore() == null && StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : "");
           loadedStudent.getGradAssessments().add(studentGradAssessmentNode);
+          log.info("Student is: " + loadedStudent);
         }
       });
 
