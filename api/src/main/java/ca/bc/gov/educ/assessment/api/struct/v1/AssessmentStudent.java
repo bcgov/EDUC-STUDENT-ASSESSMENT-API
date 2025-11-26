@@ -84,4 +84,6 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     private String downloadDate;
 
     private Boolean wroteFlag;
+
+    private Boolean didNotAttemptFlag; //when a student registered, but did not attempt to write the assessment. Used in grad algorithm
 }
