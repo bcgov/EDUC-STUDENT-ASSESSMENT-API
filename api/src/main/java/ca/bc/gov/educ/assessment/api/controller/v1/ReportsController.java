@@ -7,10 +7,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentRepor
 import ca.bc.gov.educ.assessment.api.endpoint.v1.ReportsEndpoint;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
-import ca.bc.gov.educ.assessment.api.reports.ISRReportService;
-import ca.bc.gov.educ.assessment.api.reports.DOARSummaryReportService;
-import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsByAssessmentReportService;
-import ca.bc.gov.educ.assessment.api.reports.SchoolStudentsInSessionReportService;
+import ca.bc.gov.educ.assessment.api.reports.*;
 import ca.bc.gov.educ.assessment.api.service.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
@@ -37,6 +34,7 @@ public class ReportsController implements ReportsEndpoint {
     private final SummaryReportService summaryReportService;
     private final SessionService sessionService;
     private final DOARSummaryReportService doarSummaryReportService;
+    private final DOARProvincialReportService doarProvincialReportService;
 
     @Override
     public DownloadableReportResponse getDownloadableReport(UUID sessionID, String type, String updateUser) {
@@ -102,6 +100,8 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.LTP12.getCode());
             case LTF12_ITEM_ANALYSIS:
                 return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.LTF12.getCode());
+            case DOAR_PROVINCIAL_SUMMARY:
+                return doarProvincialReportService.generateDOARProvincialReport(sessionID);
             default:
                 return new DownloadableReportResponse();
         }
