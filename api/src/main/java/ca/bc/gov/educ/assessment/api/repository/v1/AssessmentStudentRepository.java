@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Repository
 public interface AssessmentStudentRepository extends JpaRepository<AssessmentStudentEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentEntity> {
@@ -69,7 +70,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
           and (stud.proficiencyScore is not null
           or stud.provincialSpecialCaseCode in ('X','Q'))
           group by stud.pen, stud.assessmentEntity.assessmentTypeCode""")
-    List<NumberOfAttemptsStudent> findNumberOfAttemptsCountsNotNM();
+    Stream<NumberOfAttemptsStudent> streamNumberOfAttemptsCountsNotNM();
 
     @Query(value="""
           select stud.pen as pen, SUBSTRING(stud.assessmentEntity.assessmentTypeCode, 1, 2) as assessmentTypeCode, count(*) as numberOfAttempts
@@ -78,7 +79,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
           and (stud.proficiencyScore is not null
           or stud.provincialSpecialCaseCode in ('X','Q'))
           group by stud.pen, SUBSTRING(stud.assessmentEntity.assessmentTypeCode, 1, 2)""")
-    List<NumberOfAttemptsStudent> findNumberOfAttemptsCountsNM();
+    Stream<NumberOfAttemptsStudent> streamNumberOfAttemptsCountsNM();
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> statuses);
 

@@ -41,6 +41,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.*;
 
@@ -108,15 +109,15 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateNumberOfAttemptsReport(UUID sessionID) {
-        assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        List<NumberOfAttemptsStudent> resultsNotNM = assessmentStudentRepository.findNumberOfAttemptsCountsNotNM();
-        List<NumberOfAttemptsStudent> resultsNM = assessmentStudentRepository.findNumberOfAttemptsCountsNM();
-        var results = new ArrayList<NumberOfAttemptsStudent>();
-        results.addAll(resultsNotNM);
-        results.addAll(resultsNM);
-        List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values()).map(NumberOfAttemptsHeader::getCode).toList();
-        CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                .build();
+        assessmentSessionRepository.findById(sessionID)
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+
+        List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values())
+                .map(NumberOfAttemptsHeader::getCode)
+                .toList();
+
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
@@ -124,13 +125,31 @@ public class CSVReportService {
 
             csvPrinter.printRecord(List.of("Student Assessment Attempts                        Date: " + LocalDate.now()));
             csvPrinter.printRecord(List.of("--------------------------------------------------------------------------------"));
-
             csvPrinter.printRecord(headers);
 
-            for (NumberOfAttemptsStudent result : results) {
-                List<String> csvRowData = prepareNumberOfAttemptsDataForCsv(result);
-                csvPrinter.printRecord(csvRowData);
+            // Process both streams sequentially, writing directly to CSV without holding in memory
+            try (Stream<NumberOfAttemptsStudent> streamNotNM = assessmentStudentRepository.streamNumberOfAttemptsCountsNotNM()) {
+                streamNotNM.forEach(result -> {
+                    try {
+                        List<String> csvRowData = prepareNumberOfAttemptsDataForCsv(result);
+                        csvPrinter.printRecord(csvRowData);
+                    } catch (IOException e) {
+                        throw new StudentAssessmentAPIRuntimeException(e);
+                    }
+                });
             }
+
+            try (Stream<NumberOfAttemptsStudent> streamNM = assessmentStudentRepository.streamNumberOfAttemptsCountsNM()) {
+                streamNM.forEach(result -> {
+                    try {
+                        List<String> csvRowData = prepareNumberOfAttemptsDataForCsv(result);
+                        csvPrinter.printRecord(csvRowData);
+                    } catch (IOException e) {
+                        throw new StudentAssessmentAPIRuntimeException(e);
+                    }
+                });
+            }
+
             csvPrinter.flush();
 
             var downloadableReport = new DownloadableReportResponse();
