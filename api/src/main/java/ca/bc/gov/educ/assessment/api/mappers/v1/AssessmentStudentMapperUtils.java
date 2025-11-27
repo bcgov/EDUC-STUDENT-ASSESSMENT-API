@@ -8,6 +8,8 @@ import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentHistory;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentShowItem;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.LocalDateTime;
+
 public class AssessmentStudentMapperUtils {
     public static void setWroteFlag(AssessmentStudentEntity entity, AssessmentStudent assessmentStudent) {
         boolean hasProficiencyScore = entity.getProficiencyScore() != null;
@@ -16,6 +18,13 @@ public class AssessmentStudentMapperUtils {
                 || entity.getProvincialSpecialCaseCode().equals(ProvincialSpecialCaseCodes.DISQUALIFIED.getCode()));
 
         assessmentStudent.setWroteFlag(hasProficiencyScore || hasSpecialCaseCode);
+        assessmentStudent.setDidNotAttemptFlag(false);
+        if(!hasProficiencyScore && StringUtils.isBlank(entity.getProvincialSpecialCaseCode())) {
+            if(entity.getAssessmentEntity().getAssessmentSessionEntity().getCompletionDate() != null
+                && LocalDateTime.now().isAfter(entity.getAssessmentEntity().getAssessmentSessionEntity().getCompletionDate())) {
+                assessmentStudent.setDidNotAttemptFlag(true);
+            }
+        }
     }
 
     public static void setWroteFlag(AssessmentStudentHistorySearchEntity entity, AssessmentStudentHistory assessmentStudent) {

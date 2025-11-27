@@ -23,10 +23,10 @@ public interface StagedAssessmentStudentLightRepository extends JpaRepository<St
         count(case when stud.proficiencyScore = 2 then 1 end) as profScore2,
         count(case when stud.proficiencyScore = 3 then 1 end) as profScore3,
         count(case when stud.proficiencyScore = 4 then 1 end) as profScore4,
-        count(case when stud.provincialSpecialCaseCode = 'AEG' then 1 end) as aegCount,
-        count(case when stud.provincialSpecialCaseCode = 'NC' then 1 end) as ncCount,
-        count(case when stud.provincialSpecialCaseCode = 'DSQ' then 1 end) as dsqCount,
-        count(case when stud.provincialSpecialCaseCode = 'XMT' then 1 end) as xmtCount,
+        count(case when stud.provincialSpecialCaseCode = 'A' then 1 end) as aegCount,
+        count(case when stud.provincialSpecialCaseCode = 'X' then 1 end) as ncCount,
+        count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as dsqCount,
+        count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as xmtCount,
         count(stud.gradeAtRegistration) as total
         from StagedAssessmentStudentLightEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
@@ -42,10 +42,10 @@ public interface StagedAssessmentStudentLightRepository extends JpaRepository<St
         count(case when stud.proficiencyScore = 2 then 1 end) as profScore2,
         count(case when stud.proficiencyScore = 3 then 1 end) as profScore3,
         count(case when stud.proficiencyScore = 4 then 1 end) as profScore4,
-        count(case when stud.provincialSpecialCaseCode = 'AEG' then 1 end) as aegCount,
-        count(case when stud.provincialSpecialCaseCode = 'NC' then 1 end) as ncCount,
-        count(case when stud.provincialSpecialCaseCode = 'DSQ' then 1 end) as dsqCount,
-        count(case when stud.provincialSpecialCaseCode = 'XMT' then 1 end) as xmtCount,
+        count(case when stud.provincialSpecialCaseCode = 'A' then 1 end) as aegCount,
+        count(case when stud.provincialSpecialCaseCode = 'X' then 1 end) as ncCount,
+        count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as dsqCount,
+        count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as xmtCount,
         count(stud.assessmentFormID) as total
         from StagedAssessmentStudentLightEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
@@ -53,4 +53,14 @@ public interface StagedAssessmentStudentLightRepository extends JpaRepository<St
         group by stud.assessmentEntity.assessmentTypeCode, stud.assessmentFormID
     """)
     List<SummaryByFormQueryResponse> getSummaryByFormForSession(UUID sessionID);
+
+    @Query("""
+    select stud from StagedAssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and stud.stagedAssessmentStudentStatus = :studentStatusCode
+    and (stud.proficiencyScore is not null
+         or stud.provincialSpecialCaseCode = :provincialSpecialCaseCode)
+    """)
+    List<StagedAssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(UUID sessionID, String studentStatusCode, String provincialSpecialCaseCode);
+
 }
