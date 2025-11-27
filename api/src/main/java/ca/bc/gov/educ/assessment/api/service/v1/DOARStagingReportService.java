@@ -1,18 +1,14 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 
-import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
-import ca.bc.gov.educ.assessment.api.constants.v1.reports.*;
+import ca.bc.gov.educ.assessment.api.constants.v1.reports.DOARColumnLookup;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidParameterException;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentDOARCalculationRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
-import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
-import ca.bc.gov.educ.assessment.api.struct.v1.DOARCalculate;
-import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
+import ca.bc.gov.educ.assessment.api.struct.DOARStagingCalculate;
+import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -27,14 +23,12 @@ import java.util.*;
 
 @Service
 @Slf4j
-public class DOARReportService {
+public class DOARStagingReportService {
 
-    private final AssessmentSessionRepository assessmentSessionRepository;
-    private final AssessmentStudentRepository assessmentStudentRepository;
-    private final AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository;
-    private final DOARCalculateService doarCalculateService;
-    private EnumMap<DOARColumnLookup, DOARCalculate> map;
-    private static final String SESSION_ID = "sessionID";
+    private final StagedAssessmentStudentDOARCalculationRepository stagedAssessmentStudentDOARCalculationRepository;
+    private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
+    private final DOARStagingCalculateService doarCalculateService;
+    private EnumMap<DOARColumnLookup, DOARStagingCalculate> map;
     private static final String OPEN_ENDED = "OPEN_ENDED";
     private static final String MUL_CHOICE = "MUL_CHOICE";
     private static final String BOTH = "BOTH";
@@ -42,36 +36,17 @@ public class DOARReportService {
     private static final String LTP10 = "LTP10";
     private static final String LTF12= "LTF12";
 
-    public DOARReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository, DOARCalculateService doarCalculateService) {
-        this.assessmentSessionRepository = assessmentSessionRepository;
-        this.assessmentStudentRepository = assessmentStudentRepository;
-        this.assessmentStudentDOARCalculationRepository = assessmentStudentDOARCalculationRepository;
+    public DOARStagingReportService(StagedAssessmentStudentDOARCalculationRepository stagedAssessmentStudentDOARCalculationRepository, StagedAssessmentStudentRepository stagedAssessmentStudentRepository, DOARStagingCalculateService doarCalculateService) {
+        this.stagedAssessmentStudentDOARCalculationRepository = stagedAssessmentStudentDOARCalculationRepository;
+        this.stagedAssessmentStudentRepository = stagedAssessmentStudentRepository;
         this.doarCalculateService = doarCalculateService;
         init();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<List<String>> generateDetailedDOARBySchoolAndAssessmentType(UUID sessionID, SchoolTombstone schoolTombstone, String assessmentTypeCode) {
-        List<List<String>> csvRecords = new ArrayList<>();
-        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-
-        AssessmentEntity assessmentEntity = session.getAssessments().stream().filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode)).findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentTypeCode", assessmentTypeCode));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCode(assessmentEntity.getAssessmentID(), UUID.fromString(schoolTombstone.getSchoolId()), StudentStatusCodes.ACTIVE.getCode());
-
-        for (AssessmentStudentEntity result : results) {
-            var studentDOARCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentIDAndAssessmentID(result.getAssessmentStudentID(), result.getAssessmentEntity().getAssessmentID());
-            if(studentDOARCalc.isPresent()) {
-                List<String> csvRowData = prepareDOARForCsv(result, studentDOARCalc.get(), schoolTombstone.getMincode(), assessmentTypeCode);
-                csvRecords.add(csvRowData);
-            }
-        }
-        return csvRecords;
-    }
-
-    public String getStudentTotals(String componentType, String code, AssessmentFormEntity selectedAssessmentForm, AssessmentStudentEntity student, String assessmentTypeCode, boolean includeChoiceCalc) {
+    public String getStudentTotals(String componentType, String code, AssessmentFormEntity selectedAssessmentForm, StagedAssessmentStudentEntity student, String assessmentTypeCode, boolean includeChoiceCalc) {
         var lookup = map.get(DOARColumnLookup.getDOARColumn(componentType, code, assessmentTypeCode));
         if (lookup != null) {
-            return map.get(DOARColumnLookup.getDOARColumn(componentType, code, assessmentTypeCode)).calculateTotal(selectedAssessmentForm, student, code, includeChoiceCalc);
+            return map.get(DOARColumnLookup.getDOARColumn(componentType, code, assessmentTypeCode)).calculateStagingTotal(selectedAssessmentForm, student, code, includeChoiceCalc);
         } else {
             throw new InvalidParameterException("Column type does not exist for this report");
         }
@@ -114,48 +89,38 @@ public class DOARReportService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void createAndPopulateDOARSummaryCalculations(TransferOnApprovalSagaData sagaData) {
-        var assessmentStudentEntity = assessmentStudentRepository
-                .findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(sagaData.getAssessmentID()), UUID.fromString(sagaData.getStudentID()))
-                .orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "StudentID", sagaData.getStudentID()));
+    public void createAndPopulateDOARStagingSummaryCalculations(StudentResultSagaData studentResultSagaData) {
+        var stagedAssessmentStudentEntity = stagedAssessmentStudentRepository
+                .findByAssessmentEntity_assessmentIDAndPen(UUID.fromString(studentResultSagaData.getAssessmentID()), studentResultSagaData.getPen())
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "Pen", studentResultSagaData.getPen()));
 
-        var selectedAssessmentForm = assessmentStudentEntity.getAssessmentEntity().getAssessmentForms().stream()
-                .filter(assessmentFormEntity -> assessmentStudentEntity.getAssessmentFormID() != null
-                        && Objects.equals(assessmentFormEntity.getAssessmentFormID(), assessmentStudentEntity.getAssessmentFormID()))
+        var selectedAssessmentForm = stagedAssessmentStudentEntity.getAssessmentEntity().getAssessmentForms().stream()
+                .filter(assessmentFormEntity -> stagedAssessmentStudentEntity.getAssessmentFormID() != null
+                        && Objects.equals(assessmentFormEntity.getAssessmentFormID(), stagedAssessmentStudentEntity.getAssessmentFormID()))
                 .findFirst();
+
         if(selectedAssessmentForm.isPresent()) {
-            var assessmentStudentDOARCalculationEntity = prepareLTEDOARSummaryEntity(assessmentStudentEntity, selectedAssessmentForm.get(), assessmentStudentEntity.getAssessmentEntity().getAssessmentTypeCode());
-            assessmentStudentDOARCalculationEntity.setCreateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
-            assessmentStudentDOARCalculationEntity.setUpdateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
-            assessmentStudentDOARCalculationEntity.setCreateDate(LocalDateTime.now());
-            assessmentStudentDOARCalculationEntity.setUpdateDate(LocalDateTime.now());
-            assessmentStudentDOARCalculationRepository.save(assessmentStudentDOARCalculationEntity);
+            var stagedStudentDOARCalculationEntity = prepareDOARSummaryEntity(stagedAssessmentStudentEntity, selectedAssessmentForm.get(), stagedAssessmentStudentEntity.getAssessmentEntity().getAssessmentTypeCode());
+            stagedStudentDOARCalculationEntity.setCreateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
+            stagedStudentDOARCalculationEntity.setUpdateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
+            stagedStudentDOARCalculationEntity.setCreateDate(LocalDateTime.now());
+            stagedStudentDOARCalculationEntity.setUpdateDate(LocalDateTime.now());
+            stagedAssessmentStudentDOARCalculationRepository.save(stagedStudentDOARCalculationEntity);
         }
     }
 
-    private List<String> prepareDOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode, String assessmentTypeCode) {
-        return switch (assessmentTypeCode) {
-            case "NME10", "NMF10" -> prepareNMEDOARForCsv(student, studentDOARCalc, mincode);
-            case "LTE10", "LTE12" -> prepareLTEDOARForCsv(student, studentDOARCalc, mincode);
-            case LTP12 -> prepareLTP12DOARForCsv(student, studentDOARCalc, mincode);
-            case LTP10 -> prepareLTP10DOARForCsv(student, studentDOARCalc, mincode);
-            case LTF12 -> prepareLTF12DOARForCsv(student, studentDOARCalc, mincode);
-            default -> Collections.emptyList();
-        };
-    }
-
-    private AssessmentStudentDOARCalculationEntity prepareLTEDOARSummaryEntity(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String assessmentTypeCode) {
+    private StagedAssessmentStudentDOARCalculationEntity prepareDOARSummaryEntity(StagedAssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String assessmentTypeCode) {
         return switch (assessmentTypeCode) {
             case "NME10", "NMF10" -> prepareNMEDOAREntity(student, selectedAssessmentForm);
             case "LTE10", "LTE12" -> prepareLTEDOAREntity(student, selectedAssessmentForm);
             case LTP12 -> prepareLTP12DOAREntity(student, selectedAssessmentForm);
             case LTP10 -> prepareLTP10DOAREntity(student, selectedAssessmentForm);
             case LTF12 -> prepareLTF12DOAREntity(student, selectedAssessmentForm);
-            default -> AssessmentStudentDOARCalculationEntity.builder().build();
+            default -> StagedAssessmentStudentDOARCalculationEntity.builder().build();
         };
     }
 
-    private AssessmentStudentDOARCalculationEntity prepareLTEDOAREntity(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
+    private StagedAssessmentStudentDOARCalculationEntity prepareLTEDOAREntity(StagedAssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
         var taskComprehend = getStudentTotals(MUL_CHOICE, "C", selectedAssessmentForm, student, "LTE", true);
         var taskCommunicate = getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, "LTE", true);
 
@@ -170,7 +135,7 @@ public class DOARReportService {
         var dok2 = getStudentTotals("BOTH", "8", selectedAssessmentForm, student, "LTE", true);
         var dok3 = getStudentTotals("BOTH", "9", selectedAssessmentForm, student, "LTE", true);
 
-        return AssessmentStudentDOARCalculationEntity.builder()
+        return StagedAssessmentStudentDOARCalculationEntity.builder()
                 .assessmentStudentID(student.getAssessmentStudentID())
                 .assessmentID(student.getAssessmentEntity().getAssessmentID())
                 .taskComprehend(new BigDecimal(taskComprehend))
@@ -186,31 +151,7 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTEDOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
-        return new ArrayList<>(Arrays.asList(
-                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
-                mincode,
-                student.getAssessmentEntity().getAssessmentTypeCode(),
-                student.getPen(),
-                student.getLocalID(),
-                student.getSurname(),
-                student.getGivenName(),
-                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
-                student.getProvincialSpecialCaseCode(),
-                studentDOARCalc.getTaskComprehend().toString(),
-                studentDOARCalc.getTaskCommunicate().toString(),
-                studentDOARCalc.getComprehendPartA().toString(),
-                studentDOARCalc.getComprehendPartB().toString(),
-                studentDOARCalc.getCommunicateGraphicOrg().toString(),
-                studentDOARCalc.getCommunicateUnderstanding().toString(),
-                studentDOARCalc.getCommunicatePersonalConn().toString(),
-                studentDOARCalc.getDok1().toString(),
-                studentDOARCalc.getDok2().toString(),
-                studentDOARCalc.getDok3().toString()
-        ));
-    }
-
-    private AssessmentStudentDOARCalculationEntity prepareLTP12DOAREntity(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
+    private StagedAssessmentStudentDOARCalculationEntity prepareLTP12DOAREntity(StagedAssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
         var taskComprehend = getStudentTotals(MUL_CHOICE, "C", selectedAssessmentForm, student, LTP12, true);
         var taskCommunicate = getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, LTP12, true);
         var taskOral = getStudentTotals(OPEN_ENDED, "O", selectedAssessmentForm, student, LTP12, false);
@@ -230,7 +171,7 @@ public class DOARReportService {
         var dok2 = getStudentTotals("BOTH", "8", selectedAssessmentForm, student, LTP12, true);
         var dok3 = getStudentTotals("BOTH", "9", selectedAssessmentForm, student, LTP12, true);
 
-        return AssessmentStudentDOARCalculationEntity.builder()
+        return StagedAssessmentStudentDOARCalculationEntity.builder()
                 .assessmentStudentID(student.getAssessmentStudentID())
                 .assessmentID(student.getAssessmentEntity().getAssessmentID())
                 .taskComprehend(new BigDecimal(taskComprehend))
@@ -250,35 +191,7 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTP12DOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
-        return new ArrayList<>(Arrays.asList(
-                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
-                mincode,
-                student.getAssessmentEntity().getAssessmentTypeCode(),
-                student.getPen(),
-                student.getLocalID(),
-                student.getSurname(),
-                student.getGivenName(),
-                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
-                student.getProvincialSpecialCaseCode(),
-                studentDOARCalc.getTaskComprehend().toString(),
-                studentDOARCalc.getTaskCommunicate().toString(),
-                studentDOARCalc.getTaskOral().toString(),
-                studentDOARCalc.getComprehendPartA().toString(),
-                studentDOARCalc.getComprehendPartB().toString(),
-                studentDOARCalc.getCommunicateGraphicOrg().toString(),
-                studentDOARCalc.getCommunicateUnderstanding().toString(),
-                studentDOARCalc.getCommunicatePersonalConn().toString(),
-                studentDOARCalc.getCommunicateOralPart1().toString(),
-                studentDOARCalc.getCommunicateOralPart2().toString(),
-                studentDOARCalc.getCommunicateOralPart3().toString(),
-                studentDOARCalc.getDok1().toString(),
-                studentDOARCalc.getDok2().toString(),
-                studentDOARCalc.getDok3().toString()
-        ));
-    }
-
-    private AssessmentStudentDOARCalculationEntity prepareLTP10DOAREntity(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
+    private StagedAssessmentStudentDOARCalculationEntity prepareLTP10DOAREntity(StagedAssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
         var taskComprehend = getStudentTotals(MUL_CHOICE, "C", selectedAssessmentForm, student, LTP10, true);
         var taskCommunicate = getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, LTP10, true);
         var taskOral = getStudentTotals(OPEN_ENDED, "O", selectedAssessmentForm, student, LTP10 , true);
@@ -299,7 +212,7 @@ public class DOARReportService {
         var dok2 = getStudentTotals("BOTH", "8", selectedAssessmentForm, student, LTP10, true);
         var dok3 = getStudentTotals("BOTH", "9", selectedAssessmentForm, student, LTP10, true);
 
-        return AssessmentStudentDOARCalculationEntity.builder()
+        return StagedAssessmentStudentDOARCalculationEntity.builder()
                 .assessmentStudentID(student.getAssessmentStudentID())
                 .assessmentID(student.getAssessmentEntity().getAssessmentID())
                 .taskComprehend(new BigDecimal(taskComprehend))
@@ -320,36 +233,7 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTP10DOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
-        return new ArrayList<>(Arrays.asList(
-                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
-                mincode,
-                student.getAssessmentEntity().getAssessmentTypeCode(),
-                student.getPen(),
-                student.getLocalID(),
-                student.getSurname(),
-                student.getGivenName(),
-                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
-                student.getProvincialSpecialCaseCode(),
-                studentDOARCalc.getTaskComprehend().toString(),
-                studentDOARCalc.getTaskCommunicate().toString(),
-                studentDOARCalc.getTaskOral().toString(),
-                studentDOARCalc.getComprehendPartA().toString(),
-                studentDOARCalc.getComprehendPartB().toString(),
-                studentDOARCalc.getComprehendPartAShort().toString(),
-                studentDOARCalc.getCommunicateGraphicOrg().toString(),
-                studentDOARCalc.getCommunicateUnderstanding().toString(),
-                studentDOARCalc.getCommunicatePersonalConn().toString(),
-                studentDOARCalc.getCommunicateOralPart1().toString(),
-                studentDOARCalc.getCommunicateOralPart2().toString(),
-                studentDOARCalc.getCommunicateOralPart3().toString(),
-                studentDOARCalc.getDok1().toString(),
-                studentDOARCalc.getDok2().toString(),
-                studentDOARCalc.getDok3().toString()
-        ));
-    }
-
-    private AssessmentStudentDOARCalculationEntity prepareLTF12DOAREntity(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
+    private StagedAssessmentStudentDOARCalculationEntity prepareLTF12DOAREntity(StagedAssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
         var taskComprehend = getStudentTotals(MUL_CHOICE, "C", selectedAssessmentForm, student, LTF12, true);
         var taskCommunicate = getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, LTF12, true);
         var taskOral = getStudentTotals(OPEN_ENDED, "O", selectedAssessmentForm, student, LTF12 , true);
@@ -374,7 +258,7 @@ public class DOARReportService {
         var dok2 = getStudentTotals("BOTH", "8", selectedAssessmentForm, student, LTF12, true);
         var dok3 = getStudentTotals("BOTH", "9", selectedAssessmentForm, student, LTF12, true);
 
-        return AssessmentStudentDOARCalculationEntity.builder()
+        return StagedAssessmentStudentDOARCalculationEntity.builder()
                 .assessmentStudentID(student.getAssessmentStudentID())
                 .assessmentID(student.getAssessmentEntity().getAssessmentID())
                 .taskComprehend(new BigDecimal(taskComprehend))
@@ -398,39 +282,7 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTF12DOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
-        return new ArrayList<>(Arrays.asList(
-                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
-                mincode,
-                student.getAssessmentEntity().getAssessmentTypeCode(),
-                student.getPen(),
-                student.getLocalID(),
-                student.getSurname(),
-                student.getGivenName(),
-                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
-                student.getProvincialSpecialCaseCode(),
-                studentDOARCalc.getTaskComprehend().toString(),
-                studentDOARCalc.getTaskCommunicate().toString(),
-                studentDOARCalc.getTaskOral().toString(),
-                studentDOARCalc.getComprehendPartATask().toString(),
-                studentDOARCalc.getComprehendPartBInfo().toString(),
-                studentDOARCalc.getComprehendPartBExp().toString(),
-                studentDOARCalc.getComprehendPartAShort().toString(),
-                studentDOARCalc.getDissertationBackground().toString(),
-                studentDOARCalc.getDissertationForm().toString(),
-                studentDOARCalc.getCommunicateOralPart1Background().toString(),
-                studentDOARCalc.getCommunicateOralPart1Form().toString(),
-                studentDOARCalc.getCommunicateOralPart1Expression().toString(),
-                studentDOARCalc.getCommunicateOralPart2Background().toString(),
-                studentDOARCalc.getCommunicateOralPart2Form().toString(),
-                studentDOARCalc.getCommunicateOralPart2Expression().toString(),
-                studentDOARCalc.getDok1().toString(),
-                studentDOARCalc.getDok2().toString(),
-                studentDOARCalc.getDok3().toString()
-        ));
-    }
-
-    private AssessmentStudentDOARCalculationEntity prepareNMEDOAREntity(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
+    private StagedAssessmentStudentDOARCalculationEntity prepareNMEDOAREntity(StagedAssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
         var taskPlan = getStudentTotals(BOTH, "P", selectedAssessmentForm, student, "NME", false);
         var taskEstimate = getStudentTotals(BOTH, "R", selectedAssessmentForm, student, "NME", false);
         var taskFair = getStudentTotals(BOTH, "F", selectedAssessmentForm, student, "NME", false);
@@ -445,7 +297,7 @@ public class DOARReportService {
         var dok2 = getStudentTotals("BOTH", "8", selectedAssessmentForm, student, "NME", false);
         var dok3 = getStudentTotals("BOTH", "9", selectedAssessmentForm, student, "NME", false);
 
-        return AssessmentStudentDOARCalculationEntity.builder()
+        return StagedAssessmentStudentDOARCalculationEntity.builder()
                 .assessmentStudentID(student.getAssessmentStudentID())
                 .assessmentID(student.getAssessmentEntity().getAssessmentID())
                 .taskPlan(new BigDecimal(taskPlan))
@@ -460,31 +312,6 @@ public class DOARReportService {
                 .dok2(new BigDecimal(dok2))
                 .dok3(new BigDecimal(dok3))
                 .build();
-    }
-
-    private List<String> prepareNMEDOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
-        return new ArrayList<>(Arrays.asList(
-                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
-                mincode,
-                student.getAssessmentEntity().getAssessmentTypeCode(),
-                student.getPen(),
-                student.getLocalID(),
-                student.getSurname(),
-                student.getGivenName(),
-                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
-                student.getProvincialSpecialCaseCode(),
-                studentDOARCalc.getTaskPlan().toString(),
-                studentDOARCalc.getTaskEstimate().toString(),
-                studentDOARCalc.getTaskFair().toString(),
-                studentDOARCalc.getTaskModel().toString(),
-                studentDOARCalc.getNumeracyInterpret().toString(),
-                studentDOARCalc.getNumeracyApply().toString(),
-                studentDOARCalc.getNumeracySolve().toString(),
-                studentDOARCalc.getNumeracyAnalyze().toString(),
-                studentDOARCalc.getDok1().toString(),
-                studentDOARCalc.getDok2().toString(),
-                studentDOARCalc.getDok3().toString()
-        ));
     }
 
     private List<AssessmentQuestionEntity> getTaskCodeQuestionsForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String taskCode, String componentTypeCode) {
@@ -504,7 +331,7 @@ public class DOARReportService {
         return Collections.emptyList();
     }
 
-    private List<AssessmentQuestionEntity> getClaimCodeQuestionsForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String code, AssessmentStudentEntity student, String componentTypeCode, boolean includeChoiceCalc) {
+    private List<AssessmentQuestionEntity> getClaimCodeQuestionsForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String code, StagedAssessmentStudentEntity student, String componentTypeCode, boolean includeChoiceCalc) {
         if(!selectedAssessmentForm.getAssessmentComponentEntities().isEmpty()) {
             var componentList = selectedAssessmentForm.getAssessmentComponentEntities().stream()
                     .filter(assessmentComponentEntity ->
@@ -536,7 +363,7 @@ public class DOARReportService {
         return componentList.stream().map(AssessmentComponentEntity::getAssessmentQuestionEntities).findAny().isPresent();
     }
 
-    private List<AssessmentQuestionEntity> getConceptsCodeQuestionsForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String taskCode, AssessmentStudentEntity student, String componentTypeCode, boolean includeChoiceCalc) {
+    private List<AssessmentQuestionEntity> getConceptsCodeQuestionsForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String taskCode, StagedAssessmentStudentEntity student, String componentTypeCode, boolean includeChoiceCalc) {
         if(!selectedAssessmentForm.getAssessmentComponentEntities().isEmpty()) {
             var componentList = selectedAssessmentForm.getAssessmentComponentEntities().stream()
                     .filter(assessmentComponentEntity ->
@@ -564,7 +391,7 @@ public class DOARReportService {
         return Collections.emptyList();
     }
 
-    private List<AssessmentQuestionEntity> getCognitiveLevelCodeQuestionsForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String taskCode, AssessmentStudentEntity student, String componentTypeCode, boolean includeChoiceCalc) {
+    private List<AssessmentQuestionEntity> getCognitiveLevelCodeQuestionsForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String taskCode, StagedAssessmentStudentEntity student, String componentTypeCode, boolean includeChoiceCalc) {
         if(!selectedAssessmentForm.getAssessmentComponentEntities().isEmpty()) {
             var componentList = selectedAssessmentForm.getAssessmentComponentEntities().stream()
                     .filter(assessmentComponentEntity ->
@@ -592,18 +419,18 @@ public class DOARReportService {
         return Collections.emptyList();
     }
 
-    private String getChoicePathNotSelected(AssessmentStudentEntity student, AssessmentComponentEntity component) {
-        var studentComponent = student.getAssessmentStudentComponentEntities().stream()
+    private String getChoicePathNotSelected(StagedAssessmentStudentEntity student, AssessmentComponentEntity component) {
+        var studentComponent = student.getStagedAssessmentStudentComponentEntities().stream()
                 .filter(assessmentComponentEntity -> Objects.equals(assessmentComponentEntity.getAssessmentComponentID(), component.getAssessmentComponentID()))
                 .findFirst();
-        var selectedChoice = studentComponent.map(AssessmentStudentComponentEntity::getChoicePath).orElse(null);
+        var selectedChoice = studentComponent.map(StagedAssessmentStudentComponentEntity::getChoicePath).orElse(null);
         if(StringUtils.isNotBlank(selectedChoice) && selectedChoice.equalsIgnoreCase("I")) {
             return "E";
         }
         return "I";
     }
 
-    private List<AssessmentQuestionEntity> getQuestionsWithAssessmentSectionForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String code, AssessmentStudentEntity student, String componentTypeCode, boolean includeChoiceCalc) {
+    private List<AssessmentQuestionEntity> getQuestionsWithAssessmentSectionForSelectedForm(AssessmentFormEntity selectedAssessmentForm, String code, StagedAssessmentStudentEntity student, String componentTypeCode, boolean includeChoiceCalc) {
         if(!selectedAssessmentForm.getAssessmentComponentEntities().isEmpty()) {
             var componentList = selectedAssessmentForm.getAssessmentComponentEntities().stream()
                     .filter(assessmentComponentEntity ->

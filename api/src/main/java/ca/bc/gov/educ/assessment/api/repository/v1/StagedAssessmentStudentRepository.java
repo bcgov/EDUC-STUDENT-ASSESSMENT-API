@@ -59,4 +59,6 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
     List<StagedAssessmentStudentEntity> findByAssessmentFormIDIn(List<UUID> assessmentFormIDs);
 
     List<StagedAssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(UUID sessionID, UUID schoolAtWriteSchoolID, List<String> statuses);
+
+    Optional<StagedAssessmentStudentEntity> findByAssessmentEntity_assessmentIDAndPen(UUID assessmentID, String pen);
 }
