@@ -114,12 +114,13 @@ public class SessionService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public AssessmentSessionEntity approveAssessment(final AssessmentApproval assessmentApproval) {
-        var session = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID()));
+        AssessmentSessionEntity assessmentSession = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID()));
 
-        UUID sessionID = session.getSessionID();
-        var existingSaga = sagaService.findByAssessmentStudentIDAndSagaNameAndStatusNot(sessionID, SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.COMPLETED.toString());
+        // todo For GENERATE_XAM_FILES saga, sessionID is stored in assessmentStudentID field (see SessionApprovalOrchestrator.startXamFileGenerationSaga)
+        // we need to refactor this to correctly use a column for assessment assessmentSession id
+        var existingSaga = sagaService.findByAssessmentStudentIDAndSagaNameAndStatusNot(assessmentSession.getSessionID(), SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.COMPLETED.toString());
         if (existingSaga.isPresent()) {
-            log.warn("Session approval saga already running for session {}", sessionID);
+            log.warn("Session approval saga already running for assessmentSession {}", assessmentSession.getSessionID());
             throw new InvalidPayloadException(ApiError.builder()
                     .timestamp(LocalDateTime.now())
                     .message("Session approval is already in progress. Please wait for the current process to complete.")
@@ -127,39 +128,39 @@ public class SessionService {
                     .build());
         }
 
-        if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(session.getApprovalStudentCertUserID())){
-            throw new InvalidParameterException("Assessment session has already been approved by Student Cert User");
+        if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(assessmentSession.getApprovalStudentCertUserID())){
+            throw new InvalidParameterException("Assessment assessmentSession has already been approved by Student Cert User");
         }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID())){
-            session.setApprovalStudentCertUserID(assessmentApproval.getApprovalStudentCertUserID());
-            session.setApprovalStudentCertSignDate(LocalDateTime.now());
-        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentDesignUserID()) && StringUtils.isNotBlank(session.getApprovalAssessmentDesignUserID())){
-            throw new InvalidParameterException("Assessment session has already been approved by Assessment Design User");
+            assessmentSession.setApprovalStudentCertUserID(assessmentApproval.getApprovalStudentCertUserID());
+            assessmentSession.setApprovalStudentCertSignDate(LocalDateTime.now());
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentDesignUserID()) && StringUtils.isNotBlank(assessmentSession.getApprovalAssessmentDesignUserID())){
+            throw new InvalidParameterException("Assessment assessmentSession has already been approved by Assessment Design User");
         }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentDesignUserID())){
-            session.setApprovalAssessmentDesignUserID(assessmentApproval.getApprovalAssessmentDesignUserID());
-            session.setApprovalAssessmentDesignSignDate(LocalDateTime.now());
-        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentAnalysisUserID()) && StringUtils.isNotBlank(session.getApprovalAssessmentAnalysisUserID())){
-            throw new InvalidParameterException("Assessment session has already been approved by Assessment Analyst User");
+            assessmentSession.setApprovalAssessmentDesignUserID(assessmentApproval.getApprovalAssessmentDesignUserID());
+            assessmentSession.setApprovalAssessmentDesignSignDate(LocalDateTime.now());
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentAnalysisUserID()) && StringUtils.isNotBlank(assessmentSession.getApprovalAssessmentAnalysisUserID())){
+            throw new InvalidParameterException("Assessment assessmentSession has already been approved by Assessment Analyst User");
         }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentAnalysisUserID())){
-            session.setApprovalAssessmentAnalysisUserID(assessmentApproval.getApprovalAssessmentAnalysisUserID());
-            session.setApprovalAssessmentAnalysisSignDate(LocalDateTime.now());
+            assessmentSession.setApprovalAssessmentAnalysisUserID(assessmentApproval.getApprovalAssessmentAnalysisUserID());
+            assessmentSession.setApprovalAssessmentAnalysisSignDate(LocalDateTime.now());
         }
 
-        session.setActiveUntilDate(LocalDateTime.now());
+        assessmentSession.setActiveUntilDate(LocalDateTime.now());
 
-        AssessmentSessionEntity savedSession = assessmentSessionRepository.save(session);
+        AssessmentSessionEntity savedAssessmentSession = assessmentSessionRepository.save(assessmentSession);
 
-        if(StringUtils.isNotBlank(savedSession.getApprovalStudentCertUserID())
-                && StringUtils.isNotBlank(savedSession.getApprovalAssessmentDesignUserID())
-                && StringUtils.isNotBlank(savedSession.getApprovalAssessmentAnalysisUserID())) {
-            log.info("All three signoffs present for session {}. Triggering generate XAM file saga.", savedSession.getSessionID());
+        if(StringUtils.isNotBlank(savedAssessmentSession.getApprovalStudentCertUserID())
+                && StringUtils.isNotBlank(savedAssessmentSession.getApprovalAssessmentDesignUserID())
+                && StringUtils.isNotBlank(savedAssessmentSession.getApprovalAssessmentAnalysisUserID())) {
+            log.info("All three signoffs present for assessmentSession {}. Triggering generate XAM file saga.", savedAssessmentSession.getSessionID());
             try {
-                sessionApprovalOrchestrator.startXamFileGenerationSaga(savedSession.getSessionID());
+                sessionApprovalOrchestrator.startXamFileGenerationSaga(savedAssessmentSession.getSessionID());
             } catch (JsonProcessingException e) {
-                log.error("Error starting XAM file generation saga for session {}: {}", savedSession.getSessionID(), e.getMessage());
+                log.error("Error starting XAM file generation saga for assessmentSession {}: {}", savedAssessmentSession.getSessionID(), e.getMessage());
             }
         }
 
-        return savedSession;
+        return savedAssessmentSession;
     }
 
     public List<AssessmentSessionEntity> getSessionsBySchoolYear(String schoolYear) {
