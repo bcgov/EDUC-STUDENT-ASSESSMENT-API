@@ -20,9 +20,7 @@ public class AssessmentStudentMapperUtils {
         assessmentStudent.setWroteFlag(hasProficiencyScore || hasSpecialCaseCode);
         assessmentStudent.setDidNotAttemptFlag(false);
         if(!hasProficiencyScore && StringUtils.isBlank(entity.getProvincialSpecialCaseCode())) {
-            if(entity.getAssessmentEntity() != null
-                && entity.getAssessmentEntity().getAssessmentSessionEntity() != null
-                && entity.getAssessmentEntity().getAssessmentSessionEntity().getCompletionDate() != null
+            if(entity.getAssessmentEntity().getAssessmentSessionEntity().getCompletionDate() != null
                 && LocalDateTime.now().isAfter(entity.getAssessmentEntity().getAssessmentSessionEntity().getCompletionDate())) {
                 assessmentStudent.setDidNotAttemptFlag(true);
             }
