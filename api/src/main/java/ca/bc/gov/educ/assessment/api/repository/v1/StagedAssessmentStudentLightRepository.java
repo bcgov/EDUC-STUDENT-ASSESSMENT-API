@@ -55,4 +55,14 @@ public interface StagedAssessmentStudentLightRepository extends JpaRepository<St
         group by stud.assessmentEntity.assessmentTypeCode, stud.assessmentFormID
     """)
     List<SummaryByFormQueryResponse> getSummaryByFormForSession(UUID sessionID);
+
+    @Query("""
+    select stud from StagedAssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and stud.stagedAssessmentStudentStatus = :studentStatusCode
+    and (stud.proficiencyScore is not null
+         or stud.provincialSpecialCaseCode = :provincialSpecialCaseCode)
+    """)
+    List<StagedAssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(UUID sessionID, String studentStatusCode, String provincialSpecialCaseCode);
+
 }
