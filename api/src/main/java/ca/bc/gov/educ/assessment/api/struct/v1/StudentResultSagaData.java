@@ -17,4 +17,5 @@ public class StudentResultSagaData implements Serializable {
   private static final long serialVersionUID = -2329245910142215178L;
   private String assessmentID;
   private String pen;
+  private String stagedStudentResultID;
 }

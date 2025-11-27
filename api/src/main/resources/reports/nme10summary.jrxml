@@ -31,7 +31,7 @@
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="85" width="190" height="216" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="e34cd20d-59fd-4469-8aea-20727e814ecd">
+				<reportElement mode="Opaque" x="0" y="85" width="181" height="216" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="e34cd20d-59fd-4469-8aea-20727e814ecd">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("1 - Emerging")]]></printWhenExpression>
 				</reportElement>

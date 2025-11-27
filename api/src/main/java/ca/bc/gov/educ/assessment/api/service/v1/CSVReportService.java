@@ -17,6 +17,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByFormQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.*;
 
@@ -107,11 +109,15 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateNumberOfAttemptsReport(UUID sessionID) {
-        assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(sessionID, activeStatus);
-        List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values()).map(NumberOfAttemptsHeader::getCode).toList();
-        CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                .build();
+        assessmentSessionRepository.findById(sessionID)
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+
+        List<String> headers = Arrays.stream(NumberOfAttemptsHeader.values())
+                .map(NumberOfAttemptsHeader::getCode)
+                .toList();
+
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
@@ -119,13 +125,31 @@ public class CSVReportService {
 
             csvPrinter.printRecord(List.of("Student Assessment Attempts                        Date: " + LocalDate.now()));
             csvPrinter.printRecord(List.of("--------------------------------------------------------------------------------"));
-
             csvPrinter.printRecord(headers);
 
-            for (AssessmentStudentEntity result : results) {
-                List<String> csvRowData = prepareNumberOfAttemptsDataForCsv(result);
-                csvPrinter.printRecord(csvRowData);
+            // Process both streams sequentially, writing directly to CSV without holding in memory
+            try (Stream<NumberOfAttemptsStudent> streamNotNM = assessmentStudentRepository.streamNumberOfAttemptsCountsNotNM()) {
+                streamNotNM.forEach(result -> {
+                    try {
+                        List<String> csvRowData = prepareNumberOfAttemptsDataForCsv(result);
+                        csvPrinter.printRecord(csvRowData);
+                    } catch (IOException e) {
+                        throw new StudentAssessmentAPIRuntimeException(e);
+                    }
+                });
             }
+
+            try (Stream<NumberOfAttemptsStudent> streamNM = assessmentStudentRepository.streamNumberOfAttemptsCountsNM()) {
+                streamNM.forEach(result -> {
+                    try {
+                        List<String> csvRowData = prepareNumberOfAttemptsDataForCsv(result);
+                        csvPrinter.printRecord(csvRowData);
+                    } catch (IOException e) {
+                        throw new StudentAssessmentAPIRuntimeException(e);
+                    }
+                });
+            }
+
             csvPrinter.flush();
 
             var downloadableReport = new DownloadableReportResponse();
@@ -610,13 +634,11 @@ public class CSVReportService {
         };
     }
 
-    private List<String> prepareNumberOfAttemptsDataForCsv(AssessmentStudentEntity student) {
-        String normalizedAssessmentTypeCode = student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NME10.getCode())
-                || student.getAssessmentEntity().getAssessmentTypeCode().equalsIgnoreCase(AssessmentTypeCodes.NMF10.getCode()) ? "NM" : student.getAssessmentEntity().getAssessmentTypeCode();
+    private List<String> prepareNumberOfAttemptsDataForCsv(NumberOfAttemptsStudent student) {
         return new ArrayList<>(Arrays.asList(
-                normalizedAssessmentTypeCode,
+                student.getAssessmentTypeCode(),
                 student.getPen(),
-                student.getNumberOfAttempts() != null ? Integer.toString(student.getNumberOfAttempts()) : null
+                student.getNumberOfAttempts()
         ));
     }
 

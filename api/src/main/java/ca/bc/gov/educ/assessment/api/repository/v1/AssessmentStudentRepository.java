@@ -2,6 +2,7 @@ package ca.bc.gov.educ.assessment.api.repository.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentRegistrationTotalsBySchoolResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Repository
 public interface AssessmentStudentRepository extends JpaRepository<AssessmentStudentEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentEntity> {
@@ -61,6 +63,24 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     List<AssessmentStudentEntity> findByStudentID(UUID studentID);
 
+    @Query(value="""
+          select stud.pen as pen, stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode, count(*) as numberOfAttempts
+          from AssessmentStudentEntity as stud
+          where stud.assessmentEntity.assessmentTypeCode not in ('NME', 'NMF', 'NME10', 'NMF10')
+          and (stud.proficiencyScore is not null
+          or stud.provincialSpecialCaseCode in ('X','Q'))
+          group by stud.pen, stud.assessmentEntity.assessmentTypeCode""")
+    Stream<NumberOfAttemptsStudent> streamNumberOfAttemptsCountsNotNM();
+
+    @Query(value="""
+          select stud.pen as pen, SUBSTRING(stud.assessmentEntity.assessmentTypeCode, 1, 2) as assessmentTypeCode, count(*) as numberOfAttempts
+          from AssessmentStudentEntity as stud
+          where stud.assessmentEntity.assessmentTypeCode in ('NME', 'NMF', 'NME10', 'NMF10')
+          and (stud.proficiencyScore is not null
+          or stud.provincialSpecialCaseCode in ('X','Q'))
+          group by stud.pen, SUBSTRING(stud.assessmentEntity.assessmentTypeCode, 1, 2)""")
+    Stream<NumberOfAttemptsStudent> streamNumberOfAttemptsCountsNM();
+
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> statuses);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(UUID sessionID, UUID schoolAtWriteSchoolID, List<String> statuses);
@@ -69,7 +89,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     select stud from AssessmentStudentEntity as stud
     where stud.studentID = :studentID
     and ((stud.proficiencyScore is not null and stud.proficiencyScore != 0)
-    or stud.provincialSpecialCaseCode in ('A', 'X', 'Q'))""")
+    or stud.provincialSpecialCaseCode is not null)""")
     List<AssessmentStudentEntity> findAllWrittenAssessmentsForStudent(UUID studentID);
 
     @Query(value="""

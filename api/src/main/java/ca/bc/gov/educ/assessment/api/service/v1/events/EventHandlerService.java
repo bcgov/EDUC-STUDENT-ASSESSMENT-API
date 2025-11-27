@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
+import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.SessionMapper;
@@ -93,6 +94,7 @@ public class EventHandlerService {
             AssessmentStudentEntity createStudentEntity = assessmentStudentMapper.toModel(assessmentStudent);
             var attempts = assessmentStudentService.getNumberOfAttempts(createStudentEntity.getAssessmentEntity().getAssessmentID().toString(), createStudentEntity.getStudentID());
             createStudentEntity.setNumberOfAttempts(Integer.parseInt(attempts));
+            createStudentEntity.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
             log.debug("Writing student entity: " + createStudentEntity);
             assessmentStudentService.saveAssessmentStudentWithHistory(createStudentEntity);
             dataChangedForStudent = true;

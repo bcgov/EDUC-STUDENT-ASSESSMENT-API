@@ -89,8 +89,8 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
           studentNode.setPen(student.getPen());
           studentNode.setLocalID(student.getLocalID());
           studentNode.setName(student.getSurname() + ", " + student.getGivenName());
-          studentNode.setProficiencyScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "");
-          studentNode.setSpecialCase(student.getProficiencyScore() == null && StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : "");
+          studentNode.setProficiencyScore(student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : null);
+          studentNode.setSpecialCase(student.getProficiencyScore() == null && StringUtils.isNotBlank(student.getProvincialSpecialCaseCode()) ? ProvincialSpecialCaseCodes.findByValue(student.getProvincialSpecialCaseCode()).get().getDescription() : null);
           schoolStudentReportNode.getStudents().add(studentNode);
         });
         schoolStudentReportNode.setStudents(schoolStudentReportNode.getStudents().stream().sorted(Comparator.comparing(SchoolStudentNode::getName)).toList());

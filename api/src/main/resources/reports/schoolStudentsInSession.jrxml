@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.21.3.final using JasperReports Library version 6.21.3-4a3078d20785ebe464f18037d738d12fc98c13cf  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SchoolStudentsInSession" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="resultByStudentAdapter"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ellHeadcount"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -130,7 +130,7 @@
 		</box>
 	</style>
 	<subDataset name="ReportSet" uuid="cce38d3f-a91c-4b9a-89a9-aa5014e109ed">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="EllPrograms"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ellHeadcount"/>
 		<queryString language="json">
 			<![CDATA[report]]>
 		</queryString>
@@ -156,7 +156,7 @@
 		</field>
 	</subDataset>
 	<subDataset name="EllSet" uuid="fc83fa88-cf32-4b1d-b6e2-f7c12e0e4ee0">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="EllPrograms"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ellHeadcount"/>
 		<parameter name="CSF_PARAM" class="java.lang.Boolean"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
@@ -183,7 +183,7 @@
 		</field>
 	</subDataset>
 	<subDataset name="GradAssessmentsSet" uuid="ce643816-39c1-44dd-bbf6-23d2eba3662b">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="EllPrograms"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ellHeadcount"/>
 		<queryString language="JSON">
 			<![CDATA[report]]>
 		</queryString>
@@ -247,7 +247,7 @@
 				<textElement>
 					<font fontName="BCSans"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{csf} ? "Resultants de la session par eleve" : "Session Results by Student"]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{csf} ? "Résultats de la session par élève" : "Session Results by Student"]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="609" y="35" width="132" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
@@ -335,6 +335,13 @@
 							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
 								<textField>
 									<reportElement style="Table 2_CH" x="0" y="0" width="185" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
+									<box>
+										<pen lineWidth="0.0"/>
+										<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+										<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+										<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+										<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									</box>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
 										<font fontName="BCSans" size="7"/>
 										<paragraph leftIndent="5"/>
@@ -363,6 +370,13 @@
 							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
 								<textField>
 									<reportElement style="Table 2_CH" x="0" y="0" width="75" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
+									<box>
+										<pen lineWidth="0.0"/>
+										<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+										<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+										<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+										<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									</box>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
 										<font fontName="BCSans" size="7"/>
 										<paragraph leftIndent="5"/>
@@ -388,6 +402,13 @@
 							<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
 								<textField>
 									<reportElement style="Table 2_CH" x="0" y="0" width="75" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
+									<box>
+										<pen lineWidth="0.0"/>
+										<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+										<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+										<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+										<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									</box>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
 										<font fontName="BCSans" size="7"/>
 										<paragraph leftIndent="5"/>
@@ -411,10 +432,18 @@
 					</jr:columnGroup>
 					<jr:column width="334" uuid="28232cfb-c180-4536-85cb-1375d812c148">
 						<jr:columnHeader style="Table 2_CH" height="20" rowSpan="1">
+							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<textField>
-								<reportElement x="0" y="0" width="140" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="881fd51c-4a11-4b1a-8e70-6dd7e9189de5">
+								<reportElement x="0" y="0" width="235" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="881fd51c-4a11-4b1a-8e70-6dd7e9189de5">
 									<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 								</reportElement>
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+								</box>
 								<textElement textAlignment="Left" verticalAlignment="Middle">
 									<font fontName="BCSans" size="7"/>
 									<paragraph leftIndent="5"/>
@@ -422,9 +451,17 @@
 								<textFieldExpression><![CDATA[$P{CSF_PARAM} ? "Évaluation du secondaire" : "Graduation Assessment(s)"]]></textFieldExpression>
 							</textField>
 							<textField>
-								<reportElement x="140" y="0" width="90" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="6f4c8296-e16d-4954-8e08-adb0bc39b822">
+								<reportElement x="235" y="0" width="99" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="6f4c8296-e16d-4954-8e08-adb0bc39b822">
 									<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+									<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 								</reportElement>
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#CFCFCF"/>
+									<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+								</box>
 								<textElement textAlignment="Left" verticalAlignment="Middle">
 									<font fontName="BCSans" size="7"/>
 									<paragraph leftIndent="5"/>
@@ -439,12 +476,20 @@
 									<datasetRun subDataset="GradAssessmentsSet" uuid="2fa9d41c-3cc8-4d89-b843-c7fe8edd733f">
 										<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("gradAssessments")]]></dataSourceExpression>
 									</datasetRun>
-									<jr:column width="140" uuid="2c0ff9aa-16c8-4aa8-a7b8-aa4ad14b899f">
+									<jr:column width="235" uuid="2c0ff9aa-16c8-4aa8-a7b8-aa4ad14b899f">
 										<jr:detailCell height="15">
 											<textField>
-												<reportElement x="0" y="0" width="140" height="15" uuid="963506d8-b188-450e-8c4f-bcee329e25d3">
+												<reportElement x="0" y="0" width="235" height="15" uuid="963506d8-b188-450e-8c4f-bcee329e25d3">
 													<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+													<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 												</reportElement>
+												<box>
+													<pen lineWidth="0.25" lineColor="#CFCFCF"/>
+													<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+													<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+													<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+													<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+												</box>
 												<textElement textAlignment="Left" verticalAlignment="Middle">
 													<font fontName="BCSans" size="8"/>
 													<paragraph leftIndent="5"/>
@@ -459,6 +504,13 @@
 												<reportElement x="0" y="0" width="71" height="15" uuid="50c12a2f-886a-4818-a50a-4e5bfcdf9b7c">
 													<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 												</reportElement>
+												<box>
+													<pen lineWidth="0.25" lineColor="#CFCFCF"/>
+													<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+													<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#CFCFCF"/>
+													<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+													<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+												</box>
 												<textElement textAlignment="Left" verticalAlignment="Middle">
 													<font fontName="BCSans" size="8"/>
 													<paragraph leftIndent="5"/>
