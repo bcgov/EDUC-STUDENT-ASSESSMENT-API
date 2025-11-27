@@ -185,7 +185,7 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
     void testStartXamFileGenerationSagaCreatesSagaRecord() {
         UUID newSessionID = UUID.fromString(sagaData.getSessionID());
         sessionApprovalOrchestrator.startXamFileGenerationSaga(newSessionID);
-        AssessmentSagaEntity newSaga = sagaService.findByAssessmentSessionIDAndSagaNameAndStatusNot(newSessionID, SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.IN_PROGRESS.toString()).orElse(null);
+        AssessmentSagaEntity newSaga = sagaService.findByAssessmentSessionIDAndSagaNameAndStatusNot(newSessionID, SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.COMPLETED.toString()).orElse(null);
         assertThat(newSaga).isNotNull();
         assertEquals(newSessionID, newSaga.getAssessmentSessionID());
     }
