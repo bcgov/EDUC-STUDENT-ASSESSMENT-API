@@ -44,7 +44,6 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
   private final StagedAssessmentStudentDOARCalculationRepository stagedAssessmentStudentDOARCalculationRepository;
   private final RestUtils restUtils;
   private JasperReport doarSummaryReport;
-  private static final String PUBLIC= "Public";
   private static final String NME10= "NME10";
   private static final String NMF10= "NMF10";
   private static final String LTE10= "LTE10";
@@ -52,6 +51,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
   private static final String LTP10= "LTP10";
   private static final String LTP12= "LTP12";
   private static final String LTF12= "LTF12";
+  private static final String PROVINCE = "Province";
 
   public DOARProvincialReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentLightRepository assessmentStudentLightRepository, StagedAssessmentStudentLightRepository stagedAssessmentStudentLightRepository, AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository, StagedAssessmentStudentDOARCalculationRepository stagedAssessmentStudentDOARCalculationRepository, RestUtils restUtils) {
     super(restUtils);
@@ -87,7 +87,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       doarSummaryNode.setReports(new ArrayList<>());
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
 
-      if(session.getCompletionDate() != null) {
+      if(session.getCompletionDate() == null) {
         var students = stagedAssessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), "X");
         setStudentLevelsForStaging(students, doarSummaryNode, session);
       } else {
@@ -192,7 +192,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
             .collect(Collectors.toMap(AssessmentStudentDOARCalculationEntity::getAssessmentStudentID, Function.identity()));
 
     List<AssessmentStudentDOARCalculationEntity> provinceLevelDOARCalc =
-            filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get("Province"));
+            filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get(PROVINCE));
 
       populateRawScoresForPublicSchools(provinceLevelDOARCalc, doarSummaryPage, assessmentType);
   }
@@ -210,7 +210,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
     Map<UUID, StagedAssessmentStudentDOARCalculationEntity> doarCalcMap = allDOARCalc.stream()
             .collect(Collectors.toMap(StagedAssessmentStudentDOARCalculationEntity::getAssessmentStudentID, Function.identity()));
 
-    List<StagedAssessmentStudentDOARCalculationEntity> provinceLevelDOARCalc = studentIdsByLevel.get("Province").stream()
+    List<StagedAssessmentStudentDOARCalculationEntity> provinceLevelDOARCalc = studentIdsByLevel.get(PROVINCE).stream()
             .map(doarCalcMap::get)
             .filter(Objects::nonNull)
             .toList();
@@ -243,7 +243,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
         provinceLevel.add(studentId);
       }
     }
-    result.put("Province", provinceLevel);
+    result.put(PROVINCE, provinceLevel);
 
     return result;
   }
@@ -266,7 +266,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
         provinceLevel.add(studentId);
       }
     }
-    result.put("Province", provinceLevel);
+    result.put(PROVINCE, provinceLevel);
 
     return result;
   }
@@ -343,7 +343,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new TaskScore();
     }
     TaskScore score = new TaskScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
 
     return switch (assessmentType) {
       case NME10, NMF10 ->  {
@@ -389,7 +389,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new TaskScore();
     }
     TaskScore score = new TaskScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
 
     return switch (assessmentType) {
       case NME10, NMF10 ->  {
@@ -435,7 +435,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new ComprehendScore();
     }
     ComprehendScore score = new ComprehendScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
 
     return switch (assessmentType) {
       case LTE10, LTE12, LTP10, LTP12 -> {
@@ -466,7 +466,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new ComprehendScore();
     }
     ComprehendScore score = new ComprehendScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
 
     return switch (assessmentType) {
       case LTE10, LTE12, LTP10, LTP12 -> {
@@ -497,7 +497,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new CommunicateScore();
     }
     CommunicateScore score = new CommunicateScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
 
     return switch (assessmentType) {
       case LTE10, LTE12, LTP12 -> {
@@ -542,7 +542,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new CommunicateScore();
     }
     CommunicateScore score = new CommunicateScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
 
     return switch (assessmentType) {
       case LTE10, LTE12, LTP12 -> {
@@ -587,7 +587,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new CommunicateOralScore();
     }
     CommunicateOralScore score = new CommunicateOralScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
 
     return switch (assessmentType) {
       case LTP12, LTP10 -> {
@@ -626,7 +626,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new CommunicateOralScore();
     }
     CommunicateOralScore score = new CommunicateOralScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
 
     return switch (assessmentType) {
       case LTP12, LTP10 -> {
@@ -665,7 +665,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new CognitiveLevelScore();
     }
     CognitiveLevelScore score = new CognitiveLevelScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
     BigDecimal dok1 = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getDok1).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal dok2 = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getDok2).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal dok3 = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getDok3).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -682,7 +682,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new CognitiveLevelScore();
     }
     CognitiveLevelScore score = new CognitiveLevelScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
     BigDecimal dok1 = listOfDOARCalc.stream().map(StagedAssessmentStudentDOARCalculationEntity::getDok1).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal dok2 = listOfDOARCalc.stream().map(StagedAssessmentStudentDOARCalculationEntity::getDok2).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal dok3 = listOfDOARCalc.stream().map(StagedAssessmentStudentDOARCalculationEntity::getDok3).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -699,7 +699,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new NumeracyScore();
     }
     NumeracyScore score = new NumeracyScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
     BigDecimal interpret = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getNumeracyInterpret).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal apply = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getNumeracyApply).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal solve = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getNumeracySolve).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -718,7 +718,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       return new NumeracyScore();
     }
     NumeracyScore score = new NumeracyScore();
-    score.setLevel("Province");
+    score.setLevel(PROVINCE);
     BigDecimal interpret = listOfDOARCalc.stream().map(StagedAssessmentStudentDOARCalculationEntity::getNumeracyInterpret).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal apply = listOfDOARCalc.stream().map(StagedAssessmentStudentDOARCalculationEntity::getNumeracyApply).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal solve = listOfDOARCalc.stream().map(StagedAssessmentStudentDOARCalculationEntity::getNumeracySolve).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -735,7 +735,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
     Map<String, List<AssessmentStudentLightEntity>> studentsByLevel =
             categorizeStudentsEntitiesByLevel(students);
 
-    var provinceLevel = createProficiencyLevelSection(studentsByLevel.get("Province"));
+    var provinceLevel = createProficiencyLevelSection(studentsByLevel.get(PROVINCE));
       doarSummaryPage.getProficiencySection().add(
               provinceLevel
       );
@@ -745,7 +745,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
     Map<String, List<StagedAssessmentStudentLightEntity>> studentsByLevel =
             categorizeStudentsEntitiesByLevelForStaging(students);
 
-    var provinceLevel = createProficiencyLevelSectionForStaging(studentsByLevel.get("Province"));
+    var provinceLevel = createProficiencyLevelSectionForStaging(studentsByLevel.get(PROVINCE));
     doarSummaryPage.getProficiencySection().add(
             provinceLevel
     );
@@ -754,7 +754,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
   private Map<String, List<AssessmentStudentLightEntity>> categorizeStudentsEntitiesByLevel(
           List<AssessmentStudentLightEntity> students) {
 
-    Map<String, List<AssessmentStudentLightEntity>> result = new HashMap<>();;
+    Map<String, List<AssessmentStudentLightEntity>> result = new HashMap<>();
 
     Set<UUID> provinceSchoolIds = getSchoolsInProvince().stream()
             .map(s -> UUID.fromString(s.getSchoolId()))
@@ -769,7 +769,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
         provinceLevel.add(student);
       }
     }
-    result.put("Province", provinceLevel);
+    result.put(PROVINCE, provinceLevel);
 
     return result;
   }
@@ -777,7 +777,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
   private Map<String, List<StagedAssessmentStudentLightEntity>> categorizeStudentsEntitiesByLevelForStaging(
           List<StagedAssessmentStudentLightEntity> students) {
 
-    Map<String, List<StagedAssessmentStudentLightEntity>> result = new HashMap<>();;
+    Map<String, List<StagedAssessmentStudentLightEntity>> result = new HashMap<>();
 
     Set<UUID> provinceSchoolIds = getSchoolsInProvince().stream()
             .map(s -> UUID.fromString(s.getSchoolId()))
@@ -792,7 +792,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
         provinceLevel.add(student);
       }
     }
-    result.put("Province", provinceLevel);
+    result.put(PROVINCE, provinceLevel);
 
     return result;
   }
@@ -800,7 +800,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
   private ProficiencyLevel createProficiencyLevelSection(List<AssessmentStudentLightEntity> students) {
     int totalCount = students.size();
     ProficiencyLevel schoolProficiencyLevel =  new ProficiencyLevel();
-    schoolProficiencyLevel.setLevel("Province");
+    schoolProficiencyLevel.setLevel(PROVINCE);
     schoolProficiencyLevel.setNumberCounted(String.valueOf(totalCount));
     schoolProficiencyLevel.setStudentsWithProficiency1(String.valueOf(getProficiencyScorePercent(students, 1, totalCount)));
     schoolProficiencyLevel.setStudentsWithProficiency2(String.valueOf(getProficiencyScorePercent(students, 2, totalCount)));
@@ -814,7 +814,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
   private ProficiencyLevel createProficiencyLevelSectionForStaging(List<StagedAssessmentStudentLightEntity> students) {
     int totalCount = students.size();
     ProficiencyLevel schoolProficiencyLevel =  new ProficiencyLevel();
-    schoolProficiencyLevel.setLevel("Province");
+    schoolProficiencyLevel.setLevel(PROVINCE);
     schoolProficiencyLevel.setNumberCounted(String.valueOf(totalCount));
     schoolProficiencyLevel.setStudentsWithProficiency1(String.valueOf(getProficiencyScorePercentForStaging(students, 1, totalCount)));
     schoolProficiencyLevel.setStudentsWithProficiency2(String.valueOf(getProficiencyScorePercentForStaging(students, 2, totalCount)));
@@ -871,7 +871,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
 
   private List<SchoolTombstone> getSchoolsInProvince() {
     var schools = restUtils.getAllSchoolTombstones();
-      return schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
+      return schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC.getCode())
               || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode()) ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDEPEND.getCode())
               ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDP_FNS.getCode()) || school.getSchoolCategoryCode().equalsIgnoreCase(OFFSHORE.getCode())).toList();
   }
