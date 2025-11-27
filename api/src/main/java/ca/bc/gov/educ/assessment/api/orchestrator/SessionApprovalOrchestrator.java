@@ -132,17 +132,18 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
     }
 
     @Async("subscriberExecutor")
-    public void startXamFileGenerationSaga(UUID sessionID) throws JsonProcessingException {
-        var approvalSaga = ApprovalSagaData.builder().sessionID(sessionID.toString()).build();
+    public void startXamFileGenerationSaga(UUID assessmentSessionID) throws JsonProcessingException {
+        var approvalSaga = ApprovalSagaData.builder().sessionID(assessmentSessionID.toString()).build();
         String payload = JsonUtil.getJsonStringFromObject(approvalSaga);
         AssessmentSagaEntity saga = sagaService.createSagaRecordInDB(
                 this.getSagaName(),
                 STUDENT_ASSESSMENT_API,
                 payload,
-                sessionID,
                 null,
                 null,
-                null
+                null,
+                null,
+                assessmentSessionID
         );
         this.startSaga(saga);
     }

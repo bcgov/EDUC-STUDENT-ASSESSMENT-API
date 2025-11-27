@@ -153,7 +153,7 @@ class SessionServiceTest extends BaseAssessmentAPITest {
         assertThat(sagas).isNotEmpty();
         AssessmentSagaEntity createdSaga = sagas.stream()
                 .filter(s -> s.getSagaName().equals(SagaEnum.GENERATE_XAM_FILES.toString()))
-                .filter(s -> s.getAssessmentStudentID().equals(testSession.getSessionID()))
+                .filter(s -> s.getAssessmentSessionID() != null && s.getAssessmentSessionID().equals(testSession.getSessionID()))
                 .findFirst()
                 .orElse(null);
         assertNotNull(createdSaga, "Saga should have been created asynchronously");
@@ -237,7 +237,7 @@ class SessionServiceTest extends BaseAssessmentAPITest {
     void testApproveAssessment_withExistingSagaRunning_throwsConflictException() throws JsonProcessingException {
         AssessmentSagaEntity runningSaga = AssessmentSagaEntity.builder()
                 .sagaId(UUID.randomUUID())
-                .assessmentStudentID(testSession.getSessionID())
+                .assessmentSessionID(testSession.getSessionID())
                 .sagaName(SagaEnum.GENERATE_XAM_FILES.toString())
                 .sagaState("GENERATE_XAM_FILES_AND_UPLOAD")
                 .status(SagaStatusEnum.IN_PROGRESS.toString())
@@ -271,7 +271,7 @@ class SessionServiceTest extends BaseAssessmentAPITest {
     void testApproveAssessment_withCompletedSaga_allowsNewApproval() {
         AssessmentSagaEntity completedSaga = AssessmentSagaEntity.builder()
                 .sagaId(UUID.randomUUID())
-                .assessmentStudentID(testSession.getSessionID())
+                .assessmentSessionID(testSession.getSessionID())
                 .sagaName(SagaEnum.GENERATE_XAM_FILES.toString())
                 .sagaState("MARK_STAGED_STUDENTS_READY_FOR_TRANSFER")
                 .status(SagaStatusEnum.COMPLETED.toString())

@@ -116,9 +116,7 @@ public class SessionService {
     public AssessmentSessionEntity approveAssessment(final AssessmentApproval assessmentApproval) {
         AssessmentSessionEntity assessmentSession = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID()));
 
-        // todo For GENERATE_XAM_FILES saga, sessionID is stored in assessmentStudentID field (see SessionApprovalOrchestrator.startXamFileGenerationSaga)
-        // we need to refactor this to correctly use a column for assessment assessmentSession id
-        var existingSaga = sagaService.findByAssessmentStudentIDAndSagaNameAndStatusNot(assessmentSession.getSessionID(), SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.COMPLETED.toString());
+        var existingSaga = sagaService.findByAssessmentSessionIDAndSagaNameAndStatusNot(assessmentSession.getSessionID(), SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.COMPLETED.toString());
         if (existingSaga.isPresent()) {
             log.warn("Session approval saga already running for assessmentSession {}", assessmentSession.getSessionID());
             throw new InvalidPayloadException(ApiError.builder()
