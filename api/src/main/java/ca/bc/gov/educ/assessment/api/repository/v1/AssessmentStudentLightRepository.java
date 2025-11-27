@@ -86,6 +86,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         count(stud.gradeAtRegistration) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+        and (stud.provincialSpecialCaseCode is not null OR stud.proficiencyScore is not null)    
         and stud.studentStatusCode = 'ACTIVE'
         group by stud.assessmentEntity.assessmentTypeCode, stud.gradeAtRegistration
     """)
@@ -105,6 +106,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         count(stud.assessmentFormID) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+        and (stud.provincialSpecialCaseCode is not null OR stud.proficiencyScore is not null)    
         and stud.studentStatusCode = 'ACTIVE'
         group by stud.assessmentEntity.assessmentTypeCode, stud.assessmentFormID
     """)
