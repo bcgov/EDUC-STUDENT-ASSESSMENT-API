@@ -2,7 +2,9 @@ package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
+import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
+import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.SessionApprovalOrchestrator;
@@ -17,6 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
@@ -150,7 +153,7 @@ class SessionServiceTest extends BaseAssessmentAPITest {
         assertThat(sagas).isNotEmpty();
         AssessmentSagaEntity createdSaga = sagas.stream()
                 .filter(s -> s.getSagaName().equals(SagaEnum.GENERATE_XAM_FILES.toString()))
-                .filter(s -> s.getAssessmentStudentID().equals(testSession.getSessionID()))
+                .filter(s -> s.getAssessmentSessionID() != null && s.getAssessmentSessionID().equals(testSession.getSessionID()))
                 .findFirst()
                 .orElse(null);
         assertNotNull(createdSaga, "Saga should have been created asynchronously");
@@ -228,6 +231,69 @@ class SessionServiceTest extends BaseAssessmentAPITest {
 
         // Assert: Saga was attempted
         verify(sessionApprovalOrchestrator, times(1)).startXamFileGenerationSaga(testSession.getSessionID());
+    }
+
+    @Test
+    void testApproveAssessment_withExistingSagaRunning_throwsConflictException() throws JsonProcessingException {
+        AssessmentSagaEntity runningSaga = AssessmentSagaEntity.builder()
+                .sagaId(UUID.randomUUID())
+                .assessmentSessionID(testSession.getSessionID())
+                .sagaName(SagaEnum.GENERATE_XAM_FILES.toString())
+                .sagaState("GENERATE_XAM_FILES_AND_UPLOAD")
+                .status(SagaStatusEnum.IN_PROGRESS.toString())
+                .payload("{\"sessionID\":\"" + testSession.getSessionID() + "\"}")
+                .createUser("system")
+                .updateUser("system")
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .retryCount(0)
+                .build();
+        sagaRepository.save(runningSaga);
+
+        AssessmentApproval approval = AssessmentApproval.builder()
+                .sessionID(testSession.getSessionID().toString())
+                .approvalStudentCertUserID("USER1")
+                .build();
+
+        InvalidPayloadException exception = assertThrows(InvalidPayloadException.class, () -> sessionService.approveAssessment(approval));
+
+        assertNotNull(exception.getError());
+        assertEquals(HttpStatus.CONFLICT, exception.getError().getStatus());
+        assertThat(exception.getError().getMessage()).contains("Session approval is already in progress");
+
+        verify(sessionApprovalOrchestrator, never()).startXamFileGenerationSaga(any(UUID.class));
+
+        AssessmentSessionEntity savedSession = assessmentSessionRepository.findById(testSession.getSessionID()).orElseThrow();
+        assertNull(savedSession.getApprovalStudentCertUserID());
+    }
+
+    @Test
+    void testApproveAssessment_withCompletedSaga_allowsNewApproval() {
+        AssessmentSagaEntity completedSaga = AssessmentSagaEntity.builder()
+                .sagaId(UUID.randomUUID())
+                .assessmentSessionID(testSession.getSessionID())
+                .sagaName(SagaEnum.GENERATE_XAM_FILES.toString())
+                .sagaState("MARK_STAGED_STUDENTS_READY_FOR_TRANSFER")
+                .status(SagaStatusEnum.COMPLETED.toString())
+                .payload("{\"sessionID\":\"" + testSession.getSessionID() + "\"}")
+                .createUser("system")
+                .updateUser("system")
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .retryCount(0)
+                .build();
+        sagaRepository.save(completedSaga);
+
+        AssessmentApproval approval = AssessmentApproval.builder()
+                .sessionID(testSession.getSessionID().toString())
+                .approvalStudentCertUserID("USER1")
+                .build();
+
+        AssessmentSessionEntity result = sessionService.approveAssessment(approval);
+
+        assertNotNull(result);
+        assertEquals("USER1", result.getApprovalStudentCertUserID());
+        assertNotNull(result.getApprovalStudentCertSignDate());
     }
 }
 

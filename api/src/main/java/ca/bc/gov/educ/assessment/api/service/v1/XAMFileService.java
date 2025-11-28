@@ -182,19 +182,19 @@ public class XAMFileService {
             String bucketName = applicationProperties.getS3BucketName();
             String endpoint = applicationProperties.getComsEndpointUrl();
 
-            log.info("COMS Upload Configuration - Bucket: {}, Key: {}, Endpoint: {}, Content Size: {} bytes",
+            log.debug("COMS Upload Configuration - Bucket: {}, Key: {}, Endpoint: {}, Content Size: {} bytes",
                     bucketName, key, endpoint, content.length);
 
             var response = comsRestUtils.uploadObject(content, key);
 
-            log.info("COMS Upload Response - Object ID: {}, Path: {}, Name: {}", response.getId(), response.getPath(), response.getName());
+            log.debug("COMS Upload Response - Object ID: {}, Path: {}, Name: {}", response.getId(), response.getPath(), response.getName());
 
             // Verify upload succeeded by checking response
             if (response.getId() == null || response.getPath() == null) {
                 throw new StudentAssessmentAPIRuntimeException("Upload response missing required fields - ID or Path is null");
             }
 
-            log.info("Upload verification SUCCESS - Object ID: {}, Path: {}, Size: {} bytes",
+            log.debug("Upload verification SUCCESS - Object ID: {}, Path: {}, Size: {} bytes",
                     response.getId(), response.getPath(), response.getSize());
 
             makeObjectPublicSafely(response.getId());
@@ -215,7 +215,7 @@ public class XAMFileService {
     private void makeObjectPublicSafely(String objectId) {
         try {
             comsRestUtils.makeObjectPublic(objectId);
-            log.info("Made object public in BCBox - ID: {}", objectId);
+            log.debug("Made object public in BCBox - ID: {}", objectId);
         } catch (Exception permEx) {
             log.warn("Could not make object public - ID: {}. File uploaded but may not be visible in BCBox: {}",
                     objectId, permEx.getMessage());
@@ -239,7 +239,7 @@ public class XAMFileService {
         for (SchoolTombstone school : myEdSchools) {
             log.debug("Generating XAM file for school: {}", school.getMincode());
             byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);
-            log.info("Uploading XAM file for school: {} ({} bytes)", school.getMincode(), xamFileContent.length);
+            log.debug("Uploading XAM file for school: {} ({} bytes)", school.getMincode(), xamFileContent.length);
             String fileName = generateXamFileName(school, assessmentSessionEntity);
             String key = folderName + "/" + fileName;
             uploadToComs(xamFileContent, key);

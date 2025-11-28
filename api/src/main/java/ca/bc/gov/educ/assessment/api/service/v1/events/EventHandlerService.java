@@ -209,7 +209,8 @@ public class EventHandlerService {
                             null,
                             null,
                             UUID.fromString(sagaData.getAssessmentID()),
-                            sagaData.getPen());
+                            sagaData.getPen(),
+                            null);
             log.debug("Starting course student processing orchestrator :: {}", saga);
             this.studentResultProcessingOrchestrator.startSaga(saga);
         }
@@ -229,6 +230,7 @@ public class EventHandlerService {
                             ApplicationProperties.STUDENT_ASSESSMENT_API,
                             null,
                             UUID.fromString(sagaData.getStagedStudentAssessmentID()),
+                            null,
                             null,
                             null);
             log.debug("Starting transfer student processing orchestrator :: {}", saga);
