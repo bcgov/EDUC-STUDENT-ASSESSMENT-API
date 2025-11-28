@@ -351,11 +351,13 @@
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="185" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
+									<reportElement style="Table 2_TD" mode="Opaque" x="0" y="0" width="185" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 										<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 										<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
 										<property name="com.jaspersoft.studio.unit.spacingBefore" value="px"/>
+										<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+										<property name="com.jaspersoft.studio.unit.width" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
 										<font fontName="BCSans" size="8" isBold="false"/>
@@ -386,7 +388,7 @@
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="75" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
+									<reportElement style="Table 2_TD" mode="Opaque" x="0" y="0" width="75" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
@@ -418,7 +420,7 @@
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField textAdjust="StretchHeight" isBlankWhenNull="true">
-									<reportElement style="Table 2_TD" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="75" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
+									<reportElement style="Table 2_TD" mode="Opaque" x="0" y="0" width="75" height="20" uuid="a927f5ef-4966-4259-acca-f50107c8bce8">
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
@@ -471,15 +473,17 @@
 						</jr:columnHeader>
 						<jr:detailCell style="Table 2_TD" height="20">
 							<componentElement>
-								<reportElement x="0" y="0" width="294" height="20" uuid="4f5f8146-0bb7-4234-b5bf-be4532913419"/>
+								<reportElement x="0" y="0" width="334" height="20" uuid="4f5f8146-0bb7-4234-b5bf-be4532913419">
+									<property name="com.jaspersoft.studio.unit.height" value="px"/>
+								</reportElement>
 								<jr:table>
 									<datasetRun subDataset="GradAssessmentsSet" uuid="2fa9d41c-3cc8-4d89-b843-c7fe8edd733f">
 										<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("gradAssessments")]]></dataSourceExpression>
 									</datasetRun>
 									<jr:column width="235" uuid="2c0ff9aa-16c8-4aa8-a7b8-aa4ad14b899f">
-										<jr:detailCell height="15">
+										<jr:detailCell height="20">
 											<textField>
-												<reportElement x="0" y="0" width="235" height="15" uuid="963506d8-b188-450e-8c4f-bcee329e25d3">
+												<reportElement x="0" y="0" width="235" height="20" uuid="963506d8-b188-450e-8c4f-bcee329e25d3">
 													<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 													<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 												</reportElement>
@@ -499,9 +503,9 @@
 										</jr:detailCell>
 									</jr:column>
 									<jr:column width="71" uuid="50c12a2f-886a-4818-a50a-4e5bfcdf9b7d">
-										<jr:detailCell height="15">
+										<jr:detailCell height="20">
 											<textField>
-												<reportElement x="0" y="0" width="71" height="15" uuid="50c12a2f-886a-4818-a50a-4e5bfcdf9b7c">
+												<reportElement x="0" y="0" width="71" height="20" uuid="50c12a2f-886a-4818-a50a-4e5bfcdf9b7c">
 													<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 												</reportElement>
 												<box>
