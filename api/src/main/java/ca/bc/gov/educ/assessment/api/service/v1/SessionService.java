@@ -1,8 +1,12 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
+import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
+import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidParameterException;
+import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
+import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentCriteriaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionCriteriaEntity;
@@ -24,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 /**
  * This class encapsulates assessment session functionalities.
@@ -54,10 +60,13 @@ public class SessionService {
     @Getter(AccessLevel.PRIVATE)
     private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
+    @Getter(AccessLevel.PRIVATE)
+    private final SagaService sagaService;
+
     private static final String ASSESSMENT_API = "ASSESSMENT_API";
 
     @Autowired
-    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository) {
+    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository, SagaService sagaService) {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentSessionCriteriaRepository = assessmentSessionCriteriaRepository;
         this.assessmentRepository = assessmentRepository;
@@ -65,6 +74,7 @@ public class SessionService {
         this.sessionApprovalOrchestrator = sessionApprovalOrchestrator;
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentStudentHistoryRepository = assessmentStudentHistoryRepository;
+        this.sagaService = sagaService;
     }
 
     public List<AssessmentSessionEntity> getAllSessions() {
@@ -104,41 +114,51 @@ public class SessionService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public AssessmentSessionEntity approveAssessment(final AssessmentApproval assessmentApproval) {
-        var session = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID()));
+        AssessmentSessionEntity assessmentSession = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID()));
 
-        if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(session.getApprovalStudentCertUserID())){
-            throw new InvalidParameterException("Assessment session has already been approved by Student Cert User");
-        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID())){
-            session.setApprovalStudentCertUserID(assessmentApproval.getApprovalStudentCertUserID());
-            session.setApprovalStudentCertSignDate(LocalDateTime.now());
-        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentDesignUserID()) && StringUtils.isNotBlank(session.getApprovalAssessmentDesignUserID())){
-            throw new InvalidParameterException("Assessment session has already been approved by Assessment Design User");
-        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentDesignUserID())){
-            session.setApprovalAssessmentDesignUserID(assessmentApproval.getApprovalAssessmentDesignUserID());
-            session.setApprovalAssessmentDesignSignDate(LocalDateTime.now());
-        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentAnalysisUserID()) && StringUtils.isNotBlank(session.getApprovalAssessmentAnalysisUserID())){
-            throw new InvalidParameterException("Assessment session has already been approved by Assessment Analyst User");
-        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentAnalysisUserID())){
-            session.setApprovalAssessmentAnalysisUserID(assessmentApproval.getApprovalAssessmentAnalysisUserID());
-            session.setApprovalAssessmentAnalysisSignDate(LocalDateTime.now());
+        var existingSaga = sagaService.findByAssessmentSessionIDAndSagaNameAndStatusNot(assessmentSession.getSessionID(), SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.COMPLETED.toString());
+        if (existingSaga.isPresent()) {
+            log.warn("Session approval saga already running for assessmentSession {}", assessmentSession.getSessionID());
+            throw new InvalidPayloadException(ApiError.builder()
+                    .timestamp(LocalDateTime.now())
+                    .message("Session approval is already in progress. Please wait for the current process to complete.")
+                    .status(CONFLICT)
+                    .build());
         }
 
-        session.setActiveUntilDate(LocalDateTime.now());
+        if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID()) && StringUtils.isNotBlank(assessmentSession.getApprovalStudentCertUserID())){
+            throw new InvalidParameterException("Assessment assessmentSession has already been approved by Student Cert User");
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalStudentCertUserID())){
+            assessmentSession.setApprovalStudentCertUserID(assessmentApproval.getApprovalStudentCertUserID());
+            assessmentSession.setApprovalStudentCertSignDate(LocalDateTime.now());
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentDesignUserID()) && StringUtils.isNotBlank(assessmentSession.getApprovalAssessmentDesignUserID())){
+            throw new InvalidParameterException("Assessment assessmentSession has already been approved by Assessment Design User");
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentDesignUserID())){
+            assessmentSession.setApprovalAssessmentDesignUserID(assessmentApproval.getApprovalAssessmentDesignUserID());
+            assessmentSession.setApprovalAssessmentDesignSignDate(LocalDateTime.now());
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentAnalysisUserID()) && StringUtils.isNotBlank(assessmentSession.getApprovalAssessmentAnalysisUserID())){
+            throw new InvalidParameterException("Assessment assessmentSession has already been approved by Assessment Analyst User");
+        }else if(StringUtils.isNotBlank(assessmentApproval.getApprovalAssessmentAnalysisUserID())){
+            assessmentSession.setApprovalAssessmentAnalysisUserID(assessmentApproval.getApprovalAssessmentAnalysisUserID());
+            assessmentSession.setApprovalAssessmentAnalysisSignDate(LocalDateTime.now());
+        }
 
-        AssessmentSessionEntity savedSession = assessmentSessionRepository.save(session);
+        assessmentSession.setActiveUntilDate(LocalDateTime.now());
 
-        if(StringUtils.isNotBlank(savedSession.getApprovalStudentCertUserID())
-                && StringUtils.isNotBlank(savedSession.getApprovalAssessmentDesignUserID())
-                && StringUtils.isNotBlank(savedSession.getApprovalAssessmentAnalysisUserID())) {
-            log.info("All three signoffs present for session {}. Triggering generate XAM file saga.", savedSession.getSessionID());
+        AssessmentSessionEntity savedAssessmentSession = assessmentSessionRepository.save(assessmentSession);
+
+        if(StringUtils.isNotBlank(savedAssessmentSession.getApprovalStudentCertUserID())
+                && StringUtils.isNotBlank(savedAssessmentSession.getApprovalAssessmentDesignUserID())
+                && StringUtils.isNotBlank(savedAssessmentSession.getApprovalAssessmentAnalysisUserID())) {
+            log.info("All three signoffs present for assessmentSession {}. Triggering generate XAM file saga.", savedAssessmentSession.getSessionID());
             try {
-                sessionApprovalOrchestrator.startXamFileGenerationSaga(savedSession.getSessionID());
+                sessionApprovalOrchestrator.startXamFileGenerationSaga(savedAssessmentSession.getSessionID());
             } catch (JsonProcessingException e) {
-                log.error("Error starting XAM file generation saga for session {}: {}", savedSession.getSessionID(), e.getMessage());
+                log.error("Error starting XAM file generation saga for assessmentSession {}: {}", savedAssessmentSession.getSessionID(), e.getMessage());
             }
         }
 
-        return savedSession;
+        return savedAssessmentSession;
     }
 
     public List<AssessmentSessionEntity> getSessionsBySchoolYear(String schoolYear) {

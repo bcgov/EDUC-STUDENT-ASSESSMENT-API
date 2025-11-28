@@ -40,7 +40,7 @@ public interface AssessmentSessionEndpoint {
 
     @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_SESSIONS')")
     @PostMapping("/approval/{sessionID}")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND."), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND."), @ApiResponse(responseCode = "409", description = "CONFLICT - Session approval saga is already in progress."), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
     AssessmentApproval approveAssessmentSession(@PathVariable UUID sessionID, @Validated @RequestBody AssessmentApproval assessmentApproval);
 
 }

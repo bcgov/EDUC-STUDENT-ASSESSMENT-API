@@ -23,6 +23,7 @@ import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.*;
 import static ca.bc.gov.educ.assessment.api.constants.EventType.*;
 import static ca.bc.gov.educ.assessment.api.constants.SagaEnum.GENERATE_XAM_FILES;
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.XAM_FILE_GENERATION_TOPIC;
+import static ca.bc.gov.educ.assessment.api.properties.ApplicationProperties.STUDENT_ASSESSMENT_API;
 
 @Slf4j
 @Component
@@ -131,17 +132,18 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
     }
 
     @Async("subscriberExecutor")
-    public void startXamFileGenerationSaga(UUID sessionID) throws JsonProcessingException {
-        var approvalSaga = ApprovalSagaData.builder().sessionID(sessionID.toString()).build();
+    public void startXamFileGenerationSaga(UUID assessmentSessionID) throws JsonProcessingException {
+        var approvalSaga = ApprovalSagaData.builder().sessionID(assessmentSessionID.toString()).build();
         String payload = JsonUtil.getJsonStringFromObject(approvalSaga);
         AssessmentSagaEntity saga = sagaService.createSagaRecordInDB(
                 this.getSagaName(),
-                "system",
+                STUDENT_ASSESSMENT_API,
                 payload,
-                sessionID,
                 null,
                 null,
-                null
+                null,
+                null,
+                assessmentSessionID
         );
         this.startSaga(saga);
     }
