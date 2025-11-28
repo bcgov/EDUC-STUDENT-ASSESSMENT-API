@@ -211,12 +211,8 @@ public class CSVReportService {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
-
-            if(schoolTombstone.getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode())) {
-                csvPrinter.printRecord(Arrays.stream(FrenchSessionResultsHeader.values()).map(FrenchSessionResultsHeader::getCode).toList());
-            } else {
-                csvPrinter.printRecord(Arrays.stream(SessionResultsHeader.values()).map(SessionResultsHeader::getCode).toList());
-            }
+            
+            csvPrinter.printRecord(Arrays.stream(SessionResultsHeader.values()).map(SessionResultsHeader::getCode).toList());
 
             for (AssessmentStudentEntity result : results) {
                 Optional<SchoolTombstone> assessmentCenter = (result.getAssessmentCenterSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString()) : Optional.empty();
