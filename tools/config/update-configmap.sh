@@ -186,8 +186,8 @@ MINIMUM_IDLE_DB_POOL_SIZE=15
 NUMBER_OF_STUDENTS_TO_PROCESS_SAGA=500
 
 EMAIL_SUBJECT_MYED_APPROVAL_NOTIFICATION="Session Assessment Results Available"
-EMAIL_MYED_APPROVAL_NOTIFICATION_FROM="trax.support@gov.bc.ca"
-EMAIL_TEMPLATE_MYED_APPROVAL_NOTIFICATION="<!DOCTYPE html><html xmlns:th=\"http://www.thymeleaf.org\"><head><meta charset=\"ISO-8859-1\"><title>Session Assessment Results are available</title></head><body>Hello,<br/><br/><span th:text=\"\${$}{currentSession}\"></span> Session Assessment Results are available.<br/><br/>Please let us know if we can be of further assistance.<br><br><b>Student Certification</b><br>Ministry of Education and Child Care</body></html>"
+EMAIL_MYED_APPROVAL_NOTIFICATION_FROM="grad.support@gov.bc.ca"
+EMAIL_TEMPLATE_MYED_APPROVAL_NOTIFICATION="<!DOCTYPE html><html xmlns:th=\"http://www.thymeleaf.org\"><head><meta charset=\"ISO-8859-1\"><title><span th:text=\"\${$}{closeCollectionMonth}\"></span> Session Assessment Results are available</title></head><body>Hello,<br/><br/><span th:text=\"\${$}{currentSession}\"></span> Session Assessment Results are available.<br/><br/>To complete this process, please email <a href=\"grad.support@gov.bc.ca\">grad.support@gov.bc.ca</a> to confirm you have received these files.<br><br><b>Student Certification</b><br>Ministry of Education and Child Care</body></html>"
 EMAIL_MYED_APPROVAL_NOTIFICATION_TO="support@isw-bc.ca"
 
 if [ "$envValue" = "dev" ]
