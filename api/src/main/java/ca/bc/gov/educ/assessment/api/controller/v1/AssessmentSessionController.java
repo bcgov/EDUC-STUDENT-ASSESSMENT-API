@@ -38,7 +38,7 @@ public class AssessmentSessionController implements AssessmentSessionEndpoint {
 
     @Override
     public List<AssessmentSession> getAllSessions() {
-        return getSessionService().getAllSessions().stream().map(mapper::toStructure).collect(Collectors.toList());
+        return getSessionService().getAllSessions();
     }
 
     @Override

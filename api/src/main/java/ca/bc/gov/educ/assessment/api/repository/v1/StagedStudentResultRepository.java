@@ -39,6 +39,14 @@ public interface StagedStudentResultRepository extends JpaRepository<StagedStude
         LIMIT 1""")
     Optional<StagedStudentResultEntity> findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(UUID assessmentID);
 
+    @Query("""
+        SELECT s FROM StagedStudentResultEntity s
+        WHERE s.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
+        AND s.stagedStudentResultStatus = 'LOADED'
+        ORDER BY s.createDate DESC
+        LIMIT 1""")
+    Optional<StagedStudentResultEntity> findByAssessmentSessionAndStagedStudentResultStatusOrderByCreateDateDesc(UUID assessmentSessionID);
+
     List<StagedStudentResultEntity> findByAssessmentEntity_assessmentIDAndPen(UUID assessmentID, String pen);
 
 }

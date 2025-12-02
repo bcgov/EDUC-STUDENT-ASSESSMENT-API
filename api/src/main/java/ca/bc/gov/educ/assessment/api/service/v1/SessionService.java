@@ -7,6 +7,7 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidParameterException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
+import ca.bc.gov.educ.assessment.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentCriteriaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionCriteriaEntity;
@@ -14,6 +15,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.SessionApprovalOrchestrator;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentApproval;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentSession;
 import ca.bc.gov.educ.assessment.api.util.SchoolYearUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AccessLevel;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
 
@@ -63,10 +66,14 @@ public class SessionService {
     @Getter(AccessLevel.PRIVATE)
     private final SagaService sagaService;
 
+    private final StagedStudentResultRepository  stagedStudentResultRepository;
+
     private static final String ASSESSMENT_API = "ASSESSMENT_API";
 
+    private static final SessionMapper mapper = SessionMapper.mapper;
+
     @Autowired
-    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository, SagaService sagaService) {
+    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository, SagaService sagaService, StagedStudentResultRepository stagedStudentResultRepository) {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentSessionCriteriaRepository = assessmentSessionCriteriaRepository;
         this.assessmentRepository = assessmentRepository;
@@ -75,10 +82,27 @@ public class SessionService {
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentStudentHistoryRepository = assessmentStudentHistoryRepository;
         this.sagaService = sagaService;
+        this.stagedStudentResultRepository = stagedStudentResultRepository;
     }
 
-    public List<AssessmentSessionEntity> getAllSessions() {
-        return this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now());
+    public List<AssessmentSession> getAllSessions() {
+        var sessions = this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now()).stream().map(mapper::toStructure).toList();
+        
+        var sessionsSorted = sessions.stream().sorted(Comparator.comparing(AssessmentSession::getCompletionDate)).toList();
+        
+        sessionsSorted.forEach(session -> {
+           session.setApprovalInFlight("false");
+        });
+        
+        if(!sessionsSorted.isEmpty()){
+            var topRecord = sessionsSorted.getLast();
+            var optStud = stagedStudentResultRepository.findByAssessmentSessionAndStagedStudentResultStatusOrderByCreateDateDesc(UUID.fromString(topRecord.getSessionID()));
+            if(optStud.isPresent()) {
+                topRecord.setApprovalInFlight("true");
+            }
+        }
+
+        return sessions;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
