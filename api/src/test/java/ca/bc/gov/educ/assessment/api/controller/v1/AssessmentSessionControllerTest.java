@@ -59,6 +59,7 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
 
     @BeforeEach
     void setUp() {
+        stagedStudentResultRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         assessmentStudentRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
