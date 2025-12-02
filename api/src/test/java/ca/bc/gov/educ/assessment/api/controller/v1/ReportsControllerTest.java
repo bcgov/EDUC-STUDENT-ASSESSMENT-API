@@ -14,7 +14,6 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.DOARReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.DOARStagingReportService;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentHistory;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
@@ -34,6 +33,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor;
@@ -73,7 +73,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     AssessmentRepository assessmentRepository;
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
+    @MockBean
     private RestUtils restUtils;
     @Autowired
     StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
@@ -1583,7 +1583,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var mockSdcStudents = List.of(createMockSdcSchoolCollectionStudent());
         var mockPaginatedResponse = createMockPaginatedResponse(List.of(mockCollection));
         
-        when(restUtils.getLastFourCollections()).thenReturn(mockPaginatedResponse);
+        when(restUtils.getLastFourCollections(any())).thenReturn(mockPaginatedResponse);
         when(restUtils.get1701DataForStudents(anyString(), anyList())).thenReturn(mockSdcStudents);
 
         AssessmentSessionEntity session = createMockSessionEntity();
@@ -1616,7 +1616,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var mockSdcStudents = List.of(createMockSdcSchoolCollectionStudent());
         var mockPaginatedResponse = createMockPaginatedResponse(List.of(mockCollection));
         
-        when(restUtils.getLastFourCollections()).thenReturn(mockPaginatedResponse);
+        when(restUtils.getLastFourCollections(any())).thenReturn(mockPaginatedResponse);
         when(restUtils.get1701DataForStudents(anyString(), anyList())).thenReturn(mockSdcStudents);
 
         AssessmentSessionEntity session = createMockSessionEntity();
@@ -1649,7 +1649,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var mockSdcStudents = List.of(createMockSdcSchoolCollectionStudent());
         var mockPaginatedResponse = createMockPaginatedResponse(List.of(mockCollection));
         
-        when(restUtils.getLastFourCollections()).thenReturn(mockPaginatedResponse);
+        when(restUtils.getLastFourCollections(any())).thenReturn(mockPaginatedResponse);
         when(restUtils.get1701DataForStudents(anyString(), anyList())).thenReturn(mockSdcStudents);
 
         AssessmentSessionEntity session = createMockSessionEntity();
@@ -1682,7 +1682,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var mockSdcStudents = List.of(createMockSdcSchoolCollectionStudent());
         var mockPaginatedResponse = createMockPaginatedResponse(List.of(mockCollection));
         
-        when(restUtils.getLastFourCollections()).thenReturn(mockPaginatedResponse);
+        when(restUtils.getLastFourCollections(any())).thenReturn(mockPaginatedResponse);
         when(restUtils.get1701DataForStudents(anyString(), anyList())).thenReturn(mockSdcStudents);
 
         AssessmentSessionEntity session = createMockSessionEntity();
@@ -1715,7 +1715,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var mockSdcStudents = List.of(createMockSdcSchoolCollectionStudent());
         var mockPaginatedResponse = createMockPaginatedResponse(List.of(mockCollection));
         
-        when(restUtils.getLastFourCollections()).thenReturn(mockPaginatedResponse);
+        when(restUtils.getLastFourCollections(any())).thenReturn(mockPaginatedResponse);
         when(restUtils.get1701DataForStudents(anyString(), anyList())).thenReturn(mockSdcStudents);
 
         AssessmentSessionEntity session = createMockSessionEntity();

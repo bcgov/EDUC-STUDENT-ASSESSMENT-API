@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.rest;
 import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
@@ -324,6 +325,22 @@ class RestUtilsTest {
 
     @Test
     void testGetLastFourCollections_WhenApiCallSucceeds_ShouldReturnCollections() throws JsonProcessingException {
+        LocalDateTime currentDate = LocalDateTime.now();
+        AssessmentSessionEntity session =
+         AssessmentSessionEntity.builder()
+                .sessionID(UUID.randomUUID())
+                .schoolYear(String.valueOf(currentDate.getYear()))
+                .courseYear(Integer.toString(currentDate.getYear()))
+                .courseMonth(Integer.toString(currentDate.getMonthValue()))
+                .activeFromDate(currentDate.minusMonths(2))
+                .activeUntilDate(currentDate.plusMonths(2))
+                .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+                .createDate(LocalDateTime.now())
+                .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+                .updateDate(LocalDateTime.now())
+                .assessments(null)
+                .build();
+
         // Given
         Collection collection1 = new Collection();
         collection1.setCollectionID(String.valueOf(UUID.randomUUID()));
@@ -352,7 +369,7 @@ class RestUtilsTest {
         when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
 
         // When
-        PaginatedResponse<Collection> result = restUtils.getLastFourCollections();
+        PaginatedResponse<Collection> result = restUtils.getLastFourCollections(session);
 
         // Then
         assertNotNull(result);
@@ -367,6 +384,23 @@ class RestUtilsTest {
 
     @Test
     void testGetLastFourCollections_WhenApiCallFails_ShouldReturnNull() throws JsonProcessingException {
+        LocalDateTime currentDate = LocalDateTime.now();
+        AssessmentSessionEntity session =
+                AssessmentSessionEntity.builder()
+                        .sessionID(UUID.randomUUID())
+                        .schoolYear(String.valueOf(currentDate.getYear()))
+                        .courseYear(Integer.toString(currentDate.getYear()))
+                        .courseMonth(Integer.toString(currentDate.getMonthValue()))
+                        .activeFromDate(currentDate.minusMonths(2))
+                        .activeUntilDate(currentDate.plusMonths(2))
+                        .createUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+                        .createDate(LocalDateTime.now())
+                        .updateUser(ApplicationProperties.STUDENT_ASSESSMENT_API)
+                        .updateDate(LocalDateTime.now())
+                        .assessments(null)
+                        .build();
+
+
         // Given
         WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
         WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
@@ -381,7 +415,7 @@ class RestUtilsTest {
         when(props.getSdcApiURL()).thenReturn("http://localhost:8080/api/v1/sdc");
 
         // When
-        PaginatedResponse<Collection> result = restUtils.getLastFourCollections();
+        PaginatedResponse<Collection> result = restUtils.getLastFourCollections(session);
 
         // Then
         assertNull(result);
