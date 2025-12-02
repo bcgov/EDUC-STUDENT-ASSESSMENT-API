@@ -358,8 +358,8 @@ public class CSVReportService {
             if(sessionIsApproved(session)) {
                 List<AssessmentStudentLightEntity>  students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(sessionID, List.of("ACTIVE"));
                 populateCSVPrinterForApproval(students, forms, csvPrinter);
-            }else{
-                List<StagedAssessmentStudentLightEntity> students = stagedAssessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatusIn(sessionID, List.of("ACTIVE"));
+            } else {
+                List<StagedAssessmentStudentLightEntity> students = stagedAssessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatusIn(sessionID, List.of("ACTIVE", "MERGED"));
                 populateCSVPrinterForStaged(students, forms, csvPrinter);
             }
             

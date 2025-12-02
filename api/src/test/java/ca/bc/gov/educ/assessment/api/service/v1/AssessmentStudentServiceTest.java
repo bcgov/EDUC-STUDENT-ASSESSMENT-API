@@ -880,9 +880,9 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity updated1 = stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID()).orElseThrow();
     StagedAssessmentStudentEntity updated2 = stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID()).orElseThrow();
 
-    assertThat(updated1.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated1.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
     assertThat(updated1.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
-    assertThat(updated2.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updated2.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
     assertThat(updated2.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
   }
 
@@ -957,7 +957,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity updatedMerged = stagedAssessmentStudentRepository.findById(savedMerged.getAssessmentStudentID()).orElseThrow();
     StagedAssessmentStudentEntity updatedNoPen = stagedAssessmentStudentRepository.findById(savedNoPen.getAssessmentStudentID()).orElseThrow();
 
-    assertThat(updatedMerged.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updatedMerged.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
     assertThat(updatedMerged.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
     assertThat(updatedNoPen.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
     assertThat(updatedNoPen.getUpdateUser()).isEqualTo(ApplicationProperties.STUDENT_ASSESSMENT_API);
@@ -984,7 +984,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentEntity updatedMerged = stagedAssessmentStudentRepository.findById(savedMerged.getAssessmentStudentID()).orElseThrow();
     StagedAssessmentStudentEntity updatedNoPen = stagedAssessmentStudentRepository.findById(savedNoPen.getAssessmentStudentID()).orElseThrow();
 
-    assertThat(updatedMerged.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
+    assertThat(updatedMerged.getStagedAssessmentStudentStatus()).isEqualTo("TRANSFER");
     assertThat(updatedNoPen.getStagedAssessmentStudentStatus()).isEqualTo("DELETE");
   }
 
