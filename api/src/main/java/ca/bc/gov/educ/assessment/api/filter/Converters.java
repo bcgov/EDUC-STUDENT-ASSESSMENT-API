@@ -23,11 +23,11 @@ public class Converters {
 	@PostConstruct
 	public void init() {
 		map.put(String.class, s -> s);
-		map.put(Long.class, Long::valueOf);
-		map.put(Integer.class, Integer::valueOf);
-		map.put(ChronoLocalDate.class, LocalDate::parse);
+		map.put(Long.class, s -> (s == null || s.isBlank()) ? null : Long.valueOf(s));
+        map.put(Integer.class, s -> (s == null || s.isBlank()) ? null : Integer.valueOf(s));
+        map.put(ChronoLocalDate.class, LocalDate::parse);
 		map.put(ChronoLocalDateTime.class, LocalDateTime::parse);
-    map.put(UUID.class, UUID::fromString);
+        map.put(UUID.class, UUID::fromString);
 		map.put(Boolean.class, Boolean::valueOf);
 	}
 
