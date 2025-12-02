@@ -13,12 +13,14 @@ import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.Collection;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.SdcSchoolCollectionStudent;
+import ca.bc.gov.educ.assessment.api.struct.v1.KeySummaryReportResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByFormQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
@@ -519,13 +521,24 @@ public class CSVReportService {
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
 
             csvPrinter.printRecord(headers);
+            
+            var keySummaryRowsList = new ArrayList<KeySummaryReportResult>();
+            questions.forEach(question -> {
+                keySummaryRowsList.add(getKeySummaryReportResult(question));
+            });
+
+            choices.forEach(choice -> {
+                keySummaryRowsList.add(getKeySummaryReportResult(choice, questions));
+            });
+
+            var sortedList = keySummaryRowsList.stream().sorted(Comparator.comparing(KeySummaryReportResult::getFormCode)
+                    .thenComparing(KeySummaryReportResult::getComponentType)
+                    .thenComparing(KeySummaryReportResult::getItemNumber)
+                    .thenComparing(KeySummaryReportResult::getQuestionNumber)).toList();
+            
             var sessionString = session.getCourseYear() +"/"+ session.getCourseMonth();
-            for (AssessmentQuestionEntity question : questions) {
-                List<String> csvRowData = prepareKeySummaryWithQuesForCsv(question, assessmentTypeCode, sessionString);
-                csvPrinter.printRecord(csvRowData);
-            }
-            for (AssessmentChoiceEntity choice : choices) {
-                List<String> csvRowData = prepareKeySummaryWithChoicesForCsv(choice, assessmentTypeCode, sessionString, questions);
+            for (KeySummaryReportResult result : sortedList) {
+                List<String> csvRowData = prepareKeySummaryForCsv(result, assessmentTypeCode, sessionString);
                 csvPrinter.printRecord(csvRowData);
             }
             csvPrinter.flush();
@@ -758,50 +771,62 @@ public class CSVReportService {
         ));
     }
 
-    private List<String> prepareKeySummaryWithQuesForCsv(AssessmentQuestionEntity question, String assessmentTypeCode, String session) {
+    private List<String> prepareKeySummaryForCsv(KeySummaryReportResult result, String assessmentTypeCode, String session) {
         return new ArrayList<>(Arrays.asList(
                 assessmentTypeCode,
                 session,
-                question.getAssessmentComponentEntity().getAssessmentFormEntity().getFormCode(),
-                getComponentType(question.getAssessmentComponentEntity()),
-                question.getItemNumber().toString(),
-                "Mark",
-                question.getQuestionNumber() != null ? question.getQuestionNumber().toString() : "",
-                question.getQuestionValue() != null ? question.getQuestionValue().toString() : "",
-                question.getScaleFactor() != null ? String.valueOf(new BigDecimal(question.getScaleFactor()).divide(new BigDecimal(100))) : "",
-                calculateScaledValue(question),
-                question.getMaxQuestionValue() != null ? question.getMaxQuestionValue().toString() : "",
-                question.getCognitiveLevelCode(),
-                question.getTaskCode(),
-                question.getClaimCode(),
-                question.getContextCode(),
-                question.getConceptCode(),
-                question.getAssessmentSection()
+                result.getFormCode(),
+                result.getComponentType(),
+                result.getItemNumber().toString(),
+                StringUtils.isNotBlank(result.getAssessmentQuestionID()) ? "Mark" : "Choice",
+                StringUtils.isNotBlank(result.getQuestionNumber()) ? result.getQuestionNumber() : null,
+                result.getQuestionValue() != null ? result.getQuestionValue().toString() : null,
+                result.getScaleFactor() != null ? String.valueOf(new BigDecimal(result.getScaleFactor()).divide(new BigDecimal(100))) : null,
+                calculateScaledValue(result),
+                result.getMaxQuestionValue() != null ? result.getMaxQuestionValue().toString() : null,
+                result.getCognitiveLevelCode(),
+                result.getTaskCode(),
+                result.getClaimCode(),
+                result.getContextCode(),
+                result.getConceptCode(),
+                result.getAssessmentSection()
         ));
     }
-
-    private List<String> prepareKeySummaryWithChoicesForCsv(AssessmentChoiceEntity choice, String assessmentTypeCode, String session, List<AssessmentQuestionEntity> questions) {
-        return new ArrayList<>(Arrays.asList(
-                assessmentTypeCode,
-                session,
-                choice.getAssessmentComponentEntity().getAssessmentFormEntity().getFormCode(),
-                getComponentType(choice.getAssessmentComponentEntity()),
-                choice.getItemNumber().toString(),
-                "Choice",
-                getQuestionNumbers(choice, questions),
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                ""
-        ));
+    
+    private KeySummaryReportResult getKeySummaryReportResult(AssessmentQuestionEntity ques) {
+        KeySummaryReportResult result = new KeySummaryReportResult();
+        result.setAssessmentQuestionID(ques.getAssessmentQuestionID().toString());
+        result.setFormCode(ques.getAssessmentComponentEntity().getAssessmentFormEntity().getFormCode());
+        result.setComponentType(getComponentType(ques.getAssessmentComponentEntity()));
+        result.setQuestionNumber(ques.getQuestionNumber() != null ? ques.getQuestionNumber().toString() : null);
+        result.setCognitiveLevelCode(ques.getCognitiveLevelCode());
+        result.setTaskCode(ques.getTaskCode());
+        result.setClaimCode(ques.getClaimCode());
+        result.setContextCode(ques.getContextCode());
+        result.setConceptCode(ques.getConceptCode());
+        result.setAssessmentSection(ques.getAssessmentSection());
+        result.setItemNumber(ques.getItemNumber());
+        result.setQuestionValue(ques.getQuestionValue());
+        result.setMaxQuestionValue(ques.getMaxQuestionValue());
+        result.setMasterQuestionNumber(ques.getMasterQuestionNumber());
+        result.setIrtIncrement(ques.getIrtIncrement());
+        result.setPreloadAnswer(ques.getPreloadAnswer());
+        result.setIrt(ques.getIrt());
+        result.setScaleFactor(ques.getScaleFactor());
+        return result;
     }
 
+    private KeySummaryReportResult getKeySummaryReportResult(AssessmentChoiceEntity choiceEntity, List<AssessmentQuestionEntity> questions) {
+        KeySummaryReportResult result = new KeySummaryReportResult();
+        result.setAssessmentChoiceID(choiceEntity.getAssessmentChoiceID().toString());
+        result.setFormCode(choiceEntity.getAssessmentComponentEntity().getAssessmentFormEntity().getFormCode());
+        result.setComponentType(getComponentType(choiceEntity.getAssessmentComponentEntity()));
+        result.setItemNumber(choiceEntity.getItemNumber());
+        result.setMasterQuestionNumber(choiceEntity.getMasterQuestionNumber());
+        result.setQuestionNumber(getQuestionNumbers(choiceEntity, questions));
+        return result;
+    }
+    
     private List<String> prepareStudentForItemAnalysis(AssessmentStudentLightEntity student, SdcSchoolCollectionStudent sdcStudent, String session, String collectionSnapshotDate) {
         List<String> enrolledPrograms = new ArrayList<>();
         String sdcStudentNativeAcnestry = "0";
@@ -863,7 +888,7 @@ public class CSVReportService {
         ));
     }
 
-    private String calculateScaledValue(AssessmentQuestionEntity question) {
+    private String calculateScaledValue(KeySummaryReportResult question) {
         if(question.getQuestionValue() != null && question.getScaleFactor() != null) {
             return String.valueOf(question.getQuestionValue().multiply(new BigDecimal(question.getScaleFactor())).divide(new BigDecimal(100), 2, RoundingMode.HALF_UP));
         }
