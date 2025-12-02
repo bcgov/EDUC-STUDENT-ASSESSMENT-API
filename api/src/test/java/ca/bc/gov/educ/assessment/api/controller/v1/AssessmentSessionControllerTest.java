@@ -14,6 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -41,6 +42,9 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
     StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
 
     @Autowired
+    StagedStudentResultRepository stagedStudentResultRepository;
+
+    @Autowired
     AssessmentTypeCodeRepository assessmentTypeCodeRepository;
 
     @Autowired
@@ -55,6 +59,7 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
 
     @BeforeEach
     void setUp() {
+        stagedStudentResultRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         assessmentStudentRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
@@ -247,5 +252,48 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
                 .andDo(print())
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void testGetAllSessions_ShouldReturnOK() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+        var sess = createMockSessionEntity();
+        AssessmentSessionEntity session = assessmentSessionRepository.save(sess);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(session, "LTF12"));
+        assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        this.mockMvc.perform(get(URL.SESSIONS_URL).with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testGetAllSessionsApprovalInProgress_ShouldReturnOK() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTF12.getCode()));
+        assessmentTypeCodeRepository.save(createMockAssessmentTypeCodeEntity(AssessmentTypeCodes.LTE10.getCode()));
+        var sess = createMockSessionEntity();
+        sess.setCompletionDate(LocalDateTime.now().minusDays(1));
+        AssessmentSessionEntity session = assessmentSessionRepository.save(sess);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(session, "LTF12"));
+        assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment, "A"));
+
+        var sess2 = createMockSessionEntity();
+        sess2.setCompletionDate(LocalDateTime.now().minusMinutes(1));
+        AssessmentSessionEntity session2 = assessmentSessionRepository.save(sess2);
+        var savedAssessment2 = assessmentRepository.save(createMockAssessmentEntity(session2, "LTE10"));
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(savedAssessment2, "A"));
+
+        stagedStudentResultRepository.save(createMockStagedStudentResultEntity(savedAssessment2, savedForm.getAssessmentFormID()));
+
+        this.mockMvc.perform(get(URL.SESSIONS_URL).with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
 
 }
