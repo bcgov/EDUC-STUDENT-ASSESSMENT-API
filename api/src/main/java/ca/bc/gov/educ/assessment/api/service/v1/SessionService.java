@@ -30,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
 
@@ -88,8 +87,8 @@ public class SessionService {
     public List<AssessmentSession> getAllSessions() {
         var sessions = this.getAssessmentSessionRepository().findAllByActiveFromDateLessThanEqualOrderByActiveUntilDateDesc(LocalDateTime.now()).stream().map(mapper::toStructure).toList();
         
-        var sessionsSorted = sessions.stream().sorted(Comparator.comparing(AssessmentSession::getCompletionDate)).toList();
-        
+        var sessionsSorted = sessions.stream().sorted(Comparator.comparing(AssessmentSession::getCompletionDate, Comparator.nullsFirst(Comparator.naturalOrder()))).toList();
+
         sessionsSorted.forEach(session -> {
            session.setApprovalInFlight("false");
         });
