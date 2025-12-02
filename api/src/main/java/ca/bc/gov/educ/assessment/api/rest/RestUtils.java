@@ -7,6 +7,7 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.SagaRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
@@ -519,7 +520,7 @@ public class RestUtils {
     }
   }
 
-    public PaginatedResponse<Collection> getLastFourCollections() throws JsonProcessingException {
+    public PaginatedResponse<Collection> getLastFourCollections(AssessmentSessionEntity assessmentSession) throws JsonProcessingException {
         int pageNumber = 0;
         int pageSize = 4;
 
@@ -530,11 +531,30 @@ public class RestUtils {
             String sortJson = objectMapper.writeValueAsString(sortMap);
             String encodedSortJson = URLEncoder.encode(sortJson, StandardCharsets.UTF_8);
 
+            String activeFromDate = String.valueOf(assessmentSession.getActiveFromDate());
+
+            Map<String, Object> criteria = new HashMap<>();
+            criteria.put("key", "openDate");
+            criteria.put("operation", "lt");
+            criteria.put("value", activeFromDate);
+            criteria.put("valueType", "DATE_TIME");
+
+            Map<String, Object> wrapper = new HashMap<>();
+            wrapper.put("condition", "AND");
+            wrapper.put("searchCriteriaList", List.of(criteria));
+
+            List<Map<String, Object>> searchCriteriaList = new ArrayList<>();
+            searchCriteriaList.add(wrapper);
+
+            String searchJson = objectMapper.writeValueAsString(searchCriteriaList);
+            String encodedSearchJson = URLEncoder.encode(searchJson, StandardCharsets.UTF_8);
+
             String fullUrl = this.props.getSdcApiURL()
                     + "/collection/paginated"
                     + "?pageNumber=" + pageNumber
                     + "&pageSize=" + pageSize
-                    + "&sort=" + encodedSortJson;
+                    + "&sort=" + encodedSortJson
+                    + "&searchCriteriaList=" + encodedSearchJson;
 
             log.debug("Calling SDC API to get last 4 collections: {}", fullUrl);
 

@@ -554,7 +554,7 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateDataForItemAnalysis(UUID sessionID, String assessmentTypeCode) {
-        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+        AssessmentSessionEntity assessmentSession = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
         List<AssessmentStudentLightEntity> students = assessmentStudentLightRepository.findByAssessmentTypeCodeAndSessionIDAndProficiencyScoreNotNullOrProvincialSpecialCaseNotNull(assessmentTypeCode, sessionID);
         List<String> assignedStudentIds = students.stream().map(AssessmentStudentLightEntity::getPen).toList();
@@ -569,9 +569,10 @@ public class CSVReportService {
 
             csvPrinter.printRecord(headers);
 
-            // Get the last four collections and find appropriate SDC data based on session month
-            var lastFourCollections = restUtils.getLastFourCollections();
-            var sdcData = findAppropriateSDCData(lastFourCollections, assignedStudentIds, session.getCourseMonth());
+            // Get the last four collections before assessmentSession
+            // and find appropriate SDC data based on session month
+            var lastFourCollections = restUtils.getLastFourCollections(assessmentSession);
+            var sdcData = findAppropriateSDCData(lastFourCollections, assignedStudentIds, assessmentSession.getCourseMonth());
 
             // Extract data from the result map
             Object studentsObj = sdcData.get(STUDENTS_KEY);
@@ -597,9 +598,9 @@ public class CSVReportService {
 
             Map<String, SdcSchoolCollectionStudent> studentMap = sdcStudents.stream().collect(Collectors.toMap(SdcSchoolCollectionStudent::getAssignedPen, Function.identity()));
 
-            log.info("Generating item analysis report for session {}/{} using {} collection with {} students", session.getCourseYear(), session.getCourseMonth(), usedCollectionType, sdcStudents.size());
+            log.info("Generating item analysis report for session {}/{} using {} collection with {} students", assessmentSession.getCourseYear(), assessmentSession.getCourseMonth(), usedCollectionType, sdcStudents.size());
 
-            var sessionString = session.getCourseYear() +"/"+ session.getCourseMonth();
+            var sessionString = assessmentSession.getCourseYear() +"/"+ assessmentSession.getCourseMonth();
             for (AssessmentStudentLightEntity student : students) {
                 SdcSchoolCollectionStudent sdcStudent = studentMap.get(student.getPen());
                 String collectionSnapshotDate = studentToCollectionSnapshotDateMap.get(student.getPen());
