@@ -176,6 +176,26 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.GRAD_FLAGS_FLIPPED_FOR_NO_WRITE_STUDENTS);
+    }
+
+    @SneakyThrows
+    @Test
+    void testOrchestratorHandlesEventAndDelegatesStep4ToService() {
+        String payload = sagaPayload;
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS)
+                .eventOutcome(EventOutcome.GRAD_FLAGS_FLIPPED_FOR_NO_WRITE_STUDENTS)
+                .eventPayload(payload)
+                .build();
+
+        sessionApprovalOrchestrator.handleEvent(event);
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
         assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.MARK_STAGED_STUDENTS_READY_FOR_TRANSFER);
         assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER);
     }

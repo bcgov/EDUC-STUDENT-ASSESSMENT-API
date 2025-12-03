@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.orchestrator;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
+import ca.bc.gov.educ.assessment.api.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSagaEventStatesEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
@@ -35,8 +36,9 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
     private final SagaService sagaService;
     private final EmailService emailService;
     private final AssessmentStudentService assessmentStudentService;
+    private final Publisher publisher;
 
-    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailService emailService, AssessmentStudentService assessmentStudentService) {
+    protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailService emailService, AssessmentStudentService assessmentStudentService, Publisher publisher) {
         super(sagaService, messagePublisher, ApprovalSagaData.class, GENERATE_XAM_FILES.toString(), XAM_FILE_GENERATION_TOPIC.toString());
         this.xamFileService = xamFileService;
         this.sagaService = sagaService;
@@ -44,6 +46,7 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.emailService = emailService;
         this.assessmentStudentService = assessmentStudentService;
+        this.publisher = publisher;
     }
 
     @Override
@@ -52,7 +55,8 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
             .begin(GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
             .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
             .step(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED, MARK_SESSION_COMPLETION_DATE, this::markSessionCompletionDate)
-            .step(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET, MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
+            .step(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET, FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS, this::flipFlagsForNoWriteStudents)
+            .step(FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS, GRAD_FLAGS_FLIPPED_FOR_NO_WRITE_STUDENTS, MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
             .end(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER);
     }
 
@@ -73,6 +77,26 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("Posted completion message for saga step generateXAMFilesAndUpload: {}", saga.getSagaId());
+    }
+
+    private void flipFlagsForNoWriteStudents(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
+        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
+        saga.setSagaState(FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS.toString());
+        saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
+        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
+
+        UUID sessionID = UUID.fromString(approvalSagaData.getSessionID());
+        assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
+        var events = assessmentStudentService.flipFlagsForNoWriteStudents(sessionID);
+        events.forEach(publisher::dispatchChoreographyEvent);
+        final Event nextEvent = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS)
+                .eventOutcome(GRAD_FLAGS_FLIPPED_FOR_NO_WRITE_STUDENTS)
+                .eventPayload(JsonUtil.getJsonStringFromObject(approvalSagaData))
+                .build();
+        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
+        log.debug("Posted completion message for saga step markStagedStudentsReadyForTransfer: {}", saga.getSagaId());
     }
 
     private void markStagedStudentsReadyForTransfer(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
