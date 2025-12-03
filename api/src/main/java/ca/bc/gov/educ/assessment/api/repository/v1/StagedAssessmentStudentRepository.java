@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api.repository.v1;
 
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +21,8 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
     select stud.studentID from StagedAssessmentStudentEntity as stud
     where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID""")
     List<UUID> findAllStagedStudentsInSession(UUID sessionID);
+
+    List<StagedAssessmentStudentEntity> findByStudentID(UUID studentID);
 
     @Query("""
         SELECT s FROM StagedAssessmentStudentEntity s

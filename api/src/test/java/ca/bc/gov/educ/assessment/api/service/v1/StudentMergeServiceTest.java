@@ -90,7 +90,7 @@ class StudentMergeServiceTest {
     @Test
     void testUpdateAssessmentStudents_WithCreateMerge_ShouldUpdateStudentsToMerged() throws Exception {
         UUID studentId = UUID.randomUUID();
-        StudentMerge studentMerge = StudentMerge.builder().studentID(studentId.toString()).build();
+        StudentMerge studentMerge = StudentMerge.builder().studentID(studentId.toString()).mergeStudentID(UUID.randomUUID().toString()).build();
         AssessmentStudentEntity assessmentStudent = AssessmentStudentEntity.builder()
                 .studentID(studentId)
                 .build();
@@ -100,7 +100,19 @@ class StudentMergeServiceTest {
 
         Method method = StudentMergeService.class.getDeclaredMethod("updateAssessmentStudents", StudentMerge.class, EventType.class);
         method.setAccessible(true);
-
+        List<Student> mockStudents = new ArrayList<>();
+        Set<String> studentIDs = new HashSet<>();
+        List<StudentMerge> mockMergedStudents = List.of(
+                StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("FROM").studentMergeSourceCode("MI").build(),
+                StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("TO").studentMergeSourceCode("API").build()
+        );
+        for (StudentMerge mockMergedStudent : mockMergedStudents) {
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getStudentID()).pen("123456789").build());
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getMergeStudentID()).pen("987654321").build());
+            studentIDs.add(mockMergedStudent.getStudentID());
+            studentIDs.add(mockMergedStudent.getMergeStudentID());
+        }
+        when(restUtils.getStudents(any(), any())).thenReturn(mockStudents);
         method.invoke(studentMergeService, studentMerge, EventType.CREATE_MERGE);
 
         verify(assessmentStudentService, times(1)).getStudentByStudentId(studentId);
@@ -111,12 +123,24 @@ class StudentMergeServiceTest {
     @Test
     void testUpdateAssessmentStudents_WithDeleteMerge_ShouldUpdateStudentsToActive() throws Exception {
         UUID studentId = UUID.randomUUID();
-        StudentMerge studentMerge = StudentMerge.builder().studentID(studentId.toString()).build();
+        StudentMerge studentMerge = StudentMerge.builder().studentID(studentId.toString()).mergeStudentID(UUID.randomUUID().toString()).build();
         AssessmentStudentEntity assessmentStudent = AssessmentStudentEntity.builder()
                 .studentID(studentId)
                 .build();
         List<AssessmentStudentEntity> assessmentStudents = Collections.singletonList(assessmentStudent);
-
+        List<Student> mockStudents = new ArrayList<>();
+        Set<String> studentIDs = new HashSet<>();
+        List<StudentMerge> mockMergedStudents = List.of(
+                StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("FROM").studentMergeSourceCode("MI").build(),
+                StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("TO").studentMergeSourceCode("API").build()
+        );
+        for (StudentMerge mockMergedStudent : mockMergedStudents) {
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getStudentID()).pen("123456789").build());
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getMergeStudentID()).pen("987654321").build());
+            studentIDs.add(mockMergedStudent.getStudentID());
+            studentIDs.add(mockMergedStudent.getMergeStudentID());
+        }
+        when(restUtils.getStudents(any(), any())).thenReturn(mockStudents);
         when(assessmentStudentService.getStudentByStudentId(studentId)).thenReturn(assessmentStudents);
 
         Method method = StudentMergeService.class.getDeclaredMethod("updateAssessmentStudents", StudentMerge.class, EventType.class);
@@ -149,10 +173,12 @@ class StudentMergeServiceTest {
         UUID studentId = UUID.randomUUID();
         StudentMerge studentMergeTo = StudentMerge.builder()
                 .studentID(studentId.toString())
+                .mergeStudentID(UUID.randomUUID().toString())
                 .studentMergeDirectionCode(StudentMergeDirectionCodes.TO.toString())
                 .build();
         StudentMerge studentMergeFrom = StudentMerge.builder()
                 .studentID(UUID.randomUUID().toString())
+                .mergeStudentID(UUID.randomUUID().toString())
                 .studentMergeDirectionCode(StudentMergeDirectionCodes.FROM.toString())
                 .build();
         List<StudentMerge> studentMerges = List.of(studentMergeTo, studentMergeFrom);
@@ -170,7 +196,19 @@ class StudentMergeServiceTest {
 
         when(assessmentStudentService.getStudentByStudentId(studentId)).thenReturn(assessmentStudents);
         when(assessmentEventRepository.findByEventId(event.getEventId())).thenReturn(Optional.of(event));
-
+        List<Student> mockStudents = new ArrayList<>();
+        Set<String> studentIDs = new HashSet<>();
+        List<StudentMerge> mockMergedStudents = List.of(
+                StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("FROM").studentMergeSourceCode("MI").build(),
+                StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("TO").studentMergeSourceCode("API").build()
+        );
+        for (StudentMerge mockMergedStudent : mockMergedStudents) {
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getStudentID()).pen("123456789").build());
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getMergeStudentID()).pen("987654321").build());
+            studentIDs.add(mockMergedStudent.getStudentID());
+            studentIDs.add(mockMergedStudent.getMergeStudentID());
+        }
+        when(restUtils.getStudents(any(), any())).thenReturn(mockStudents);
         studentMergeService.processMergeEvent(event);
 
         verify(assessmentStudentService, times(1)).getStudentByStudentId(studentId);
@@ -187,6 +225,7 @@ class StudentMergeServiceTest {
         UUID studentId = UUID.randomUUID();
         StudentMerge studentMergeTo = StudentMerge.builder()
                 .studentID(studentId.toString())
+                .mergeStudentID(UUID.randomUUID().toString())
                 .studentMergeDirectionCode(StudentMergeDirectionCodes.TO.toString())
                 .build();
         List<StudentMerge> studentMerges = List.of(studentMergeTo);
@@ -204,7 +243,19 @@ class StudentMergeServiceTest {
 
         when(assessmentStudentService.getStudentByStudentId(studentId)).thenReturn(assessmentStudents);
         when(assessmentEventRepository.findByEventId(event.getEventId())).thenReturn(Optional.of(event));
-
+        List<Student> mockStudents = new ArrayList<>();
+        Set<String> studentIDs = new HashSet<>();
+        List<StudentMerge> mockMergedStudents = List.of(
+                StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("FROM").studentMergeSourceCode("MI").build(),
+                StudentMerge.builder().studentMergeID(UUID.randomUUID().toString()).studentID(UUID.randomUUID().toString()).mergeStudentID(UUID.randomUUID().toString()).studentMergeDirectionCode("TO").studentMergeSourceCode("API").build()
+        );
+        for (StudentMerge mockMergedStudent : mockMergedStudents) {
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getStudentID()).pen("123456789").build());
+            mockStudents.add(Student.builder().studentID(mockMergedStudent.getMergeStudentID()).pen("987654321").build());
+            studentIDs.add(mockMergedStudent.getStudentID());
+            studentIDs.add(mockMergedStudent.getMergeStudentID());
+        }
+        when(restUtils.getStudents(any(), any())).thenReturn(mockStudents);
         studentMergeService.processMergeEvent(event);
 
         verify(assessmentStudentService, times(1)).getStudentByStudentId(studentId);
