@@ -1240,7 +1240,7 @@
 					<text><![CDATA[Numeracy Process %]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="320" y="360" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="270" y="360" width="210" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && $F{assessmentType}.equals("NMF10")]]></printWhenExpression>
 					</reportElement>
 					<textElement>
