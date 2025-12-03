@@ -385,8 +385,6 @@ public abstract class BaseOrchestrator<T> implements EventHandler, Orchestrator 
   @Async("sagaRetryTaskExecutor")
   public void replaySaga(final AssessmentSagaEntity saga) throws IOException, InterruptedException, TimeoutException {
     final var eventStates = this.getSagaService().findAllSagaStates(saga);
-    log.info("saga ID {}",saga.getSagaId());
-    log.info("eventStates count {}", eventStates.size());
     final var t = JsonUtil.getJsonObjectFromString(this.clazz, saga.getPayload());
     if (eventStates.isEmpty()) { //process did not start last time, lets start from beginning.
       this.replayFromBeginning(saga, t);
