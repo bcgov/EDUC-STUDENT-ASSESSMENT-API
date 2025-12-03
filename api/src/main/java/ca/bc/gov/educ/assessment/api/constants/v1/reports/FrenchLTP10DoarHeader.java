@@ -22,7 +22,7 @@ public enum FrenchLTP10DoarHeader {
     COM1("Communication écrite: Partie A Courte %"),
     COM2("Communication écrite: Partie A  Organigramme %"),
     COM3("Communication écrite: Partie A Longue %"),
-    COM4("Communication écrite: Partie B Courte %%"),
+    COM4("Communication écrite: Partie B Courte %"),
     COM5("Communication orale: Partie 1 %"),
     COM6("Communication orale: Partie 2 %"),
     COM7("Communication orale: Partie 3 %"),
