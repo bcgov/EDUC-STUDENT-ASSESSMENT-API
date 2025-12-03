@@ -13,6 +13,7 @@ import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentRulesProcessor;
+import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
@@ -328,6 +329,20 @@ public class AssessmentStudentService {
                 .uploadedBy(student.map(AssessmentStudentEntity::getCreateUser).orElse(null))
                 .uploadDate(student.map(assessmentStudentEntity -> assessmentStudentEntity.getCreateDate().toString()).orElse(null))
                 .build();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public List<AssessmentEventEntity> flipFlagsForNoWriteStudents(UUID sessionID) {
+       var students = assessmentStudentRepository.findAllStudentsRegisteredThatHaveNotWritten(sessionID);
+
+       List<AssessmentEventEntity> events = new ArrayList<>();
+       students.forEach(student -> {
+          var event = generateStudentUpdatedEvent(student.toString());
+          assessmentEventRepository.save(event);
+          events.add(event);
+       });
+
+       return events;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
