@@ -90,9 +90,12 @@ public class DOARStagingReportService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createAndPopulateDOARStagingSummaryCalculations(StudentResultSagaData studentResultSagaData) {
-        var stagedAssessmentStudentEntity = stagedAssessmentStudentRepository
-                .findByAssessmentEntity_assessmentIDAndPen(UUID.fromString(studentResultSagaData.getAssessmentID()), studentResultSagaData.getPen())
-                .orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "Pen", studentResultSagaData.getPen()));
+        var optStagedStudentEntity = stagedAssessmentStudentRepository
+                .findByAssessmentEntity_assessmentIDAndPen(UUID.fromString(studentResultSagaData.getAssessmentID()), studentResultSagaData.getPen());
+
+        StagedAssessmentStudentEntity stagedAssessmentStudentEntity = optStagedStudentEntity.orElseGet(() -> stagedAssessmentStudentRepository
+                .findByAssessmentEntity_assessmentIDAndMergedPen(UUID.fromString(studentResultSagaData.getAssessmentID()), studentResultSagaData.getPen())
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "Pen", studentResultSagaData.getPen())));
 
         var selectedAssessmentForm = stagedAssessmentStudentEntity.getAssessmentEntity().getAssessmentForms().stream()
                 .filter(assessmentFormEntity -> stagedAssessmentStudentEntity.getAssessmentFormID() != null

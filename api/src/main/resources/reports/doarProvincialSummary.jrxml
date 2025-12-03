@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.21.3.final using JasperReports Library version 6.21.3-4a3078d20785ebe464f18037d738d12fc98c13cf  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SchoolStudentsInSession" pageWidth="792" pageHeight="1100" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SchoolStudentsInSession" pageWidth="792" pageHeight="700" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="doarSummaryAdapter"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -455,7 +455,7 @@
 	<group name="ReportGroup" isStartNewPage="true" isResetPageNumber="true">
 		<groupExpression><![CDATA[$F{reportId}]]></groupExpression>
 		<groupHeader>
-			<band height="1060" splitType="Stretch">
+			<band height="640" splitType="Stretch">
 				<textField>
 					<reportElement x="609" y="35" width="132" height="15" uuid="7ff4950d-6279-413e-8200-a450eb831f90">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -739,7 +739,7 @@
 					<text><![CDATA[Distribution des paliers de compétence (%)]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="30" y="210" width="193" height="20" uuid="0e932c22-100e-4c40-9fac-a1b3dbe4e46a">
+					<reportElement x="30" y="160" width="193" height="20" uuid="0e932c22-100e-4c40-9fac-a1b3dbe4e46a">
 						<printWhenExpression><![CDATA[!$F{csf}]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -748,7 +748,7 @@
 					<text><![CDATA[Assessment Raw Score (Mean)]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="30" y="210" width="193" height="20" uuid="0e932c22-100e-4c40-9fac-a1b3dbe4e46a">
+					<reportElement x="30" y="160" width="193" height="20" uuid="0e932c22-100e-4c40-9fac-a1b3dbe4e46a">
 						<printWhenExpression><![CDATA[$F{csf}]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -757,7 +757,7 @@
 					<text><![CDATA[Résultats bruts aux évaluations (moyenne)]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="330" y="220" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="330" y="170" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTE10") || $F{assessmentType}.equals("LTE12") || $F{assessmentType}.equals("NME10"))]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -766,7 +766,7 @@
 					<text><![CDATA[Task %]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="330" y="220" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="330" y="170" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("NMF10") || $F{assessmentType}.equals("LTP12") || $F{assessmentType}.equals("LTP10") || $F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -775,7 +775,7 @@
 					<text><![CDATA[Tâche (%)]]></text>
 				</staticText>
 				<componentElement>
-					<reportElement x="30" y="240" width="669" height="80" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="190" width="669" height="80" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("NME10") || $F{assessmentType}.equals("NMF10"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -982,7 +982,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="240" width="669" height="80" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="190" width="669" height="80" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP12") || $F{assessmentType}.equals("LTP10") || $F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -1101,7 +1101,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="240" width="669" height="80" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="190" width="669" height="80" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTE10") || $F{assessmentType}.equals("LTE12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -1195,7 +1195,7 @@
 					</jr:table>
 				</componentElement>
 				<staticText>
-					<reportElement x="320" y="360" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="320" y="240" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && $F{assessmentType}.equals("NME10")]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -1204,7 +1204,7 @@
 					<text><![CDATA[Numeracy Process %]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="320" y="360" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="270" y="240" width="210" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && $F{assessmentType}.equals("NMF10")]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -1213,7 +1213,7 @@
 					<text><![CDATA[Processus de raisonnement en numératie (%)]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="320" y="360" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="320" y="240" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTE10") || $F{assessmentType}.equals("LTE12"))]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -1222,7 +1222,7 @@
 					<text><![CDATA[Comprehend %]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="320" y="360" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="320" y="240" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP10") || $F{assessmentType}.equals("LTP12") || $F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -1231,7 +1231,7 @@
 					<text><![CDATA[Compréhension %]]></text>
 				</staticText>
 				<componentElement>
-					<reportElement x="30" y="380" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="260" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("NME10") || $F{assessmentType}.equals("NMF10"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -1438,7 +1438,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="380" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="260" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP10") || $F{assessmentType}.equals("LTP12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -1529,7 +1529,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="380" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="260" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -1645,7 +1645,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="380" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="260" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTE10") || $F{assessmentType}.equals("LTE12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -1739,7 +1739,7 @@
 					</jr:table>
 				</componentElement>
 				<staticText>
-					<reportElement x="320" y="500" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="320" y="310" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTE10") || $F{assessmentType}.equals("LTE12"))]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -1748,7 +1748,7 @@
 					<text><![CDATA[Communicate %]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="320" y="500" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="320" y="310" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP10") || $F{assessmentType}.equals("LTP12") || $F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -1757,7 +1757,7 @@
 					<text><![CDATA[Compréhension écrite  %]]></text>
 				</staticText>
 				<componentElement>
-					<reportElement x="30" y="520" width="669" height="110" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="330" width="669" height="110" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTE10") || $F{assessmentType}.equals("LTE12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -1876,7 +1876,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="520" width="669" height="110" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="330" width="669" height="110" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -1992,7 +1992,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="520" width="669" height="110" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="330" width="669" height="110" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -2117,7 +2117,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="520" width="669" height="110" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="330" width="669" height="110" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP10"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -2268,7 +2268,7 @@
 					</jr:table>
 				</componentElement>
 				<staticText>
-					<reportElement x="320" y="500" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="320" y="310" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && $F{assessmentType}.equals("NMF10")]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -2277,7 +2277,7 @@
 					<text><![CDATA[Rigueur cognitive (%)]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="320" y="500" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="320" y="310" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && $F{assessmentType}.equals("NME10")]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -2286,7 +2286,7 @@
 					<text><![CDATA[Cognitive Level %]]></text>
 				</staticText>
 				<componentElement>
-					<reportElement x="30" y="520" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="330" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("NME10") || $F{assessmentType}.equals("NMF10"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -2456,7 +2456,7 @@
 					</jr:table>
 				</componentElement>
 				<staticText>
-					<reportElement x="320" y="640" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="320" y="380" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTE10") || $F{assessmentType}.equals("LTE12"))]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -2465,7 +2465,7 @@
 					<text><![CDATA[Cognitive Level %]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="320" y="640" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
+					<reportElement x="320" y="380" width="100" height="20" uuid="433c6497-6639-4d0c-9122-a5ee6503000b">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP10") || $F{assessmentType}.equals("LTP12") || $F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -2474,7 +2474,7 @@
 					<text><![CDATA[Communication orale %]]></text>
 				</staticText>
 				<componentElement>
-					<reportElement x="30" y="660" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="400" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP10") || $F{assessmentType}.equals("LTP12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -2601,7 +2601,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="660" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="400" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTE10") || $F{assessmentType}.equals("LTE12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -2731,7 +2731,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="660" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="400" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -2850,7 +2850,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="800" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="450" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -2969,7 +2969,7 @@
 					</jr:table>
 				</componentElement>
 				<staticText>
-					<reportElement x="320" y="780" width="100" height="20" uuid="0903abd2-bec6-482f-8a37-888bb0be12ef">
+					<reportElement x="320" y="450" width="100" height="20" uuid="0903abd2-bec6-482f-8a37-888bb0be12ef">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP10") || $F{assessmentType}.equals("LTP12"))]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -2978,7 +2978,7 @@
 					<text><![CDATA[Rigueur cognitive %]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="320" y="919" width="100" height="20" uuid="0903abd2-bec6-482f-8a37-888bb0be12ef">
+					<reportElement x="320" y="500" width="100" height="20" uuid="0903abd2-bec6-482f-8a37-888bb0be12ef">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && $F{assessmentType}.equals("LTF12")]]></printWhenExpression>
 					</reportElement>
 					<textElement>
@@ -2987,7 +2987,7 @@
 					<text><![CDATA[Rigueur cognitive %]]></text>
 				</staticText>
 				<componentElement>
-					<reportElement x="30" y="800" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="470" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTP10") || $F{assessmentType}.equals("LTP12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -3106,7 +3106,7 @@
 					</jr:table>
 				</componentElement>
 				<componentElement>
-					<reportElement x="30" y="939" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
+					<reportElement x="30" y="520" width="669" height="100" uuid="f4a9dd19-5486-48d6-b224-82292deeed42">
 						<printWhenExpression><![CDATA[$F{assessmentType} != null && ($F{assessmentType}.equals("LTF12"))]]></printWhenExpression>
 					</reportElement>
 					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" whenNoDataType="AllSectionsNoDetail">
@@ -3228,6 +3228,6 @@
 		</groupHeader>
 	</group>
 	<background>
-		<band height="140" splitType="Stretch"/>
+		<band height="88" splitType="Stretch"/>
 	</background>
 </jasperReport>
