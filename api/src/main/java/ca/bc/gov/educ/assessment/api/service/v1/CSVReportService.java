@@ -942,7 +942,7 @@ public class CSVReportService {
             case "04" ->
                     List.of(SEPTEMBER, "FEBRUARY");
             case "06" ->
-                    List.of(SEPTEMBER, "FEBRUARY", "JULY");
+                    List.of(SEPTEMBER, "FEBRUARY", "MAY");
             default ->
                     List.of(SEPTEMBER);
         };
