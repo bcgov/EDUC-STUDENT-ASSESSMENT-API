@@ -5,12 +5,14 @@ import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.*;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidParameterException;
+import ca.bc.gov.educ.assessment.api.exception.PreconditionRequiredException;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentDOARCalculationRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.DOARCalculate;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import jakarta.annotation.PostConstruct;
@@ -57,6 +59,10 @@ public class DOARReportService {
 
         AssessmentEntity assessmentEntity = session.getAssessments().stream().filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode)).findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentTypeCode", assessmentTypeCode));
         List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCode(assessmentEntity.getAssessmentID(), UUID.fromString(schoolTombstone.getSchoolId()), StudentStatusCodes.ACTIVE.getCode());
+
+        if(results.isEmpty()) {
+            throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
+        }
 
         for (AssessmentStudentEntity result : results) {
             var studentDOARCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentIDAndAssessmentID(result.getAssessmentStudentID(), result.getAssessmentEntity().getAssessmentID());
