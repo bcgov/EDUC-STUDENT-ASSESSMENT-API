@@ -44,6 +44,7 @@ public enum AssessmentReportTypeCode {
     LTF12_ITEM_ANALYSIS("LTF12"),
     DOAR_SUMMARY("doar-summary"),
     DOAR_PROVINCIAL_SUMMARY("doar-prov-summary"),
+    ASSESSMENT_STUDENT_SEARCH_CSV("assessment-student-search-csv"),
     ;
     private final String code;
     AssessmentReportTypeCode(String code) { this.code = code; }

@@ -1759,4 +1759,279 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     private PaginatedResponse<Collection> createMockPaginatedResponse(List<Collection> collections) {
         return new PaginatedResponse<>(collections, PageRequest.of(0, collections.size()), collections.size());
     }
+
+    @Test
+    void testGetAssessmentStudentSearchReport_NoFilters_ShouldReturnAllStudents() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+        student1.setPen("123456789");
+        student1.setSurname("SMITH");
+        student1.setGivenName("JOHN");
+        student1.setGradeAtRegistration("10");
+        student1.setProficiencyScore(3);
+        studentRepository.save(student1);
+
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+        student2.setPen("987654321");
+        student2.setSurname("DOE");
+        student2.setGivenName("JANE");
+        student2.setGradeAtRegistration("10");
+        student2.setProficiencyScore(4);
+        studentRepository.save(student2);
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetAssessmentStudentSearchReport_WithSearchCriteria_ShouldReturnFilteredStudents() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        // Create student with grade 10
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+        student1.setPen("123456789");
+        student1.setSurname("SMITH");
+        student1.setGivenName("JOHN");
+        student1.setGradeAtRegistration("10");
+        student1.setProficiencyScore(3);
+        studentRepository.save(student1);
+
+        // Create student with grade 12
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+        student2.setPen("987654321");
+        student2.setSurname("DOE");
+        student2.setGivenName("JANE");
+        student2.setGradeAtRegistration("12");
+        student2.setProficiencyScore(4);
+        studentRepository.save(student2);
+
+        // Search for grade 10 only
+        String searchCriteria = "[{\"searchCriteriaList\":[{\"key\":\"gradeAtRegistration\",\"operation\":\"eq\",\"value\":\"10\",\"valueType\":\"STRING\",\"condition\":\"AND\"}]}]";
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
+                                .param("searchCriteriaList", searchCriteria)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetAssessmentStudentSearchReport_WithProficiencyScoreFilter_ShouldReturnMatchingStudents() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTE10.getCode()));
+
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+        student1.setPen("111111111");
+        student1.setProficiencyScore(4);
+        studentRepository.save(student1);
+
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+        student2.setPen("222222222");
+        student2.setProficiencyScore(3);
+        studentRepository.save(student2);
+
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment);
+        student3.setPen("333333333");
+        student3.setProficiencyScore(4);
+        studentRepository.save(student3);
+
+        // Filter by proficiency score 4
+        String searchCriteria = "[{\"searchCriteriaList\":[{\"key\":\"proficiencyScore\",\"operation\":\"eq\",\"value\":\"4\",\"valueType\":\"INTEGER\",\"condition\":\"AND\"}]}]";
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
+                                .param("searchCriteriaList", searchCriteria)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetAssessmentStudentSearchReport_WithSessionFilter_ShouldReturnStudentsInSession() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        // Create first session
+        AssessmentSessionEntity session1 = createMockSessionEntity();
+        session1.setCourseMonth("01");
+        session1.setCourseYear("2024");
+        AssessmentSessionEntity assessmentSession1 = assessmentSessionRepository.save(session1);
+        AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession1, AssessmentTypeCodes.NME10.getCode()));
+
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment1);
+        student1.setPen("444444444");
+        studentRepository.save(student1);
+
+        // Create second session
+        AssessmentSessionEntity session2 = createMockSessionEntity();
+        session2.setCourseMonth("06");
+        session2.setCourseYear("2024");
+        AssessmentSessionEntity assessmentSession2 = assessmentSessionRepository.save(session2);
+        AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession2, AssessmentTypeCodes.NME10.getCode()));
+
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
+        student2.setPen("555555555");
+        studentRepository.save(student2);
+
+        // Filter by first session
+        String searchCriteria = "[{\"searchCriteriaList\":[{\"key\":\"assessmentEntity.assessmentSessionEntity.sessionID\",\"operation\":\"eq\",\"value\":\"" + assessmentSession1.getSessionID() + "\",\"valueType\":\"UUID\",\"condition\":\"AND\"}]}]";
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
+                                .param("searchCriteriaList", searchCriteria)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetAssessmentStudentSearchReport_WithSpecialCaseCode_ShouldReturnStudentsWithSpecialCase() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP12.getCode()));
+
+        // Student with special case
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+        student1.setPen("666666666");
+        student1.setProvincialSpecialCaseCode("A"); // AEGROTAT
+        studentRepository.save(student1);
+
+        // Student without special case
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+        student2.setPen("777777777");
+        student2.setProvincialSpecialCaseCode(null);
+        studentRepository.save(student2);
+
+        // Filter by special case code
+        String searchCriteria = "[{\"searchCriteriaList\":[{\"key\":\"provincialSpecialCaseCode\",\"operation\":\"eq\",\"value\":\"A\",\"valueType\":\"STRING\",\"condition\":\"AND\"}]}]";
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
+                                .param("searchCriteriaList", searchCriteria)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetAssessmentStudentSearchReport_WithMultipleFilters_ShouldReturnMatchingStudents() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_STUDENT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+        student1.setPen("888888888");
+        student1.setGradeAtRegistration("12");
+        student1.setProficiencyScore(3);
+        studentRepository.save(student1);
+
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+        student2.setPen("999999999");
+        student2.setGradeAtRegistration("12");
+        student2.setProficiencyScore(4);
+        studentRepository.save(student2);
+
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment);
+        student3.setPen("000000000");
+        student3.setGradeAtRegistration("10");
+        student3.setProficiencyScore(3);
+        studentRepository.save(student3);
+
+        // Filter by grade 12 AND proficiency score 3
+        String searchCriteria = "[{\"searchCriteriaList\":[{\"key\":\"gradeAtRegistration\",\"operation\":\"eq\",\"value\":\"12\",\"valueType\":\"STRING\",\"condition\":\"AND\"},{\"key\":\"proficiencyScore\",\"operation\":\"eq\",\"value\":\"3\",\"valueType\":\"INTEGER\",\"condition\":\"AND\"}]}]";
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
+                                .param("searchCriteriaList", searchCriteria)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetAssessmentStudentSearchReport_WithoutPermission_ShouldReturn403() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRONG_PERMISSION";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isForbidden());
+    }
 }
