@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
@@ -45,5 +46,10 @@ public interface ReportsEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     DownloadableReportResponse getStudentReport(@PathVariable String pen, @PathVariable String type);
-    
+
+    @GetMapping("/assessment-students/search/download")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_STUDENT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    DownloadableReportResponse getAssessmentStudentSearchReport(@RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson);
 }

@@ -190,4 +190,9 @@ public class ReportsController implements ReportsEndpoint {
 
         return isrReportService.generateIndividualStudentReportByPEN(pen);
     }
+
+    @Override
+    public DownloadableReportResponse getAssessmentStudentSearchReport(String searchCriteriaListJson) {
+        return csvReportService.generateAssessmentStudentSearchReport(searchCriteriaListJson);
+    }
 }
