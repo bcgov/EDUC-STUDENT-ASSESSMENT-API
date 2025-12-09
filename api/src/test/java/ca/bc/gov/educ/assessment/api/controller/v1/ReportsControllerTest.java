@@ -43,7 +43,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -1794,19 +1793,17 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                         get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
                                 .with(mockAuthority))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"))
+                .andExpect(header().exists("Content-Disposition"));
 
-        String jsonResponse = resultActions.andReturn().getResponse().getContentAsString();
-        DownloadableReportResponse response = objectMapper.readValue(jsonResponse, DownloadableReportResponse.class);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getDocumentData()).isNotBlank();
-
-        String csvContent = new String(Base64.getDecoder().decode(response.getDocumentData()));
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        String contentDisposition = resultActions.andReturn().getResponse().getHeader("Content-Disposition");
 
         assertThat(csvContent).isNotBlank();
         assertThat(csvContent).contains("PEN,Surname,Given Name,Grade,School of Record,School at Write,Assessment Code,Assessment Session,Proficiency Score,Special Case");
         assertThat(csvContent.split("\n").length).isGreaterThanOrEqualTo(1);
+        assertThat(contentDisposition).startsWith("attachment; filename=");
     }
 
     @Test
@@ -1848,15 +1845,10 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        String jsonResponse = resultActions.andReturn().getResponse().getContentAsString();
-        DownloadableReportResponse response = objectMapper.readValue(jsonResponse, DownloadableReportResponse.class);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getDocumentData()).isNotBlank();
-
-        String csvContent = new String(Base64.getDecoder().decode(response.getDocumentData()));
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
         assertThat(csvContent).isNotBlank();
         assertThat(csvContent).contains("PEN,Surname,Given Name,Grade,School of Record,School at Write,Assessment Code,Assessment Session,Proficiency Score,Special Case");
@@ -1901,15 +1893,10 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        String jsonResponse = resultActions.andReturn().getResponse().getContentAsString();
-        DownloadableReportResponse response = objectMapper.readValue(jsonResponse, DownloadableReportResponse.class);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getDocumentData()).isNotBlank();
-
-        String csvContent = new String(Base64.getDecoder().decode(response.getDocumentData()));
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
         assertThat(csvContent).isNotBlank();
         assertThat(csvContent).contains("111111111"); // Student 1 with score 4
@@ -1955,15 +1942,10 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        String jsonResponse = resultActions.andReturn().getResponse().getContentAsString();
-        DownloadableReportResponse response = objectMapper.readValue(jsonResponse, DownloadableReportResponse.class);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getDocumentData()).isNotBlank();
-
-        String csvContent = new String(Base64.getDecoder().decode(response.getDocumentData()));
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
         assertThat(csvContent).isNotBlank();
         assertThat(csvContent).contains("444444444"); // Student from session 1
@@ -2003,15 +1985,10 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        String jsonResponse = resultActions.andReturn().getResponse().getContentAsString();
-        DownloadableReportResponse response = objectMapper.readValue(jsonResponse, DownloadableReportResponse.class);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getDocumentData()).isNotBlank();
-
-        String csvContent = new String(Base64.getDecoder().decode(response.getDocumentData()));
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
         assertThat(csvContent).isNotBlank();
         assertThat(csvContent).contains("666666666"); // Student with special case A
@@ -2057,15 +2034,10 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        String jsonResponse = resultActions.andReturn().getResponse().getContentAsString();
-        DownloadableReportResponse response = objectMapper.readValue(jsonResponse, DownloadableReportResponse.class);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getDocumentData()).isNotBlank();
-
-        String csvContent = new String(Base64.getDecoder().decode(response.getDocumentData()));
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
         assertThat(csvContent).isNotBlank();
         assertThat(csvContent).contains("888888888"); // Student 1: grade 12, score 3 - should match
