@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.SchoolReportingRequirementCode
 import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.exception.PreconditionRequiredException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentDOARCalculationEntity;
@@ -90,8 +91,12 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     try {
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
       var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), "X");
-
       var school = validateAndReturnSchool(schoolID);
+
+      boolean schoolHasAnyResult = students.stream().anyMatch(student -> Objects.equals(student.getSchoolAtWriteSchoolID(), schoolID));
+      if(!schoolHasAnyResult){
+        throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
+      }
       boolean isIndependent = school.getIndependentAuthorityId() != null;
       DOARSummaryNode doarSummaryNode = new DOARSummaryNode();
       doarSummaryNode.setReports(new ArrayList<>());

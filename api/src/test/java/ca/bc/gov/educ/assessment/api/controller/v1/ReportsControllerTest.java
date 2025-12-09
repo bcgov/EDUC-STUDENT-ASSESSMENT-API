@@ -348,6 +348,30 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
+    void testGetDownloadableReportForSchool_NoSessionResults_ShouldReturn428() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
+
+        AssessmentStudentEntity student = createMockStudentEntity(assessment);
+        student.setSchoolAtWriteSchoolID(UUID.randomUUID());
+        student.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/SCHOOL_STUDENTS_BY_ASSESSMENT/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isPreconditionRequired());
+    }
+
+    @Test
     void testGetDownloadableReportForSchool_ValidTypeSessionResults_ShouldReturnCSVFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
@@ -457,6 +481,32 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         assertThat(summary).isNotNull();
         assertThat(summary.getReportType()).isEqualTo(SCHOOL_STUDENTS_IN_SESSION.getCode());
         assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetDownloadableReportForSchoolSession_NoSessionResults_ShouldReturn428() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+        var district = this.createMockDistrict();
+        when(this.restUtils.getDistrictByDistrictID(anyString())).thenReturn(Optional.of(district));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
+
+        AssessmentStudentEntity student = createMockStudentEntity(assessment);
+        student.setSchoolAtWriteSchoolID(UUID.randomUUID());
+        student.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/SCHOOL_STUDENTS_IN_SESSION/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isPreconditionRequired());
     }
 
     @Test
@@ -1083,15 +1133,11 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .build();
         doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
 
-        var resultActions = this.mockMvc.perform(
+        this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andDo(print()).andExpect(status().isPreconditionRequired());
 
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
-
-        assertThat(summary).isNotNull();
-        assertThat(summary.getDocumentData()).isNotBlank();
     }
 
     @Test
@@ -1153,15 +1199,10 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .build();
         doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
 
-        var resultActions = this.mockMvc.perform(
+         this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
-
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
-
-        assertThat(summary).isNotNull();
-        assertThat(summary.getDocumentData()).isNotBlank();
+                .andDo(print()).andExpect(status().isPreconditionRequired());
     }
 
     @Test
@@ -1223,15 +1264,10 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .build();
         doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
 
-        var resultActions = this.mockMvc.perform(
+        this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
-
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
-
-        assertThat(summary).isNotNull();
-        assertThat(summary.getDocumentData()).isNotBlank();
+                .andDo(print()).andExpect(status().isPreconditionRequired());
     }
 
     @Test
@@ -1365,15 +1401,10 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .build();
         doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
 
-        var resultActions = this.mockMvc.perform(
+        this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
-
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
-
-        assertThat(summary).isNotNull();
-        assertThat(summary.getDocumentData()).isNotBlank();
+                .andDo(print()).andExpect(status().isPreconditionRequired());
     }
 
     @ParameterizedTest

@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.SchoolReportingRequirementCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.exception.PreconditionRequiredException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
@@ -73,8 +74,12 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
 
   public DownloadableReportResponse generateSchoolStudentsByAssessmentReport(UUID assessmentSessionID, UUID schoolID){
     try {
-      var students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(assessmentSessionID, schoolID, List.of("ACTIVE"));
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
+      var students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(assessmentSessionID, schoolID, List.of("ACTIVE"));
+
+      if(students.isEmpty()) {
+        throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
+      }
 
       SchoolStudentRootNode schoolStudentRootNode = new SchoolStudentRootNode();
       schoolStudentRootNode.setReports(new ArrayList<>());
