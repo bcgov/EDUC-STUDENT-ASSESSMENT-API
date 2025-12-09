@@ -1035,42 +1035,46 @@ public class CSVReportService {
         return result;
     }
 
-    public DownloadableReportResponse generateAssessmentStudentSearchReport(String searchCriteriaListJson) {
+    /**
+     * Generate assessment student search report and stream directly to HTTP response.
+     * This method provides TRUE constant memory usage by streaming from database to HTTP response without holding the entire CSV or all student entities in memory.
+     *
+     * @param searchCriteriaListJson JSON string with search criteria
+     * @param response HTTP response to stream CSV to
+     * @throws IOException if writing to response fails
+     */
+    public void generateAssessmentStudentSearchReportStream(String searchCriteriaListJson, jakarta.servlet.http.HttpServletResponse response) throws IOException {
         List<Sort.Order> sorts = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
         Specification<AssessmentStudentEntity> specs = assessmentStudentSearchService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
-
-        List<AssessmentStudentEntity> students = specs != null
-                ? assessmentStudentRepository.findAll(specs)
-                : assessmentStudentRepository.findAll();
 
         List<String> headers = Arrays.stream(AssessmentStudentSearchReportHeader.values())
                 .map(AssessmentStudentSearchReportHeader::getCode)
                 .toList();
 
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"StudentAssessmentSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
-            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+             Stream<AssessmentStudentEntity> studentStream = assessmentStudentRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
-            for (AssessmentStudentEntity student : students) {
-                List<String> csvRowData = prepareAssessmentStudentSearchDataForCsv(student);
-                csvPrinter.printRecord(csvRowData);
-            }
+            studentStream
+                    .map(this::prepareAssessmentStudentSearchDataForCsv)
+                    .forEach(csvRowData -> {
+                        try {
+                            csvPrinter.printRecord(csvRowData);
+                            csvPrinter.flush();
+                        } catch (IOException e) {
+                            throw new StudentAssessmentAPIRuntimeException(e);
+                        }
+                    });
 
             csvPrinter.flush();
-
-            var downloadableReport = new DownloadableReportResponse();
-            downloadableReport.setReportType(AssessmentReportTypeCode.ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
-            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
-
-            return downloadableReport;
-        } catch (IOException e) {
-            throw new StudentAssessmentAPIRuntimeException(e);
         }
     }
 
