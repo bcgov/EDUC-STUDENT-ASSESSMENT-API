@@ -11,10 +11,12 @@ import ca.bc.gov.educ.assessment.api.reports.*;
 import ca.bc.gov.educ.assessment.api.service.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -192,7 +194,7 @@ public class ReportsController implements ReportsEndpoint {
     }
 
     @Override
-    public DownloadableReportResponse getAssessmentStudentSearchReport(String searchCriteriaListJson) {
-        return csvReportService.generateAssessmentStudentSearchReport(searchCriteriaListJson);
+    public void getAssessmentStudentSearchReport(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
+        csvReportService.generateAssessmentStudentSearchReportStream(searchCriteriaListJson, response);
     }
 }

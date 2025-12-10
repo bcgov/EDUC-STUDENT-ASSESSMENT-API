@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 @Repository
-public interface AssessmentStudentRepository extends JpaRepository<AssessmentStudentEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentEntity> {
+public interface AssessmentStudentRepository extends JpaRepository<AssessmentStudentEntity, UUID>, JpaSpecificationExecutor<AssessmentStudentEntity>, AssessmentStudentRepositoryStream {
     Optional<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndStudentID(UUID assessmentID, UUID studentID);
 
     @Query("""
@@ -216,4 +216,10 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         ORDER BY s.createDate DESC
         LIMIT 1""")
     Optional<AssessmentStudentEntity> findByAssessmentIdAndAssessmentFormIdOrderByCreateDateDesc(UUID assessmentID, List<UUID> formIDs);
+
+    /**
+     * @return Stream of AssessmentStudentEntity
+     */
+    @Query("SELECT s FROM AssessmentStudentEntity s")
+    Stream<AssessmentStudentEntity> streamAll();
 }
