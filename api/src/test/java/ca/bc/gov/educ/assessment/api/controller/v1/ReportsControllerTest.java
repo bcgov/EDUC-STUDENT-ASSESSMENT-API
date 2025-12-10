@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class ReportsControllerTest extends BaseAssessmentAPITest {
 
@@ -1823,13 +1823,18 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"))
+                .andExpect(header().exists("Content-Disposition"));
 
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        String contentDisposition = resultActions.andReturn().getResponse().getHeader("Content-Disposition");
 
-        assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
-        assertThat(summary.getDocumentData()).isNotBlank();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("PEN,Surname,Given Name,Grade,School of Record,School at Write,Assessment Code,Assessment Session,Proficiency Score,Special Case");
+        assertThat(csvContent.split("\n").length).isGreaterThanOrEqualTo(1);
+        assertThat(contentDisposition).startsWith("attachment; filename=");
     }
 
     @Test
@@ -1870,13 +1875,17 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                         get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
-        assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
-        assertThat(summary.getDocumentData()).isNotBlank();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("PEN,Surname,Given Name,Grade,School of Record,School at Write,Assessment Code,Assessment Session,Proficiency Score,Special Case");
+        assertThat(csvContent).contains("123456789"); // Student 1 PEN
+        assertThat(csvContent).contains("SMITH"); // Student 1 surname
+        assertThat(csvContent).doesNotContain("987654321"); // Student 2 should not be in results
     }
 
     @Test
@@ -1914,13 +1923,16 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                         get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
-        assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
-        assertThat(summary.getDocumentData()).isNotBlank();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("111111111"); // Student 1 with score 4
+        assertThat(csvContent).contains("333333333"); // Student 3 with score 4
+        assertThat(csvContent).doesNotContain("222222222"); // Student 2 has score 3, should not be included
     }
 
     @Test
@@ -1960,13 +1972,16 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                         get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
-        assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
-        assertThat(summary.getDocumentData()).isNotBlank();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("444444444"); // Student from session 1
+        assertThat(csvContent).doesNotContain("555555555"); // Student from session 2 should not be included
+        assertThat(csvContent).contains("2024/01"); // Session 1 year/month
     }
 
     @Test
@@ -2000,13 +2015,16 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                         get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
-        assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
-        assertThat(summary.getDocumentData()).isNotBlank();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("666666666"); // Student with special case A
+        assertThat(csvContent).doesNotContain("777777777"); // Student without special case
+        assertThat(csvContent).contains("AEG"); // Special case description
     }
 
     @Test
@@ -2046,13 +2064,16 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                         get(URL.BASE_URL_REPORT + "/assessment-students/search/download")
                                 .param("searchCriteriaList", searchCriteria)
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"));
 
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
-        assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(ASSESSMENT_STUDENT_SEARCH_CSV.getCode());
-        assertThat(summary.getDocumentData()).isNotBlank();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("888888888"); // Student 1: grade 12, score 3 - should match
+        assertThat(csvContent).doesNotContain("999999999"); // Student 2: grade 12, score 4 - wrong score
+        assertThat(csvContent).doesNotContain("000000000"); // Student 3: grade 10, score 3 - wrong grade
     }
 
     @Test
