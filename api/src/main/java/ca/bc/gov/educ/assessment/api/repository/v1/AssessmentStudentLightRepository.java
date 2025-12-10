@@ -90,11 +90,12 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         count(case when stud.provincialSpecialCaseCode = 'X' then 1 end) as ncCount,
         count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as dsqCount,
         count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as xmtCount,
-        count(stud.gradeAtRegistration) as total
+        count(*) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
         and (stud.provincialSpecialCaseCode is not null OR stud.proficiencyScore is not null)    
         and stud.studentStatusCode = 'ACTIVE'
+        and stud.gradeAtRegistration is not null
         group by stud.assessmentEntity.assessmentTypeCode, stud.gradeAtRegistration
     """)
     List<SummaryByGradeQueryResponse> getSummaryByGradeForSession(UUID sessionID);
@@ -110,11 +111,12 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         count(case when stud.provincialSpecialCaseCode = 'X' then 1 end) as ncCount,
         count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as dsqCount,
         count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as xmtCount,
-        count(stud.assessmentFormID) as total
+        count(*) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
         and (stud.provincialSpecialCaseCode is not null OR stud.proficiencyScore is not null)    
         and stud.studentStatusCode = 'ACTIVE'
+        and stud.assessmentFormID is not null
         group by stud.assessmentEntity.assessmentTypeCode, stud.assessmentFormID
     """)
     List<SummaryByFormQueryResponse> getSummaryByFormForSession(UUID sessionID);
