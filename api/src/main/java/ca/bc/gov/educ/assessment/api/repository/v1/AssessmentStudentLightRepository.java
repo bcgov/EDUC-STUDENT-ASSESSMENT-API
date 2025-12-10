@@ -88,8 +88,8 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         count(case when stud.proficiencyScore = 4 then 1 end) as profScore4,
         count(case when stud.provincialSpecialCaseCode = 'A' then 1 end) as aegCount,
         count(case when stud.provincialSpecialCaseCode = 'X' then 1 end) as ncCount,
-        count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as dsqCount,
-        count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as xmtCount,
+        count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as dsqCount,
+        count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as xmtCount,
         count(stud.gradeAtRegistration) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
@@ -108,8 +108,8 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         count(case when stud.proficiencyScore = 4 then 1 end) as profScore4,
         count(case when stud.provincialSpecialCaseCode = 'A' then 1 end) as aegCount,
         count(case when stud.provincialSpecialCaseCode = 'X' then 1 end) as ncCount,
-        count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as dsqCount,
-        count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as xmtCount,
+        count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as dsqCount,
+        count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as xmtCount,
         count(stud.assessmentFormID) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
