@@ -9,7 +9,8 @@ public enum AssessmentStudentValidationFieldCode {
     EXAM_SCHOOL("EXAM_SCHOOL"),
     SCHOOL("SCHOOL"),
     SURNAME("SURNAME"),
-    GIVEN_NAME("GIVEN_NAME");
+    GIVEN_NAME("GIVEN_NAME"),
+    PROFICIENCY_SCORE("PROFICIENCY_SCORE");
 
     @Getter
     private final String code;

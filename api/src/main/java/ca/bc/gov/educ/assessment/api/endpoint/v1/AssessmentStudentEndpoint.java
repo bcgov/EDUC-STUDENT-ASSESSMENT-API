@@ -71,6 +71,15 @@ public interface AssessmentStudentEndpoint {
         @ApiResponse(responseCode = "404", description = "NOT FOUND"),
         @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
         @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
-    List<AssessmentStudentValidationIssue> transferStudents(@RequestBody AssessmentStudentTransfer assessmentStudentTransfer) throws JsonProcessingException;
+    List<AssessmentStudentValidationIssue> transferStudents(@RequestBody AssessmentStudentMoveRequest assessmentStudentTransfer) throws JsonProcessingException;
+
+    @PostMapping("/merge")
+    @PreAuthorize("hasAuthority('SCOPE_WRITE_ASSESSMENT_STUDENT')")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "404", description = "NOT FOUND"),
+        @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+        @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
+    List<AssessmentStudentListItem> mergeStudents(@RequestBody AssessmentStudentMoveRequest assessmentStudentMerge) throws JsonProcessingException;
 
 }

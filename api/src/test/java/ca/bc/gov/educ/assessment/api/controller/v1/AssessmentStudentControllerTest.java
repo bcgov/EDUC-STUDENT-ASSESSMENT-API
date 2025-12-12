@@ -11,7 +11,7 @@ import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentTransfer;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentMoveRequest;
 import ca.bc.gov.educ.assessment.api.struct.v1.Search;
 import ca.bc.gov.educ.assessment.api.struct.v1.SearchCriteria;
 import ca.bc.gov.educ.assessment.api.struct.v1.ValueType;
@@ -910,7 +910,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradStudentRecord));
 
     ObjectMapper objectMapper = new ObjectMapper();
-    AssessmentStudentTransfer transferRequest = AssessmentStudentTransfer.builder()
+    AssessmentStudentMoveRequest transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(assessmentStudentID))
@@ -962,7 +962,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudentApiStudent, targetStudent));
 
     ObjectMapper objectMapper = new ObjectMapper();
-    AssessmentStudentTransfer transferRequest = AssessmentStudentTransfer.builder()
+    AssessmentStudentMoveRequest transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(assessmentStudentID))
@@ -997,7 +997,7 @@ class AssessmentStudentControllerTest extends BaseAssessmentAPITest {
     UUID targetStudentID = UUID.randomUUID();
 
     ObjectMapper objectMapper = new ObjectMapper();
-    AssessmentStudentTransfer transferRequest = AssessmentStudentTransfer.builder()
+    AssessmentStudentMoveRequest transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(assessmentStudentID))
