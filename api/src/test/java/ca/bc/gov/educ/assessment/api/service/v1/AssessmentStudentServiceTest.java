@@ -11,7 +11,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentTransfer;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudentMoveRequest;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +24,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.*;
@@ -75,6 +76,15 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
   @Autowired
   private AssessmentQuestionRepository assessmentQuestionRepository;
+
+  @Autowired
+  private AssessmentChoiceRepository assessmentChoiceRepository;
+
+  @Autowired
+  private AssessmentStudentComponentRepository assessmentStudentComponentRepository;
+
+  @Autowired
+  private AssessmentStudentAnswerRepository assessmentStudentAnswerRepository;
 
   @SpyBean
   private AssessmentRulesService assessmentRulesService;
@@ -1187,13 +1197,13 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
   void testGetStudentWithAssessmentDetailsByID_WhenStudentAndAssessmentExist_ShouldReturnStudentWithFullAssessmentDetails() {
     AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(createMockSessionEntity());
     AssessmentEntity assessmentEntity = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
-    
+
     AssessmentFormEntity formEntity = createMockAssessmentFormEntity(assessmentEntity, "A");
     AssessmentFormEntity savedForm = assessmentFormRepository.save(formEntity);
-    
+
     AssessmentComponentEntity componentEntity = createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE");
     AssessmentComponentEntity savedComponent = assessmentComponentRepository.save(componentEntity);
-    
+
     AssessmentQuestionEntity question1 = createMockAssessmentQuestionEntity(savedComponent, 1, 1);
     AssessmentQuestionEntity question2 = createMockAssessmentQuestionEntity(savedComponent, 2, 2);
     assessmentQuestionRepository.save(question1);
@@ -1202,28 +1212,28 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     AssessmentStudentEntity assessmentStudentEntity = assessmentStudentRepository.save(createMockStudentEntity(assessmentEntity));
 
     AssessmentStudentEntity student = assessmentStudentService.getStudentWithAssessmentDetailsByID(
-        assessmentStudentEntity.getAssessmentStudentID(), 
+        assessmentStudentEntity.getAssessmentStudentID(),
         assessmentEntity.getAssessmentID()
     );
 
     assertNotNull(student);
     assertThat(student.getAssessmentStudentID()).isEqualTo(assessmentStudentEntity.getAssessmentStudentID());
-    
+
     assertNotNull(student.getAssessmentEntity());
     assertThat(student.getAssessmentEntity().getAssessmentID()).isEqualTo(assessmentEntity.getAssessmentID());
-    
+
     assertNotNull(student.getAssessmentEntity().getAssessmentSessionEntity());
     assertThat(student.getAssessmentEntity().getAssessmentSessionEntity().getSessionID())
         .isEqualTo(assessmentSessionEntity.getSessionID());
-    
+
     assertThat(student.getAssessmentEntity().getAssessmentForms()).hasSize(1);
     AssessmentFormEntity loadedForm = student.getAssessmentEntity().getAssessmentForms().iterator().next();
     assertThat(loadedForm.getAssessmentFormID()).isEqualTo(savedForm.getAssessmentFormID());
-    
+
     assertThat(loadedForm.getAssessmentComponentEntities()).hasSize(1);
     AssessmentComponentEntity loadedComponent = loadedForm.getAssessmentComponentEntities().iterator().next();
     assertThat(loadedComponent.getAssessmentComponentID()).isEqualTo(savedComponent.getAssessmentComponentID());
-    
+
     assertThat(loadedComponent.getAssessmentQuestionEntities()).hasSize(2);
     List<Integer> questionNumbers = loadedComponent.getAssessmentQuestionEntities().stream()
         .map(AssessmentQuestionEntity::getQuestionNumber)
@@ -1336,7 +1346,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     sourceStudent.setStudentID(sourceStudentID.toString());
     sourceStudent.setPen("123456789");
     sourceStudent.setStatusCode("C");
-    
+
     UUID targetStudentID = UUID.randomUUID();
     String targetPEN = "987654321";
     var targetStudent = this.createMockStudentAPIStudent();
@@ -1345,7 +1355,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     targetStudent.setStatusCode("C"); // Current/Active (NOT merged)
     targetStudent.setLegalFirstName(sourceStudentEntity.getGivenName());
     targetStudent.setLegalLastName(sourceStudentEntity.getSurname());
-    
+
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
 
     GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
@@ -1355,13 +1365,13 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
 
     // when: transferring assessment to target student
-    var transferRequest = AssessmentStudentTransfer.builder()
+    var transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(originalAssessmentStudentID))
         .build();
     transferRequest.setUpdateUser("TEST_USER");
-    
+
     var result = assessmentStudentService.transferStudentAssessments(transferRequest);
 
     // then: assessment should still exist with same UUID but updated studentID
@@ -1395,31 +1405,31 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     var sourceStudent = this.createMockStudentAPIStudent();
     sourceStudent.setStudentID(sourceStudentID.toString());
     sourceStudent.setPen(samePEN);
-    
+
     var targetStudent = this.createMockStudentAPIStudent();
     targetStudent.setStudentID(targetStudentID.toString());
     targetStudent.setPen(samePEN); // SAME PEN as source
-    
+
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
-    
+
     GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
     targetGradRecord.setStudentID(targetStudentID.toString());
     targetGradRecord.setSchoolOfRecordId(UUID.randomUUID().toString());
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
 
     // when: attempting to transfer
-    var transferRequest = AssessmentStudentTransfer.builder()
+    var transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
         .build();
     transferRequest.setUpdateUser("TEST_USER");
-    
+
     var result = assessmentStudentService.transferStudentAssessments(transferRequest);
 
     // then: should return validation issue
     assertThat(result.getLeft()).hasSize(1);
-    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_SAME_PEN");
+    assertThat(result.getLeft().getFirst().getValidationIssueCode()).isEqualTo("TRANSFER_SAME_PEN");
     assertThat(result.getRight()).isEmpty();
   }
 
@@ -1442,27 +1452,27 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     var sourceStudent = this.createMockStudentAPIStudent();
     sourceStudent.setStudentID(sourceStudentID.toString());
     sourceStudent.setPen("123456789");
-    
+
     var targetStudent = this.createMockStudentAPIStudent();
     targetStudent.setStudentID(targetStudentID.toString());
     targetStudent.setPen(targetPEN);
     targetStudent.setStatusCode("M"); // MERGED
-    
+
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
 
     // when: attempting to transfer
-    var transferRequest = AssessmentStudentTransfer.builder()
+    var transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
         .build();
     transferRequest.setUpdateUser("TEST_USER");
-    
+
     var result = assessmentStudentService.transferStudentAssessments(transferRequest);
 
     // then: should return validation issue
     assertThat(result.getLeft()).hasSize(1);
-    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_TO_MERGED_PEN");
+    assertThat(result.getLeft().getFirst().getValidationIssueCode()).isEqualTo("TRANSFER_TO_MERGED_PEN");
     assertThat(result.getRight()).isEmpty();
   }
 
@@ -1491,12 +1501,12 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     var sourceStudent = this.createMockStudentAPIStudent();
     sourceStudent.setStudentID(sourceStudentID.toString());
     sourceStudent.setPen("123456789");
-    
+
     var targetStudent = this.createMockStudentAPIStudent();
     targetStudent.setStudentID(targetStudentID.toString());
     targetStudent.setPen(targetPEN);
     targetStudent.setStatusCode("C");
-    
+
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
 
     GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
@@ -1506,18 +1516,18 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
 
     // when: attempting to transfer
-    var transferRequest = AssessmentStudentTransfer.builder()
+    var transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(student.getAssessmentStudentID()))
         .build();
     transferRequest.setUpdateUser("TEST_USER");
-    
+
     var result = assessmentStudentService.transferStudentAssessments(transferRequest);
 
     // then: should return validation issue
     assertThat(result.getLeft()).hasSize(1);
-    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_NO_RESULT");
+    assertThat(result.getLeft().getFirst().getValidationIssueCode()).isEqualTo("TRANSFER_NO_RESULT");
     assertThat(result.getRight()).isEmpty();
   }
 
@@ -1553,12 +1563,12 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     var sourceStudent = this.createMockStudentAPIStudent();
     sourceStudent.setStudentID(sourceStudentID.toString());
     sourceStudent.setPen("123456789");
-    
+
     var targetStudent = this.createMockStudentAPIStudent();
     targetStudent.setStudentID(targetStudentID.toString());
     targetStudent.setPen(targetPEN);
     targetStudent.setStatusCode("C");
-    
+
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
 
     GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
@@ -1568,20 +1578,20 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
 
     // when: attempting to transfer
-    var transferRequest = AssessmentStudentTransfer.builder()
+    var transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
         .build();
     transferRequest.setUpdateUser("TEST_USER");
-    
+
     doReturn(true).when(this.assessmentRulesService).hasStudentAssessmentDuplicate(eq(sourceStudentID), any(), any());
 
     var result = assessmentStudentService.transferStudentAssessments(transferRequest);
 
     // then: should return duplicate validation issue
     assertThat(result.getLeft()).hasSize(1);
-    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_HAS_DUPLICATE");
+    assertThat(result.getLeft().getFirst().getValidationIssueCode()).isEqualTo("TRANSFER_HAS_DUPLICATE");
     assertThat(result.getRight()).isEmpty();
     assertThat(assessmentStudentRepository.findById(sourceAssessment.getAssessmentStudentID()).get().getStudentID()).isEqualTo(sourceStudentID);
   }
@@ -1628,7 +1638,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     targetGradRecord.setStudentGrade("12");
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
 
-    var transferRequest = AssessmentStudentTransfer.builder()
+    var transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
@@ -1655,7 +1665,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
     UUID sourceStudentID = UUID.randomUUID();
-    
+
     AssessmentStudentEntity student1 = createMockStudentEntity(assessment1);
     student1.setStudentID(sourceStudentID);
     student1.setSchoolOfRecordSchoolID(schoolID);
@@ -1670,19 +1680,19 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
     UUID targetStudentID = UUID.randomUUID();
     String targetPEN = "987654321";
-    
+
     var sourceStudent = this.createMockStudentAPIStudent();
     sourceStudent.setStudentID(sourceStudentID.toString());
     sourceStudent.setPen("123456789");
     sourceStudent.setStatusCode("C");
-    
+
     var targetStudent = this.createMockStudentAPIStudent();
     targetStudent.setStudentID(targetStudentID.toString());
     targetStudent.setPen(targetPEN);
     targetStudent.setStatusCode("C");
     targetStudent.setLegalFirstName(student1.getGivenName());
     targetStudent.setLegalLastName(student1.getSurname());
-    
+
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
 
     GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
@@ -1692,19 +1702,19 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
 
     // when: transferring both assessments
-    var transferRequest = AssessmentStudentTransfer.builder()
+    var transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(student1.getAssessmentStudentID(), student2.getAssessmentStudentID()))
         .build();
     transferRequest.setUpdateUser("TEST_USER");
-    
+
     var result = assessmentStudentService.transferStudentAssessments(transferRequest);
 
     // then: both assessments should be transferred
     assertThat(result.getLeft()).isEmpty();
     assertThat(result.getRight()).hasSize(2);
-    
+
     assertThat(assessmentStudentRepository.findById(student1.getAssessmentStudentID()).get().getStudentID()).isEqualTo(targetStudentID);
     assertThat(assessmentStudentRepository.findById(student2.getAssessmentStudentID()).get().getStudentID()).isEqualTo(targetStudentID);
   }
@@ -1720,21 +1730,21 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     var sourceStudent = this.createMockStudentAPIStudent();
     sourceStudent.setStudentID(sourceStudentID.toString());
     sourceStudent.setPen("123456789");
-    
+
     var targetStudent = this.createMockStudentAPIStudent();
     targetStudent.setStudentID(targetStudentID.toString());
     targetStudent.setPen(targetPEN);
-    
+
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
 
     // when: attempting to transfer non-existent assessment
-    var transferRequest = AssessmentStudentTransfer.builder()
+    var transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(nonExistentAssessmentStudentID))
         .build();
     transferRequest.setUpdateUser("TEST_USER");
-    
+
     // then: should throw entity not found exception
     assertThatThrownBy(() -> assessmentStudentService.transferStudentAssessments(transferRequest))
         .isInstanceOf(EntityNotFoundException.class);
@@ -1754,7 +1764,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
     UUID sourceStudentID = UUID.randomUUID();
-    
+
     // First student with result - valid for transfer
     AssessmentStudentEntity validStudent = createMockStudentEntity(assessment1);
     validStudent.setStudentID(sourceStudentID);
@@ -1771,19 +1781,19 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
     UUID targetStudentID = UUID.randomUUID();
     String targetPEN = "987654321";
-    
+
     var sourceStudent = this.createMockStudentAPIStudent();
     sourceStudent.setStudentID(sourceStudentID.toString());
     sourceStudent.setPen("123456789");
     sourceStudent.setStatusCode("C");
-    
+
     var targetStudent = this.createMockStudentAPIStudent();
     targetStudent.setStudentID(targetStudentID.toString());
     targetStudent.setPen(targetPEN);
     targetStudent.setStatusCode("C");
     targetStudent.setLegalFirstName(validStudent.getGivenName());
     targetStudent.setLegalLastName(validStudent.getSurname());
-    
+
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(sourceStudent, targetStudent));
 
     GradStudentRecord targetGradRecord = this.createMockGradStudentAPIRecord();
@@ -1793,22 +1803,863 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(targetGradRecord));
 
     // when: transferring both
-    var transferRequest = AssessmentStudentTransfer.builder()
+    var transferRequest = AssessmentStudentMoveRequest.builder()
         .sourceStudentID(sourceStudentID)
         .targetStudentID(targetStudentID)
         .studentAssessmentIDsToMove(List.of(validStudent.getAssessmentStudentID(), invalidStudent.getAssessmentStudentID()))
         .build();
     transferRequest.setUpdateUser("TEST_USER");
-    
+
     var result = assessmentStudentService.transferStudentAssessments(transferRequest);
 
     // then: NOTHING transferred (all or nothing - one failed so all fail), one validation issue (result not allowed)
     assertThat(result.getLeft()).hasSize(1);
-    assertThat(result.getLeft().get(0).getValidationIssueCode()).isEqualTo("TRANSFER_NO_RESULT");
+    assertThat(result.getLeft().getFirst().getValidationIssueCode()).isEqualTo("TRANSFER_NO_RESULT");
     assertThat(result.getRight()).isEmpty();
-    
+
     // and: both remain unchanged (atomic transaction - all or nothing)
     assertThat(assessmentStudentRepository.findById(validStudent.getAssessmentStudentID()).get().getStudentID()).isEqualTo(sourceStudentID);
     assertThat(assessmentStudentRepository.findById(invalidStudent.getAssessmentStudentID()).get().getStudentID()).isEqualTo(sourceStudentID);
+  }
+
+  @Test
+  void testMergeStudentAssessments_WhenTargetHasNoExistingAssessments_ShouldAddAllNewAssessments() {
+    // given: source student has two assessments, target student has none
+    AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTP12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+
+    // Source student's assessments
+    AssessmentStudentEntity sourceAssessment1 = createMockStudentEntity(assessment1);
+    sourceAssessment1.setStudentID(sourceStudentID);
+    sourceAssessment1.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment1.setPen("123456789");
+    sourceAssessment1 = assessmentStudentRepository.save(sourceAssessment1);
+
+    AssessmentStudentEntity sourceAssessment2 = createMockStudentEntity(assessment2);
+    sourceAssessment2.setStudentID(sourceStudentID);
+    sourceAssessment2.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment2.setPen("123456789");
+    sourceAssessment2 = assessmentStudentRepository.save(sourceAssessment2);
+
+    // Mock student API responses
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    sourceStudent.setStatusCode("C");
+
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen("987654321");
+    targetStudent.setStatusCode("C");
+    targetStudent.setLegalFirstName("TargetFirst");
+    targetStudent.setLegalLastName("TargetLast");
+    targetStudent.setLocalID("TARGET123");
+    targetStudent.setMincode("987654");
+
+    // Mock getStudents call for target student lookup
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(targetStudent));
+
+    // Mock getSchoolBySchoolID with target student's mincode
+    var targetSchool = this.createMockSchool();
+    targetSchool.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+
+    // Return correct student for each PEN - this ensures studentID is set correctly before PEN lookup
+    when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
+    when(this.restUtils.getStudentByPEN(any(), eq("987654321"))).thenReturn(Optional.of(targetStudent));
+
+    GradStudentRecord gradRecord = this.createMockGradStudentAPIRecord();
+    gradRecord.setStudentID(targetStudentID.toString());
+    gradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradRecord.setStudentGrade("10");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradRecord));
+
+    // when: merging assessments
+    var mergeRequest = AssessmentStudentMoveRequest.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment1.getAssessmentStudentID(), sourceAssessment2.getAssessmentStudentID()))
+        .build();
+    mergeRequest.setUpdateUser("TEST_USER");
+
+    var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
+
+    // then: both assessments should be added to target (2 assessments + 1 consolidated event)
+    assertThat(result.getLeft()).hasSize(2);
+    assertThat(result.getRight()).isNotNull();
+
+    // and: all returned items should have no validation issues
+    assertThat(result.getLeft()).allMatch(item -> item.getAssessmentStudentValidationIssues() == null || item.getAssessmentStudentValidationIssues().isEmpty());
+
+    // and: all returned assessments should belong to the target student
+    assertThat(result.getLeft()).allMatch(item -> targetStudentID.toString().equals(item.getStudentID()));
+
+    // and: assessments in database should belong to target student
+    var savedAssessment1 = assessmentStudentRepository.findById(sourceAssessment1.getAssessmentStudentID());
+    var savedAssessment2 = assessmentStudentRepository.findById(sourceAssessment2.getAssessmentStudentID());
+    // Check that target student now has assessments for these assessment types
+    var targetAssessments = assessmentStudentRepository.findByStudentID(targetStudentID);
+    assertThat(targetAssessments).hasSizeGreaterThanOrEqualTo(2);
+    assertThat(targetAssessments).allMatch(assessment -> targetStudentID.equals(assessment.getStudentID()));
+    
+    // and: verify target student's fields are correctly set (PEN, schoolOfRecordSchoolID, givenName, surname, localID)
+    targetAssessments.forEach(assessment -> {
+      assertThat(assessment.getPen()).isEqualTo("987654321");
+      assertThat(assessment.getSchoolOfRecordSchoolID()).isEqualTo(schoolID);
+      assertThat(assessment.getGivenName()).isEqualTo("TargetFirst");
+      assertThat(assessment.getSurname()).isEqualTo("TargetLast");
+      assertThat(assessment.getLocalID()).isEqualTo("TARGET123");
+    });
+    
+    // and: verify source student's records remain unchanged (merge is a copy, not a move)
+    var sourceAssessments = assessmentStudentRepository.findByStudentID(sourceStudentID);
+    assertThat(sourceAssessments).hasSizeGreaterThanOrEqualTo(2);
+    assertThat(sourceAssessments).allMatch(assessment -> sourceStudentID.equals(assessment.getStudentID()));
+    // Verify source assessments still exist with their original IDs
+    assertThat(assessmentStudentRepository.findById(sourceAssessment1.getAssessmentStudentID())).isPresent();
+    assertThat(assessmentStudentRepository.findById(sourceAssessment2.getAssessmentStudentID())).isPresent();
+    var sourceAssessment1After = assessmentStudentRepository.findById(sourceAssessment1.getAssessmentStudentID()).get();
+    var sourceAssessment2After = assessmentStudentRepository.findById(sourceAssessment2.getAssessmentStudentID()).get();
+    assertThat(sourceAssessment1After.getStudentID()).isEqualTo(sourceStudentID);
+    assertThat(sourceAssessment2After.getStudentID()).isEqualTo(sourceStudentID);
+  }
+
+  @Test
+  void testMergeStudentAssessments_WhenTargetHasExistingAssessmentsWithoutScores_ShouldOverwriteThem() {
+    // given: source has 1 assessment, target has the same assessment without proficiency score
+    AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTF12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+
+    // Source student's assessment with some data
+    UUID sourceAssessmentCenterSchoolID = UUID.randomUUID();
+    AssessmentStudentEntity sourceAssessment = createMockStudentEntity(assessment1);
+    sourceAssessment.setStudentID(sourceStudentID);
+    sourceAssessment.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment.setAssessmentCenterSchoolID(sourceAssessmentCenterSchoolID);
+    sourceAssessment.setPen("123456789");
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    // Target student has same assessment but different data and NO proficiency score
+    UUID targetAssessmentCenterSchoolID = UUID.randomUUID();
+    AssessmentStudentEntity targetExistingAssessment = createMockStudentEntity(assessment1);
+    targetExistingAssessment.setStudentID(targetStudentID);
+    targetExistingAssessment.setSchoolOfRecordSchoolID(schoolID);
+    targetExistingAssessment.setAssessmentCenterSchoolID(targetAssessmentCenterSchoolID);
+    targetExistingAssessment.setPen("987654321");
+    targetExistingAssessment.setProficiencyScore(null); // NO score - should be overwritable
+    targetExistingAssessment = assessmentStudentRepository.save(targetExistingAssessment);
+
+    // Mock student API responses
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    sourceStudent.setStatusCode("C");
+
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen("987654321");
+    targetStudent.setStatusCode("C");
+    targetStudent.setLegalFirstName("TargetFirst");
+    targetStudent.setLegalLastName("TargetLast");
+    targetStudent.setLocalID("TARGET123");
+    targetStudent.setMincode("987654");
+
+    // Mock getStudents call for target student lookup
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(targetStudent));
+
+    // Mock getSchoolBySchoolID with target student's mincode
+    var targetSchool = this.createMockSchool();
+    targetSchool.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+
+    // Return correct student for each PEN - this ensures studentID is set correctly before PEN lookup
+    when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
+    when(this.restUtils.getStudentByPEN(any(), eq("987654321"))).thenReturn(Optional.of(targetStudent));
+
+    GradStudentRecord gradRecord = this.createMockGradStudentAPIRecord();
+    gradRecord.setStudentID(targetStudentID.toString());
+    gradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradRecord.setStudentGrade("12");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradRecord));
+
+    // when: merging assessments
+    var mergeRequest = AssessmentStudentMoveRequest.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
+        .build();
+    mergeRequest.setUpdateUser("TEST_USER");
+
+    var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
+
+    // then: assessment should be overwritten (no validation issues)
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().getFirst().getAssessmentStudentValidationIssues()).isNullOrEmpty();
+    assertThat(result.getRight()).isNotNull();
+
+    // and: returned assessment should belong to target student
+    assertThat(result.getLeft().getFirst().getStudentID()).isEqualTo(targetStudentID.toString());
+
+    // and: assessment in database should belong to target student and be updated
+    AssessmentStudentEntity updatedAssessment = assessmentStudentRepository.findById(targetExistingAssessment.getAssessmentStudentID()).get();
+    assertThat(updatedAssessment.getStudentID()).isEqualTo(targetStudentID);
+    // Verify it was overwritten with source data (assessmentCenterSchoolID should be from source)
+    // Note: localID is intentionally excluded from updates, so we check a field that IS copied
+    assertThat(updatedAssessment.getAssessmentCenterSchoolID()).isEqualTo(sourceAssessmentCenterSchoolID);
+    
+    // and: verify target student's fields are correctly set (PEN, schoolOfRecordSchoolID, givenName, surname, localID)
+    // Note: For overwrites, these fields may be updated through processStudent, but studentID should be target
+    assertThat(updatedAssessment.getPen()).isEqualTo("987654321");
+    assertThat(updatedAssessment.getSchoolOfRecordSchoolID()).isEqualTo(schoolID);
+  }
+
+  @Test
+  void testMergeStudentAssessments_WhenTargetHasExistingAssessmentWithScore_ShouldReturnValidationError() {
+    // given: source has 1 assessment, target has the same assessment WITH proficiency score
+    AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTP10.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+
+    // Source student's assessment
+    AssessmentStudentEntity sourceAssessment = createMockStudentEntity(assessment1);
+    sourceAssessment.setStudentID(sourceStudentID);
+    sourceAssessment.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment.setPen("123456789");
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    // Target student has same assessment WITH proficiency score - should NOT be overwritable
+    AssessmentStudentEntity targetExistingAssessment = createMockStudentEntity(assessment1);
+    targetExistingAssessment.setStudentID(targetStudentID);
+    targetExistingAssessment.setSchoolOfRecordSchoolID(schoolID);
+    targetExistingAssessment.setPen("987654321");
+    targetExistingAssessment.setProficiencyScore(3); // HAS score - should NOT be overwritten
+    targetExistingAssessment = assessmentStudentRepository.save(targetExistingAssessment);
+
+    // Mock student API responses for target student lookup (required even if validation fails)
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen("987654321");
+    targetStudent.setStatusCode("C");
+    targetStudent.setLegalFirstName("TargetFirst");
+    targetStudent.setLegalLastName("TargetLast");
+    targetStudent.setLocalID("TARGET123");
+    targetStudent.setMincode("987654");
+
+    // Mock getStudents call for target student lookup
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(targetStudent));
+
+    // Mock getSchoolBySchoolID with target student's mincode
+    var targetSchool = this.createMockSchool();
+    targetSchool.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+
+    // when: merging assessments
+    var mergeRequest = AssessmentStudentMoveRequest.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
+        .build();
+    mergeRequest.setUpdateUser("TEST_USER");
+
+    var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
+
+    // then: should return validation error for existing assessment with score
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().getFirst().getAssessmentStudentValidationIssues()).isNotEmpty();
+    assertThat(result.getLeft().getFirst().getAssessmentStudentValidationIssues().getFirst().getValidationIssueCode()).isEqualTo("MERGE_HAS_SCORE");
+    assertThat(result.getLeft().getFirst().getAssessmentStudentValidationIssues().getFirst().getValidationIssueFieldCode()).isEqualTo("PROFICIENCY_SCORE");
+    assertThat(result.getRight()).isNull(); // No events when there are validation issues
+
+    // and: returned assessment should still reference target student (even though merge was blocked)
+    assertThat(result.getLeft().getFirst().getStudentID()).isEqualTo(targetStudentID.toString());
+
+    // and: target assessment should remain unchanged
+    AssessmentStudentEntity unchangedTarget = assessmentStudentRepository.findById(targetExistingAssessment.getAssessmentStudentID()).get();
+    assertThat(unchangedTarget.getProficiencyScore()).isEqualTo(3);
+    assertThat(unchangedTarget.getStudentID()).isEqualTo(targetStudentID);
+
+    // and: source assessment should still belong to source student (merge was blocked)
+    AssessmentStudentEntity unchangedSource = assessmentStudentRepository.findById(sourceAssessment.getAssessmentStudentID()).get();
+    assertThat(unchangedSource.getStudentID()).isEqualTo(sourceStudentID);
+  }
+
+  @Test
+  void testMergeStudentAssessments_WhenAssessmentsDoNotBelongToSource_ShouldThrowException() {
+    // given: assessment belongs to different student
+    AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTP12.getCode()));
+
+    UUID wrongStudentID = UUID.randomUUID();
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+
+    // Assessment belongs to wrongStudentID, not sourceStudentID
+    AssessmentStudentEntity wrongStudentAssessment = createMockStudentEntity(assessment1);
+    wrongStudentAssessment.setStudentID(wrongStudentID);
+    wrongStudentAssessment = assessmentStudentRepository.save(wrongStudentAssessment);
+
+    // Mock target student lookup (required even if validation fails later)
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen("987654321");
+    targetStudent.setMincode("987654");
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(targetStudent));
+    var targetSchool = this.createMockSchool();
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(targetSchool));
+
+    // when: attempting to merge assessment that doesn't belong to source
+    var mergeRequest = AssessmentStudentMoveRequest.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(wrongStudentAssessment.getAssessmentStudentID()))
+        .build();
+    mergeRequest.setUpdateUser("TEST_USER");
+
+    // then: should throw IllegalArgumentException
+    assertThatThrownBy(() -> assessmentStudentService.mergeStudentAssessments(mergeRequest))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Assessment students do not belong to source student");
+  }
+
+  @Test
+  void testMergeStudentAssessments_WhenAssessmentIDsNotFound_ShouldThrowEntityNotFoundException() {
+    // given: non-existent assessment student ID
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+    UUID nonExistentAssessmentStudentID = UUID.randomUUID();
+
+    // Mock target student lookup (required even if validation fails later)
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen("987654321");
+    targetStudent.setMincode("987654");
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(targetStudent));
+    var targetSchool = this.createMockSchool();
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(targetSchool));
+
+    // when: attempting to merge non-existent assessment
+    var mergeRequest = AssessmentStudentMoveRequest.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(nonExistentAssessmentStudentID))
+        .build();
+    mergeRequest.setUpdateUser("TEST_USER");
+
+    // then: should throw EntityNotFoundException
+    assertThatThrownBy(() -> assessmentStudentService.mergeStudentAssessments(mergeRequest))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessageContaining("studentAssessmentIDs");
+  }
+
+  @Test
+  void testMergeStudentAssessments_WithMixedScenarios_ShouldHandleEachCorrectly() {
+    // given: source has 3 assessments:
+    //   - assessment1: target doesn't have (should ADD)
+    //   - assessment2: target has without score (should OVERWRITE)
+    //   - assessment3: target has WITH score (should BLOCK with validation error)
+    AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTP12.getCode()));
+    AssessmentEntity assessment3 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTF12.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+
+    // Source assessments
+    AssessmentStudentEntity sourceAssessment1 = createMockStudentEntity(assessment1);
+    sourceAssessment1.setStudentID(sourceStudentID);
+    sourceAssessment1.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment1.setPen("123456789");
+    sourceAssessment1 = assessmentStudentRepository.save(sourceAssessment1);
+
+    AssessmentStudentEntity sourceAssessment2 = createMockStudentEntity(assessment2);
+    sourceAssessment2.setStudentID(sourceStudentID);
+    sourceAssessment2.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment2.setPen("123456789");
+    sourceAssessment2 = assessmentStudentRepository.save(sourceAssessment2);
+
+    AssessmentStudentEntity sourceAssessment3 = createMockStudentEntity(assessment3);
+    sourceAssessment3.setStudentID(sourceStudentID);
+    sourceAssessment3.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment3.setPen("123456789");
+    sourceAssessment3 = assessmentStudentRepository.save(sourceAssessment3);
+
+    // Target assessments (only for assessment2 and assessment3)
+    AssessmentStudentEntity targetAssessment2 = createMockStudentEntity(assessment2);
+    targetAssessment2.setStudentID(targetStudentID);
+    targetAssessment2.setSchoolOfRecordSchoolID(schoolID);
+    targetAssessment2.setPen("987654321");
+    targetAssessment2.setProficiencyScore(null); // NO score - overwritable
+    targetAssessment2 = assessmentStudentRepository.save(targetAssessment2);
+
+    AssessmentStudentEntity targetAssessment3 = createMockStudentEntity(assessment3);
+    targetAssessment3.setStudentID(targetStudentID);
+    targetAssessment3.setSchoolOfRecordSchoolID(schoolID);
+    targetAssessment3.setPen("987654321");
+    targetAssessment3.setProficiencyScore(4); // HAS score - NOT overwritable
+    targetAssessment3 = assessmentStudentRepository.save(targetAssessment3);
+
+    // Mock student API responses
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    sourceStudent.setStatusCode("C");
+
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen("987654321");
+    targetStudent.setStatusCode("C");
+    targetStudent.setLegalFirstName("TargetFirst");
+    targetStudent.setLegalLastName("TargetLast");
+    targetStudent.setLocalID("TARGET123");
+    targetStudent.setMincode("987654");
+
+    // Mock getStudents call for target student lookup
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(targetStudent));
+
+    // Mock getSchoolBySchoolID with target student's mincode
+    var targetSchool = this.createMockSchool();
+    targetSchool.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+
+    // Return correct student for each PEN - this ensures studentID is set correctly before PEN lookup
+    when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
+    when(this.restUtils.getStudentByPEN(any(), eq("987654321"))).thenReturn(Optional.of(targetStudent));
+
+    GradStudentRecord gradRecord = this.createMockGradStudentAPIRecord();
+    gradRecord.setStudentID(targetStudentID.toString());
+    gradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradRecord.setStudentGrade("12");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradRecord));
+
+    // when: merging all three assessments
+    var mergeRequest = AssessmentStudentMoveRequest.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(
+            sourceAssessment1.getAssessmentStudentID(),
+            sourceAssessment2.getAssessmentStudentID(),
+            sourceAssessment3.getAssessmentStudentID()
+        ))
+        .build();
+    mergeRequest.setUpdateUser("TEST_USER");
+
+    var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
+
+    // then: should have 3 results (1 added, 1 overwritten, 1 validation error)
+    assertThat(result.getLeft()).hasSize(3);
+
+    // and: one should have validation error (assessment3)
+    long validationErrorCount = result.getLeft().stream()
+        .filter(item -> item.getAssessmentStudentValidationIssues() != null && !item.getAssessmentStudentValidationIssues().isEmpty())
+        .count();
+    assertThat(validationErrorCount).isEqualTo(1);
+
+    // and: two should be successful (assessment1 and assessment2)
+    long successCount = result.getLeft().stream()
+        .filter(item -> item.getAssessmentStudentValidationIssues() == null || item.getAssessmentStudentValidationIssues().isEmpty())
+        .count();
+    assertThat(successCount).isEqualTo(2);
+
+    // and: all returned assessments should belong to target student
+    assertThat(result.getLeft()).allMatch(item -> targetStudentID.toString().equals(item.getStudentID()));
+
+    // and: events should be generated for successful operations
+    assertThat(result.getRight()).isNotNull();
+
+    // and: successful assessments in database should belong to target student
+    var targetAssessments = assessmentStudentRepository.findByStudentID(targetStudentID);
+    // Should have at least assessment1 (added), assessment2 (overwritten), plus assessment3 (existing, not overwritten)
+    assertThat(targetAssessments).hasSizeGreaterThanOrEqualTo(3);
+    assertThat(targetAssessments).allMatch(assessment -> targetStudentID.equals(assessment.getStudentID()));
+
+    // and: target assessment3 should remain unchanged (still has proficiency score)
+    AssessmentStudentEntity unchangedTarget3 = assessmentStudentRepository.findById(targetAssessment3.getAssessmentStudentID()).get();
+    assertThat(unchangedTarget3.getProficiencyScore()).isEqualTo(4);
+    assertThat(unchangedTarget3.getStudentID()).isEqualTo(targetStudentID);
+
+    // and: verify target has the merged assessments
+    var targetAssessment1 = targetAssessments.stream()
+        .filter(a -> a.getAssessmentEntity().getAssessmentID().equals(assessment1.getAssessmentID()))
+        .findFirst();
+    assertThat(targetAssessment1).isPresent();
+    assertThat(targetAssessment1.get().getStudentID()).isEqualTo(targetStudentID);
+    
+    var targetAssessment2Updated = targetAssessments.stream()
+        .filter(a -> a.getAssessmentEntity().getAssessmentID().equals(assessment2.getAssessmentID()))
+        .findFirst();
+    assertThat(targetAssessment2Updated).isPresent();
+    assertThat(targetAssessment2Updated.get().getStudentID()).isEqualTo(targetStudentID);
+    
+    // and: verify target student's fields are correctly set for added assessments
+    assertThat(targetAssessment1.get().getPen()).isEqualTo("987654321");
+    assertThat(targetAssessment1.get().getSchoolOfRecordSchoolID()).isEqualTo(schoolID);
+    assertThat(targetAssessment1.get().getGivenName()).isEqualTo("TargetFirst");
+    assertThat(targetAssessment1.get().getSurname()).isEqualTo("TargetLast");
+    assertThat(targetAssessment1.get().getLocalID()).isEqualTo("TARGET123");
+    
+    // and: verify source student's records remain unchanged (merge is a copy, not a move)
+    // assessment1 was added (new record created), assessment2 was overwritten (existing record updated)
+    var sourceAssessment1After = assessmentStudentRepository.findById(sourceAssessment1.getAssessmentStudentID());
+    assertThat(sourceAssessment1After).isPresent();
+    assertThat(sourceAssessment1After.get().getStudentID()).isEqualTo(sourceStudentID);
+    // Verify assessment1 is a different record (new assessmentStudentID was created for target)
+    assertThat(targetAssessment1.get().getAssessmentStudentID()).isNotEqualTo(sourceAssessment1.getAssessmentStudentID());
+    
+    // assessment2 was overwritten, so the target's existing record was updated (not a new copy)
+    // Source assessment2 should still exist
+    var sourceAssessment2After = assessmentStudentRepository.findById(sourceAssessment2.getAssessmentStudentID());
+    assertThat(sourceAssessment2After).isPresent();
+    assertThat(sourceAssessment2After.get().getStudentID()).isEqualTo(sourceStudentID);
+  }
+
+  @Test
+  void testMergeStudentAssessments_ShouldGenerateEventForTargetStudent() {
+    // given: source has 1 assessment, target doesn't have it
+    AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTP10.getCode()));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+
+    AssessmentStudentEntity sourceAssessment = createMockStudentEntity(assessment1);
+    sourceAssessment.setStudentID(sourceStudentID);
+    sourceAssessment.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment.setPen("123456789");
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    // Mock student API responses
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+    sourceStudent.setStatusCode("C");
+
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen("987654321");
+    targetStudent.setStatusCode("C");
+    targetStudent.setLegalFirstName("TargetFirst");
+    targetStudent.setLegalLastName("TargetLast");
+    targetStudent.setLocalID("TARGET123");
+    targetStudent.setMincode("987654");
+
+    // Mock getStudents call for target student lookup
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(targetStudent));
+
+    // Mock getSchoolBySchoolID with target student's mincode
+    var targetSchool = this.createMockSchool();
+    targetSchool.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+
+    // Return correct student for each PEN - this ensures studentID is set correctly before PEN lookup
+    when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
+    when(this.restUtils.getStudentByPEN(any(), eq("987654321"))).thenReturn(Optional.of(targetStudent));
+
+    GradStudentRecord gradRecord = this.createMockGradStudentAPIRecord();
+    gradRecord.setStudentID(targetStudentID.toString());
+    gradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    gradRecord.setStudentGrade("10");
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradRecord));
+
+    // when: merging assessments
+    var mergeRequest = AssessmentStudentMoveRequest.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
+        .build();
+    mergeRequest.setUpdateUser("TEST_USER");
+
+    var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
+
+    // then: events should be generated
+    assertThat(result.getRight()).isNotNull();
+    boolean hasTargetStudentEvent;
+    try {
+      String eventStudentID = JsonUtil.getJsonObjectFromString(String.class, result.getRight().getEventPayload());
+      hasTargetStudentEvent =  targetStudentID.toString().equals(eventStudentID);
+    } catch (Exception e) {
+      hasTargetStudentEvent = false;
+    }
+    assertThat(hasTargetStudentEvent).isTrue();
+
+    // and: returned assessment should belong to target student
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().getFirst().getStudentID()).isEqualTo(targetStudentID.toString());
+
+    // and: assessment in database should belong to target student
+    var targetAssessments = assessmentStudentRepository.findByStudentID(targetStudentID);
+    assertThat(targetAssessments).isNotEmpty();
+    var mergedAssessment = targetAssessments.stream()
+        .filter(a -> a.getAssessmentEntity().getAssessmentID().equals(assessment1.getAssessmentID()))
+        .findFirst();
+    assertThat(mergedAssessment).isPresent();
+    assertThat(mergedAssessment.get().getStudentID()).isEqualTo(targetStudentID);
+    
+    // and: verify target student's fields are correctly set (PEN, schoolOfRecordSchoolID, givenName, surname, localID)
+    assertThat(mergedAssessment.get().getPen()).isEqualTo("987654321");
+    assertThat(mergedAssessment.get().getSchoolOfRecordSchoolID()).isEqualTo(schoolID);
+    assertThat(mergedAssessment.get().getGivenName()).isEqualTo("TargetFirst");
+    assertThat(mergedAssessment.get().getSurname()).isEqualTo("TargetLast");
+    assertThat(mergedAssessment.get().getLocalID()).isEqualTo("TARGET123");
+    
+    // and: verify source student's record remains unchanged (merge is a copy, not a move)
+    var sourceAssessmentAfter = assessmentStudentRepository.findById(sourceAssessment.getAssessmentStudentID());
+    assertThat(sourceAssessmentAfter).isPresent();
+    assertThat(sourceAssessmentAfter.get().getStudentID()).isEqualTo(sourceStudentID);
+    // Verify it's a different record (new assessmentStudentID was created for target)
+    assertThat(mergedAssessment.get().getAssessmentStudentID()).isNotEqualTo(sourceAssessment.getAssessmentStudentID());
+  }
+
+  @Test
+  void testMergeStudentAssessments_WhenNoSuccessfulOperations_ShouldNotGenerateEvents() {
+    // given: source has 1 assessment, target has same assessment WITH proficiency score
+    AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment1 = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTF12.getCode()));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+
+    // Source assessment
+    AssessmentStudentEntity sourceAssessment = createMockStudentEntity(assessment1);
+    sourceAssessment.setStudentID(sourceStudentID);
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    // Target has same assessment WITH score (blocks merge)
+    AssessmentStudentEntity targetAssessment = createMockStudentEntity(assessment1);
+    targetAssessment.setStudentID(targetStudentID);
+    targetAssessment.setProficiencyScore(4); // Blocks merge
+    targetAssessment = assessmentStudentRepository.save(targetAssessment);
+
+    // when: attempting to merge
+    var mergeRequest = AssessmentStudentMoveRequest.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
+        .build();
+    mergeRequest.setUpdateUser("TEST_USER");
+
+    var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
+
+    // then: no events should be generated (only validation errors)
+    assertThat(result.getRight()).isNull();
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().getFirst().getAssessmentStudentValidationIssues()).isNotEmpty();
+
+    // and: returned assessment should still reference target student (even though merge was blocked)
+    assertThat(result.getLeft().getFirst().getStudentID()).isEqualTo(targetStudentID.toString());
+
+    // and: assessments should remain with their original students (merge was blocked)
+    AssessmentStudentEntity unchangedSource = assessmentStudentRepository.findById(sourceAssessment.getAssessmentStudentID()).get();
+    assertThat(unchangedSource.getStudentID()).isEqualTo(sourceStudentID);
+
+    AssessmentStudentEntity unchangedTarget = assessmentStudentRepository.findById(targetAssessment.getAssessmentStudentID()).get();
+    assertThat(unchangedTarget.getStudentID()).isEqualTo(targetStudentID);
+    assertThat(unchangedTarget.getProficiencyScore()).isEqualTo(4);
+  }
+
+  @Test
+  void testMergeStudentAssessments_ShouldCopyAllChildEntitiesWithMetadata() {
+    // given: source student has an assessment with child entities (components, answers, choices, question sets)
+    AssessmentSessionEntity assessmentSession = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSession, AssessmentTypeCodes.LTP10.getCode()));
+    AssessmentFormEntity form = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
+    AssessmentComponentEntity component = assessmentComponentRepository.save(createMockAssessmentComponentEntity(form, "MUL_CHOICE", "NONE"));
+    AssessmentQuestionEntity question = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(component, 1, 1));
+    AssessmentChoiceEntity choice = assessmentChoiceRepository.save(createMockAssessmentChoiceEntity(component, 1, 1));
+
+    var school = this.createMockSchool();
+    UUID schoolID = UUID.randomUUID();
+    school.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+    UUID sourceStudentID = UUID.randomUUID();
+    UUID targetStudentID = UUID.randomUUID();
+
+    // Source student's assessment with child entities
+    AssessmentStudentEntity sourceAssessment = createMockStudentEntity(assessment);
+    sourceAssessment.setStudentID(sourceStudentID);
+    sourceAssessment.setSchoolOfRecordSchoolID(schoolID);
+    sourceAssessment.setPen("123456789");
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    // Add component with answers and choices
+    AssessmentStudentComponentEntity sourceComponent = createMockAssessmentStudentComponentEntity(sourceAssessment, component.getAssessmentComponentID());
+    sourceComponent.setCreateUser("SOURCE_USER");
+    sourceComponent.setCreateDate(LocalDateTime.now().minusDays(1));
+    sourceComponent.setUpdateUser("SOURCE_USER");
+    sourceComponent.setUpdateDate(LocalDateTime.now().minusDays(1));
+    sourceComponent = assessmentStudentComponentRepository.save(sourceComponent);
+
+    // Add answer to component
+    AssessmentStudentAnswerEntity sourceAnswer = createMockAssessmentStudentAnswerEntity(question.getAssessmentQuestionID(), BigDecimal.valueOf(10.5), sourceComponent);
+    sourceAnswer.setCreateUser("SOURCE_USER");
+    sourceAnswer.setCreateDate(LocalDateTime.now().minusDays(1));
+    sourceAnswer.setUpdateUser("SOURCE_USER");
+    sourceAnswer.setUpdateDate(LocalDateTime.now().minusDays(1));
+    sourceAnswer = assessmentStudentAnswerRepository.save(sourceAnswer);
+    sourceComponent.getAssessmentStudentAnswerEntities().add(sourceAnswer);
+
+    // Add choice with question set
+    AssessmentStudentChoiceEntity sourceChoice = AssessmentStudentChoiceEntity.builder()
+        .assessmentStudentChoiceID(UUID.randomUUID())
+        .assessmentStudentComponentEntity(sourceComponent)
+        .assessmentChoiceEntity(choice)
+        .createUser("SOURCE_USER")
+        .createDate(LocalDateTime.now().minusDays(1))
+        .updateUser("SOURCE_USER")
+        .updateDate(LocalDateTime.now().minusDays(1))
+        .build();
+
+    // Add question set to choice
+    AssessmentStudentChoiceQuestionSetEntity sourceQuestionSet = AssessmentStudentChoiceQuestionSetEntity.builder()
+        .assessmentStudentChoiceQuestionSetID(UUID.randomUUID())
+        .assessmentStudentChoiceEntity(sourceChoice)
+        .assessmentQuestionID(question.getAssessmentQuestionID())
+        .createUser("SOURCE_USER")
+        .createDate(LocalDateTime.now().minusDays(1))
+        .updateUser("SOURCE_USER")
+        .updateDate(LocalDateTime.now().minusDays(1))
+        .build();
+    sourceChoice.getAssessmentStudentChoiceQuestionSetEntities().add(sourceQuestionSet);
+    sourceComponent.getAssessmentStudentChoiceEntities().add(sourceChoice);
+
+    sourceAssessment.getAssessmentStudentComponentEntities().add(sourceComponent);
+    // Save through cascade - all child entities will be saved
+    sourceAssessment = assessmentStudentRepository.save(sourceAssessment);
+
+    // Mock student API responses
+    var sourceStudent = this.createMockStudentAPIStudent();
+    sourceStudent.setStudentID(sourceStudentID.toString());
+    sourceStudent.setPen("123456789");
+
+    var targetStudent = this.createMockStudentAPIStudent();
+    targetStudent.setStudentID(targetStudentID.toString());
+    targetStudent.setPen("987654321");
+    targetStudent.setLegalFirstName("TargetFirst");
+    targetStudent.setLegalLastName("TargetLast");
+    targetStudent.setLocalID("TARGET123");
+    targetStudent.setMincode("987654");
+
+    when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(targetStudent));
+    var targetSchool = this.createMockSchool();
+    targetSchool.setSchoolId(String.valueOf(schoolID));
+    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+    when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
+    when(this.restUtils.getStudentByPEN(any(), eq("987654321"))).thenReturn(Optional.of(targetStudent));
+
+    GradStudentRecord gradRecord = this.createMockGradStudentAPIRecord();
+    gradRecord.setStudentID(targetStudentID.toString());
+    gradRecord.setSchoolOfRecordId(String.valueOf(schoolID));
+    when(this.restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(gradRecord));
+
+    // when: merging assessment
+    var mergeRequest = AssessmentStudentMoveRequest.builder()
+        .sourceStudentID(sourceStudentID)
+        .targetStudentID(targetStudentID)
+        .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
+        .build();
+    mergeRequest.setUpdateUser("MERGE_USER");
+    mergeRequest.setCreateUser("MERGE_USER");
+    var mergeTime = LocalDateTime.now();
+    
+    var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
+
+    // then: merge should succeed
+    assertThat(result.getLeft()).hasSize(1);
+    assertThat(result.getLeft().getFirst().getAssessmentStudentValidationIssues()).isNullOrEmpty();
+
+    // and: verify target assessment has child entities copied
+    var targetAssessments = assessmentStudentRepository.findByStudentID(targetStudentID);
+    assertThat(targetAssessments).hasSize(1);
+    var targetAssessment = targetAssessments.get(0);
+    
+    // Verify components are copied
+    assertThat(targetAssessment.getAssessmentStudentComponentEntities()).hasSize(1);
+    var targetComponent = targetAssessment.getAssessmentStudentComponentEntities().iterator().next();
+    assertThat(targetComponent.getAssessmentStudentComponentID()).isNotEqualTo(sourceComponent.getAssessmentStudentComponentID());
+    assertThat(targetComponent.getAssessmentComponentID()).isEqualTo(sourceComponent.getAssessmentComponentID());
+    assertThat(targetComponent.getChoicePath()).isEqualTo(sourceComponent.getChoicePath());
+    assertThat(targetComponent.getCreateUser()).isEqualTo("MERGE_USER");
+    assertThat(targetComponent.getCreateDate()).isNotNull();
+    assertThat(targetComponent.getUpdateUser()).isEqualTo("MERGE_USER");
+    assertThat(targetComponent.getUpdateDate()).isNotNull();
+    assertThat(targetComponent.getAssessmentStudentEntity()).isEqualTo(targetAssessment);
+
+    // Verify answers are copied
+    assertThat(targetComponent.getAssessmentStudentAnswerEntities()).hasSize(1);
+    var targetAnswer = targetComponent.getAssessmentStudentAnswerEntities().iterator().next();
+    assertThat(targetAnswer.getAssessmentStudentAnswerID()).isNotEqualTo(sourceAnswer.getAssessmentStudentAnswerID());
+    assertThat(targetAnswer.getAssessmentQuestionID()).isEqualTo(sourceAnswer.getAssessmentQuestionID());
+    assertThat(targetAnswer.getScore()).isEqualTo(sourceAnswer.getScore());
+    assertThat(targetAnswer.getCreateUser()).isEqualTo("MERGE_USER");
+    assertThat(targetAnswer.getCreateDate()).isNotNull();
+    assertThat(targetAnswer.getUpdateUser()).isEqualTo("MERGE_USER");
+    assertThat(targetAnswer.getUpdateDate()).isNotNull();
+    assertThat(targetAnswer.getAssessmentStudentComponentEntity()).isEqualTo(targetComponent);
+
+    // Verify choices are copied
+    assertThat(targetComponent.getAssessmentStudentChoiceEntities()).hasSize(1);
+    var targetChoice = targetComponent.getAssessmentStudentChoiceEntities().iterator().next();
+    assertThat(targetChoice.getAssessmentStudentChoiceID()).isNotEqualTo(sourceChoice.getAssessmentStudentChoiceID());
+    assertThat(targetChoice.getAssessmentChoiceEntity()).isEqualTo(sourceChoice.getAssessmentChoiceEntity());
+    assertThat(targetChoice.getCreateUser()).isEqualTo("MERGE_USER");
+    assertThat(targetChoice.getCreateDate()).isNotNull();
+    assertThat(targetChoice.getUpdateUser()).isEqualTo("MERGE_USER");
+    assertThat(targetChoice.getUpdateDate()).isNotNull();
+    assertThat(targetChoice.getAssessmentStudentComponentEntity()).isEqualTo(targetComponent);
+
+    // Verify question sets are copied
+    assertThat(targetChoice.getAssessmentStudentChoiceQuestionSetEntities()).hasSize(1);
+    var targetQuestionSet = targetChoice.getAssessmentStudentChoiceQuestionSetEntities().iterator().next();
+    assertThat(targetQuestionSet.getAssessmentStudentChoiceQuestionSetID()).isNotEqualTo(sourceQuestionSet.getAssessmentStudentChoiceQuestionSetID());
+    assertThat(targetQuestionSet.getAssessmentQuestionID()).isEqualTo(sourceQuestionSet.getAssessmentQuestionID());
+    assertThat(targetQuestionSet.getCreateUser()).isEqualTo("MERGE_USER");
+    assertThat(targetQuestionSet.getCreateDate()).isNotNull();
+    assertThat(targetQuestionSet.getUpdateUser()).isEqualTo("MERGE_USER");
+    assertThat(targetQuestionSet.getUpdateDate()).isNotNull();
+    assertThat(targetQuestionSet.getAssessmentStudentChoiceEntity()).isEqualTo(targetChoice);
+
+    // and: verify source assessment's child entities remain unchanged
+    var sourceAssessmentAfter = assessmentStudentRepository.findById(sourceAssessment.getAssessmentStudentID()).get();
+    assertThat(sourceAssessmentAfter.getAssessmentStudentComponentEntities()).hasSize(1);
+    var sourceComponentAfter = sourceAssessmentAfter.getAssessmentStudentComponentEntities().iterator().next();
+    assertThat(sourceComponentAfter.getCreateUser()).isEqualTo("SOURCE_USER");
+    assertThat(sourceComponentAfter.getAssessmentStudentAnswerEntities()).hasSize(1);
+    var sourceAnswerAfter = sourceComponentAfter.getAssessmentStudentAnswerEntities().iterator().next();
+    assertThat(sourceAnswerAfter.getCreateUser()).isEqualTo("SOURCE_USER");
   }
 }
