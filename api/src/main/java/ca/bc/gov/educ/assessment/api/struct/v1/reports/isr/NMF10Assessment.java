@@ -26,4 +26,6 @@ public class NMF10Assessment extends ISRAssessment {
     private String writtenGroupingOutOf;
     private String writtenPlanningScore;
     private String writtenPlanningOutOf;
+    private String totalOverall;
+    private String outOfOverall;
 }

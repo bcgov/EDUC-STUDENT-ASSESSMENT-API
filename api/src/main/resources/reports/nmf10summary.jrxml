@@ -16,8 +16,10 @@
 	<parameter name="writtenGroupingOutOf" class="java.lang.String"/>
 	<parameter name="writtenPlanningScore" class="java.lang.String"/>
 	<parameter name="writtenPlanningOutOf" class="java.lang.String"/>
+	<parameter name="totalOverall" class="java.lang.String"/>
+	<parameter name="outOfOverall" class="java.lang.String"/>
 	<title>
-		<band height="655" splitType="Stretch">
+		<band height="752" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<rectangle>
 				<reportElement mode="Opaque" x="535" y="101" width="175" height="269" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
@@ -43,19 +45,19 @@
 				</reportElement>
 			</rectangle>
 			<break>
-				<reportElement positionType="Float" x="0" y="654" width="76" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
+				<reportElement positionType="Float" x="0" y="751" width="71" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
 			</break>
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement>
-					<font fontName="BC Sans" size="10" isBold="true"/>
+					<font fontName="BC Sans" size="11" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["L’Évaluation de numératie de la 10ᵉ année - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="-3" width="710" height="83" uuid="e2c26650-2772-4e9f-8f88-c00c999e72e0"/>
+				<reportElement x="0" y="-3" width="710" height="87" uuid="e2c26650-2772-4e9f-8f88-c00c999e72e0"/>
 				<textElement>
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<text><![CDATA[L’Évaluation de numératie de la 10ᵉ année est une évaluation requise dans toute la province pour l’obtention du diplôme d’études secondaires. La numératie, comme la littératie, est une compétence de vie importante. Les résultats de cette évaluation peuvent vous aider, vous et votre école, à déterminer vos points forts ainsi que la meilleure approche pour poursuivre au mieux votre parcours d’apprentissage. Cette évaluation fournit également des renseignements sur les paliers de compétence des élèves de la Colombie-Britannique aux écoles, aux conseils scolaires et au Ministère.
 
@@ -64,7 +66,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 			<textField>
 				<reportElement x="1" y="84" width="559" height="18" uuid="21b720bd-e3ea-47dc-89a6-f938b3c3da4f"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Votre palier de compétence pour l’Évaluation de numératie de la 10ᵉ année: " + $P{score}]]></textFieldExpression>
 			</textField>
@@ -79,44 +81,44 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				</reportElement>
 			</line>
 			<staticText>
-				<reportElement x="3" y="103" width="82" height="11" uuid="cc409ca8-997e-4910-aee8-745d552bad3e"/>
+				<reportElement x="3" y="103" width="82" height="14" uuid="cc409ca8-997e-4910-aee8-745d552bad3e"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[1 - Émergente]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="193" y="103" width="106" height="11" uuid="492b5b6a-9cc6-44ad-bdbc-69210bef9b2e"/>
+				<reportElement x="193" y="103" width="106" height="14" uuid="492b5b6a-9cc6-44ad-bdbc-69210bef9b2e"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[2 - En voie d’acquisition]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="366" y="103" width="82" height="11" uuid="83347035-e874-4722-9bbb-5f786365b5e6"/>
+				<reportElement x="366" y="103" width="82" height="14" uuid="83347035-e874-4722-9bbb-5f786365b5e6"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[3 - Acquise]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="540" y="103" width="82" height="11" uuid="90f8dbd7-05e6-442a-ba78-bfd2cea0d7b3"/>
+				<reportElement x="540" y="103" width="82" height="14" uuid="90f8dbd7-05e6-442a-ba78-bfd2cea0d7b3"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[4 - Approfondie]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="7" y="123" width="160" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
+				<reportElement x="7" y="123" width="173" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre des capacités minimales pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="-31" y="182" width="194" height="186" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
+				<reportElement x="-31" y="188" width="202" height="186" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
 				<text><![CDATA[
 <li>de repérer des informations dans les sources (p. ex., des graphiques, des images ou des tableaux);</li><br>
@@ -129,16 +131,16 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="193" y="123" width="148" height="97" uuid="77ddbd88-ee82-4206-a7f9-1fe731815e47"/>
+				<reportElement x="189" y="123" width="167" height="97" uuid="77ddbd88-ee82-4206-a7f9-1fe731815e47"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre des capacités intermédiaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="158" y="189" width="194" height="180" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
+				<reportElement x="158" y="192" width="202" height="180" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
 				<text><![CDATA[
 <li>d’appliquer les informations fournies dans les sources (p. ex., des graphiques, des images ou des tableaux);</li><br>
@@ -151,16 +153,16 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="369" y="123" width="148" height="97" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
+				<reportElement x="369" y="123" width="167" height="97" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre de solides capacités pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="333" y="182" width="194" height="188" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
+				<reportElement x="333" y="185" width="202" height="188" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
 				<text><![CDATA[
 <li>d’analyser et d’interpréter l’information fournie dans les sources (p. ex., des graphiques, des images ou des tableaux);</li><br>
@@ -173,23 +175,23 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="543" y="123" width="148" height="97" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
+				<reportElement x="543" y="123" width="165" height="97" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre des capacités exemplaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="506" y="182" width="194" height="188" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
+				<reportElement x="506" y="187" width="202" height="188" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
 				<text><![CDATA[
-<li>d’analyser et de synthétiser les données fournies dans les sources (p. ex., des graphiques, des images ou des tableaux) de manière logique et compétente;</li><br>
+<li>d’analyser et de synthétiser les données fournies dans les sources (p. ex., des graphiques, des images ou des tableaux) de manière logique et compétente;</li>
 
-<li>de choisir une stratégie efficace pour résoudre un problème concret;</li><br>
+<li>de choisir une stratégie efficace pour résoudre un problème concret;</li>
 
-<li>d’expliquer son raisonnement avec toutes les preuves nécessaires à l’appui;</li><br>
+<li>d’expliquer son raisonnement avec toutes les preuves nécessaires à l’appui;</li>
 
 <li>d’avoir recours à un arsenal étoffé de notions, d’outils et de méthodes mathématiques.</li>
 ]]></text>
@@ -202,20 +204,21 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 			<staticText>
 				<reportElement x="1" y="380" width="82" height="19" uuid="68f2a54f-ebdb-42c6-814e-2a6d155b0c23"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Résultats bruts]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="1" y="395" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Vous trouverez ci-dessous vos résultats bruts pour l’Évaluation de numératie de la 10ᵉ année. Ces résultats indiquent votre niveau de réussite dans les différents domaines évalués, et ne peuvent pas être directement transposables en palier de compétence.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="1" y="422" width="484" height="13" backcolor="#E0E0E0" uuid="1c2bedb1-cd70-4ac5-8de5-8fafca494a25">
+				<reportElement mode="Opaque" x="1" y="425" width="479" height="30" backcolor="#E0E0E0" uuid="1c2bedb1-cd70-4ac5-8de5-8fafca494a25">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
@@ -225,13 +228,13 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle">
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[Questions à réponse choisie (Section commune)]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="480" y="422" width="105" height="13" backcolor="#E0E0E0" uuid="091d67d7-aa28-4ba1-bca9-b0bf749e3b5e"/>
+				<reportElement mode="Opaque" x="480" y="425" width="100" height="13" backcolor="#E0E0E0" uuid="091d67d7-aa28-4ba1-bca9-b0bf749e3b5e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -240,12 +243,12 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="580" y="422" width="105" height="13" backcolor="#E0E0E0" uuid="bc277b69-c609-493b-9a82-9c9aefcbc10b"/>
+				<reportElement mode="Opaque" x="580" y="425" width="105" height="13" backcolor="#E0E0E0" uuid="bc277b69-c609-493b-9a82-9c9aefcbc10b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -254,12 +257,12 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="435" width="479" height="34" backcolor="#FFFFFF" uuid="ca20abd2-9d38-41a8-9480-80da1c053469">
+				<reportElement mode="Transparent" x="1" y="455" width="479" height="40" backcolor="#FFFFFF" uuid="ca20abd2-9d38-41a8-9480-80da1c053469">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -271,13 +274,13 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>La planification et la conception</b><br>L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif pour formuler une recommandation (p. ex., planifier l’expédition efficace de plusieurs conteneurs).]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="469" width="479" height="22" backcolor="#FFFFFF" uuid="437d7843-db34-4407-9ebb-1680336c7a17">
+				<reportElement mode="Transparent" x="1" y="495" width="479" height="45" backcolor="#FFFFFF" uuid="437d7843-db34-4407-9ebb-1680336c7a17">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -289,14 +292,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Les estimations motivées</b><br>
 L’élève doit faire ou utiliser des estimations de plusieurs variables, afin de former un argument logique à l’appui d’une solution (p. ex., planifier des vacances).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="435" width="100" height="34" uuid="bef2864b-e66b-444a-bb54-dd641632b551"/>
+				<reportElement x="480" y="455" width="100" height="40" uuid="bef2864b-e66b-444a-bb54-dd641632b551"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -305,12 +308,12 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoicePlanningScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="435" width="105" height="34" uuid="d30cd488-96cc-47d5-97b1-5cba4c07f084"/>
+				<reportElement x="580" y="455" width="105" height="40" uuid="d30cd488-96cc-47d5-97b1-5cba4c07f084"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -319,12 +322,12 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoicePlanningOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="469" width="105" height="22" uuid="60df56e3-7414-4321-9d09-c960ca952d4e"/>
+				<reportElement x="580" y="495" width="105" height="45" uuid="60df56e3-7414-4321-9d09-c960ca952d4e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -333,12 +336,12 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceEstimationsOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="469" width="100" height="22" uuid="7393ce8a-3985-4ec2-8a8a-1e6983413356"/>
+				<reportElement x="480" y="495" width="100" height="45" uuid="7393ce8a-3985-4ec2-8a8a-1e6983413356"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -347,12 +350,12 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceEstimationsScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Opaque" x="1" y="571" width="484" height="13" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
+				<reportElement mode="Opaque" x="1" y="640" width="484" height="19" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box>
@@ -363,13 +366,13 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle">
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[Questions à réponse construite (Section à options)]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="480" y="571" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
+				<reportElement mode="Opaque" x="480" y="640" width="105" height="19" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -378,12 +381,12 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="580" y="571" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
+				<reportElement mode="Opaque" x="580" y="640" width="105" height="19" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -392,12 +395,12 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="491" width="479" height="36" backcolor="#FFFFFF" uuid="e104dc09-2c34-46ff-a636-0265d28f451f">
+				<reportElement mode="Transparent" x="1" y="540" width="479" height="50" backcolor="#FFFFFF" uuid="e104dc09-2c34-46ff-a636-0265d28f451f">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -409,14 +412,14 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>La répartition</b><br>
 L’élève doit créer des groupements ou des catégories pour répartir ou allouer quelque chose en utilisant des critères convenables à une situation (p. ex., un processus pour distribuer une prime d’équipe parmi les membres d’un groupe).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="491" width="100" height="36" uuid="4e89a3f1-b7b6-4b3e-92d5-7ae538a03a7e"/>
+				<reportElement x="480" y="540" width="100" height="50" uuid="4e89a3f1-b7b6-4b3e-92d5-7ae538a03a7e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -425,12 +428,12 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceGroupingScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="491" width="105" height="36" uuid="714b2610-1785-4e95-b6dd-48ab116a2a2e"/>
+				<reportElement x="580" y="540" width="105" height="50" uuid="714b2610-1785-4e95-b6dd-48ab116a2a2e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -439,12 +442,12 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceGroupingOutOf}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="527" width="479" height="44" backcolor="#FFFFFF" uuid="7c5c9103-462e-43f9-ba07-f48ea03fc1da">
+				<reportElement mode="Transparent" x="1" y="590" width="479" height="50" backcolor="#FFFFFF" uuid="7c5c9103-462e-43f9-ba07-f48ea03fc1da">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -456,14 +459,14 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>L’établissement de modèle</b><br>
 L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemble de données. Il doit ensuite appliquer ce modèle ou cette stratégie à un nouvel ensemble de données et, si besoin est, l’adapter (p. ex., extrapoler des données pour prédire des tendances futures).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="527" width="100" height="44" uuid="e0e4ac37-ba91-4e72-827b-4aa4b87996e9"/>
+				<reportElement x="480" y="590" width="100" height="50" uuid="e0e4ac37-ba91-4e72-827b-4aa4b87996e9"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -472,12 +475,12 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceModelScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="527" width="105" height="44" uuid="7d899191-99c1-4175-8e95-09677a130c96"/>
+				<reportElement x="580" y="590" width="105" height="50" uuid="7d899191-99c1-4175-8e95-09677a130c96"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -486,12 +489,12 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceModelOutOf}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="584" width="479" height="36" backcolor="#FFFFFF" uuid="6527d8d5-c0e7-4c6e-8134-7b5c315767d5">
+				<reportElement mode="Transparent" x="1" y="659" width="479" height="51" backcolor="#FFFFFF" uuid="6527d8d5-c0e7-4c6e-8134-7b5c315767d5">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -503,14 +506,14 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>La répartition</b><br>
 L’élève doit créer des groupements ou des catégories pour répartir ou allouer quelque chose en utilisant des critères convenables à une situation (p. ex., un processus pour distribuer une prime d’équipe parmi les membres d’un groupe).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="584" width="100" height="36" uuid="56f15e5f-9cbd-4fa9-91e3-83358c73aa0a"/>
+				<reportElement x="480" y="659" width="100" height="51" uuid="56f15e5f-9cbd-4fa9-91e3-83358c73aa0a"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -519,12 +522,12 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenGroupingScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="584" width="105" height="36" uuid="5d930ecc-6c80-4c46-8664-4c868206a86b"/>
+				<reportElement x="580" y="659" width="105" height="51" uuid="5d930ecc-6c80-4c46-8664-4c868206a86b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -533,12 +536,12 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenGroupingOutOf}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="620" width="479" height="34" backcolor="#FFFFFF" uuid="1347b830-f5ab-4001-a162-b439551cd692">
+				<reportElement mode="Transparent" x="1" y="710" width="479" height="40" backcolor="#FFFFFF" uuid="1347b830-f5ab-4001-a162-b439551cd692">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -550,14 +553,14 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="8" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>La planification et la conception</b><br>
 L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif pour formuler une recommandation (p. ex., planifier l’expédition efficace de plusieurs conteneurs).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="620" width="100" height="34" uuid="2a60e87b-23ef-4c0a-b065-8e09d458ba4c"/>
+				<reportElement x="480" y="710" width="100" height="40" uuid="2a60e87b-23ef-4c0a-b065-8e09d458ba4c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -566,12 +569,12 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenPlanningScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="620" width="105" height="34" uuid="d4348a1d-a4bf-40ec-bf5c-13045e88093c"/>
+				<reportElement x="580" y="710" width="105" height="40" uuid="d4348a1d-a4bf-40ec-bf5c-13045e88093c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -580,7 +583,7 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenPlanningOutOf}]]></textFieldExpression>
 			</textField>
@@ -609,6 +612,34 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
+			<textField>
+				<reportElement mode="Opaque" x="480" y="439" width="100" height="16" backcolor="#E0E0E0" uuid="c27e034c-e63d-4583-a19f-440548ee3d5d"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="BC Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalOverall}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="580" y="439" width="105" height="16" backcolor="#E0E0E0" uuid="443f90fd-7eea-4cab-ab17-fba5bda8eb8d"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="BC Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{outOfOverall}]]></textFieldExpression>
+			</textField>
 		</band>
 	</title>
 </jasperReport>
