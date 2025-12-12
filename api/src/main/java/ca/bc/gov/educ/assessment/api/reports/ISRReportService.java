@@ -320,10 +320,18 @@ public class ISRReportService extends BaseReportGenerationService {
       return Pair.of("No Response", totalOutOf.setScale(2, RoundingMode.DOWN).toString());
     }
     
-    var totalScoreScaled = totalScore.setScale(2, RoundingMode.DOWN);
-    var totaOutOfScaled = totalOutOf.setScale(2, RoundingMode.DOWN);
+    var totalScoreScaled = totalScore.setScale(1, RoundingMode.DOWN);
+    var totalOutOfScaled = totalOutOf.setScale(1, RoundingMode.DOWN);
     
-    return Pair.of(totalScoreScaled.toString(), totaOutOfScaled.toString());
+    return Pair.of(totalScoreScaled.stripTrailingZeros().toPlainString(), totalOutOfScaled.stripTrailingZeros().toPlainString());
+  }
+  
+  private String removeZeroDecimals(String s){
+    if(StringUtils.isBlank(s)){
+      return s;
+    }
+    
+    return s.replaceAll(".0", "");
   }
   
   private BigDecimal getScaleFactorAsBigDecimal(Integer scaleFactor) {
@@ -375,10 +383,10 @@ public class ISRReportService extends BaseReportGenerationService {
     var model = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID,questions, studentAnswers, MUL_CHOICE.getCode(), "M");
     assessmentNME10.setOnlineModelScore(model.getLeft());
     assessmentNME10.setOnlineModelOutOf(model.getRight());
-    var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID,questions, studentAnswers, OPEN_ENDED.getCode(), "F");
+    var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
     assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
     assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
-    var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID,questions, studentAnswers, OPEN_ENDED.getCode(), "R");
+    var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "R");
     assessmentNME10.setWrittenReasonedEstimatesScore(writtenReasoned.getLeft());
     assessmentNME10.setWrittenReasonedEstimatesOutOf(writtenReasoned.getRight());
 
