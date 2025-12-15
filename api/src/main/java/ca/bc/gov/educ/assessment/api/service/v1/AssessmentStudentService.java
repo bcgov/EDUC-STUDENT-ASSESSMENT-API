@@ -107,7 +107,7 @@ public class AssessmentStudentService {
         return Integer.toString(assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, AssessmentUtil.getAssessmentTypeCodeList(assessment.getAssessmentTypeCode())));
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<AssessmentStudentListItem, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
@@ -139,7 +139,7 @@ public class AssessmentStudentService {
         return savedEntity;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<AssessmentStudentListItem, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
