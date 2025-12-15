@@ -353,7 +353,7 @@ public class StudentAssessmentResultService {
                         //Based on number of rows returned, we know how many answers are coming
                         //Item numbers are sequential, while skipping the choice records
                         choiceQuestionNumber = questionNumber;
-                        questionCounter = questionNumber;
+                        questionCounter++;
 
                         if(optAssessmentChoice.isPresent()) {
                             var choice = new StagedAssessmentStudentChoiceEntity();
