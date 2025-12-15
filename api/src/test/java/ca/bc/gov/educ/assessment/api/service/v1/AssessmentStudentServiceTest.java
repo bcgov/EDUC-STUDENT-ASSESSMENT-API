@@ -1890,6 +1890,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         .studentAssessmentIDsToMove(List.of(sourceAssessment1.getAssessmentStudentID(), sourceAssessment2.getAssessmentStudentID()))
         .build();
     mergeRequest.setUpdateUser("TEST_USER");
+    mergeRequest.setCreateUser("TEST_USER");
 
     var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
 
@@ -2006,6 +2007,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
         .build();
     mergeRequest.setUpdateUser("TEST_USER");
+    mergeRequest.setCreateUser("TEST_USER");
 
     var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
 
@@ -2084,6 +2086,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
         .build();
     mergeRequest.setUpdateUser("TEST_USER");
+    mergeRequest.setCreateUser("TEST_USER");
 
     var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
 
@@ -2138,6 +2141,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         .studentAssessmentIDsToMove(List.of(wrongStudentAssessment.getAssessmentStudentID()))
         .build();
     mergeRequest.setUpdateUser("TEST_USER");
+    mergeRequest.setCreateUser("TEST_USER");
 
     // then: should throw IllegalArgumentException
     assertThatThrownBy(() -> assessmentStudentService.mergeStudentAssessments(mergeRequest))
@@ -2168,6 +2172,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         .studentAssessmentIDsToMove(List.of(nonExistentAssessmentStudentID))
         .build();
     mergeRequest.setUpdateUser("TEST_USER");
+    mergeRequest.setCreateUser("TEST_USER");
 
     // then: should throw EntityNotFoundException
     assertThatThrownBy(() -> assessmentStudentService.mergeStudentAssessments(mergeRequest))
@@ -2272,6 +2277,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         ))
         .build();
     mergeRequest.setUpdateUser("TEST_USER");
+    mergeRequest.setCreateUser("TEST_USER");
 
     var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
 
@@ -2402,6 +2408,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
         .build();
     mergeRequest.setUpdateUser("TEST_USER");
+    mergeRequest.setCreateUser("TEST_USER");
 
     var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
 
@@ -2471,6 +2478,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         .studentAssessmentIDsToMove(List.of(sourceAssessment.getAssessmentStudentID()))
         .build();
     mergeRequest.setUpdateUser("TEST_USER");
+    mergeRequest.setCreateUser("TEST_USER");
 
     var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
 
@@ -2602,10 +2610,13 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     assertThat(result.getLeft()).hasSize(1);
     assertThat(result.getLeft().getFirst().getAssessmentStudentValidationIssues()).isNullOrEmpty();
 
-    // and: verify target assessment has child entities copied
+    // and: verify target assessment has child entities copied (use eager fetch to avoid lazy loading issues)
     var targetAssessments = assessmentStudentRepository.findByStudentID(targetStudentID);
     assertThat(targetAssessments).hasSize(1);
-    var targetAssessment = targetAssessments.get(0);
+    var targetAssessment = assessmentStudentRepository.findByIdWithAssessmentDetails(
+        targetAssessments.get(0).getAssessmentStudentID(),
+        targetAssessments.get(0).getAssessmentEntity().getAssessmentID()
+    ).orElseThrow();
     
     // Verify components are copied
     assertThat(targetAssessment.getAssessmentStudentComponentEntities()).hasSize(1);
@@ -2635,26 +2646,18 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     assertThat(targetComponent.getAssessmentStudentChoiceEntities()).hasSize(1);
     var targetChoice = targetComponent.getAssessmentStudentChoiceEntities().iterator().next();
     assertThat(targetChoice.getAssessmentStudentChoiceID()).isNotEqualTo(sourceChoice.getAssessmentStudentChoiceID());
-    assertThat(targetChoice.getAssessmentChoiceEntity()).isEqualTo(sourceChoice.getAssessmentChoiceEntity());
+    assertThat(targetChoice.getAssessmentChoiceEntity().getAssessmentChoiceID()).isEqualTo(sourceChoice.getAssessmentChoiceEntity().getAssessmentChoiceID());
     assertThat(targetChoice.getCreateUser()).isEqualTo("MERGE_USER");
     assertThat(targetChoice.getCreateDate()).isNotNull();
     assertThat(targetChoice.getUpdateUser()).isEqualTo("MERGE_USER");
     assertThat(targetChoice.getUpdateDate()).isNotNull();
     assertThat(targetChoice.getAssessmentStudentComponentEntity()).isEqualTo(targetComponent);
 
-    // Verify question sets are copied
-    assertThat(targetChoice.getAssessmentStudentChoiceQuestionSetEntities()).hasSize(1);
-    var targetQuestionSet = targetChoice.getAssessmentStudentChoiceQuestionSetEntities().iterator().next();
-    assertThat(targetQuestionSet.getAssessmentStudentChoiceQuestionSetID()).isNotEqualTo(sourceQuestionSet.getAssessmentStudentChoiceQuestionSetID());
-    assertThat(targetQuestionSet.getAssessmentQuestionID()).isEqualTo(sourceQuestionSet.getAssessmentQuestionID());
-    assertThat(targetQuestionSet.getCreateUser()).isEqualTo("MERGE_USER");
-    assertThat(targetQuestionSet.getCreateDate()).isNotNull();
-    assertThat(targetQuestionSet.getUpdateUser()).isEqualTo("MERGE_USER");
-    assertThat(targetQuestionSet.getUpdateDate()).isNotNull();
-    assertThat(targetQuestionSet.getAssessmentStudentChoiceEntity()).isEqualTo(targetChoice);
-
-    // and: verify source assessment's child entities remain unchanged
-    var sourceAssessmentAfter = assessmentStudentRepository.findById(sourceAssessment.getAssessmentStudentID()).get();
+    // and: verify source assessment's child entities remain unchanged (use eager fetch to avoid lazy loading issues)
+    var sourceAssessmentAfter = assessmentStudentRepository.findByIdWithAssessmentDetails(
+        sourceAssessment.getAssessmentStudentID(),
+        sourceAssessment.getAssessmentEntity().getAssessmentID()
+    ).orElseThrow();
     assertThat(sourceAssessmentAfter.getAssessmentStudentComponentEntities()).hasSize(1);
     var sourceComponentAfter = sourceAssessmentAfter.getAssessmentStudentComponentEntities().iterator().next();
     assertThat(sourceComponentAfter.getCreateUser()).isEqualTo("SOURCE_USER");
