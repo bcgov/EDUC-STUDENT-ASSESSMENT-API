@@ -52,6 +52,7 @@ public class AssessmentStudentService {
     public static final String CREATE_DATE = "createDate";
     public static final String UPDATE_DATE = "updateDate";
     public static final String TARGET_STUDENT_ID = "targetStudentID";
+    public static final String ASSESSMENT = "Assessment";
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
     private final AssessmentEventRepository assessmentEventRepository;
@@ -102,7 +103,7 @@ public class AssessmentStudentService {
 
     public String getNumberOfAttempts(String assessmentID, UUID studentID) {
         var assessment = assessmentRepository.findById(UUID.fromString(assessmentID)).orElseThrow(() ->
-                new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentID));
+                new EntityNotFoundException(AssessmentEntity.class, ASSESSMENT, assessmentID));
 
         return Integer.toString(assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, AssessmentUtil.getAssessmentTypeCodeList(assessment.getAssessmentTypeCode())));
     }
@@ -142,7 +143,7 @@ public class AssessmentStudentService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<AssessmentStudentListItem, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
-                new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
+                new EntityNotFoundException(AssessmentEntity.class, ASSESSMENT, assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
         assessmentStudentEntity.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
@@ -567,7 +568,7 @@ public class AssessmentStudentService {
 
         assessmentsToAdd.forEach(assessment -> {
             AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessment.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
-                    new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessment.getAssessmentEntity().getAssessmentID().toString())
+                    new EntityNotFoundException(AssessmentEntity.class, ASSESSMENT, assessment.getAssessmentEntity().getAssessmentID().toString())
             );
             assessment.setAssessmentEntity(currentAssessmentEntity);
             assessment.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
