@@ -47,6 +47,11 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 public class AssessmentStudentService {
 
     private static final AssessmentStudentListItemMapper assessmentStudentListItemMapper = AssessmentStudentListItemMapper.mapper;
+    public static final String CREATE_USER = "createUser";
+    public static final String UPDATE_USER = "updateUser";
+    public static final String CREATE_DATE = "createDate";
+    public static final String UPDATE_DATE = "updateDate";
+    public static final String TARGET_STUDENT_ID = "targetStudentID";
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
     private final AssessmentEventRepository assessmentEventRepository;
@@ -102,7 +107,7 @@ public class AssessmentStudentService {
         return Integer.toString(assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, AssessmentUtil.getAssessmentTypeCodeList(assessment.getAssessmentTypeCode())));
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRED)
     public Pair<AssessmentStudentListItem, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
@@ -134,7 +139,7 @@ public class AssessmentStudentService {
         return savedEntity;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRED)
     public Pair<AssessmentStudentListItem, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
@@ -177,7 +182,7 @@ public class AssessmentStudentService {
         if (validationIssues.isEmpty()) {
             overrideProficiencyScoreIfSpecialCase(assessmentStudentEntity);
             if (currentAssessmentStudentEntity != null) {
-                BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "schoolOfRecordSchoolID", "studentID", "givenName", "surname", "pen", "localID", "courseStatusCode", "createUser", "createDate");
+                BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "schoolOfRecordSchoolID", "studentID", "givenName", "surname", "pen", "localID", "courseStatusCode", CREATE_USER, CREATE_DATE);
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
                 currentAssessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), currentAssessmentStudentEntity.getStudentID())));
                 setSchoolOfRecordAtWriteIfExempt(currentAssessmentStudentEntity);
@@ -440,10 +445,10 @@ public class AssessmentStudentService {
         Student targetStudentApiStudent = students.stream()
                 .filter(s -> s.getStudentID().equals(targetStudentID))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(Student.class, "targetStudentID", targetStudentID));
+                .orElseThrow(() -> new EntityNotFoundException(Student.class, TARGET_STUDENT_ID, targetStudentID));
 
         GradStudentRecord targetGradStudent = restUtils.getGradStudentRecordByStudentID(correlationID, assessmentStudentTransfer.getTargetStudentID())
-            .orElseThrow(() -> new EntityNotFoundException(GradStudentRecord.class, "targetStudentID", targetStudentID));
+            .orElseThrow(() -> new EntityNotFoundException(GradStudentRecord.class, TARGET_STUDENT_ID, targetStudentID));
 
         Pair<List<AssessmentStudentEntity>, List<AssessmentStudentValidationIssue>> validationResult = validateAssessments(sourceStudentApiStudent, targetStudentApiStudent, assessmentStudentTransfer.getStudentAssessmentIDsToMove());
 
@@ -547,9 +552,9 @@ public class AssessmentStudentService {
 
         Student targetStudent = restUtils.getStudents(correlationID, Set.of(targetStudentID.toString())).stream()
             .findFirst()
-            .orElseThrow(() -> new EntityNotFoundException(Student.class, "targetStudentID", targetStudentID.toString()));
+            .orElseThrow(() -> new EntityNotFoundException(Student.class, TARGET_STUDENT_ID, targetStudentID.toString()));
         GradStudentRecord targetStudentGrad = restUtils.getGradStudentRecordByStudentID(correlationID, targetStudentID)
-            .orElseThrow(() -> new EntityNotFoundException(Student.class, "targetStudentID", targetStudentID.toString()));
+            .orElseThrow(() -> new EntityNotFoundException(Student.class, TARGET_STUDENT_ID, targetStudentID.toString()));
         var targetSchool = targetStudentGrad.getSchoolOfRecordId();
 
         Map<String, AssessmentStudentEntity> assessmentStudentsToMerge = getAssessmentStudentsToMerge(assessmentStudentMerge.getStudentAssessmentIDsToMove(), sourceStudentID);
@@ -609,7 +614,7 @@ public class AssessmentStudentService {
 
         // Copy all properties except IDs, metadata, and collections
         BeanUtils.copyProperties(sourceAssessment, mergedAssessmentStudent,
-            "assessmentStudentID", "createUser", "updateUser", "createDate", "updateDate",
+            ASSESSMENT_STUDENT_ID, CREATE_USER, UPDATE_USER, CREATE_DATE, UPDATE_DATE,
             "assessmentStudentComponentEntities");
 
         // Keep existing ID for updates, or let it be generated for new records
@@ -733,8 +738,8 @@ public class AssessmentStudentService {
                                                                            String updateUser, LocalDateTime updateDate) {
         var newComponent = new AssessmentStudentComponentEntity();
         BeanUtils.copyProperties(source, newComponent,
-            "assessmentStudentComponentID", "assessmentStudentEntity", "createUser", "updateUser",
-            "createDate", "updateDate", "assessmentStudentAnswerEntities", "assessmentStudentChoiceEntities");
+            "assessmentStudentComponentID", "assessmentStudentEntity", CREATE_USER, UPDATE_USER,
+            CREATE_DATE, UPDATE_DATE, "assessmentStudentAnswerEntities", "assessmentStudentChoiceEntities");
         newComponent.setAssessmentStudentEntity(newParent);
         newComponent.setCreateUser(createUser);
         newComponent.setCreateDate(createDate);
@@ -764,7 +769,7 @@ public class AssessmentStudentService {
                                                                       String updateUser, LocalDateTime updateDate) {
         var newAnswer = new AssessmentStudentAnswerEntity();
         BeanUtils.copyProperties(source, newAnswer,
-            "assessmentStudentAnswerID", "assessmentStudentComponentEntity", "createUser", "updateUser", "createDate", "updateDate");
+            "assessmentStudentAnswerID", "assessmentStudentComponentEntity", CREATE_USER, UPDATE_USER, CREATE_DATE, UPDATE_DATE);
         newAnswer.setAssessmentStudentComponentEntity(newParent);
         newAnswer.setCreateUser(createUser);
         newAnswer.setCreateDate(createDate);
@@ -779,8 +784,8 @@ public class AssessmentStudentService {
                                                                        String updateUser, LocalDateTime updateDate) {
         var newChoice = new AssessmentStudentChoiceEntity();
         BeanUtils.copyProperties(source, newChoice,
-            "assessmentStudentChoiceID", "assessmentStudentComponentEntity", "createUser", "updateUser",
-            "createDate", "updateDate", "assessmentStudentChoiceQuestionSetEntities");
+            "assessmentStudentChoiceID", "assessmentStudentComponentEntity", CREATE_USER, UPDATE_USER,
+            CREATE_DATE, UPDATE_DATE, "assessmentStudentChoiceQuestionSetEntities");
         newChoice.setAssessmentStudentComponentEntity(newParent);
         newChoice.setCreateUser(createUser);
         newChoice.setCreateDate(createDate);
@@ -803,7 +808,7 @@ public class AssessmentStudentService {
                                                                                             String updateUser, LocalDateTime updateDate) {
         var newQuestionSet = new AssessmentStudentChoiceQuestionSetEntity();
         BeanUtils.copyProperties(source, newQuestionSet,
-            "assessmentStudentChoiceQuestionSetID", "assessmentStudentChoiceEntity", "createUser", "updateUser", "createDate", "updateDate");
+            "assessmentStudentChoiceQuestionSetID", "assessmentStudentChoiceEntity", CREATE_USER, UPDATE_USER, CREATE_DATE, UPDATE_DATE);
         newQuestionSet.setAssessmentStudentChoiceEntity(newParent);
         newQuestionSet.setCreateUser(createUser);
         newQuestionSet.setCreateDate(createDate);

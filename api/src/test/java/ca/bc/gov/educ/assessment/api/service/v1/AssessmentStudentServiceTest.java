@@ -1871,7 +1871,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     // Mock getSchoolBySchoolID with target student's mincode
     var targetSchool = this.createMockSchool();
     targetSchool.setSchoolId(String.valueOf(schoolID));
-    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+    when(this.restUtils.getSchoolBySchoolID("987654")).thenReturn(Optional.of(targetSchool));
 
     // Return correct student for each PEN - this ensures studentID is set correctly before PEN lookup
     when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
@@ -1904,13 +1904,9 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     // and: all returned assessments should belong to the target student
     assertThat(result.getLeft()).allMatch(item -> targetStudentID.toString().equals(item.getStudentID()));
 
-    // and: assessments in database should belong to target student
-    var savedAssessment1 = assessmentStudentRepository.findById(sourceAssessment1.getAssessmentStudentID());
-    var savedAssessment2 = assessmentStudentRepository.findById(sourceAssessment2.getAssessmentStudentID());
     // Check that target student now has assessments for these assessment types
     var targetAssessments = assessmentStudentRepository.findByStudentID(targetStudentID);
-    assertThat(targetAssessments).hasSizeGreaterThanOrEqualTo(2);
-    assertThat(targetAssessments).allMatch(assessment -> targetStudentID.equals(assessment.getStudentID()));
+    assertThat(targetAssessments).hasSizeGreaterThanOrEqualTo(2).allMatch(assessment -> targetStudentID.equals(assessment.getStudentID()));
     
     // and: verify target student's fields are correctly set (PEN, schoolOfRecordSchoolID, givenName, surname, localID)
     targetAssessments.forEach(assessment -> {
@@ -1923,8 +1919,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     
     // and: verify source student's records remain unchanged (merge is a copy, not a move)
     var sourceAssessments = assessmentStudentRepository.findByStudentID(sourceStudentID);
-    assertThat(sourceAssessments).hasSizeGreaterThanOrEqualTo(2);
-    assertThat(sourceAssessments).allMatch(assessment -> sourceStudentID.equals(assessment.getStudentID()));
+    assertThat(sourceAssessments).hasSizeGreaterThanOrEqualTo(2).allMatch(assessment -> sourceStudentID.equals(assessment.getStudentID()));
     // Verify source assessments still exist with their original IDs
     assertThat(assessmentStudentRepository.findById(sourceAssessment1.getAssessmentStudentID())).isPresent();
     assertThat(assessmentStudentRepository.findById(sourceAssessment2.getAssessmentStudentID())).isPresent();
@@ -1988,7 +1983,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     // Mock getSchoolBySchoolID with target student's mincode
     var targetSchool = this.createMockSchool();
     targetSchool.setSchoolId(String.valueOf(schoolID));
-    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+    when(this.restUtils.getSchoolBySchoolID("987654")).thenReturn(Optional.of(targetSchool));
 
     // Return correct student for each PEN - this ensures studentID is set correctly before PEN lookup
     when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
@@ -2077,7 +2072,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     // Mock getSchoolBySchoolID with target student's mincode
     var targetSchool = this.createMockSchool();
     targetSchool.setSchoolId(String.valueOf(schoolID));
-    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+    when(this.restUtils.getSchoolBySchoolID("987654")).thenReturn(Optional.of(targetSchool));
 
     // when: merging assessments
     var mergeRequest = AssessmentStudentMoveRequest.builder()
@@ -2224,7 +2219,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     targetAssessment2.setSchoolOfRecordSchoolID(schoolID);
     targetAssessment2.setPen("987654321");
     targetAssessment2.setProficiencyScore(null); // NO score - overwritable
-    targetAssessment2 = assessmentStudentRepository.save(targetAssessment2);
+    assessmentStudentRepository.save(targetAssessment2);
 
     AssessmentStudentEntity targetAssessment3 = createMockStudentEntity(assessment3);
     targetAssessment3.setStudentID(targetStudentID);
@@ -2254,7 +2249,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     // Mock getSchoolBySchoolID with target student's mincode
     var targetSchool = this.createMockSchool();
     targetSchool.setSchoolId(String.valueOf(schoolID));
-    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+    when(this.restUtils.getSchoolBySchoolID("987654")).thenReturn(Optional.of(targetSchool));
 
     // Return correct student for each PEN - this ensures studentID is set correctly before PEN lookup
     when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
@@ -2305,8 +2300,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     // and: successful assessments in database should belong to target student
     var targetAssessments = assessmentStudentRepository.findByStudentID(targetStudentID);
     // Should have at least assessment1 (added), assessment2 (overwritten), plus assessment3 (existing, not overwritten)
-    assertThat(targetAssessments).hasSizeGreaterThanOrEqualTo(3);
-    assertThat(targetAssessments).allMatch(assessment -> targetStudentID.equals(assessment.getStudentID()));
+    assertThat(targetAssessments).hasSizeGreaterThanOrEqualTo(3).allMatch(assessment -> targetStudentID.equals(assessment.getStudentID()));
 
     // and: target assessment3 should remain unchanged (still has proficiency score)
     AssessmentStudentEntity unchangedTarget3 = assessmentStudentRepository.findById(targetAssessment3.getAssessmentStudentID()).get();
@@ -2389,7 +2383,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     // Mock getSchoolBySchoolID with target student's mincode
     var targetSchool = this.createMockSchool();
     targetSchool.setSchoolId(String.valueOf(schoolID));
-    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+    when(this.restUtils.getSchoolBySchoolID("987654")).thenReturn(Optional.of(targetSchool));
 
     // Return correct student for each PEN - this ensures studentID is set correctly before PEN lookup
     when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
@@ -2585,7 +2579,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     when(this.restUtils.getStudents(any(UUID.class), any(Set.class))).thenReturn(List.of(targetStudent));
     var targetSchool = this.createMockSchool();
     targetSchool.setSchoolId(String.valueOf(schoolID));
-    when(this.restUtils.getSchoolBySchoolID(eq("987654"))).thenReturn(Optional.of(targetSchool));
+    when(this.restUtils.getSchoolBySchoolID("987654")).thenReturn(Optional.of(targetSchool));
     when(this.restUtils.getStudentByPEN(any(), eq("123456789"))).thenReturn(Optional.of(sourceStudent));
     when(this.restUtils.getStudentByPEN(any(), eq("987654321"))).thenReturn(Optional.of(targetStudent));
 
@@ -2602,7 +2596,6 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
         .build();
     mergeRequest.setUpdateUser("MERGE_USER");
     mergeRequest.setCreateUser("MERGE_USER");
-    var mergeTime = LocalDateTime.now();
     
     var result = assessmentStudentService.mergeStudentAssessments(mergeRequest);
 
