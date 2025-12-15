@@ -90,7 +90,7 @@ public class CSVReportService {
             csvPrinter.printRecord(headers);
 
             for (AssessmentStudentEntity result : results) {
-                if(StringUtils.isBlank(result.getProvincialSpecialCaseCode()) || result.getProvincialSpecialCaseCode().equals(ProvincialSpecialCaseCodes.EXEMPT.getCode())) {
+                if(StringUtils.isBlank(result.getProvincialSpecialCaseCode()) || !result.getProvincialSpecialCaseCode().equals(ProvincialSpecialCaseCodes.EXEMPT.getCode())) {
                     var school = restUtils.getSchoolBySchoolID(result.getSchoolOfRecordSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_ID, result.getSchoolOfRecordSchoolID().toString()));
 
                     Optional<SchoolTombstone> assessmentCenter = Optional.empty();
