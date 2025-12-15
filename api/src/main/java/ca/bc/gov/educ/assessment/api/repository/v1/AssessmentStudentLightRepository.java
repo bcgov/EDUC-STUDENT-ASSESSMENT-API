@@ -49,6 +49,14 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     @Query("""
     select stud from AssessmentStudentLightEntity stud
     where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and (stud.provincialSpecialCaseCode is null OR stud.provincialSpecialCaseCode != :provincialSpecialCaseCode)
+    and stud.studentStatusCode = :studentStatusCode
+    """)
+    List<AssessmentStudentLightEntity> findBProvincialSpecialCaseCodeNotAndStudentStatusCode(UUID sessionID, String provincialSpecialCaseCode, String studentStatusCode);
+
+    @Query("""
+    select stud from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
     and stud.studentStatusCode IN (:studentStatuses)
     and (stud.proficiencyScore is not null
          or stud.provincialSpecialCaseCode IN ('A', 'X', 'E', 'Q'))

@@ -113,6 +113,9 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     @Query(value="""
         select stud.assessmentEntity.assessmentID as assessmentID,
+        count(case when stud.gradeAtRegistration = '01' then 1 end) as grade1Count,
+        count(case when stud.gradeAtRegistration = '02' then 1 end) as grade2Count,
+        count(case when stud.gradeAtRegistration = '03' then 1 end) as grade3Count,
         count(case when stud.gradeAtRegistration = '04' then 1 end) as grade4Count,
         count(case when stud.gradeAtRegistration = '05' then 1 end) as grade5Count,
         count(case when stud.gradeAtRegistration = '06' then 1 end) as grade6Count,
@@ -126,7 +129,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         count(case when stud.gradeAtRegistration = 'OT' then 1 end) as gradeOTCount,
         count(case when stud.gradeAtRegistration = 'HS' then 1 end) as gradeHSCount,
         count(case when stud.gradeAtRegistration = 'AN' then 1 end) as gradeANCount,
-        sum(case when stud.gradeAtRegistration in ('08','09','10','11','12','AD','OT','HS','AN') then 1 else 0 end) as total
+        sum(case when stud.gradeAtRegistration in ('01','02','03','04','05','06','07','08','09','10','11','12','AD','OT','HS','AN') then 1 else 0 end) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)
         and stud.downloadDate is null
@@ -138,6 +141,9 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     @Query(value="""
         select stud.assessmentEntity.assessmentID as assessmentID,
+        count(case when stud.gradeAtRegistration = '01' then 1 end) as grade1Count,
+        count(case when stud.gradeAtRegistration = '02' then 1 end) as grade2Count,
+        count(case when stud.gradeAtRegistration = '03' then 1 end) as grade3Count,
         count(case when stud.gradeAtRegistration = '04' then 1 end) as grade4Count,
         count(case when stud.gradeAtRegistration = '05' then 1 end) as grade5Count,
         count(case when stud.gradeAtRegistration = '06' then 1 end) as grade6Count,
@@ -151,7 +157,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         count(case when stud.gradeAtRegistration = 'OT' then 1 end) as gradeOTCount,
         count(case when stud.gradeAtRegistration = 'HS' then 1 end) as gradeHSCount,
         count(case when stud.gradeAtRegistration = 'AN' then 1 end) as gradeANCount,
-        sum(case when stud.gradeAtRegistration in ('08','09','10','11','12','AD','OT','HS','AN') then 1 else 0 end) as total
+        sum(case when stud.gradeAtRegistration in ('01','02','03','04','05','06','07','08','09','10','11','12','AD','OT','HS','AN') then 1 else 0 end) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)
         and stud.downloadDate is not null
@@ -165,6 +171,13 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     @Query(value="""
         select stud.assessmentEntity.assessmentID as assessmentID,
         stud.schoolOfRecordSchoolID as schoolOfRecordSchoolID,
+        count(case when stud.gradeAtRegistration = '01' then 1 end) as grade1Count,
+        count(case when stud.gradeAtRegistration = '02' then 1 end) as grade2Count,
+        count(case when stud.gradeAtRegistration = '03' then 1 end) as grade3Count,
+        count(case when stud.gradeAtRegistration = '04' then 1 end) as grade4Count,
+        count(case when stud.gradeAtRegistration = '05' then 1 end) as grade5Count,
+        count(case when stud.gradeAtRegistration = '06' then 1 end) as grade6Count,
+        count(case when stud.gradeAtRegistration = '07' then 1 end) as grade7Count,
         count(case when stud.gradeAtRegistration = '08' then 1 end) as grade8Count,
         count(case when stud.gradeAtRegistration = '09' then 1 end) as grade9Count,
         count(case when stud.gradeAtRegistration = '10' then 1 end) as grade10Count,
@@ -174,7 +187,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         count(case when stud.gradeAtRegistration = 'OT' then 1 end) as gradeOTCount,
         count(case when stud.gradeAtRegistration = 'HS' then 1 end) as gradeHSCount,
         count(case when stud.gradeAtRegistration = 'AN' then 1 end) as gradeANCount,
-        count(case when stud.gradeAtRegistration not in ('08', '09', '10', '11', '12', 'AD', 'OT', 'HS', 'AN') or stud.gradeAtRegistration is null then 1 end) as blankGradeCount,
+        count(case when stud.gradeAtRegistration not in ('01','02','03','04','05','06','07','08', '09', '10', '11', '12', 'AD', 'OT', 'HS', 'AN') or stud.gradeAtRegistration is null then 1 end) as blankGradeCount,
         count(*) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)
@@ -186,6 +199,13 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     @Query(value="""
         select stud.assessmentEntity.assessmentID as assessmentID,
         stud.schoolOfRecordSchoolID as schoolOfRecordSchoolID,
+        count(case when stud.gradeAtRegistration = '01' then 1 end) as grade1Count,
+        count(case when stud.gradeAtRegistration = '02' then 1 end) as grade2Count,
+        count(case when stud.gradeAtRegistration = '03' then 1 end) as grade3Count,
+        count(case when stud.gradeAtRegistration = '04' then 1 end) as grade4Count,
+        count(case when stud.gradeAtRegistration = '05' then 1 end) as grade5Count,
+        count(case when stud.gradeAtRegistration = '06' then 1 end) as grade6Count,
+        count(case when stud.gradeAtRegistration = '07' then 1 end) as grade7Count,
         count(case when stud.gradeAtRegistration = '08' then 1 end) as grade8Count,
         count(case when stud.gradeAtRegistration = '09' then 1 end) as grade9Count,
         count(case when stud.gradeAtRegistration = '10' then 1 end) as grade10Count,
@@ -195,7 +215,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         count(case when stud.gradeAtRegistration = 'OT' then 1 end) as gradeOTCount,
         count(case when stud.gradeAtRegistration = 'HS' then 1 end) as gradeHSCount,
         count(case when stud.gradeAtRegistration = 'AN' then 1 end) as gradeANCount,
-        count(case when stud.gradeAtRegistration not in ('08', '09', '10', '11', '12', 'AD', 'OT', 'HS', 'AN') or stud.gradeAtRegistration is null then 1 end) as blankGradeCount,
+        count(case when stud.gradeAtRegistration not in ('01','02','03','04','05','06','07','08', '09', '10', '11', '12', 'AD', 'OT', 'HS', 'AN') or stud.gradeAtRegistration is null then 1 end) as blankGradeCount,
         count(*) as total
         from AssessmentStudentEntity stud
         where stud.assessmentEntity.assessmentID in (:assessmentIDs)

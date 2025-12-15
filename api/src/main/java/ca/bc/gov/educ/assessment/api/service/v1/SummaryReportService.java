@@ -60,6 +60,9 @@ public class SummaryReportService {
             Optional<AssessmentEntity> assessment = validSession.getAssessments().stream().filter(
                     assessmentEntity -> Objects.equals(assessmentEntity.getAssessmentID().toString(), result.getAssessmentID())).findFirst();
             rowMap.put(ASSESSMENT_TYPE.getCode(), assessment.get().getAssessmentTypeCode());
+            rowMap.put(GRADE_01_COUNT.getCode(), result.getGrade1Count());
+            rowMap.put(GRADE_02_COUNT.getCode(), result.getGrade2Count());
+            rowMap.put(GRADE_03_COUNT.getCode(), result.getGrade3Count());
             rowMap.put(GRADE_04_COUNT.getCode(), result.getGrade4Count());
             rowMap.put(GRADE_05_COUNT.getCode(), result.getGrade5Count());
             rowMap.put(GRADE_06_COUNT.getCode(), result.getGrade6Count());
@@ -139,6 +142,9 @@ public class SummaryReportService {
     private HashMap<String, String> createTotalRow(ArrayList<Map<String, String>> rows) {
         var rowMap = new HashMap<String, String>();
         rowMap.put(ASSESSMENT_TYPE.getCode(), "TOTAL");
+        rowMap.put(GRADE_01_COUNT.getCode(), getTotalByGrade(GRADE_01_COUNT.getCode(), rows));
+        rowMap.put(GRADE_02_COUNT.getCode(), getTotalByGrade(GRADE_02_COUNT.getCode(), rows));
+        rowMap.put(GRADE_03_COUNT.getCode(), getTotalByGrade(GRADE_03_COUNT.getCode(), rows));
         rowMap.put(GRADE_04_COUNT.getCode(), getTotalByGrade(GRADE_04_COUNT.getCode(), rows));
         rowMap.put(GRADE_05_COUNT.getCode(), getTotalByGrade(GRADE_05_COUNT.getCode(), rows));
         rowMap.put(GRADE_06_COUNT.getCode(), getTotalByGrade(GRADE_06_COUNT.getCode(), rows));
@@ -178,10 +184,13 @@ public class SummaryReportService {
         Optional<SchoolTombstone> schoolTombstone = this.restUtils.getSchoolBySchoolID(result.getSchoolOfRecordSchoolID());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.ASSESSMENT_TYPE.getCode(), validAssessments.containsKey(result.getAssessmentID()) ? validAssessments.get(result.getAssessmentID()).getAssessmentTypeCode() : result.getAssessmentID());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.SCHOOL.getCode(), schoolTombstone.isPresent() ? schoolTombstone.get().getMincode() : result.getSchoolOfRecordSchoolID());
-        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_04_COUNT.getCode(), result.getGrade8Count());
-        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_05_COUNT.getCode(), result.getGrade8Count());
-        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_06_COUNT.getCode(), result.getGrade8Count());
-        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_07_COUNT.getCode(), result.getGrade8Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_01_COUNT.getCode(), result.getGrade1Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_02_COUNT.getCode(), result.getGrade2Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_03_COUNT.getCode(), result.getGrade3Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_04_COUNT.getCode(), result.getGrade4Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_05_COUNT.getCode(), result.getGrade5Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_06_COUNT.getCode(), result.getGrade6Count());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_07_COUNT.getCode(), result.getGrade7Count());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_08_COUNT.getCode(), result.getGrade8Count());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_09_COUNT.getCode(), result.getGrade9Count());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_10_COUNT.getCode(),  result.getGrade10Count());
@@ -198,16 +207,25 @@ public class SummaryReportService {
 
     private HashMap<String, Integer> generateNeededHeadersForAssessmentRegistrationTotalsBySchoolResult(AssessmentRegistrationTotalsBySchoolResult result) {
         HashMap<String, Integer> neededHeaders = new HashMap<>();
-        if (!result.getGrade8Count().equals("0")) {
+        if (!result.getGrade1Count().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_01_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_01_COUNT.getOrder());
+        }
+        if (!result.getGrade2Count().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_02_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_02_COUNT.getOrder());
+        }
+        if (!result.getGrade3Count().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_03_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_03_COUNT.getOrder());
+        }
+        if (!result.getGrade4Count().equals("0")) {
             neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_04_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_04_COUNT.getOrder());
         }
-        if (!result.getGrade8Count().equals("0")) {
+        if (!result.getGrade5Count().equals("0")) {
             neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_05_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_05_COUNT.getOrder());
         }
-        if (!result.getGrade8Count().equals("0")) {
+        if (!result.getGrade6Count().equals("0")) {
             neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_06_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_06_COUNT.getOrder());
         }
-        if (!result.getGrade8Count().equals("0")) {
+        if (!result.getGrade7Count().equals("0")) {
             neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_07_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_07_COUNT.getOrder());
         }
         if (!result.getGrade8Count().equals("0")) {

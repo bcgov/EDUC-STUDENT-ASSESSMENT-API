@@ -2,6 +2,9 @@ package ca.bc.gov.educ.assessment.api.struct.v1.reports;
 
 public interface RegistrationSummaryResult {
     String getAssessmentID();
+    String getGrade1Count();
+    String getGrade2Count();
+    String getGrade3Count();
     String getGrade4Count();
     String getGrade5Count();
     String getGrade6Count();
