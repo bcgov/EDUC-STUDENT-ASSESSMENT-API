@@ -22,6 +22,11 @@ public enum RegistrationSummaryHeader {
     GRADE_OT_COUNT("OT"),
     GRADE_HS_COUNT("HS"),
     GRADE_AN_COUNT("AN"),
+    GRADE_GA_COUNT("GA"),
+    GRADE_KF_COUNT("KF"),
+    GRADE_KH_COUNT("KH"),
+    GRADE_SU_COUNT("SU"),
+    GRADE_EU_COUNT("EU"),
     TOTAL("TOTAL")
     ;
 

@@ -76,9 +76,15 @@ public class SummaryReportService {
             rowMap.put(GRADE_OT_COUNT.getCode(), result.getGradeOTCount());
             rowMap.put(GRADE_HS_COUNT.getCode(), result.getGradeHSCount());
             rowMap.put(GRADE_AN_COUNT.getCode(), result.getGradeANCount());
+            rowMap.put(GRADE_GA_COUNT.getCode(), result.getGradeGACount());
+            rowMap.put(GRADE_KF_COUNT.getCode(), result.getGradeKFCount());
+            rowMap.put(GRADE_KH_COUNT.getCode(), result.getGradeKHCount());
+            rowMap.put(GRADE_SU_COUNT.getCode(), result.getGradeSUCount());
+            rowMap.put(GRADE_EU_COUNT.getCode(), result.getGradeEUCount());
             rowMap.put(TOTAL.getCode(), result.getTotal());
             rows.add(rowMap);
         });
+        
         var totalRow = createTotalRow(rows);
         rows.add(totalRow);
         resultsTable.setRows(rows);
@@ -158,6 +164,11 @@ public class SummaryReportService {
         rowMap.put(GRADE_OT_COUNT.getCode(), getTotalByGrade(GRADE_OT_COUNT.getCode(), rows));
         rowMap.put(GRADE_HS_COUNT.getCode(), getTotalByGrade(GRADE_HS_COUNT.getCode(), rows));
         rowMap.put(GRADE_AN_COUNT.getCode(), getTotalByGrade(GRADE_AN_COUNT.getCode(), rows));
+        rowMap.put(GRADE_GA_COUNT.getCode(), getTotalByGrade(GRADE_GA_COUNT.getCode(), rows));
+        rowMap.put(GRADE_KF_COUNT.getCode(), getTotalByGrade(GRADE_KF_COUNT.getCode(), rows));
+        rowMap.put(GRADE_KH_COUNT.getCode(), getTotalByGrade(GRADE_KH_COUNT.getCode(), rows));
+        rowMap.put(GRADE_SU_COUNT.getCode(), getTotalByGrade(GRADE_SU_COUNT.getCode(), rows));
+        rowMap.put(GRADE_EU_COUNT.getCode(), getTotalByGrade(GRADE_EU_COUNT.getCode(), rows));
         rowMap.put(TOTAL.getCode(), getTotalByGrade(TOTAL.getCode(), rows));
 
         return rowMap;
@@ -200,6 +211,11 @@ public class SummaryReportService {
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_OT_COUNT.getCode(), result.getGradeOTCount());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_HS_COUNT.getCode(), result.getGradeHSCount());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AN_COUNT.getCode(), result.getGradeANCount());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_GA_COUNT.getCode(), result.getGradeGACount());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_KF_COUNT.getCode(), result.getGradeKFCount());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_KH_COUNT.getCode(), result.getGradeKHCount());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_SU_COUNT.getCode(), result.getGradeSUCount());
+        rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_EU_COUNT.getCode(), result.getGradeEUCount());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.BLANK_GRADE_COUNT.getCode(), result.getBlankGradeCount());
         rowMap.put(AssessmentRegistrationTotalsBySchoolHeader.TOTAL.getCode(), result.getTotal());
         return rowMap;
@@ -254,6 +270,21 @@ public class SummaryReportService {
         }
         if (!result.getGradeANCount().equals("0")) {
             neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_AN_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_AN_COUNT.getOrder());
+        }
+        if (!result.getGradeGACount().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_GA_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_GA_COUNT.getOrder());
+        }
+        if (!result.getGradeKFCount().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_KF_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_KF_COUNT.getOrder());
+        }
+        if (!result.getGradeKHCount().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_KH_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_KH_COUNT.getOrder());
+        }
+        if (!result.getGradeSUCount().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_SU_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_SU_COUNT.getOrder());
+        }
+        if (!result.getGradeEUCount().equals("0")) {
+            neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.GRADE_EU_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.GRADE_EU_COUNT.getOrder());
         }
         if (!result.getBlankGradeCount().equals("0")) {
             neededHeaders.put(AssessmentRegistrationTotalsBySchoolHeader.BLANK_GRADE_COUNT.getCode(), AssessmentRegistrationTotalsBySchoolHeader.BLANK_GRADE_COUNT.getOrder());

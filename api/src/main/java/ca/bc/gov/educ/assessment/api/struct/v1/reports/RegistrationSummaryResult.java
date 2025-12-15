@@ -18,5 +18,10 @@ public interface RegistrationSummaryResult {
     String getGradeOTCount();
     String getGradeHSCount();
     String getGradeANCount();
+    String getGradeKFCount();
+    String getGradeKHCount();
+    String getGradeSUCount();
+    String getGradeEUCount();
+    String getGradeGACount();
     String getTotal();
 }

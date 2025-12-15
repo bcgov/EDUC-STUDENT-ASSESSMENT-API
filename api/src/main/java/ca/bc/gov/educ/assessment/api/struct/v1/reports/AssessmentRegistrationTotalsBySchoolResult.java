@@ -19,6 +19,11 @@ public interface AssessmentRegistrationTotalsBySchoolResult {
     String getGradeOTCount();
     String getGradeHSCount();
     String getGradeANCount();
+    String getGradeGACount();
+    String getGradeKHCount();
+    String getGradeKFCount();
+    String getGradeSUCount();
+    String getGradeEUCount();
     String getBlankGradeCount();
     String getTotal();
 }

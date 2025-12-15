@@ -23,8 +23,13 @@ public enum AssessmentRegistrationTotalsBySchoolHeader {
     GRADE_OT_COUNT("OT", 15),
     GRADE_HS_COUNT("HS", 16),
     GRADE_AN_COUNT("AN", 17),
-    BLANK_GRADE_COUNT("Blank", 18),
-    TOTAL("TOTAL", 19);
+    GRADE_GA_COUNT("GA", 18),
+    GRADE_KF_COUNT("KF", 19),
+    GRADE_KH_COUNT("KH", 20),
+    GRADE_SU_COUNT("SU", 21),
+    GRADE_EU_COUNT("EU", 22),
+    BLANK_GRADE_COUNT("Blank", 23),
+    TOTAL("TOTAL", 24);
 
     private final String code;
     private final int order;
