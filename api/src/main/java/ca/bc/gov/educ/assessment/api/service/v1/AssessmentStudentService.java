@@ -107,7 +107,7 @@ public class AssessmentStudentService {
         return Integer.toString(assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, AssessmentUtil.getAssessmentTypeCodeList(assessment.getAssessmentTypeCode())));
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.MANDATORY)
     public Pair<AssessmentStudentListItem, AssessmentEventEntity> updateStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessmentStudentEntity.getAssessmentStudentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessmentStudentEntity.getAssessmentStudentID().toString())
@@ -139,7 +139,7 @@ public class AssessmentStudentService {
         return savedEntity;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.MANDATORY)
     public Pair<AssessmentStudentListItem, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
                 new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
@@ -565,8 +565,21 @@ public class AssessmentStudentService {
         List<AssessmentStudentEntity> assessmentsToOverwrite = prepareAssessmentsToOverwrite(existingAssessmentStudents, assessmentStudentsToMerge, assessmentStudentWithValidationIssues, targetStudent, targetSchool, assessmentStudentMerge);
         List<AssessmentStudentEntity> assessmentsToAdd = prepareAssessmentsToAdd(existingAssessmentStudents, assessmentStudentsToMerge, targetStudent, targetSchool, assessmentStudentMerge);
 
-        assessmentsToAdd.forEach(assessment -> response.add(createStudent(assessment, true, "GRAD").getLeft()));
-        assessmentsToOverwrite.forEach(assessment -> response.add(updateStudent(assessment, true, "GRAD").getLeft()));
+        assessmentsToAdd.forEach(assessment -> {
+            AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessment.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
+                    new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessment.getAssessmentEntity().getAssessmentID().toString())
+            );
+            assessment.setAssessmentEntity(currentAssessmentEntity);
+            assessment.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
+            response.add(processStudent(assessment, null, true, true, "GRAD"));
+        });
+        assessmentsToOverwrite.forEach(assessment -> {
+            AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessment.getAssessmentStudentID()).orElseThrow(() ->
+                    new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessment.getAssessmentStudentID().toString())
+            );
+            assessment.setAssessmentEntity(currentAssessmentStudentEntity.getAssessmentEntity());
+            response.add(processStudent(assessment, currentAssessmentStudentEntity, false, true, "GRAD"));
+        });
 
         AssessmentEventEntity event = null;
         if(!response.stream().filter(assessment -> assessment.getAssessmentStudentValidationIssues() == null).toList().isEmpty()) {
