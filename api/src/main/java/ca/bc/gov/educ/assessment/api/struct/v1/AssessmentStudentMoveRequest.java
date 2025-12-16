@@ -12,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AssessmentStudentTransfer extends BaseRequest{
+public class AssessmentStudentMoveRequest extends BaseRequest{
   @NotNull
   private UUID sourceStudentID;
 

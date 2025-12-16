@@ -5,15 +5,14 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
-import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
-import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentShowItemMapper;
-import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentComponentMapper;
+import ca.bc.gov.educ.assessment.api.mappers.v1.*;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentRulesProcessor;
-import ca.bc.gov.educ.assessment.api.struct.Event;
+import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationFieldCode;
+import ca.bc.gov.educ.assessment.api.rules.assessment.AssessmentStudentValidationIssueTypeCode;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
@@ -48,6 +47,12 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 public class AssessmentStudentService {
 
     private static final AssessmentStudentListItemMapper assessmentStudentListItemMapper = AssessmentStudentListItemMapper.mapper;
+    public static final String CREATE_USER = "createUser";
+    public static final String UPDATE_USER = "updateUser";
+    public static final String CREATE_DATE = "createDate";
+    public static final String UPDATE_DATE = "updateDate";
+    public static final String TARGET_STUDENT_ID = "targetStudentID";
+    public static final String ASSESSMENT = "Assessment";
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
     private final AssessmentEventRepository assessmentEventRepository;
@@ -98,7 +103,7 @@ public class AssessmentStudentService {
 
     public String getNumberOfAttempts(String assessmentID, UUID studentID) {
         var assessment = assessmentRepository.findById(UUID.fromString(assessmentID)).orElseThrow(() ->
-                new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentID));
+                new EntityNotFoundException(AssessmentEntity.class, ASSESSMENT, assessmentID));
 
         return Integer.toString(assessmentStudentRepository.findNumberOfAttemptsForStudent(studentID, AssessmentUtil.getAssessmentTypeCodeList(assessment.getAssessmentTypeCode())));
     }
@@ -138,7 +143,7 @@ public class AssessmentStudentService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<AssessmentStudentListItem, AssessmentEventEntity> createStudent(AssessmentStudentEntity assessmentStudentEntity, boolean allowRuleOverride, String source) {
         AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessmentStudentEntity.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
-                new EntityNotFoundException(AssessmentEntity.class, "Assessment", assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
+                new EntityNotFoundException(AssessmentEntity.class, ASSESSMENT, assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString())
         );
         assessmentStudentEntity.setAssessmentEntity(currentAssessmentEntity);
         assessmentStudentEntity.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
@@ -178,7 +183,7 @@ public class AssessmentStudentService {
         if (validationIssues.isEmpty()) {
             overrideProficiencyScoreIfSpecialCase(assessmentStudentEntity);
             if (currentAssessmentStudentEntity != null) {
-                BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "schoolID", "studentID", "givenName", "surName", "pen", "localID", "courseStatusCode", "createUser", "createDate");
+                BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "schoolOfRecordSchoolID", "studentID", "givenName", "surname", "pen", "localID", "courseStatusCode", CREATE_USER, CREATE_DATE);
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
                 currentAssessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), currentAssessmentStudentEntity.getStudentID())));
                 setSchoolOfRecordAtWriteIfExempt(currentAssessmentStudentEntity);
@@ -204,7 +209,7 @@ public class AssessmentStudentService {
             assessmentStudentEntity.setProficiencyScore(null);
         }
     }
-    
+
     private void setSchoolOfRecordAtWriteIfExempt(AssessmentStudentEntity assessmentStudentEntity) {
         if(assessmentStudentEntity.getSchoolOfRecordSchoolID() != null && assessmentStudentEntity.getSchoolAtWriteSchoolID() == null && StringUtils.isNotBlank(assessmentStudentEntity.getProvincialSpecialCaseCode())) {
             assessmentStudentEntity.setSchoolAtWriteSchoolID(assessmentStudentEntity.getSchoolOfRecordSchoolID());
@@ -419,7 +424,7 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<List<AssessmentStudentValidationIssue>,  List<AssessmentEventEntity>> transferStudentAssessments(AssessmentStudentTransfer assessmentStudentTransfer) {
+    public Pair<List<AssessmentStudentValidationIssue>,  List<AssessmentEventEntity>> transferStudentAssessments(AssessmentStudentMoveRequest assessmentStudentTransfer) {
 
         String sourceStudentID = String.valueOf(assessmentStudentTransfer.getSourceStudentID());
         String targetStudentID = String.valueOf(assessmentStudentTransfer.getTargetStudentID());
@@ -441,10 +446,10 @@ public class AssessmentStudentService {
         Student targetStudentApiStudent = students.stream()
                 .filter(s -> s.getStudentID().equals(targetStudentID))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(Student.class, "targetStudentID", targetStudentID));
+                .orElseThrow(() -> new EntityNotFoundException(Student.class, TARGET_STUDENT_ID, targetStudentID));
 
         GradStudentRecord targetGradStudent = restUtils.getGradStudentRecordByStudentID(correlationID, assessmentStudentTransfer.getTargetStudentID())
-            .orElseThrow(() -> new EntityNotFoundException(GradStudentRecord.class, "targetStudentID", targetStudentID));
+            .orElseThrow(() -> new EntityNotFoundException(GradStudentRecord.class, TARGET_STUDENT_ID, targetStudentID));
 
         Pair<List<AssessmentStudentEntity>, List<AssessmentStudentValidationIssue>> validationResult = validateAssessments(sourceStudentApiStudent, targetStudentApiStudent, assessmentStudentTransfer.getStudentAssessmentIDsToMove());
 
@@ -537,5 +542,292 @@ public class AssessmentStudentService {
             validatedEntities.add(entity);
         }
         return Pair.of(validatedEntities, allValidationIssues);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Pair<List<AssessmentStudentListItem>, AssessmentEventEntity> mergeStudentAssessments(AssessmentStudentMoveRequest assessmentStudentMerge) {
+        List<AssessmentStudentListItem> response = new ArrayList<>();
+        var targetStudentID = assessmentStudentMerge.getTargetStudentID();
+        var sourceStudentID = assessmentStudentMerge.getSourceStudentID();
+        var correlationID = UUID.randomUUID();
+
+        Student targetStudent = restUtils.getStudents(correlationID, Set.of(targetStudentID.toString())).stream()
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(Student.class, TARGET_STUDENT_ID, targetStudentID.toString()));
+        GradStudentRecord targetStudentGrad = restUtils.getGradStudentRecordByStudentID(correlationID, targetStudentID)
+            .orElseThrow(() -> new EntityNotFoundException(Student.class, TARGET_STUDENT_ID, targetStudentID.toString()));
+        var targetSchool = targetStudentGrad.getSchoolOfRecordId();
+
+        Map<String, AssessmentStudentEntity> assessmentStudentsToMerge = getAssessmentStudentsToMerge(assessmentStudentMerge.getStudentAssessmentIDsToMove(), sourceStudentID);
+        Map<String, AssessmentStudentEntity> existingAssessmentStudents = getAssessmentStudentsAsMap(targetStudentID);
+
+        Set<String> assessmentStudentWithValidationIssues = validateMergeConflicts(existingAssessmentStudents, assessmentStudentsToMerge, response);
+
+        List<AssessmentStudentEntity> assessmentsToOverwrite = prepareAssessmentsToOverwrite(existingAssessmentStudents, assessmentStudentsToMerge, assessmentStudentWithValidationIssues, targetStudent, targetSchool, assessmentStudentMerge);
+        List<AssessmentStudentEntity> assessmentsToAdd = prepareAssessmentsToAdd(existingAssessmentStudents, assessmentStudentsToMerge, targetStudent, targetSchool, assessmentStudentMerge);
+
+        assessmentsToAdd.forEach(assessment -> {
+            AssessmentEntity currentAssessmentEntity = assessmentRepository.findById(assessment.getAssessmentEntity().getAssessmentID()).orElseThrow(() ->
+                    new EntityNotFoundException(AssessmentEntity.class, ASSESSMENT, assessment.getAssessmentEntity().getAssessmentID().toString())
+            );
+            assessment.setAssessmentEntity(currentAssessmentEntity);
+            assessment.setStudentStatusCode(StudentStatusCodes.ACTIVE.getCode());
+            response.add(processStudent(assessment, null, true, true, "GRAD"));
+        });
+        assessmentsToOverwrite.forEach(assessment -> {
+            AssessmentStudentEntity currentAssessmentStudentEntity = assessmentStudentRepository.findById(assessment.getAssessmentStudentID()).orElseThrow(() ->
+                    new EntityNotFoundException(AssessmentStudentEntity.class, "AssessmentStudent", assessment.getAssessmentStudentID().toString())
+            );
+            assessment.setAssessmentEntity(currentAssessmentStudentEntity.getAssessmentEntity());
+            response.add(processStudent(assessment, currentAssessmentStudentEntity, false, true, "GRAD"));
+        });
+
+        AssessmentEventEntity event = null;
+        if(!response.stream().filter(assessment -> assessment.getAssessmentStudentValidationIssues() == null).toList().isEmpty()) {
+            event = generateStudentUpdatedEvent(targetStudentID.toString());
+            assessmentEventRepository.save(event);
+        }
+        return Pair.of(response, event);
+    }
+
+    private Set<String> validateMergeConflicts(
+        Map<String, AssessmentStudentEntity> existingAssessmentStudents,
+        Map<String, AssessmentStudentEntity> assessmentStudentsToMerge,
+        List<AssessmentStudentListItem> response) {
+        Set<String> assessmentStudentWithValidationIssues = new HashSet<>();
+        existingAssessmentStudents.entrySet().stream()
+            .filter(entry -> assessmentStudentsToMerge.containsKey(entry.getKey()))
+            .forEach(entry -> {
+                AssessmentStudentListItem existingStudentAssessment = assessmentStudentListItemMapper.toStructure(entry.getValue());
+                if(existingStudentAssessment.getProficiencyScore() != null) {
+                    assessmentStudentWithValidationIssues.add(entry.getKey());
+                    existingStudentAssessment.setAssessmentStudentValidationIssues(List.of(
+                        AssessmentStudentValidationIssue.builder()
+                            .validationIssueSeverityCode(ERROR)
+                            .validationIssueCode(AssessmentStudentValidationIssueTypeCode.MERGE_HAS_SCORE.getCode())
+                            .validationIssueFieldCode(AssessmentStudentValidationFieldCode.PROFICIENCY_SCORE.getCode())
+                            .validationMessage(AssessmentStudentValidationIssueTypeCode.MERGE_HAS_SCORE.getMessage())
+                            .assessmentStudentID(existingStudentAssessment.toString())
+                            .build()
+                    ));
+                    response.add(existingStudentAssessment);
+                }
+            });
+        return assessmentStudentWithValidationIssues;
+    }
+
+    private AssessmentStudentEntity copyAssessmentStudentForMerge(
+        AssessmentStudentEntity sourceAssessment,
+        AssessmentStudentEntity existingAssessment,
+        Student targetStudent,
+        String targetSchool,
+        AssessmentStudentMoveRequest mergeRequest,
+        LocalDateTime now,
+        boolean isNewAssessment) {
+        var mergedAssessmentStudent = new AssessmentStudentEntity();
+
+        // Copy all properties except IDs, metadata, and collections
+        BeanUtils.copyProperties(sourceAssessment, mergedAssessmentStudent,
+            ASSESSMENT_STUDENT_ID, CREATE_USER, UPDATE_USER, CREATE_DATE, UPDATE_DATE,
+            "assessmentStudentComponentEntities");
+
+        // Keep existing ID for updates, or let it be generated for new records
+        if (!isNewAssessment && existingAssessment != null) {
+            mergedAssessmentStudent.setAssessmentStudentID(existingAssessment.getAssessmentStudentID());
+        }
+        // Not all details are copied over. They need to come from target student
+        mergedAssessmentStudent.setStudentID(UUID.fromString(targetStudent.getStudentID()));
+        mergedAssessmentStudent.setPen(targetStudent.getPen());
+        if(targetSchool != null) {
+            mergedAssessmentStudent.setSchoolOfRecordSchoolID(UUID.fromString(targetSchool));
+        }
+        mergedAssessmentStudent.setGivenName(targetStudent.getLegalFirstName());
+        mergedAssessmentStudent.setSurname(targetStudent.getLegalLastName());
+        mergedAssessmentStudent.setLocalID(targetStudent.getLocalID());
+        mergedAssessmentStudent.setUpdateDate(now);
+        mergedAssessmentStudent.setUpdateUser(mergeRequest.getUpdateUser());
+
+        if (isNewAssessment) {
+            mergedAssessmentStudent.setCreateDate(now);
+            mergedAssessmentStudent.setCreateUser(mergeRequest.getCreateUser());
+        }
+        // Deep copy all child entities (components, answers, choices, etc.)
+        if (sourceAssessment.getAssessmentStudentComponentEntities() != null &&
+            !sourceAssessment.getAssessmentStudentComponentEntities().isEmpty()) {
+            Set<AssessmentStudentComponentEntity> copiedComponents = new HashSet<>();
+            for (AssessmentStudentComponentEntity sourceComponent : sourceAssessment.getAssessmentStudentComponentEntities()) {
+                copiedComponents.add(copyAssessmentStudentComponent(sourceComponent, mergedAssessmentStudent,
+                    mergeRequest.getCreateUser(), now, mergeRequest.getUpdateUser(), now));
+            }
+            mergedAssessmentStudent.setAssessmentStudentComponentEntities(copiedComponents);
+        }
+
+        return mergedAssessmentStudent;
+    }
+
+    private List<AssessmentStudentEntity> prepareAssessmentsToOverwrite(
+        Map<String, AssessmentStudentEntity> existingAssessmentStudents,
+        Map<String, AssessmentStudentEntity> assessmentStudentsToMerge,
+        Set<String> assessmentStudentWithValidationIssues,
+        Student targetStudent,
+        String targetSchool,
+        AssessmentStudentMoveRequest mergeRequest) {
+        LocalDateTime now = LocalDateTime.now();
+        return existingAssessmentStudents.entrySet().stream()
+            .filter(entry -> assessmentStudentsToMerge.containsKey(entry.getKey())
+                && !assessmentStudentWithValidationIssues.contains(entry.getKey()))
+            .map(entry -> {
+                var existingAssessmentStudent = entry.getValue();
+                var incomingAssessmentStudent = assessmentStudentsToMerge.get(entry.getKey());
+                return copyAssessmentStudentForMerge(incomingAssessmentStudent, existingAssessmentStudent,
+                    targetStudent, targetSchool, mergeRequest, now, false);
+            })
+            .toList();
+    }
+
+    private List<AssessmentStudentEntity> prepareAssessmentsToAdd(
+        Map<String, AssessmentStudentEntity> existingAssessmentStudents,
+        Map<String, AssessmentStudentEntity> assessmentStudentsToMerge,
+        Student targetStudent,
+        String targetSchool,
+        AssessmentStudentMoveRequest mergeRequest) {
+        LocalDateTime now = LocalDateTime.now();
+        return assessmentStudentsToMerge.entrySet().stream()
+            .filter(entry -> !existingAssessmentStudents.containsKey(entry.getKey()))
+            .map(entry -> {
+                var assessment = entry.getValue();
+                return copyAssessmentStudentForMerge(assessment, null,
+                    targetStudent, targetSchool, mergeRequest, now, true);
+            })
+            .toList();
+    }
+
+    private Map<String, AssessmentStudentEntity> getAssessmentStudentsAsMap(UUID studentID) {
+        if(studentID != null) {
+            log.debug("getAssessmentStudentsAsMap: {}", studentID);
+            List<AssessmentStudentEntity> assessmentStudentEntities = assessmentStudentRepository.findByStudentID(studentID);
+            log.debug("Retrieved {} assessment students for studentID = {}", assessmentStudentEntities.size(), studentID);
+            return assessmentStudentEntities.stream()
+                .collect(Collectors.toMap(
+                    assessmentStudent -> assessmentStudent.getAssessmentEntity().getAssessmentID().toString(),
+                    assessmentStudent -> assessmentStudent
+                ));
+        }
+        return Collections.emptyMap();
+    }
+
+    private Map<String, AssessmentStudentEntity> getAssessmentStudentsToMerge(List<UUID> studentAssessmentIDs, UUID sourceStudentID) {
+        List<AssessmentStudentEntity> assessmentStudentEntities = assessmentStudentRepository.findAllById(studentAssessmentIDs);
+        if(assessmentStudentEntities.size() != studentAssessmentIDs.size()) {
+            Set<UUID> foundIds = assessmentStudentEntities.stream()
+                .map(AssessmentStudentEntity::getAssessmentStudentID)
+                .collect(Collectors.toSet());
+            List<UUID> missingIds = studentAssessmentIDs.stream()
+                .filter(id -> !foundIds.contains(id))
+                .toList();
+            throw new EntityNotFoundException(AssessmentStudentEntity.class, "studentAssessmentIDs", missingIds.toString()
+            );
+        }
+        List<AssessmentStudentEntity> mismatchedAssessmentStudents = assessmentStudentEntities.stream()
+            .filter(assessmentStudent -> !sourceStudentID.equals(assessmentStudent.getStudentID()))
+            .toList();
+
+        if(!mismatchedAssessmentStudents.isEmpty()) {
+            List<UUID> mismatchedIDs = mismatchedAssessmentStudents.stream()
+                .map(AssessmentStudentEntity::getStudentID)
+                .toList();
+            throw new IllegalArgumentException(String.format("Assessment students do not belong to source student. Mismatched IDs: %s", mismatchedIDs));
+        }
+
+        return assessmentStudentEntities.stream()
+            .collect(Collectors.toMap(
+                assessmentStudent -> assessmentStudent.getAssessmentEntity().getAssessmentID().toString(),
+                assessmentStudent -> assessmentStudent
+            ));
+    }
+
+    private AssessmentStudentComponentEntity copyAssessmentStudentComponent(AssessmentStudentComponentEntity source, 
+                                                                           AssessmentStudentEntity newParent,
+                                                                           String createUser, LocalDateTime createDate,
+                                                                           String updateUser, LocalDateTime updateDate) {
+        var newComponent = new AssessmentStudentComponentEntity();
+        BeanUtils.copyProperties(source, newComponent,
+            "assessmentStudentComponentID", "assessmentStudentEntity", CREATE_USER, UPDATE_USER,
+            CREATE_DATE, UPDATE_DATE, "assessmentStudentAnswerEntities", "assessmentStudentChoiceEntities");
+        newComponent.setAssessmentStudentEntity(newParent);
+        newComponent.setCreateUser(createUser);
+        newComponent.setCreateDate(createDate);
+        newComponent.setUpdateUser(updateUser);
+        newComponent.setUpdateDate(updateDate);
+
+        // Copy answers
+        if (source.getAssessmentStudentAnswerEntities() != null && !source.getAssessmentStudentAnswerEntities().isEmpty()) {
+            source.getAssessmentStudentAnswerEntities().forEach(sourceAnswer ->
+                newComponent.getAssessmentStudentAnswerEntities().add(copyAssessmentStudentAnswer(sourceAnswer, newComponent,
+                    createUser, createDate, updateUser, updateDate)));
+        }
+
+        // Copy choices and their question sets
+        if (source.getAssessmentStudentChoiceEntities() != null && !source.getAssessmentStudentChoiceEntities().isEmpty()) {
+            source.getAssessmentStudentChoiceEntities().forEach(sourceChoice ->
+                newComponent.getAssessmentStudentChoiceEntities().add(copyAssessmentStudentChoice(sourceChoice, newComponent,
+                    createUser, createDate, updateUser, updateDate)));
+        }
+
+        return newComponent;
+    }
+
+    private AssessmentStudentAnswerEntity copyAssessmentStudentAnswer(AssessmentStudentAnswerEntity source, 
+                                                                      AssessmentStudentComponentEntity newParent,
+                                                                      String createUser, LocalDateTime createDate,
+                                                                      String updateUser, LocalDateTime updateDate) {
+        var newAnswer = new AssessmentStudentAnswerEntity();
+        BeanUtils.copyProperties(source, newAnswer,
+            "assessmentStudentAnswerID", "assessmentStudentComponentEntity", CREATE_USER, UPDATE_USER, CREATE_DATE, UPDATE_DATE);
+        newAnswer.setAssessmentStudentComponentEntity(newParent);
+        newAnswer.setCreateUser(createUser);
+        newAnswer.setCreateDate(createDate);
+        newAnswer.setUpdateUser(updateUser);
+        newAnswer.setUpdateDate(updateDate);
+        return newAnswer;
+    }
+
+    private AssessmentStudentChoiceEntity copyAssessmentStudentChoice(AssessmentStudentChoiceEntity source, 
+                                                                       AssessmentStudentComponentEntity newParent,
+                                                                       String createUser, LocalDateTime createDate,
+                                                                       String updateUser, LocalDateTime updateDate) {
+        var newChoice = new AssessmentStudentChoiceEntity();
+        BeanUtils.copyProperties(source, newChoice,
+            "assessmentStudentChoiceID", "assessmentStudentComponentEntity", CREATE_USER, UPDATE_USER,
+            CREATE_DATE, UPDATE_DATE, "assessmentStudentChoiceQuestionSetEntities");
+        newChoice.setAssessmentStudentComponentEntity(newParent);
+        newChoice.setCreateUser(createUser);
+        newChoice.setCreateDate(createDate);
+        newChoice.setUpdateUser(updateUser);
+        newChoice.setUpdateDate(updateDate);
+
+        // Copy question sets
+        if (source.getAssessmentStudentChoiceQuestionSetEntities() != null && !source.getAssessmentStudentChoiceQuestionSetEntities().isEmpty()) {
+            source.getAssessmentStudentChoiceQuestionSetEntities().forEach(sourceQuestionSet ->
+                newChoice.getAssessmentStudentChoiceQuestionSetEntities().add(copyAssessmentStudentChoiceQuestionSet(sourceQuestionSet, newChoice,
+                    createUser, createDate, updateUser, updateDate)));
+        }
+
+        return newChoice;
+    }
+
+    private AssessmentStudentChoiceQuestionSetEntity copyAssessmentStudentChoiceQuestionSet(AssessmentStudentChoiceQuestionSetEntity source, 
+                                                                                            AssessmentStudentChoiceEntity newParent,
+                                                                                            String createUser, LocalDateTime createDate,
+                                                                                            String updateUser, LocalDateTime updateDate) {
+        var newQuestionSet = new AssessmentStudentChoiceQuestionSetEntity();
+        BeanUtils.copyProperties(source, newQuestionSet,
+            "assessmentStudentChoiceQuestionSetID", "assessmentStudentChoiceEntity", CREATE_USER, UPDATE_USER, CREATE_DATE, UPDATE_DATE);
+        newQuestionSet.setAssessmentStudentChoiceEntity(newParent);
+        newQuestionSet.setCreateUser(createUser);
+        newQuestionSet.setCreateDate(createDate);
+        newQuestionSet.setUpdateUser(updateUser);
+        newQuestionSet.setUpdateDate(updateDate);
+        return newQuestionSet;
     }
 }

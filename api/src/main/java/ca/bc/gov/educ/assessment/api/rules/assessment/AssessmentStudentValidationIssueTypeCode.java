@@ -17,7 +17,9 @@ public enum AssessmentStudentValidationIssueTypeCode {
     PEN_INVALID("PEN_NOT_FOUND", "Invalid PEN", "Invalid PEN provided."),
     SURNAME_MISMATCH("SURNAME_MISMATCH", "Surname Mismatch", "Student's surname does not match the surname for this PEN."),
     SCHOOL_OF_RECORD_INVALID("SCHOOL_OF_RECORD_INVALID", "Invalid School", "Invalid school of recordprovided."),
-    GIVEN_NAME_MISMATCH("GIVEN_NAME_MISMATCH", "Given Name Mismatch", "Student's given name does not match the given name for this PEN.");
+    GIVEN_NAME_MISMATCH("GIVEN_NAME_MISMATCH", "Given Name Mismatch", "Student's given name does not match the given name for this PEN."),
+    MERGE_HAS_SCORE("MERGE_HAS_SCORE", "Proficiency score exists", "Existing student already has a proficiency score for this assessment.");
+
 
     private static final Map<String, AssessmentStudentValidationIssueTypeCode> CODE_MAP = new HashMap<>();
 

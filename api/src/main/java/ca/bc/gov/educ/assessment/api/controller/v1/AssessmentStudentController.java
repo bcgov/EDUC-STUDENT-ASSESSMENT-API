@@ -39,7 +39,6 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
 
   private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
   private static final AssessmentStudentListItemMapper listItemMapper = AssessmentStudentListItemMapper.mapper;
-    private static final AssessmentStudentShowItemMapper showItemMapper = AssessmentStudentShowItemMapper.mapper;
 
     @Autowired
   public AssessmentStudentController(AssessmentStudentService assessmentStudentService, AssessmentStudentValidator validator, AssessmentStudentSearchService searchService, Publisher publisher) {
@@ -101,20 +100,32 @@ public class AssessmentStudentController implements AssessmentStudentEndpoint {
   }
 
   @Override
-  public ResponseEntity<Void> deleteStudents(List<UUID> assessmentStudentIDs, boolean allowRuleOverride) throws JsonProcessingException {
+  public ResponseEntity<Void> deleteStudents(List<UUID> assessmentStudentIDs, boolean allowRuleOverride) {
     List<AssessmentEventEntity> events = studentService.deleteStudents(assessmentStudentIDs, allowRuleOverride);
     events.forEach(publisher::dispatchChoreographyEvent);
     return ResponseEntity.noContent().build();
   }
 
   @Override
-  public List<AssessmentStudentValidationIssue> transferStudents(AssessmentStudentTransfer assessmentStudentTransfer) {
+  public List<AssessmentStudentValidationIssue> transferStudents(AssessmentStudentMoveRequest assessmentStudentTransfer) {
     log.debug("Transfer student assessments request received: sourceStudentID={}, targetStudentID={}, count={}, updateUser={}",
         assessmentStudentTransfer.getSourceStudentID(), assessmentStudentTransfer.getTargetStudentID(), assessmentStudentTransfer.getStudentAssessmentIDsToMove().size(), assessmentStudentTransfer.getUpdateUser());
     
     var pair = studentService.transferStudentAssessments(assessmentStudentTransfer);
     if(pair.getRight() != null) {
       pair.getRight().forEach(publisher::dispatchChoreographyEvent);
+    }
+    return pair.getLeft();
+  }
+
+  @Override
+  public List<AssessmentStudentListItem> mergeStudents(AssessmentStudentMoveRequest assessmentStudentMerge) {
+    log.debug("Merge student assessments request received: sourceStudentID={}, targetStudentID={}, count={}, updateUser={}",
+        assessmentStudentMerge.getSourceStudentID(), assessmentStudentMerge.getTargetStudentID(), assessmentStudentMerge.getStudentAssessmentIDsToMove().size(), assessmentStudentMerge.getUpdateUser());
+
+    var pair = studentService.mergeStudentAssessments(assessmentStudentMerge);
+    if(pair.getRight() != null) {
+      publisher.dispatchChoreographyEvent(pair.getRight());
     }
     return pair.getLeft();
   }
