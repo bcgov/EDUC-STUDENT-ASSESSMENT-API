@@ -146,7 +146,7 @@ public class StudentAssessmentResultService {
         stagedStudent.setMcTotal(mcTotal);
         stagedStudent.setOeTotal(oeTotal.add(oralTotal));
         stagedStudent.setRawScore(mcTotal.add(oralTotal).add(oeTotal));
-        log.info("Staged Student at save {} with status {} ",  stagedStudent.getStudentID(), stagedStudent.getStagedAssessmentStudentStatus());
+        log.debug("Staged Student at save {} with status {} ",  stagedStudent.getStudentID(), stagedStudent.getStagedAssessmentStudentStatus());
 
         stagedAssessmentStudentRepository.save(stagedStudent);
 
@@ -510,7 +510,7 @@ public class StudentAssessmentResultService {
                         //Based on number of rows returned, we know how many answers are coming
                         //Item numbers are sequential, while skipping the choice records
                         choiceQuestionNumber = questionNumber;
-                        questionCounter = questionNumber;
+                        questionCounter++;
 
                         if(optAssessmentChoice.isPresent()) {
                             var choice = new AssessmentStudentChoiceEntity();
