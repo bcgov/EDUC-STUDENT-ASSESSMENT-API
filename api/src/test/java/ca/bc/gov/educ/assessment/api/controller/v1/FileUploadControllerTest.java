@@ -2,8 +2,10 @@ package ca.bc.gov.educ.assessment.api.controller.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
+import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentKeyFileUpload;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentResultFileUpload;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
@@ -12,6 +14,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.val;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -62,6 +65,10 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     AssessmentStudentRepository studentRepository;
     @Autowired
     StagedStudentResultRepository  stagedStudentResultRepository;
+    @Autowired
+    AssessmentStudentRepository assessmentStudentRepository;
+    @Autowired
+    AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository;
     protected static final ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
     private AssessmentEntity savedAssessmentEntity;
 
@@ -537,7 +544,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
 
         var school = this.createMockSchool();
         when(this.restUtils.getSchoolByMincode(anyString())).thenReturn(Optional.of(school));
-        var student = this.createMockStudentAPIStudent();
+        Student student = this.createMockStudentAPIStudent();
         student.setStatusCode("A");
         when(this.restUtils.getStudentByPEN(any(), anyString())).thenReturn(Optional.of(student));
         when(restUtils.getGradStudentRecordByStudentID(any(), any())).thenReturn(Optional.of(createMockGradStudentAPIRecord()));
@@ -555,6 +562,11 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
                 .header("correlationID", UUID.randomUUID().toString())
                 .content(JsonUtil.getJsonStringFromObject(file))
                 .contentType(APPLICATION_JSON)).andExpect(status().isNoContent());
+
+        var assessmentStudent = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(savedAssessment.getAssessmentID(), UUID.fromString(student.getStudentID()));
+        Assertions.assertNotNull(assessmentStudent);
+        var studentDOARCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentID(assessmentStudent.get().getAssessmentStudentID());
+        Assertions.assertNotNull(studentDOARCalc);
     }
 
     @Test

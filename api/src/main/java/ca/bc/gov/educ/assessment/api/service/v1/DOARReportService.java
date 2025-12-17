@@ -150,7 +150,7 @@ public class DOARReportService {
         };
     }
 
-    private AssessmentStudentDOARCalculationEntity prepareLTEDOARSummaryEntity(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String assessmentTypeCode) {
+    public AssessmentStudentDOARCalculationEntity prepareLTEDOARSummaryEntity(AssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm, String assessmentTypeCode) {
         return switch (assessmentTypeCode) {
             case "NME10", "NMF10" -> prepareNMEDOAREntity(student, selectedAssessmentForm);
             case "LTE10", "LTE12" -> prepareLTEDOAREntity(student, selectedAssessmentForm);
