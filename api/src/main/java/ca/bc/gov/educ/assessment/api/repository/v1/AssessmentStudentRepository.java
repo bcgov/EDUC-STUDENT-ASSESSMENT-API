@@ -24,6 +24,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         SELECT s.schoolAtWriteSchoolID
         FROM AssessmentStudentEntity s
         WHERE s.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
+        AND s.schoolAtWriteSchoolID is not null
         GROUP BY s.schoolAtWriteSchoolID
         HAVING COUNT(*) > 10
     """)
