@@ -34,7 +34,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
@@ -140,6 +142,38 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         assertThat(summary1).isNotNull();
         assertThat(summary1.getReportType()).isEqualTo(AssessmentReportTypeCode.ALL_SESSION_REGISTRATIONS.getCode());
+    }
+
+    @Test
+    void testGetMinistryRandomSessionZip_ShouldReturnZip() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity assessmentSessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        AssessmentStudentEntity student = createMockStudentEntity(assessment);
+        studentRepository.save(student);
+
+        AssessmentEntity assessment2 = assessmentRepository.save(createMockAssessmentEntity(assessmentSessionEntity, AssessmentTypeCodes.LTF12.getCode()));
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment2);
+        studentRepository.save(student2);
+
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment2);
+        studentRepository.save(student3);
+
+        var resultActions1 = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/randomSessionSchoolsZip").with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary1 = resultActions1.andReturn().getResponse().getContentAsByteArray();
+
+        assertThat(summary1).isNotNull();
     }
 
     @Test

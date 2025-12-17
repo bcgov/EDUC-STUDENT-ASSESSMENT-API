@@ -6,6 +6,8 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTab
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +26,12 @@ public interface ReportsEndpoint {
     @Transactional()
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     DownloadableReportResponse getDownloadableReport(@PathVariable UUID sessionID, @PathVariable(name = "type") String type,  @PathVariable(name = "updateUser") String updateUser);
+
+    @GetMapping("/{sessionID}/randomSessionSchoolsZip")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional()
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    ResponseEntity<InputStreamResource> getDownloadableRandomZip(@PathVariable UUID sessionID);
 
     @GetMapping("/{sessionID}/school/{schoolID}/{type}/download")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
