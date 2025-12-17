@@ -497,6 +497,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         AssessmentSessionEntity session = createMockSessionEntity();
         session.setCourseMonth("08");
+        session.setCompletionDate(LocalDateTime.now().minusMinutes(1));
         AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
 

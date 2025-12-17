@@ -139,6 +139,9 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
         return generateJasperReport(objectWriter.writeValueAsString(schoolStudentRootNode), schoolStudentInSessionReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_IN_SESSION.getCode());
       }else{
         var students = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(assessmentSessionID, schoolID, List.of("ACTIVE"));
+        if(students.isEmpty()) {
+          throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
+        }
         var schoolStudentRootNode = populateStudentForStaged(session, schoolID, students, assessmentTypes);
         return generateJasperReport(objectWriter.writeValueAsString(schoolStudentRootNode), schoolStudentInSessionReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_IN_SESSION.getCode());
       }
