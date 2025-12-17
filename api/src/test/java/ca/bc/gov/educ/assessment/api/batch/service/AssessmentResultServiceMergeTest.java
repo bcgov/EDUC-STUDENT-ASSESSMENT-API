@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
+import ca.bc.gov.educ.assessment.api.service.v1.DOARReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
@@ -40,6 +41,10 @@ class AssessmentResultServiceMergeTest {
     private StagedStudentResultRepository stagedStudentResultRepository;
     @Mock
     private StudentAssessmentResultService studentAssessmentResultService;
+    @Mock
+    private DOARReportService doarReportService;
+    @Mock
+    private AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository;
 
     @InjectMocks
     private AssessmentResultService assessmentResultService;
@@ -81,13 +86,18 @@ class AssessmentResultServiceMergeTest {
         fileUpload.setCreateUser("U");
         fileUpload.setUpdateUser("U");
         details.setComponentType("1");
+        AssessmentStudentEntity assessmentStudent = new AssessmentStudentEntity();
+        assessmentStudent.setAssessmentEntity(assessment);
+
 
         when(restUtils.getStudentByPEN(any(), eq("111111111"))).thenReturn(Optional.of(merged));
         when(restUtils.getStudents(any(), anySet())).thenReturn(List.of(trueStudent));
         when(assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(any(), any())).thenReturn(Optional.empty());
         when(restUtils.getGradStudentRecordByStudentID(any(), eq(trueId))).thenReturn(Optional.empty());
         when(studentAssessmentResultService.createNewAssessmentStudentEntity(any(), any(), any(), any(), any()))
-                .thenReturn(new AssessmentStudentEntity());
+                .thenReturn(assessmentStudent);
+        when(assessmentStudentRepository.save(any())).thenReturn(assessmentStudent);
+        when(doarReportService.prepareLTEDOARSummaryEntity(any(), any(), any())).thenReturn(new AssessmentStudentDOARCalculationEntity());
         when(studentAssessmentResultService.setAssessmentStudentTotals(any(), any(), any(), any()))
                 .thenReturn(BigDecimal.ZERO);
 
@@ -132,6 +142,8 @@ class AssessmentResultServiceMergeTest {
         fileUpload.setCreateUser("U");
         fileUpload.setUpdateUser("U");
         details.setComponentType("1");
+        AssessmentStudentEntity assessmentStudent = new AssessmentStudentEntity();
+        assessmentStudent.setAssessmentEntity(assessment);
 
         when(restUtils.getStudentByPEN(any(), eq("111111111"))).thenReturn(Optional.of(s1));
         when(restUtils.getStudents(any(), anySet()))
@@ -141,6 +153,8 @@ class AssessmentResultServiceMergeTest {
         when(restUtils.getGradStudentRecordByStudentID(any(), eq(finalId))).thenReturn(Optional.empty());
         when(studentAssessmentResultService.createNewAssessmentStudentEntity(any(), any(), any(), any(), any()))
                 .thenReturn(new AssessmentStudentEntity());
+        when(assessmentStudentRepository.save(any())).thenReturn(assessmentStudent);
+        when(doarReportService.prepareLTEDOARSummaryEntity(any(), any(), any())).thenReturn(new AssessmentStudentDOARCalculationEntity());
         when(studentAssessmentResultService.setAssessmentStudentTotals(any(), any(), any(), any()))
                 .thenReturn(BigDecimal.ZERO);
 

@@ -11,9 +11,11 @@ import ca.bc.gov.educ.assessment.api.exception.ConfirmationRequiredException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.mappers.StringMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.*;
+import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
+import ca.bc.gov.educ.assessment.api.service.v1.DOARReportService;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
@@ -57,6 +59,8 @@ public class AssessmentResultService {
     private static final AssessmentResultsBatchFileMapper assessmentResultsBatchFileMapper = AssessmentResultsBatchFileMapper.mapper;
     private final StagedStudentResultRepository  stagedStudentResultRepository;
     private final StudentAssessmentResultService studentAssessmentResultService;
+    private final DOARReportService doarReportService;
+    private final AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void populateBatchFileAndLoadData(String correlationID, DataSet ds, UUID sessionID, AssessmentResultFileUpload fileUpload, boolean isSingleResult) throws ResultsFileUnProcessableException {
@@ -168,7 +172,6 @@ public class AssessmentResultService {
         Map<String, List<AssessmentResultDetails>> groupedStudents = batchFile.getAssessmentResultData().stream().collect(Collectors.groupingBy(AssessmentResultDetails::getPen));
 
         for(val groupedResult : groupedStudents.entrySet()) {
-
             var studentResultOptional = groupedResult.getValue().stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).findFirst();
             var studentResult =  studentResultOptional.get();
             var formEntity = formMap.get(studentResult.getFormCode());
@@ -210,7 +213,14 @@ public class AssessmentResultService {
                 student.ifPresent(assessmentStudentEntity -> assessmentStudentRepository.deleteById(assessmentStudentEntity.getAssessmentStudentID()));
 
                 var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentID)).orElse(null);
-                assessmentStudentRepository.save(createResultForApprovedSession(groupedResult, fileUpload, gradStudent, studentApiRecord, formEntity, assessmentEntity));
+                var savedStudent = assessmentStudentRepository.save(createResultForApprovedSession(groupedResult, fileUpload, gradStudent, studentApiRecord, formEntity, assessmentEntity, isMergedRecord));
+
+                var assessmentStudentDOARCalculationEntity = doarReportService.prepareLTEDOARSummaryEntity(savedStudent, formEntity, savedStudent.getAssessmentEntity().getAssessmentTypeCode());
+                assessmentStudentDOARCalculationEntity.setCreateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
+                assessmentStudentDOARCalculationEntity.setUpdateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
+                assessmentStudentDOARCalculationEntity.setCreateDate(LocalDateTime.now());
+                assessmentStudentDOARCalculationEntity.setUpdateDate(LocalDateTime.now());
+                assessmentStudentDOARCalculationRepository.save(assessmentStudentDOARCalculationEntity);
             }
         } else {
             //on-going session, delete student from staging table and load in the result upload table
@@ -232,7 +242,7 @@ public class AssessmentResultService {
         });
     }
 
-    private AssessmentStudentEntity createResultForApprovedSession(List<AssessmentResultDetails> groupedResult, AssessmentResultFileUpload fileUpload, GradStudentRecord gradStudent, Student studentApiRecord, AssessmentFormEntity formEntity, AssessmentEntity assessmentEntity) {
+    private AssessmentStudentEntity createResultForApprovedSession(List<AssessmentResultDetails> groupedResult, AssessmentResultFileUpload fileUpload, GradStudentRecord gradStudent, Student studentApiRecord, AssessmentFormEntity formEntity, AssessmentEntity assessmentEntity, boolean isMergedRecord) {
         var studentResultOptional = groupedResult.stream().filter(e -> !e.getComponentType().equalsIgnoreCase("7")).toList();
         var studentResult =  studentResultOptional.getFirst();
 
@@ -245,7 +255,7 @@ public class AssessmentResultService {
         assessmentStudent.setUpdateDate(LocalDateTime.now());
 
         createStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult);
-        studentWithOralComponent.ifPresent(stagedStudentResultEntity -> createStudentComponent(formEntity, assessmentStudent, fileUpload, studentResult));
+        studentWithOralComponent.ifPresent(result -> createStudentComponent(formEntity, assessmentStudent, fileUpload, result));
 
         var mcTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.MUL_CHOICE, ComponentSubTypeCodes.NONE, formEntity);
         var oeTotal = studentAssessmentResultService.setAssessmentStudentTotals(assessmentStudent, ComponentTypeCodes.OPEN_ENDED, ComponentSubTypeCodes.NONE, formEntity);
@@ -254,6 +264,7 @@ public class AssessmentResultService {
         assessmentStudent.setMcTotal(mcTotal);
         assessmentStudent.setOeTotal(oeTotal.add(oralTotal));
         assessmentStudent.setRawScore(mcTotal.add(oralTotal).add(oeTotal));
+        assessmentStudent.setStudentStatusCode(isMergedRecord ? "MERGED" : "ACTIVE");
 
         return assessmentStudent;
     }
