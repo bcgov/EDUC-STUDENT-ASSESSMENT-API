@@ -14,6 +14,8 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTab
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -107,6 +109,11 @@ public class ReportsController implements ReportsEndpoint {
             default:
                 return new DownloadableReportResponse();
         }
+    }
+
+    @Override
+    public ResponseEntity<InputStreamResource> getDownloadableRandomZip(UUID sessionID) {
+        return schoolStudentsInSessionReportService.generateReportForRandomSetOfSchoolsInSession(sessionID);
     }
 
     @Override

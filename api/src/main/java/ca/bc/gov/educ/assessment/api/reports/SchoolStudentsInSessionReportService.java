@@ -25,11 +25,20 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Service class for generating School Students in Session Report
@@ -68,6 +77,41 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
     } catch (JRException e) {
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
+  }
+  
+  public ResponseEntity<InputStreamResource> generateReportForRandomSetOfSchoolsInSession(UUID assessmentSessionID){
+    var schoolsInSession = assessmentStudentRepository.getSchoolIDsOfSchoolsWithMoreThanStudentsInSession(assessmentSessionID);
+    var schools = getRandomUUIDs(schoolsInSession, 20);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+
+      for (UUID school : schools) {
+        DownloadableReportResponse report = generateSchoolStudentsInSessionReport(assessmentSessionID, school);
+        var schoolDetail = restUtils.getSchoolBySchoolID(school.toString());
+
+        ZipEntry zipEntry = new ZipEntry("SchoolStudentsInSession - " + schoolDetail.get().getMincode() + ".pdf"); // e.g., "school-report-123.pdf"
+        zos.putNextEntry(zipEntry);
+        zos.write(report.getDocumentData().getBytes()); // assuming this returns byte[]
+        zos.closeEntry();
+      }
+    } catch (IOException e) {
+        throw new StudentAssessmentAPIRuntimeException(e);
+    }
+
+    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+    InputStreamResource resource = new InputStreamResource(bais);
+
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"reports.zip\"")
+            .header(HttpHeaders.CONTENT_TYPE, "application/zip")
+            .body(resource);
+  }
+
+  public static List<UUID> getRandomUUIDs(List<UUID> uuids, int count) {
+    List<UUID> copy = new ArrayList<>(uuids);
+    Collections.shuffle(copy);
+    return copy.stream().limit(count).toList();
   }
 
   public DownloadableReportResponse generateSchoolStudentsInSessionReport(UUID assessmentSessionID, UUID schoolID){
