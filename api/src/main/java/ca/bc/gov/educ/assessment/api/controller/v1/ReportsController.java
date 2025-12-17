@@ -113,7 +113,7 @@ public class ReportsController implements ReportsEndpoint {
 
     @Override
     public ResponseEntity<InputStreamResource> getDownloadableRandomZip(UUID sessionID) {
-        return schoolStudentsInSessionReportService.generateReportForRandomSetOfSchoolsInSession(sessionID);
+        return schoolStudentsByAssessmentReportService.generateReportForRandomSetOfSchoolsInSession(sessionID);
     }
 
     @Override
