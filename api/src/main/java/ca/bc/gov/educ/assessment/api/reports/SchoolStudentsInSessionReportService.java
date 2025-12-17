@@ -87,7 +87,9 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
   public ResponseEntity<InputStreamResource> generateReportForRandomSetOfSchoolsInSession(UUID assessmentSessionID){
     var schoolsInSession = assessmentStudentRepository.getSchoolIDsOfSchoolsWithMoreThanStudentsInSession(assessmentSessionID);
+    log.info("schoolsInSession found to process: {} ", schoolsInSession);
     var schools = getRandomUUIDs(schoolsInSession, 20);
+    log.info("Schools found to process: {} ", schools);
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try (ZipOutputStream zos = new ZipOutputStream(baos)) {
