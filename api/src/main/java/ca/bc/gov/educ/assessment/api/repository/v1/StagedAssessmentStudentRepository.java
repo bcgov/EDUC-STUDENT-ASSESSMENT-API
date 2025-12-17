@@ -17,6 +17,7 @@ import java.util.UUID;
 
 @Repository
 public interface StagedAssessmentStudentRepository extends JpaRepository<StagedAssessmentStudentEntity, UUID>, JpaSpecificationExecutor<StagedAssessmentStudentEntity> {
+   
     @Query(value="""
     select stud.studentID from StagedAssessmentStudentEntity as stud
     where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID""")
