@@ -108,7 +108,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
         ZipEntry zipEntry = new ZipEntry("SchoolStudentsInSession - " + schoolDetail.get().getMincode() + ".pdf");
         zos.putNextEntry(zipEntry);
-        zos.write(report.getDocumentData().getBytes());
+        zos.write(Base64.getDecoder().decode(report.getDocumentData().getBytes()));
         zos.closeEntry();
       }
       zos.finish();
