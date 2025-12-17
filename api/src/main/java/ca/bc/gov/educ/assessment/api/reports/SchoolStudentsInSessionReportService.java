@@ -78,7 +78,7 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
   }
-  
+
   public ResponseEntity<InputStreamResource> generateReportForRandomSetOfSchoolsInSession(UUID assessmentSessionID){
     var schoolsInSession = assessmentStudentRepository.getSchoolIDsOfSchoolsWithMoreThanStudentsInSession(assessmentSessionID);
     var schools = getRandomUUIDs(schoolsInSession, 20);
@@ -90,13 +90,14 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
         DownloadableReportResponse report = generateSchoolStudentsInSessionReport(assessmentSessionID, school);
         var schoolDetail = restUtils.getSchoolBySchoolID(school.toString());
 
-        ZipEntry zipEntry = new ZipEntry("SchoolStudentsInSession - " + schoolDetail.get().getMincode() + ".pdf"); // e.g., "school-report-123.pdf"
+        ZipEntry zipEntry = new ZipEntry("SchoolStudentsInSession - " + schoolDetail.get().getMincode() + ".pdf");
         zos.putNextEntry(zipEntry);
-        zos.write(report.getDocumentData().getBytes()); // assuming this returns byte[]
+        zos.write(report.getDocumentData().getBytes());
         zos.closeEntry();
       }
+      zos.finish();
     } catch (IOException e) {
-        throw new StudentAssessmentAPIRuntimeException(e);
+      throw new StudentAssessmentAPIRuntimeException(e);
     }
 
     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
