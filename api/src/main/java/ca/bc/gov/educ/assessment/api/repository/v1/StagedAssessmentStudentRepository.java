@@ -22,6 +22,16 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
     select stud.studentID from StagedAssessmentStudentEntity as stud
     where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID""")
     List<UUID> findAllStagedStudentsInSession(UUID sessionID);
+    
+    @Query("""
+        SELECT s.schoolAtWriteSchoolID
+        FROM StagedAssessmentStudentEntity s
+        WHERE s.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
+        AND s.schoolAtWriteSchoolID is not null
+        GROUP BY s.schoolAtWriteSchoolID
+        HAVING COUNT(*) > 10
+    """)
+    List<UUID> getSchoolIDsOfSchoolsWithMoreThanStudentsInSession(UUID assessmentSessionID);
 
     List<StagedAssessmentStudentEntity> findByStudentID(UUID studentID);
 

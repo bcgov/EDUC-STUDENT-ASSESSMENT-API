@@ -86,7 +86,15 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
   }
 
   public ResponseEntity<InputStreamResource> generateReportForRandomSetOfSchoolsInSession(UUID assessmentSessionID){
-    var schoolsInSession = assessmentStudentRepository.getSchoolIDsOfSchoolsWithMoreThanStudentsInSession(assessmentSessionID);
+    var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
+
+    List<UUID> schoolsInSession;
+    if(sessionIsApproved(session)){
+      schoolsInSession = assessmentStudentRepository.getSchoolIDsOfSchoolsWithMoreThanStudentsInSession(assessmentSessionID);  
+    }else{
+      schoolsInSession = stagedAssessmentStudentRepository.getSchoolIDsOfSchoolsWithMoreThanStudentsInSession(assessmentSessionID);
+    }
+    
     log.info("schoolsInSession found to process: {} ", schoolsInSession);
     var schools = getRandomUUIDs(schoolsInSession, 20);
     log.info("Schools found to process: {} ", schools);
