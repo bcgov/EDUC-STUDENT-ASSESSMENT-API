@@ -904,7 +904,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
     var updated1 = stagedAssessmentStudentRepository.findById(saved1.getAssessmentStudentID());
     assertThat(updated1).isEmpty();
     var updated2 = stagedAssessmentStudentRepository.findById(saved2.getAssessmentStudentID());
-    assertThat(updated1).isEmpty();
+    assertThat(updated2).isEmpty();
   }
 
   @Test
