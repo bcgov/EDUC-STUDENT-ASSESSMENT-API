@@ -235,15 +235,18 @@ public class XAMFileService {
                 .filter(school -> "MYED".equalsIgnoreCase(school.getVendorSourceSystemCode()))
                 .toList();
         String folderName = generateXamFolderName(assessmentSessionEntity);
+        var schoolsWithStudents = stagedAssessmentStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(assessmentSessionEntity.getSessionID());
         log.info("Starting generation and upload of XAM files for {} MYED schools, session {} to folder {}", myEdSchools.size(), assessmentSessionEntity.getSessionID(), folderName);
         for (SchoolTombstone school : myEdSchools) {
-            log.debug("Generating XAM file for school: {}", school.getMincode());
-            byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);
-            log.debug("Uploading XAM file for school: {} ({} bytes)", school.getMincode(), xamFileContent.length);
-            String fileName = generateXamFileName(school, assessmentSessionEntity);
-            String key = folderName + "/" + fileName;
-            uploadToComs(xamFileContent, key);
-            log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
+            if(schoolsWithStudents.contains(UUID.fromString(school.getSchoolId()))) {
+                log.debug("Generating XAM file for school: {}", school.getMincode());
+                byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);
+                log.debug("Uploading XAM file for school: {} ({} bytes)", school.getMincode(), xamFileContent.length);
+                String fileName = generateXamFileName(school, assessmentSessionEntity);
+                String key = folderName + "/" + fileName;
+                uploadToComs(xamFileContent, key);
+                log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
+            }
         }
         log.info("Completed processing XAM files for session {} to folder {}", assessmentSessionEntity.getSessionID(), folderName);
     }

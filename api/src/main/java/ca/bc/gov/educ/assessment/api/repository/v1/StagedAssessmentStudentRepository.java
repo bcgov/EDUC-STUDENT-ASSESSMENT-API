@@ -33,6 +33,15 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
     """)
     List<UUID> getSchoolIDsOfSchoolsWithMoreThanStudentsInSession(UUID assessmentSessionID);
 
+    @Query("""
+        SELECT s.schoolAtWriteSchoolID
+        FROM StagedAssessmentStudentEntity s
+        WHERE s.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
+        AND s.schoolAtWriteSchoolID is not null
+        GROUP BY s.schoolAtWriteSchoolID
+    """)
+    List<UUID> getSchoolIDsOfSchoolsWithStudentsInSession(UUID assessmentSessionID);
+
     List<StagedAssessmentStudentEntity> findByStudentID(UUID studentID);
 
     @Query("""
