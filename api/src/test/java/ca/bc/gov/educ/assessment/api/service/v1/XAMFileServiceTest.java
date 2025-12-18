@@ -218,6 +218,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
 
     @Test
     void testGenerateAndUploadXamFiles() {
+        var schoolID = UUID.randomUUID().toString();
         AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2023");
@@ -228,8 +229,9 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         SchoolTombstone myEdSchool = mock(SchoolTombstone.class);
         when(myEdSchool.getVendorSourceSystemCode()).thenReturn("MYED");
         when(myEdSchool.getMincode()).thenReturn("MINCODE4");
-        when(myEdSchool.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+        when(myEdSchool.getSchoolId()).thenReturn(schoolID);
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(myEdSchool));
+        when(stagedStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(any())).thenReturn(List.of(UUID.fromString(schoolID)));
 
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
@@ -241,6 +243,8 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     @Test
     void testGenerateAndUploadXamFiles_withDifferentYearAndMonth() {
         // Test with a different year and month to ensure dynamic folder creation
+        var schoolID = UUID.randomUUID().toString();
+
         AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2025");
@@ -251,8 +255,9 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         SchoolTombstone myEdSchool = mock(SchoolTombstone.class);
         when(myEdSchool.getVendorSourceSystemCode()).thenReturn("MYED");
         when(myEdSchool.getMincode()).thenReturn("12345678");
-        when(myEdSchool.getSchoolId()).thenReturn(UUID.randomUUID().toString());
+        when(myEdSchool.getSchoolId()).thenReturn(schoolID);
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(myEdSchool));
+        when(stagedStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(any())).thenReturn(List.of(UUID.fromString(schoolID)));
 
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
@@ -285,7 +290,10 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(nonMyEdSchool.getVendorSourceSystemCode()).thenReturn("OTHER");
         when(nonMyEdSchool.getMincode()).thenReturn("33333333");
 
+        var schools = List.of(UUID.fromString(school1.getSchoolId()), UUID.fromString(school2.getSchoolId()));
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2, nonMyEdSchool));
+        when(stagedStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(any()))
+                .thenReturn(schools);
 
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
