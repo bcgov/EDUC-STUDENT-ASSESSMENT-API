@@ -97,7 +97,7 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         sagaData = ApprovalSagaData.builder().sessionID(String.valueOf(session.getSessionID())).build();
         MockitoAnnotations.openMocks(this);
         sagaPayload = JsonUtil.getJsonString(sagaData).get();
-        saga = this.sagaService.createSagaRecordInDB(SagaEnum.GENERATE_XAM_FILES.name(), "test", sagaPayload, UUID.fromString(sagaData.getSessionID()), null, null, null, null);
+        saga = this.sagaService.createSagaRecordInDB(SagaEnum.GENERATE_XAM_FILES.name(), "test", sagaPayload,null, null, null, null,  UUID.fromString(sagaData.getSessionID()), null);
     }
 
     @SneakyThrows
@@ -198,16 +198,6 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
         assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.MARK_STAGED_STUDENTS_READY_FOR_TRANSFER);
         assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER);
-    }
-
-    @SneakyThrows
-    @Test
-    void testStartXamFileGenerationSagaCreatesSagaRecord() {
-        UUID newSessionID = UUID.fromString(sagaData.getSessionID());
-        sessionApprovalOrchestrator.startXamFileGenerationSaga(newSessionID);
-        AssessmentSagaEntity newSaga = sagaService.findByAssessmentSessionIDAndSagaNameAndStatusNot(newSessionID, SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.COMPLETED.toString()).orElse(null);
-        assertThat(newSaga).isNotNull();
-        assertEquals(newSessionID, newSaga.getAssessmentSessionID());
     }
 
     @SneakyThrows

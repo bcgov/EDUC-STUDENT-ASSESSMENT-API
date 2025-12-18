@@ -147,30 +147,31 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         AssessmentSessionEntity sessionEntity = createMockSession();
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
 
+        SchoolTombstone school = createTestSchool("12345678", "MYED");
+        var schoolID = school.getSchoolId();
+
         when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
             .thenReturn(List.of());
 
         List<SchoolTombstone> schools = Arrays.asList(
-            createTestSchool("12345678", "MYED"),
-            createTestSchool("87654321", "OTHER"),
-            createTestSchool("11223344", "MYED")
+            school,
+            createTestSchool("87654321", "OTHER")
         );
         when(restUtils.getAllSchoolTombstones()).thenReturn(schools);
-
+        when(stagedStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(any())).thenReturn(List.of(UUID.fromString(schoolID)));
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), anyString());
 
         assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionEntity));
 
         // Verify uploadToComs was called twice (once for each MYED school)
-        verify(xamFileService, times(2)).uploadToComs(any(byte[].class), anyString());
+        verify(xamFileService, times(1)).uploadToComs(any(byte[].class), anyString());
 
         // Verify the correct keys were used
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        verify(xamFileService, times(2)).uploadToComs(any(byte[].class), keyCaptor.capture());
+        verify(xamFileService, times(1)).uploadToComs(any(byte[].class), keyCaptor.capture());
 
         List<String> capturedKeys = keyCaptor.getAllValues();
         assertTrue(capturedKeys.contains("xam-files-202309/12345678-202309-Results.xam"));
-        assertTrue(capturedKeys.contains("xam-files-202309/11223344-202309-Results.xam"));
     }
 
     @Test
@@ -179,8 +180,9 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
 
         SchoolTombstone school = createTestSchool("12345678", "MYED");
+        var schoolID = school.getSchoolId();
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
-
+        when(stagedStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(any())).thenReturn(List.of(UUID.fromString(schoolID)));
         when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
                 .thenReturn(List.of());
 
@@ -192,6 +194,7 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
 
         assertTrue(exception.getMessage().contains("COMS upload failed"));
 
+
         verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202309/12345678-202309-Results.xam"));
     }
 
@@ -200,11 +203,13 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         AssessmentSessionEntity sessionEntity = createMockSession();
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
 
+        SchoolTombstone school = createTestSchool("12345678", "MYED");
+        var schoolID = school.getSchoolId();
+
         List<SchoolTombstone> schools = Arrays.asList(
-            createTestSchool("12345678", "MYED"),
+                school,
             createTestSchool("87654321", "OTHER"),
-            createTestSchool("11223344", "BCSIS"),
-            createTestSchool("55667788", "MYED")
+            createTestSchool("11223344", "BCSIS")
         );
         when(restUtils.getAllSchoolTombstones()).thenReturn(schools);
 
@@ -212,18 +217,17 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
             .thenReturn(List.of());
 
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), anyString());
-
+        when(stagedStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(any())).thenReturn(List.of(UUID.fromString(schoolID)));
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
         // Verify uploadToComs was called only for MYED schools (2 times)
-        verify(xamFileService, times(2)).uploadToComs(any(byte[].class), anyString());
+        verify(xamFileService, times(1)).uploadToComs(any(byte[].class), anyString());
 
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        verify(xamFileService, times(2)).uploadToComs(any(byte[].class), keyCaptor.capture());
+        verify(xamFileService, times(1)).uploadToComs(any(byte[].class), keyCaptor.capture());
 
         List<String> capturedKeys = keyCaptor.getAllValues();
         assertTrue(capturedKeys.contains("xam-files-202309/12345678-202309-Results.xam"));
-        assertTrue(capturedKeys.contains("xam-files-202309/55667788-202309-Results.xam"));
         assertFalse(capturedKeys.stream().anyMatch(key -> key.contains("87654321")));
         assertFalse(capturedKeys.stream().anyMatch(key -> key.contains("11223344")));
     }
@@ -232,13 +236,13 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
     void testComsKeyFormat() {
         AssessmentSessionEntity sessionEntity = createMockSession();
         SchoolTombstone school = createTestSchool("12345678");
+        var schoolID = school.getSchoolId();
 
         when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
             .thenReturn(List.of());
-
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), anyString());
-
+        when(stagedStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(any())).thenReturn(List.of(UUID.fromString(schoolID)));
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);

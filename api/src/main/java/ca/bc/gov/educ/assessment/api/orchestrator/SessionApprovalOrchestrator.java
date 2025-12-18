@@ -183,7 +183,8 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
                 null,
                 null,
                 null,
-                assessmentSessionID
+                assessmentSessionID,
+                null
         );
         this.startSaga(saga);
     }

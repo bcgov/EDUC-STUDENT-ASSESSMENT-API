@@ -145,7 +145,7 @@ public class SagaService {
    * @return the saga
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public AssessmentSagaEntity createSagaRecordInDB(final String sagaName, final String userName, final String payload, final UUID assessmentStudentID, final UUID stagedStudentResultId, final UUID assessmentID, final String pen, final UUID assessmentSessionID) {
+  public AssessmentSagaEntity createSagaRecordInDB(final String sagaName, final String userName, final String payload, final UUID assessmentStudentID, final UUID stagedStudentResultId, final UUID assessmentID, final String pen, final UUID assessmentSessionID, final UUID stagedAssessmentStudentID) {
     final var saga = AssessmentSagaEntity
       .builder()
       .assessmentStudentID(assessmentStudentID)
@@ -153,6 +153,7 @@ public class SagaService {
       .assessmentID(assessmentID)
       .pen(pen)
       .assessmentSessionID(assessmentSessionID)
+      .stagedAssessmentStudentID(stagedAssessmentStudentID)
       .payload(payload)
       .sagaName(sagaName)
       .status(STARTED.toString())
@@ -202,8 +203,8 @@ public class SagaService {
     return this.getSagaRepository().findByAssessmentStudentIDAndSagaNameAndStatusNot(assessmentStudentID, sagaName, status);
   }
 
-  public List<AssessmentSagaEntity> findByStagedStudentResultIDAndSagaNameAndStatusNot(final UUID stagedStudentResultID, final String sagaName, final String status) {
-    return this.getSagaRepository().findByStagedStudentResultIDAndSagaNameAndStatusNot(stagedStudentResultID, sagaName, status);
+  public Optional<AssessmentSagaEntity> findByStagedAssessmentStudentIDAndSagaNameAndStatusNot(final UUID stagedAssessmentStudentID, final String sagaName, final String status) {
+    return this.getSagaRepository().findByStagedAssessmentStudentIDAndSagaNameAndStatusNot(stagedAssessmentStudentID, sagaName, status);
   }
 
   public List<AssessmentSagaEntity> findByAssessmentIDAndPenAndSagaNameAndStatusNot(final UUID assessmentID, final String pen, final String sagaName, final String status) {
