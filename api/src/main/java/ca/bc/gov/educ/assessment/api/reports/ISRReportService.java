@@ -317,21 +317,13 @@ public class ISRReportService extends BaseReportGenerationService {
     }
 
     if(!foundAnyAnswers){
-      return Pair.of("No Response", totalOutOf.setScale(2, RoundingMode.DOWN).toString());
+      return Pair.of("No Response", totalOutOf.setScale(1, RoundingMode.DOWN).stripTrailingZeros().toPlainString());
     }
     
     var totalScoreScaled = totalScore.setScale(1, RoundingMode.DOWN);
     var totalOutOfScaled = totalOutOf.setScale(1, RoundingMode.DOWN);
     
     return Pair.of(totalScoreScaled.stripTrailingZeros().toPlainString(), totalOutOfScaled.stripTrailingZeros().toPlainString());
-  }
-  
-  private String removeZeroDecimals(String s){
-    if(StringUtils.isBlank(s)){
-      return s;
-    }
-    
-    return s.replaceAll(".0", "");
   }
   
   private BigDecimal getScaleFactorAsBigDecimal(Integer scaleFactor) {

@@ -511,6 +511,14 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="partOralPart3OutOf"/>
 			<fieldDescription><![CDATA[partOralPart3OutOf]]></fieldDescription>
 		</field>
+		<field name="totalOverall" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="totalOverall"/>
+			<fieldDescription><![CDATA[totalOverall]]></fieldDescription>
+		</field>
+		<field name="outOfOverall" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="outOfOverall"/>
+			<fieldDescription><![CDATA[outOfOverall]]></fieldDescription>
+		</field>
 	</subDataset>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String"/>
 	<queryString language="JSON">
@@ -1039,6 +1047,12 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 							<subreportParameter name="writtenReasonedEstimatesOutOf">
 								<subreportParameterExpression><![CDATA[$F{writtenReasonedEstimatesOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
+							<subreportParameter name="totalOverall">
+								<subreportParameterExpression><![CDATA[$F{totalOverall}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="outOfOverall">
+								<subreportParameterExpression><![CDATA[$F{outOfOverall}]]></subreportParameterExpression>
+							</subreportParameter>
 							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "nme10summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
@@ -1359,6 +1373,12 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 							</subreportParameter>
 							<subreportParameter name="writtenPlanningOutOf">
 								<subreportParameterExpression><![CDATA[$F{writtenPlanningOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="totalOverall">
+								<subreportParameterExpression><![CDATA[$F{totalOverall}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="outOfOverall">
+								<subreportParameterExpression><![CDATA[$F{outOfOverall}]]></subreportParameterExpression>
 							</subreportParameter>
 							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "nmf10summary.jasper"]]></subreportExpression>
 						</subreport>
