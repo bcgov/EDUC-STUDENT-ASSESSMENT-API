@@ -381,8 +381,8 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteStagedStudent(StagedAssessmentStudentEntity stagedAssessmentStudentEntity) {
-        stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID());
+    public void deleteStagedStudent(UUID stagedAssessmentStudentId) {
+        stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentId);
     }
 
     public void deleteStagedStudents(List<StagedAssessmentStudentEntity> stagedAssessmentStudents) {
