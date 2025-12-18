@@ -97,7 +97,7 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         sagaData = ApprovalSagaData.builder().sessionID(String.valueOf(session.getSessionID())).build();
         MockitoAnnotations.openMocks(this);
         sagaPayload = JsonUtil.getJsonString(sagaData).get();
-        saga = this.sagaService.createSagaRecordInDB(SagaEnum.GENERATE_XAM_FILES.name(), "test", sagaPayload, UUID.fromString(sagaData.getSessionID()), null, null, null, null);
+        saga = this.sagaService.createSagaRecordInDB(SagaEnum.GENERATE_XAM_FILES.name(), "test", sagaPayload,null, null, null, null,  UUID.fromString(sagaData.getSessionID()), null);
     }
 
     @SneakyThrows

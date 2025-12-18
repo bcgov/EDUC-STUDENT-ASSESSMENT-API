@@ -26,6 +26,8 @@ public interface SagaRepository extends JpaRepository<AssessmentSagaEntity, UUID
 
   List<AssessmentSagaEntity> findByStagedStudentResultIDAndSagaNameAndStatusNot(UUID stagedStudentResultID, String sagaName, String status);
 
+  Optional<AssessmentSagaEntity> findByStagedAssessmentStudentIDAndSagaNameAndStatusNot(UUID stagedAssessmentStudentID, String sagaName, String status);
+
   List<AssessmentSagaEntity> findByAssessmentIDAndPenAndSagaNameAndStatusNot(UUID assessmentID, String pen, String sagaName, String status);
 
   Optional<AssessmentSagaEntity> findByAssessmentSessionIDAndSagaNameAndStatusNot(UUID assessmentSessionID, String sagaName, String status);
