@@ -380,6 +380,7 @@ public class AssessmentStudentService {
         );
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
     public void deleteStagedStudent(StagedAssessmentStudentEntity stagedAssessmentStudentEntity) {
         stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID());
     }

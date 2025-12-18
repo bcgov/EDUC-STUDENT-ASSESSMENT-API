@@ -108,6 +108,11 @@ public class TransferStudentOrchestrationService {
             log.debug("Creating new student {} for assessment {}", stagedStudent.getStudentID(), stagedStudent.getAssessmentEntity().getAssessmentID());
             createNewStudentFromStaged(stagedStudent);
         }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void deleteFromStagingTable(UUID stagedStudentId) {
+        StagedAssessmentStudentEntity stagedStudent = assessmentStudentService.getStagedStudentById(stagedStudentId);
         assessmentStudentService.deleteStagedStudent(stagedStudent);
     }
 

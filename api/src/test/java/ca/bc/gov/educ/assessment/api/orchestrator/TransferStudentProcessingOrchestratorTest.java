@@ -26,9 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -247,7 +249,7 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         var updatedSaga = sagaRepository.findById(saga.getSagaId()).orElse(null);
         assertNotNull(updatedSaga);
-        assertEquals("COMPLETED", updatedSaga.getStatus());
+        assertEquals("IN_PROGRESS", updatedSaga.getStatus());
     }
 
     @Test
@@ -347,7 +349,7 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
         transferStudentProcessingOrchestrator.handleEvent(event);
 
         var stagedStudents = stagedAssessmentStudentRepository.findAll();
-        assertThat(stagedStudents).isEmpty();
+        assertThat(stagedStudents).isNotEmpty();
     }
 
     @SneakyThrows
@@ -364,6 +366,22 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         var students = assessmentStudentRepository.findAll();
         assertThat(students).isNotEmpty();
+
+        var stagedStudents = stagedAssessmentStudentRepository.findAll();
+        assertThat(stagedStudents).isNotEmpty();
+    }
+
+    @SneakyThrows
+    @Test
+    void testProcessDeleteFromStagingTable_shouldRemoveStagingRecord() {
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS)
+                .eventOutcome(EventOutcome.GRAD_STUDENT_API_NOTIFIED)
+                .eventPayload(sagaPayload)
+                .build();
+
+        transferStudentProcessingOrchestrator.handleEvent(event);
 
         var stagedStudents = stagedAssessmentStudentRepository.findAll();
         assertThat(stagedStudents).isEmpty();

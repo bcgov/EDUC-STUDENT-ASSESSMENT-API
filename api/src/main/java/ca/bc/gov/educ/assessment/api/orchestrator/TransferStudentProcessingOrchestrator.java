@@ -49,7 +49,8 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
             .begin(PROCESS_STUDENT_TRANSFER_EVENT, this::processStudentTransfer)
             .step(PROCESS_STUDENT_TRANSFER_EVENT, STUDENT_TRANSFER_PROCESSED, CALCULATE_STUDENT_DOAR, this::createAndPopulateDOARCalculations)
             .step(CALCULATE_STUDENT_DOAR, STUDENT_DOAR_CALCULATED, NOTIFY_GRAD_OF_UPDATED_STUDENTS, this::notifyGradOfUpdatedStudents)
-            .end(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED);
+            .step(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED, DELETE_FROM_STAGING, this::deleteStagingRecord)
+            .end(DELETE_FROM_STAGING, DELETED_STUDENT_FROM_STAGING);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -75,7 +76,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         log.debug("Posted completion message for saga step processStudentTransfer: {}", saga.getSagaId());
     }
 
-    protected void createAndPopulateDOARCalculations(Event event, AssessmentSagaEntity saga, TransferOnApprovalSagaData transferOnApprovalSagaData) throws JsonProcessingException {
+    protected void createAndPopulateDOARCalculations(Event event, AssessmentSagaEntity saga, TransferOnApprovalSagaData transferOnApprovalSagaData) {
         final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
         saga.setSagaState(CALCULATE_STUDENT_DOAR.toString());
         saga.setStatus(IN_PROGRESS.toString());
@@ -87,6 +88,23 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         doarReportService.createAndPopulateDOARSummaryCalculations(transferOnApprovalSagaData);
 
         eventBuilder.eventOutcome(STUDENT_DOAR_CALCULATED);
+        val nextEvent = eventBuilder.build();
+        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
+        log.debug("message sent to {} for {} Event. :: {}", this.getTopicToSubscribe(), nextEvent, saga.getSagaId());
+    }
+
+    protected void deleteStagingRecord(Event event, AssessmentSagaEntity saga, TransferOnApprovalSagaData transferOnApprovalSagaData) {
+        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
+        saga.setSagaState(DELETE_FROM_STAGING.toString());
+        saga.setStatus(IN_PROGRESS.toString());
+        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
+
+        final Event.EventBuilder eventBuilder = Event.builder();
+        eventBuilder.sagaId(saga.getSagaId()).eventType(DELETE_FROM_STAGING);
+
+        transferStudentOrchestrationService.deleteFromStagingTable(UUID.fromString(transferOnApprovalSagaData.getStagedStudentAssessmentID()));
+
+        eventBuilder.eventOutcome(DELETED_STUDENT_FROM_STAGING);
         val nextEvent = eventBuilder.build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("message sent to {} for {} Event. :: {}", this.getTopicToSubscribe(), nextEvent, saga.getSagaId());
