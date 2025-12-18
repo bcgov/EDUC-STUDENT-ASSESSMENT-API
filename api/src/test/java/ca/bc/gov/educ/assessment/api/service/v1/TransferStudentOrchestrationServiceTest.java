@@ -195,7 +195,7 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
 
         transferStudentOrchestrationService.transferStagedStudentToMainTables(stagedStudent.getAssessmentStudentID());
 
-        assertThat(stagedAssessmentStudentRepository.findById(stagedStudent.getAssessmentStudentID())).isEmpty();
+        assertThat(stagedAssessmentStudentRepository.findById(stagedStudent.getAssessmentStudentID())).isNotEmpty();
 
         var mainStudents = assessmentStudentRepository.findAll();
         assertThat(mainStudents).hasSize(1);
@@ -228,7 +228,7 @@ class TransferStudentOrchestrationServiceTest extends BaseAssessmentAPITest {
 
         transferStudentOrchestrationService.transferStagedStudentToMainTables(stagedStudent.getAssessmentStudentID());
 
-        assertThat(stagedAssessmentStudentRepository.findById(stagedStudent.getAssessmentStudentID())).isEmpty();
+        assertThat(stagedAssessmentStudentRepository.findById(stagedStudent.getAssessmentStudentID())).isNotEmpty();
 
         var updatedStudentWithDetails = assessmentStudentRepository.findByIdWithAssessmentDetails(originalStudentId, assessment.getAssessmentID()).orElse(null);
         assertNotNull(updatedStudentWithDetails);
