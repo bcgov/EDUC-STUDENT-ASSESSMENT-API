@@ -351,27 +351,21 @@ public class AssessmentStudentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public int markStagedStudentsReadyForTransferOrDelete() {
-        LocalDateTime updateTime = LocalDateTime.now();
-
-        int updatedCount = stagedAssessmentStudentRepository.updateAllStagedStudentsForTransferOrDelete(
+    public void markStagedStudentsReadyForTransferOrDelete() {
+        stagedAssessmentStudentRepository.markStudentsForTransfer(
             ApplicationProperties.STUDENT_ASSESSMENT_API,
-            updateTime
+            LocalDateTime.now()
         );
+    }
 
-        log.debug("Successfully marked {} staged students as ready for transfer or deletion", updatedCount);
-
-        return updatedCount;
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void deleteStudentsWithPenIssuesFromStaging() {
+        stagedAssessmentStudentRepository.deleteStudentsWithPenIssues();
     }
 
     public List<StagedAssessmentStudentEntity> findBatchOfTransferStudentIds(int batchSize) {
         Pageable pageable = PageRequest.of(0, batchSize);
         return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("TRANSFER", pageable);
-    }
-
-    public List<StagedAssessmentStudentEntity> findBatchOfDeleteStudentIds(int batchSize) {
-        Pageable pageable = PageRequest.of(0, batchSize);
-        return stagedAssessmentStudentRepository.findStudentIdsByStatusOrderByUpdateDate("DELETE", pageable);
     }
 
     public StagedAssessmentStudentEntity getStagedStudentById(UUID stagedStudentId) {
@@ -380,12 +374,9 @@ public class AssessmentStudentService {
         );
     }
 
-    public void deleteStagedStudent(StagedAssessmentStudentEntity stagedAssessmentStudentEntity) {
-        stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentEntity.getAssessmentStudentID());
-    }
-
-    public void deleteStagedStudents(List<StagedAssessmentStudentEntity> stagedAssessmentStudents) {
-        stagedAssessmentStudentRepository.deleteAll(stagedAssessmentStudents);
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteStagedStudent(UUID stagedAssessmentStudentId) {
+        stagedAssessmentStudentRepository.deleteById(stagedAssessmentStudentId);
     }
 
     @Transactional(readOnly = true)

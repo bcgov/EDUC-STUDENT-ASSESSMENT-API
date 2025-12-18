@@ -119,13 +119,6 @@ public class EventTaskSchedulerAsyncService {
             log.debug("Found :: {} students marked for transfer in this batch", transferStudents.size());
             if(!transferStudents.isEmpty()) {
                 transferStudentOrchestrationService.prepareAndSendStudentsForFurtherProcessing(transferStudents);
-            } else {
-                final var deleteStudents = assessmentStudentService.findBatchOfDeleteStudentIds(batchSize);
-                log.debug("Found :: {} students marked for deletion in this batch", deleteStudents.size());
-                if(!deleteStudents.isEmpty()) {
-                    assessmentStudentService.deleteStagedStudents(deleteStudents);
-                    log.info("Successfully deleted {} staged students", deleteStudents.size());
-                }
             }
         }
     }

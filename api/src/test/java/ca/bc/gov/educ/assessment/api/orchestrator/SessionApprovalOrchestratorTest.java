@@ -239,4 +239,24 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         });
         assertThat(thrown.getCause()).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @SneakyThrows
+    @Test
+    void testOrchestratorHandlesEventAndDelegates_to_step_deleteStudentsWithPenIssuesFromStaging_ToService() {
+        String payload = sagaPayload;
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.MARK_STAGED_STUDENTS_READY_FOR_TRANSFER)
+                .eventOutcome(EventOutcome.STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER)
+                .eventPayload(payload)
+                .build();
+
+        sessionApprovalOrchestrator.handleEvent(event);
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.DELETE_PEN_ISSUE_STUDENTS_FROM_STAGING);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.DELETE_PEN_ISSUE_STUDENTS_FROM_STAGING_COMPLETED);
+    }
 }

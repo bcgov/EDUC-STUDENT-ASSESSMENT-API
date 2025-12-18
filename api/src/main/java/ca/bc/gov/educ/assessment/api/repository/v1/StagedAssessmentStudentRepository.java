@@ -49,17 +49,18 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
 
     @Modifying
     @Query(value = """
-        UPDATE STAGED_ASSESSMENT_STUDENT
-        SET STAGED_ASSESSMENT_STUDENT_STATUS = 
-            CASE 
-                WHEN STAGED_ASSESSMENT_STUDENT_STATUS IN ('NOPENFOUND') THEN 'DELETE'
-                WHEN STAGED_ASSESSMENT_STUDENT_STATUS NOT IN ('DELETE', 'TRANSFER') THEN 'TRANSFER'
-                ELSE STAGED_ASSESSMENT_STUDENT_STATUS
-            END,
-            UPDATE_USER = :updateUser,
-            UPDATE_DATE = :updateDate
-        WHERE STAGED_ASSESSMENT_STUDENT_STATUS NOT IN ('DELETE', 'TRANSFER')""", nativeQuery = true)
-    int updateAllStagedStudentsForTransferOrDelete(@Param("updateUser") String updateUser, @Param("updateDate") LocalDateTime updateDate);
+        update STAGED_ASSESSMENT_STUDENT 
+        set STAGED_ASSESSMENT_STUDENT_STATUS = 'TRANSFER',
+        UPDATE_USER = :updateUser,
+        UPDATE_DATE = :updateDate
+        where STAGED_ASSESSMENT_STUDENT_STATUS in('ACTIVE', 'MERGED')""", nativeQuery = true)
+    void markStudentsForTransfer(@Param("updateUser") String updateUser, @Param("updateDate") LocalDateTime updateDate);
+
+    @Modifying
+    @Query(value = """
+        DELETE FROM STAGED_ASSESSMENT_STUDENT 
+        WHERE STAGED_ASSESSMENT_STUDENT_STATUS in ('NOPENFOUND')""", nativeQuery = true)
+    void deleteStudentsWithPenIssues();
 
     @Query(value = """
         SELECT s
