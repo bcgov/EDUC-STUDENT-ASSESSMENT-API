@@ -8,15 +8,14 @@ import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.PreconditionRequiredException;
 import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentQuestionEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentAnswerEntity;
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentComponentEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.isr.*;
 import ca.bc.gov.educ.assessment.api.util.PenUtil;
@@ -195,11 +194,11 @@ public class ISRReportService extends BaseReportGenerationService {
               break;
             case "NME":
             case "NME10":
-              reportNode.getAssessmentDetails().add(populateNME10Assessment(assessmentSummary, questions, studentAnswers, assessmentStudent.getAssessmentStudentID()));
+              reportNode.getAssessmentDetails().add(populateNME10Assessment(assessmentSummary, questions, studentAnswers, assessmentStudent));
               break;
             case "NMF":
             case "NMF10":
-              reportNode.getAssessmentDetails().add(populateNMF10Assessment(assessmentSummary, questions, studentAnswers, assessmentStudent.getAssessmentStudentID()));
+              reportNode.getAssessmentDetails().add(populateNMF10Assessment(assessmentSummary, questions, studentAnswers, assessmentStudent));
               break;
           }
         }
@@ -234,6 +233,10 @@ public class ISRReportService extends BaseReportGenerationService {
 
   private List<AssessmentQuestionEntity> getMultiChoiceQuestions(List<AssessmentQuestionEntity> questions){
     return questions.stream().filter(assessmentQuestionEntity -> assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(MUL_CHOICE.getCode())).toList();
+  }
+  
+  private List<AssessmentQuestionEntity> getQuestionsForTaskCode(List<AssessmentQuestionEntity> questions, String questionType, String taskCode){
+    return questions.stream().filter(assessmentQuestionEntity -> StringUtils.isNotBlank(assessmentQuestionEntity.getTaskCode()) && assessmentQuestionEntity.getTaskCode().equals(taskCode) && assessmentQuestionEntity.getAssessmentComponentEntity().getComponentTypeCode().equalsIgnoreCase(questionType)).toList();    
   }
   
   private Pair<String, String> getResultSummaryForQuestionsWithTaskCode(UUID assessmentStudentID, List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> answers, String questionType, String taskCode){
@@ -357,7 +360,8 @@ public class ISRReportService extends BaseReportGenerationService {
     reportNode.setStudentName(studentName);
   }
 
-  private NME10Assessment populateNME10Assessment(ISRAssessmentSummary assessmentSummary, List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> studentAnswers, UUID assessmentStudentID){
+  private NME10Assessment populateNME10Assessment(ISRAssessmentSummary assessmentSummary, List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> studentAnswers, AssessmentStudentEntity assessmentStudentEntity) {
+    var assessmentStudentID = assessmentStudentEntity.getAssessmentStudentID();
     NME10Assessment assessmentNME10 = new NME10Assessment();
     assessmentNME10.setSession(assessmentSummary.getSession());
     assessmentNME10.setScore(assessmentSummary.getScore());
@@ -375,12 +379,41 @@ public class ISRReportService extends BaseReportGenerationService {
     var model = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID,questions, studentAnswers, MUL_CHOICE.getCode(), "M");
     assessmentNME10.setOnlineModelScore(model.getLeft());
     assessmentNME10.setOnlineModelOutOf(model.getRight());
-    var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
-    assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
-    assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
-    var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "R");
-    assessmentNME10.setWrittenReasonedEstimatesScore(writtenReasoned.getLeft());
-    assessmentNME10.setWrittenReasonedEstimatesOutOf(writtenReasoned.getRight());
+
+    var questionsTaskCodeF = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "F");
+    var questionsTaskCodeM = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "M");
+    
+    if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeF)) {
+      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
+      assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
+      assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
+    }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeM)){
+      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "M");
+      assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
+      assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
+    } else {
+      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
+      assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
+      assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
+    }
+
+    var questionsTaskCodeP = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "P");
+    var questionsTaskCodeR = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "R");
+
+    if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeP)) {
+      var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "P");
+      assessmentNME10.setWrittenReasonedEstimatesScore(writtenReasoned.getLeft());
+      assessmentNME10.setWrittenReasonedEstimatesOutOf(writtenReasoned.getRight());
+    }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeR)){
+      var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "R");
+      assessmentNME10.setWrittenReasonedEstimatesScore(writtenReasoned.getLeft());
+      assessmentNME10.setWrittenReasonedEstimatesOutOf(writtenReasoned.getRight());
+    } else {
+      var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "P");
+      assessmentNME10.setWrittenReasonedEstimatesScore(writtenReasoned.getLeft());
+      assessmentNME10.setWrittenReasonedEstimatesOutOf(writtenReasoned.getRight());
+    }
+    
     assessmentNME10.setTotalMultiOverall(getTotalOfStrings(List.of(assessmentNME10.getOnlinePlanAndDesignScore(), assessmentNME10.getOnlineReasonedEstimatesScore(), assessmentNME10.getOnlineFairShareScore(), assessmentNME10.getOnlineModelScore())));
     assessmentNME10.setOutOfMultiOverall(getTotalOfStrings(List.of(assessmentNME10.getOnlinePlanAndDesignOutOf(), assessmentNME10.getOnlineReasonedEstimatesOutOf(), assessmentNME10.getOnlineFairShareOutOf(), assessmentNME10.getOnlineModelOutOf())));
     assessmentNME10.setTotalWrittenOverall(getTotalOfStrings(List.of(assessmentNME10.getWrittenFairScore(), assessmentNME10.getWrittenReasonedEstimatesScore())));
@@ -388,6 +421,34 @@ public class ISRReportService extends BaseReportGenerationService {
     
     return assessmentNME10;
   }
+
+  private boolean checkIfStudentAnsweredOEQues(AssessmentStudentEntity student, List<AssessmentQuestionEntity> questions) {
+
+    //question ids by typecode
+    var listOfQuesIDs = questions.stream().map(AssessmentQuestionEntity::getAssessmentQuestionID).toList();
+
+    //assessment choice Ids of questions by typecode
+    var listOfQuesChoiceIDs =  questions.stream().map(AssessmentQuestionEntity::getAssessmentChoiceEntity)
+            .filter(Objects::nonNull).map(AssessmentChoiceEntity::getAssessmentChoiceID).toList();
+
+    //questionIds of questions student chose(includes answered and un-answered)
+    var listOfQuesAnswered = student.getAssessmentStudentComponentEntities().stream()
+            .map(AssessmentStudentComponentEntity::getAssessmentStudentChoiceEntities).flatMap(Collection::stream)
+            .map(AssessmentStudentChoiceEntity::getAssessmentStudentChoiceQuestionSetEntities).flatMap(Collection::stream)
+            .map(AssessmentStudentChoiceQuestionSetEntity::getAssessmentQuestionID).toList();
+
+    //assessment choice Ids of student answers
+    var listOfStudentChoices = student.getAssessmentStudentComponentEntities().stream()
+            .map(AssessmentStudentComponentEntity::getAssessmentStudentChoiceEntities).flatMap(Collection::stream)
+            .map(AssessmentStudentChoiceEntity::getAssessmentChoiceEntity).filter(Objects::nonNull).map(AssessmentChoiceEntity::getAssessmentChoiceID).toList();
+
+    var hasAnsweredOeQues =  listOfQuesAnswered.stream().anyMatch(listOfQuesIDs::contains);
+    var hasAnsweredADifferentChoice =  listOfStudentChoices.stream().anyMatch(listOfQuesChoiceIDs::contains);
+    if(hasAnsweredOeQues) {
+      return true;
+    } else return !hasAnsweredADifferentChoice;
+  }
+
 
   private String getTotalOfStrings(List<String> strings){
     double total = 0;
@@ -411,7 +472,8 @@ public class ISRReportService extends BaseReportGenerationService {
     }
   }
   
-  private NMF10Assessment populateNMF10Assessment(ISRAssessmentSummary assessmentSummary,List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> studentAnswers, UUID assessmentStudentID){
+  private NMF10Assessment populateNMF10Assessment(ISRAssessmentSummary assessmentSummary,List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> studentAnswers, AssessmentStudentEntity assessmentStudentEntity){
+    var assessmentStudentID = assessmentStudentEntity.getAssessmentStudentID();
     NMF10Assessment assessmentNMF10 = new NMF10Assessment();
     
     assessmentNMF10.setSession(assessmentSummary.getSession());
@@ -430,12 +492,41 @@ public class ISRReportService extends BaseReportGenerationService {
     var model = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, MUL_CHOICE.getCode(), "M");
     assessmentNMF10.setMultiChoiceModelScore(replacePeriodsWithCommas(model.getLeft()));
     assessmentNMF10.setMultiChoiceModelOutOf(replacePeriodsWithCommas(model.getRight()));
-    var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
-    assessmentNMF10.setWrittenGroupingScore(replacePeriodsWithCommas(writtenFairShare.getLeft()));
-    assessmentNMF10.setWrittenGroupingOutOf(replacePeriodsWithCommas(writtenFairShare.getRight()));
-    var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "R");
-    assessmentNMF10.setWrittenPlanningScore(replacePeriodsWithCommas(writtenReasoned.getLeft()));
-    assessmentNMF10.setWrittenPlanningOutOf(replacePeriodsWithCommas(writtenReasoned.getRight()));
+
+    var questionsTaskCodeF = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "F");
+    var questionsTaskCodeM = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "M");
+
+    if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeF)) {
+      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
+      assessmentNMF10.setWrittenGroupingScore(writtenFairShare.getLeft());
+      assessmentNMF10.setWrittenGroupingOutOf(writtenFairShare.getRight());
+    }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeM)){
+      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "M");
+      assessmentNMF10.setWrittenGroupingScore(writtenFairShare.getLeft());
+      assessmentNMF10.setWrittenGroupingOutOf(writtenFairShare.getRight());
+    } else {
+      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
+      assessmentNMF10.setWrittenGroupingScore(writtenFairShare.getLeft());
+      assessmentNMF10.setWrittenGroupingOutOf(writtenFairShare.getRight());
+    }
+
+    var questionsTaskCodeP = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "P");
+    var questionsTaskCodeR = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "R");
+
+    if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeP)) {
+      var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "P");
+      assessmentNMF10.setWrittenPlanningScore(writtenReasoned.getLeft());
+      assessmentNMF10.setWrittenPlanningOutOf(writtenReasoned.getRight());
+    }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeR)){
+      var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "R");
+      assessmentNMF10.setWrittenPlanningScore(writtenReasoned.getLeft());
+      assessmentNMF10.setWrittenPlanningOutOf(writtenReasoned.getRight());
+    } else {
+      var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "P");
+      assessmentNMF10.setWrittenPlanningScore(writtenReasoned.getLeft());
+      assessmentNMF10.setWrittenPlanningOutOf(writtenReasoned.getRight());
+    }
+    
     assessmentNMF10.setTotalMultiOverall(replacePeriodsWithCommas(getTotalOfStrings(List.of(assessmentNMF10.getMultiChoicePlanningScore(), assessmentNMF10.getMultiChoiceEstimationsScore(), assessmentNMF10.getMultiChoiceGroupingScore(), assessmentNMF10.getMultiChoiceModelScore()))));
     assessmentNMF10.setOutOfMultiOverall(replacePeriodsWithCommas(getTotalOfStrings(List.of(assessmentNMF10.getMultiChoicePlanningOutOf(), assessmentNMF10.getMultiChoiceEstimationsOutOf(), assessmentNMF10.getMultiChoiceGroupingOutOf(), assessmentNMF10.getMultiChoiceModelOutOf()))));
     assessmentNMF10.setTotalWrittenOverall(replacePeriodsWithCommas(getTotalOfStrings(List.of(assessmentNMF10.getWrittenGroupingScore(), assessmentNMF10.getWrittenPlanningScore()))));
