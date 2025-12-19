@@ -15,10 +15,12 @@
 	<parameter name="writtenFairOutOf" class="java.lang.String"/>
 	<parameter name="writtenReasonedEstimatesScore" class="java.lang.String"/>
 	<parameter name="writtenReasonedEstimatesOutOf" class="java.lang.String"/>
-	<parameter name="totalOverall" class="java.lang.String"/>
-	<parameter name="outOfOverall" class="java.lang.String"/>
+	<parameter name="totalMultiOverall" class="java.lang.String"/>
+	<parameter name="outOfMultiOverall" class="java.lang.String"/>
+	<parameter name="totalWrittenOverall" class="java.lang.String"/>
+	<parameter name="outOfWrittenOverall" class="java.lang.String"/>
 	<title>
-		<band height="652" splitType="Stretch">
+		<band height="667" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<rectangle>
 				<reportElement mode="Opaque" x="535" y="101" width="175" height="249" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
@@ -326,8 +328,9 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<textFieldExpression><![CDATA[$P{onlineReasonedEstimatesScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Opaque" x="1" y="570" width="484" height="13" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
+				<reportElement mode="Opaque" x="1" y="569" width="484" height="30" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
@@ -343,7 +346,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<text><![CDATA[Extended Written Response Questions]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="480" y="570" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
+				<reportElement mode="Opaque" x="480" y="569" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -357,7 +360,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<text><![CDATA[Your Score]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="580" y="570" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
+				<reportElement mode="Opaque" x="580" y="569" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -465,7 +468,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<textFieldExpression><![CDATA[$P{onlineModelScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="583" width="479" height="24" backcolor="#FFFFFF" uuid="f491b4a3-89a2-412a-9b5a-c3b89ad47570">
+				<reportElement mode="Transparent" x="1" y="599" width="479" height="24" backcolor="#FFFFFF" uuid="f491b4a3-89a2-412a-9b5a-c3b89ad47570">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -484,7 +487,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 <i>Example: Determine a procedure to distribute a group prize.</i>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="607" width="479" height="44" backcolor="#FFFFFF" uuid="8dfecd24-5824-4f33-94fc-b67a5cf3d287">
+				<reportElement mode="Transparent" x="1" y="623" width="479" height="44" backcolor="#FFFFFF" uuid="8dfecd24-5824-4f33-94fc-b67a5cf3d287">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -503,7 +506,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 <i>Example: Estimate the population of a historical village based on discovered artifacts.</i>]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="583" width="100" height="24" uuid="db8e9d49-820d-49f9-8bd8-0b3a0f22cb8e">
+				<reportElement x="480" y="599" width="100" height="24" uuid="db8e9d49-820d-49f9-8bd8-0b3a0f22cb8e">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
@@ -519,7 +522,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<textFieldExpression><![CDATA[$P{writtenFairScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="583" width="105" height="24" uuid="727b72d8-86ae-4602-9b75-b0cfe881fcce">
+				<reportElement x="580" y="599" width="105" height="24" uuid="727b72d8-86ae-4602-9b75-b0cfe881fcce">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
@@ -535,7 +538,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<textFieldExpression><![CDATA[$P{writtenFairOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="607" width="105" height="44" uuid="2034ea19-8fef-4da0-96f3-7cea4a6b9c6b"/>
+				<reportElement x="580" y="623" width="105" height="44" uuid="2034ea19-8fef-4da0-96f3-7cea4a6b9c6b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -549,7 +552,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<textFieldExpression><![CDATA[$P{writtenReasonedEstimatesOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="607" width="100" height="44" uuid="3ad224c4-18e0-4438-968e-c2fde5e473ec"/>
+				<reportElement x="480" y="623" width="100" height="44" uuid="3ad224c4-18e0-4438-968e-c2fde5e473ec"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -629,7 +632,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="BC Sans" size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{outOfOverall}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{outOfMultiOverall}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement mode="Opaque" x="480" y="416" width="100" height="17" backcolor="#E0E0E0" uuid="bd97b81f-f2bd-4e18-8796-eb0aa350243c">
@@ -645,7 +648,39 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="BC Sans" size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{totalOverall}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{totalMultiOverall}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="480" y="582" width="100" height="17" backcolor="#E0E0E0" uuid="9a9c051e-48df-4d09-883d-326aa878e464">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="BC Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalWrittenOverall}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="580" y="582" width="105" height="17" backcolor="#E0E0E0" uuid="57810ff2-bb9e-4f99-9ccb-6d62bb89c289">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="BC Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{outOfWrittenOverall}]]></textFieldExpression>
 			</textField>
 		</band>
 	</title>

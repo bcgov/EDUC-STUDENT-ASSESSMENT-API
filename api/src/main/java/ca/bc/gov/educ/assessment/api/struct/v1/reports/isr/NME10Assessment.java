@@ -26,6 +26,8 @@ public class NME10Assessment extends ISRAssessment {
     private String writtenFairOutOf;
     private String writtenReasonedEstimatesScore;
     private String writtenReasonedEstimatesOutOf;
-    private String totalOverall;
-    private String outOfOverall;
+    private String totalMultiOverall;
+    private String outOfMultiOverall;
+    private String totalWrittenOverall;
+    private String outOfWrittenOverall;
 }

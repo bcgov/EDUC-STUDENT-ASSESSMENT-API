@@ -381,8 +381,10 @@ public class ISRReportService extends BaseReportGenerationService {
     var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "R");
     assessmentNME10.setWrittenReasonedEstimatesScore(writtenReasoned.getLeft());
     assessmentNME10.setWrittenReasonedEstimatesOutOf(writtenReasoned.getRight());
-    assessmentNME10.setTotalOverall(getTotalOfStrings(List.of(assessmentNME10.getOnlinePlanAndDesignScore(), assessmentNME10.getOnlineReasonedEstimatesScore(), assessmentNME10.getOnlineFairShareScore(), assessmentNME10.getOnlineModelScore(), assessmentNME10.getWrittenFairScore(), assessmentNME10.getWrittenReasonedEstimatesScore())));
-    assessmentNME10.setOutOfOverall(getTotalOfStrings(List.of(assessmentNME10.getOnlinePlanAndDesignOutOf(), assessmentNME10.getOnlineReasonedEstimatesOutOf(), assessmentNME10.getOnlineFairShareOutOf(), assessmentNME10.getOnlineModelOutOf(), assessmentNME10.getWrittenFairOutOf(), assessmentNME10.getWrittenReasonedEstimatesOutOf())));
+    assessmentNME10.setTotalMultiOverall(getTotalOfStrings(List.of(assessmentNME10.getOnlinePlanAndDesignScore(), assessmentNME10.getOnlineReasonedEstimatesScore(), assessmentNME10.getOnlineFairShareScore(), assessmentNME10.getOnlineModelScore())));
+    assessmentNME10.setOutOfMultiOverall(getTotalOfStrings(List.of(assessmentNME10.getOnlinePlanAndDesignOutOf(), assessmentNME10.getOnlineReasonedEstimatesOutOf(), assessmentNME10.getOnlineFairShareOutOf(), assessmentNME10.getOnlineModelOutOf())));
+    assessmentNME10.setTotalWrittenOverall(getTotalOfStrings(List.of(assessmentNME10.getWrittenFairScore(), assessmentNME10.getWrittenReasonedEstimatesScore())));
+    assessmentNME10.setOutOfWrittenOverall(getTotalOfStrings(List.of(assessmentNME10.getWrittenFairOutOf(), assessmentNME10.getWrittenReasonedEstimatesOutOf())));
     
     return assessmentNME10;
   }
@@ -393,7 +395,8 @@ public class ISRReportService extends BaseReportGenerationService {
     for (String str : strings) {
       if (str != null && !str.trim().isEmpty()) {
         try {
-          total += Double.parseDouble(str);
+          var convStr = str.replaceAll(",", ".");
+          total += Double.parseDouble(convStr);
         } catch (NumberFormatException e) {
           // Skip non-numeric values
         }
@@ -407,7 +410,7 @@ public class ISRReportService extends BaseReportGenerationService {
       return String.format("%.1f", total);
     }
   }
-
+  
   private NMF10Assessment populateNMF10Assessment(ISRAssessmentSummary assessmentSummary,List<AssessmentQuestionEntity> questions, List<AssessmentStudentAnswerEntity> studentAnswers, UUID assessmentStudentID){
     NMF10Assessment assessmentNMF10 = new NMF10Assessment();
     
@@ -433,8 +436,10 @@ public class ISRReportService extends BaseReportGenerationService {
     var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "R");
     assessmentNMF10.setWrittenPlanningScore(replacePeriodsWithCommas(writtenReasoned.getLeft()));
     assessmentNMF10.setWrittenPlanningOutOf(replacePeriodsWithCommas(writtenReasoned.getRight()));
-    assessmentNMF10.setTotalOverall(getTotalOfStrings(List.of(assessmentNMF10.getMultiChoicePlanningScore(), assessmentNMF10.getMultiChoiceEstimationsScore(), assessmentNMF10.getMultiChoiceGroupingScore(), assessmentNMF10.getMultiChoiceModelScore(), assessmentNMF10.getWrittenGroupingScore(), assessmentNMF10.getWrittenPlanningScore())));
-    assessmentNMF10.setOutOfOverall(getTotalOfStrings(List.of(assessmentNMF10.getMultiChoicePlanningOutOf(), assessmentNMF10.getMultiChoiceEstimationsOutOf(), assessmentNMF10.getMultiChoiceGroupingOutOf(), assessmentNMF10.getMultiChoiceModelOutOf(), assessmentNMF10.getWrittenGroupingOutOf(), assessmentNMF10.getWrittenPlanningOutOf())));
+    assessmentNMF10.setTotalMultiOverall(replacePeriodsWithCommas(getTotalOfStrings(List.of(assessmentNMF10.getMultiChoicePlanningScore(), assessmentNMF10.getMultiChoiceEstimationsScore(), assessmentNMF10.getMultiChoiceGroupingScore(), assessmentNMF10.getMultiChoiceModelScore()))));
+    assessmentNMF10.setOutOfMultiOverall(replacePeriodsWithCommas(getTotalOfStrings(List.of(assessmentNMF10.getMultiChoicePlanningOutOf(), assessmentNMF10.getMultiChoiceEstimationsOutOf(), assessmentNMF10.getMultiChoiceGroupingOutOf(), assessmentNMF10.getMultiChoiceModelOutOf()))));
+    assessmentNMF10.setTotalWrittenOverall(replacePeriodsWithCommas(getTotalOfStrings(List.of(assessmentNMF10.getWrittenGroupingScore(), assessmentNMF10.getWrittenPlanningScore()))));
+    assessmentNMF10.setOutOfWrittenOverall(replacePeriodsWithCommas(getTotalOfStrings(List.of(assessmentNMF10.getWrittenGroupingOutOf(), assessmentNMF10.getWrittenPlanningOutOf()))));
 
     return assessmentNMF10;
   }
