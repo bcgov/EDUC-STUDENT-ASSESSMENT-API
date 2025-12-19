@@ -298,15 +298,15 @@ public class StudentAssessmentResultService {
             var multiChoiceMarks = TransformUtil.splitStringEveryNChars(studentResult.getMcMarks(), 4);
             AtomicInteger questionCounter = new AtomicInteger(1);
             AtomicInteger itemCounter = new AtomicInteger(1);
-            for(var multiChoiceMark: multiChoiceMarks){
-                var answer = new StagedAssessmentStudentAnswerEntity();
-                answer.setStagedAssessmentStudentComponentEntity(studentComponent);
-                var question = component.getAssessmentQuestionEntities().stream()
-                        .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
-                        .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
-                questionCounter.getAndIncrement();
-                itemCounter.getAndIncrement();
+            for(var multiChoiceMark: multiChoiceMarks) {
                 if (StringUtils.isNotBlank(multiChoiceMark) && !multiChoiceMark.equalsIgnoreCase("9999")) {
+                    var answer = new StagedAssessmentStudentAnswerEntity();
+                    answer.setStagedAssessmentStudentComponentEntity(studentComponent);
+                    var question = component.getAssessmentQuestionEntities().stream()
+                            .filter(q -> q.getQuestionNumber().equals(questionCounter.get()) && q.getItemNumber().equals(itemCounter.get()))
+                            .findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentQuestionEntity.class, "questionNumber", questionCounter.toString()));
+                    questionCounter.getAndIncrement();
+                    itemCounter.getAndIncrement();
                     answer.setAssessmentQuestionID(question.getAssessmentQuestionID());
                     answer.setScore(new BigDecimal(multiChoiceMark));
                     answer.setCreateUser(studentResult.getCreateUser());
@@ -560,8 +560,8 @@ public class StudentAssessmentResultService {
                     }
                 }
             }
-            assessmentStudent.getAssessmentStudentComponentEntities().add(studentComponent);
         }
+        assessmentStudent.getAssessmentStudentComponentEntities().add(studentComponent);
     }
 
 
