@@ -6,8 +6,8 @@ COPY api/src src
 RUN mvn package -DskipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
-FROM artifacts.developer.gov.bc.ca/docker-remote/amazoncorretto:21-al2023-jdk
-RUN useradd -ms /bin/bash spring
+FROM artifacts.developer.gov.bc.ca/docker-remote/amazoncorretto:21-alpine3.22-jdk
+RUN /usr/sbin/useradd -ms /bin/bash spring
 RUN mkdir -p /logs
 RUN chown -R spring:spring /logs
 RUN chmod 755 /logs
