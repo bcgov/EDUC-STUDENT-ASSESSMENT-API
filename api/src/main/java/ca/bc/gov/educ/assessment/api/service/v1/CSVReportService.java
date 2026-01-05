@@ -530,12 +530,12 @@ public class CSVReportService {
             });
 
             var sortedList = keySummaryRowsList.stream()
-                    .sorted(Comparator.comparing((KeySummaryReportResult r) -> StringUtils.isNotBlank(r.getFormCode()) ? "" : r.getFormCode())
-                            .thenComparing(r -> StringUtils.isNotBlank(r.getComponentType()) ? "" : r.getComponentType())
+                    .sorted(Comparator.comparing((KeySummaryReportResult r) -> StringUtils.isNotBlank(r.getFormCode()) ? r.getFormCode() : "")
+                            .thenComparing(r -> StringUtils.isNotBlank(r.getComponentType()) ? r.getComponentType() : "")
                             .thenComparingInt(r -> r.getItemNumber() == null ? Integer.MIN_VALUE : r.getItemNumber())
                             .thenComparingInt(r -> {
                                 String questionNumber = r.getQuestionNumber();
-                                if (StringUtils.isNotBlank(questionNumber)) {
+                                if (StringUtils.isBlank(questionNumber)) {
                                     return Integer.MIN_VALUE;
                                 }
                                 try {
