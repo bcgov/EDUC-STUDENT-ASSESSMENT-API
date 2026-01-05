@@ -529,10 +529,22 @@ public class CSVReportService {
                 keySummaryRowsList.add(getKeySummaryReportResult(choice, questions));
             });
 
-            var sortedList = keySummaryRowsList.stream().sorted(Comparator.comparing(KeySummaryReportResult::getFormCode)
-                    .thenComparing(KeySummaryReportResult::getComponentType)
-                    .thenComparing(KeySummaryReportResult::getItemNumber)
-                    .thenComparing(KeySummaryReportResult::getQuestionNumber)).toList();
+            var sortedList = keySummaryRowsList.stream()
+                    .sorted(Comparator.comparing((KeySummaryReportResult r) -> StringUtils.isNotBlank(r.getFormCode()) ? "" : r.getFormCode())
+                            .thenComparing(r -> StringUtils.isNotBlank(r.getComponentType()) ? "" : r.getComponentType())
+                            .thenComparingInt(r -> r.getItemNumber() == null ? Integer.MIN_VALUE : r.getItemNumber())
+                            .thenComparingInt(r -> {
+                                String questionNumber = r.getQuestionNumber();
+                                if (StringUtils.isNotBlank(questionNumber)) {
+                                    return Integer.MIN_VALUE;
+                                }
+                                try {
+                                    return Integer.parseInt(questionNumber);
+                                } catch (NumberFormatException e) {
+                                    return Integer.MIN_VALUE;
+                                }
+                            }))
+                    .toList();
             
             var sessionString = session.getCourseYear() +"/"+ session.getCourseMonth();
             for (KeySummaryReportResult result : sortedList) {
@@ -764,7 +776,7 @@ public class CSVReportService {
                 session,
                 result.getFormCode(),
                 result.getComponentType(),
-                result.getItemNumber().toString(),
+                result.getItemNumber() != null ? result.getItemNumber().toString() : null,
                 StringUtils.isNotBlank(result.getAssessmentQuestionID()) ? "Mark" : "Choice",
                 StringUtils.isNotBlank(result.getQuestionNumber()) ? result.getQuestionNumber() : null,
                 result.getQuestionValue() != null ? result.getQuestionValue().toString() : null,
