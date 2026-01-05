@@ -6,7 +6,7 @@ COPY api/src src
 RUN mvn package -DskipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
-FROM artifacts.developer.gov.bc.ca/docker-remote/openjdk:21-jdk-oracle
+FROM artifacts.developer.gov.bc.ca/docker-remote/amazoncorretto:21.0.9-alpine3.22
 RUN useradd -ms /bin/bash spring
 RUN mkdir -p /logs
 RUN chown -R spring:spring /logs
