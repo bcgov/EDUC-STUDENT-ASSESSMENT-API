@@ -8,7 +8,7 @@ RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 FROM artifacts.developer.gov.bc.ca/docker-remote/eclipse-temurin:21.0.9_10-jdk-alpine-3.23
 
-RUN adduser -ms /bin/bash spring
+RUN adduser -D -s /bin/sh spring
 RUN mkdir -p /logs
 RUN chown -R spring:spring /logs
 RUN chmod 755 /logs
