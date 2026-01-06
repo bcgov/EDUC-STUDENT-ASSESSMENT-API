@@ -16,6 +16,10 @@
 	<parameter name="writtenGroupingOutOf" class="java.lang.String"/>
 	<parameter name="writtenPlanningScore" class="java.lang.String"/>
 	<parameter name="writtenPlanningOutOf" class="java.lang.String"/>
+	<parameter name="writtenModelScore" class="java.lang.String"/>
+	<parameter name="writtenModelOutOf" class="java.lang.String"/>
+	<parameter name="writtenEstimatesScore" class="java.lang.String"/>
+	<parameter name="writtenEstimatesOutOf" class="java.lang.String"/>
 	<parameter name="totalMultiOverall" class="java.lang.String"/>
 	<parameter name="outOfMultiOverall" class="java.lang.String"/>
 	<parameter name="totalWrittenOverall" class="java.lang.String"/>
@@ -504,6 +508,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 				<reportElement mode="Transparent" x="1" y="661" width="479" height="51" backcolor="#FFFFFF" uuid="6527d8d5-c0e7-4c6e-8134-7b5c315767d5">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<printWhenExpression><![CDATA[$P{writtenGroupingScore} != null]]></printWhenExpression>
 				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
@@ -520,7 +525,9 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 L’élève doit créer des groupements ou des catégories pour répartir ou allouer quelque chose en utilisant des critères convenables à une situation (p. ex., un processus pour distribuer une prime d’équipe parmi les membres d’un groupe).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="661" width="100" height="51" uuid="56f15e5f-9cbd-4fa9-91e3-83358c73aa0a"/>
+				<reportElement x="480" y="661" width="100" height="51" uuid="56f15e5f-9cbd-4fa9-91e3-83358c73aa0a">
+					<printWhenExpression><![CDATA[$P{writtenGroupingScore} != null]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -534,7 +541,9 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 				<textFieldExpression><![CDATA[$P{writtenGroupingScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="661" width="105" height="51" uuid="5d930ecc-6c80-4c46-8664-4c868206a86b"/>
+				<reportElement x="580" y="661" width="105" height="51" uuid="5d930ecc-6c80-4c46-8664-4c868206a86b">
+					<printWhenExpression><![CDATA[$P{writtenGroupingOutOf} != null]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -551,6 +560,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 				<reportElement mode="Transparent" x="1" y="712" width="479" height="40" backcolor="#FFFFFF" uuid="1347b830-f5ab-4001-a162-b439551cd692">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<printWhenExpression><![CDATA[$P{writtenPlanningScore} != null]]></printWhenExpression>
 				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
@@ -567,7 +577,9 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif pour formuler une recommandation (p. ex., planifier l’expédition efficace de plusieurs conteneurs).]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="712" width="100" height="40" uuid="2a60e87b-23ef-4c0a-b065-8e09d458ba4c"/>
+				<reportElement x="480" y="712" width="100" height="40" uuid="2a60e87b-23ef-4c0a-b065-8e09d458ba4c">
+					<printWhenExpression><![CDATA[$P{writtenPlanningScore} != null]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -581,7 +593,9 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 				<textFieldExpression><![CDATA[$P{writtenPlanningScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="712" width="105" height="40" uuid="d4348a1d-a4bf-40ec-bf5c-13045e88093c"/>
+				<reportElement x="580" y="712" width="105" height="40" uuid="d4348a1d-a4bf-40ec-bf5c-13045e88093c">
+					<printWhenExpression><![CDATA[$P{writtenPlanningOutOf} != null]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -674,6 +688,110 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<font fontName="BC Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{outOfWrittenOverall}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="661" width="479" height="51" backcolor="#FFFFFF" uuid="177d511b-3805-4ef3-b54f-a9ac90a1363e">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<printWhenExpression><![CDATA[$P{writtenModelScore} != null]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="9" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[<b>L’établissement de modèle</b><br>
+L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemble de données. Il doit ensuite appliquer ce modèle ou cette stratégie à un nouvel ensemble de données et, si besoin est, l’adapter (p. ex., extrapoler des données pour prédire des tendances futures).]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="480" y="661" width="100" height="51" uuid="484fc491-4f26-450d-b28e-add817f1a45e">
+					<printWhenExpression><![CDATA[$P{writtenModelScore} != null]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{writtenModelScore}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="580" y="661" width="105" height="51" uuid="9b65480c-37d5-4462-9eba-35caee287e53">
+					<printWhenExpression><![CDATA[$P{writtenModelOutOf} != null]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{writtenModelOutOf}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="1" y="712" width="479" height="40" backcolor="#FFFFFF" uuid="c2d63d24-55eb-493d-bd49-da73c874a10c">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<printWhenExpression><![CDATA[$P{writtenEstimatesScore} != null]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="BC Sans" size="9" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[<b>Les estimations motivées</b><br>
+L’élève doit faire ou utiliser des estimations de plusieurs variables, afin de former un argument logique à l’appui d’une solution (p. ex., planifier des vacances).]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="480" y="712" width="100" height="40" uuid="5fde9071-6af0-4a82-ae5e-fd4037646979">
+					<printWhenExpression><![CDATA[$P{writtenEstimatesScore} != null]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{writtenEstimatesScore}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="580" y="712" width="105" height="40" uuid="e2370ff6-ef49-4bcd-9392-85a850eb9c8b">
+					<printWhenExpression><![CDATA[$P{writtenEstimatesOutOf} != null]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="BC Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{writtenEstimatesOutOf}]]></textFieldExpression>
 			</textField>
 		</band>
 	</title>

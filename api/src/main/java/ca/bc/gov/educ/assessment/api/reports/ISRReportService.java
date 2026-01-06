@@ -198,6 +198,7 @@ public class ISRReportService extends BaseReportGenerationService {
               break;
             case "NMF":
             case "NMF10":
+              assessmentSummary.setScore(getLTFProficiencyScore(assessmentStudent.getProficiencyScore()));
               reportNode.getAssessmentDetails().add(populateNMF10Assessment(assessmentSummary, questions, studentAnswers, assessmentStudent));
               break;
           }
@@ -502,8 +503,8 @@ public class ISRReportService extends BaseReportGenerationService {
       assessmentNMF10.setWrittenGroupingOutOf(writtenFairShare.getRight());
     }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeM)){
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "M");
-      assessmentNMF10.setWrittenGroupingScore(writtenFairShare.getLeft());
-      assessmentNMF10.setWrittenGroupingOutOf(writtenFairShare.getRight());
+      assessmentNMF10.setWrittenModelScore(writtenFairShare.getLeft());
+      assessmentNMF10.setWrittenModelOutOf(writtenFairShare.getRight());
     } else {
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
       assessmentNMF10.setWrittenGroupingScore(writtenFairShare.getLeft());
@@ -519,8 +520,8 @@ public class ISRReportService extends BaseReportGenerationService {
       assessmentNMF10.setWrittenPlanningOutOf(writtenReasoned.getRight());
     }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeR)){
       var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "R");
-      assessmentNMF10.setWrittenPlanningScore(writtenReasoned.getLeft());
-      assessmentNMF10.setWrittenPlanningOutOf(writtenReasoned.getRight());
+      assessmentNMF10.setWrittenEstimatesScore(writtenReasoned.getLeft());
+      assessmentNMF10.setWrittenEstimatesOutOf(writtenReasoned.getRight());
     } else {
       var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "P");
       assessmentNMF10.setWrittenPlanningScore(writtenReasoned.getLeft());
@@ -797,6 +798,24 @@ public class ISRReportService extends BaseReportGenerationService {
         return "4 - Approfondie";
       }    
     }
+    return "";
+  }
+
+  private String getLTFProficiencyScore(Integer proficiencyScore){
+    if(proficiencyScore == null){
+      return "";
+    }
+    
+    if(proficiencyScore == 1){
+      return "1 - Émergente (Emerging)";
+    }else if(proficiencyScore == 2){
+      return "2 - En voie d’acquisition (Developing)";
+    }else if(proficiencyScore == 3){
+      return "3 - Acquise (Proficient)";
+    }else if(proficiencyScore == 4){
+      return "4 - Approfondie (Extending)";
+    }
+  
     return "";
   }
 }
