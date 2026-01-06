@@ -31,7 +31,7 @@ public interface StagedAssessmentStudentLightRepository extends JpaRepository<St
         from StagedAssessmentStudentLightEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
         and (stud.provincialSpecialCaseCode is not null OR stud.proficiencyScore is not null)    
-        and stud.stagedAssessmentStudentStatus = 'ACTIVE'
+        and stud.stagedAssessmentStudentStatus in ('ACTIVE', 'MERGED')
         group by stud.assessmentEntity.assessmentTypeCode, stud.gradeAtRegistration
     """)
     List<SummaryByGradeQueryResponse> getSummaryByGradeForSession(UUID sessionID);
@@ -51,7 +51,7 @@ public interface StagedAssessmentStudentLightRepository extends JpaRepository<St
         from StagedAssessmentStudentLightEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
         and (stud.provincialSpecialCaseCode is not null OR stud.proficiencyScore is not null)    
-        and stud.stagedAssessmentStudentStatus = 'ACTIVE'
+        and stud.stagedAssessmentStudentStatus in ('ACTIVE', 'MERGED')
         group by stud.assessmentEntity.assessmentTypeCode, stud.assessmentFormID
     """)
     List<SummaryByFormQueryResponse> getSummaryByFormForSession(UUID sessionID);
