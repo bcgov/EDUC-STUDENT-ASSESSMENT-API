@@ -85,7 +85,7 @@ public class StudentAssessmentResultService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processLoadedRecordsInBatchFile(StudentResultSagaData studentResultSagaData) {
+    public void processLoadedResultRecord(StudentResultSagaData studentResultSagaData) {
         var assessmentEntity = assessmentRepository.findById(UUID.fromString(studentResultSagaData.getAssessmentID()))
                 .orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", studentResultSagaData.getAssessmentID()));
 

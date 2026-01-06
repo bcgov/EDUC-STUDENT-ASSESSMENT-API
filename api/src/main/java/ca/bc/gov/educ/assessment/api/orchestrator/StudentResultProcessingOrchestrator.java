@@ -11,7 +11,6 @@ import ca.bc.gov.educ.assessment.api.service.v1.SagaService;
 import ca.bc.gov.educ.assessment.api.service.v1.StudentAssessmentResultService;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Component;
@@ -50,7 +49,7 @@ public class StudentResultProcessingOrchestrator extends BaseOrchestrator<Studen
     final Event.EventBuilder eventBuilder = Event.builder();
     eventBuilder.sagaId(saga.getSagaId()).eventType(CREATE_STUDENT_RESULT);
 
-    studentAssessmentResultService.processLoadedRecordsInBatchFile(studentResultSagaData);
+    studentAssessmentResultService.processLoadedResultRecord(studentResultSagaData);
 
     eventBuilder.eventOutcome(STUDENT_RESULT_CREATED);
     val nextEvent = eventBuilder.build();

@@ -52,7 +52,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     and (stud.provincialSpecialCaseCode is null OR stud.provincialSpecialCaseCode != :provincialSpecialCaseCode)
     and stud.studentStatusCode = :studentStatusCode
     """)
-    List<AssessmentStudentLightEntity> findBProvincialSpecialCaseCodeNotAndStudentStatusCode(UUID sessionID, String provincialSpecialCaseCode, String studentStatusCode);
+    List<AssessmentStudentLightEntity> findByProvincialSpecialCaseCodeNotAndStudentStatusCode(UUID sessionID, String provincialSpecialCaseCode, String studentStatusCode);
 
     @Query("""
     select stud from AssessmentStudentLightEntity stud
