@@ -16,23 +16,10 @@ public class StringMapper {
 
   public static String trimAndUppercase(String value){
     if (StringUtils.isNotBlank(value)) {
-      return StringUtils.trim(value).toUpperCase();
+      var trimmed = StringUtils.trimToNull(value);
+      return StringUtils.isNotBlank(trimmed) ? trimmed.toUpperCase() : null;
     }
     return value;
   }
 
-  public static String removeLeadingApostrophes(String value) {
-    if (StringUtils.isNotBlank(value)) {
-      value = value.trim();
-      if (value.startsWith("'") && value.length() == 1) {
-        return null;
-      }
-    }
-    return value;
-  }
-
-  public static String processGivenName(String value) {
-    String legalGivenName = removeLeadingApostrophes(value);
-    return trimAndUppercase(legalGivenName);
-  }
 }

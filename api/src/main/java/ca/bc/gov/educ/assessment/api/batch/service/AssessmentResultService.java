@@ -341,7 +341,7 @@ public class AssessmentResultService {
         }
 
         final var pen = StringMapper.trimAndUppercase(ds.getString(PEN.getName()));
-        if (StringUtils.isNotEmpty(pen) && !PenUtil.validCheckDigit(pen)) {
+        if (StringUtils.isBlank(pen)) {
             throw new ResultsFileUnProcessableException(INVALID_PEN, guid, lineNumber);
         }
 
