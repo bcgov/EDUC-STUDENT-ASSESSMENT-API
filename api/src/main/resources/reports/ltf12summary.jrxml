@@ -37,25 +37,25 @@
 		<band height="790" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<rectangle>
-				<reportElement mode="Opaque" x="535" y="108" width="175" height="339" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
+				<reportElement mode="Opaque" x="535" y="108" width="175" height="342" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("4 - Approfondie (Extending)")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="360" y="108" width="175" height="339" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b90587e-7fee-4b7f-99a8-8538b65a05c7">
+				<reportElement mode="Opaque" x="360" y="108" width="175" height="341" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b90587e-7fee-4b7f-99a8-8538b65a05c7">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("3 - Acquise (Proficient)")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="108" width="190" height="339" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="e34cd20d-59fd-4469-8aea-20727e814ecd">
+				<reportElement mode="Opaque" x="0" y="108" width="190" height="341" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="e34cd20d-59fd-4469-8aea-20727e814ecd">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("1 - Émergente (Emerging)")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="180" y="108" width="180" height="339" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="dfe961e3-e1af-4582-a5c1-027dbd0ac1c6">
+				<reportElement mode="Opaque" x="180" y="108" width="180" height="341" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="dfe961e3-e1af-4582-a5c1-027dbd0ac1c6">
 					<printWhenExpression><![CDATA[$P{score}.equals("2 - En voie d’acquisition (Developing)")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
