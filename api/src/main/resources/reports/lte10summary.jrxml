@@ -18,7 +18,7 @@
 	<parameter name="partBWrittenResponseUnderstandingScore" class="java.lang.String"/>
 	<parameter name="partBWrittenResponseUnderstandingOutOf" class="java.lang.String"/>
 	<title>
-		<band height="588" splitType="Stretch">
+		<band height="594" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<rectangle>
 				<reportElement mode="Opaque" x="535" y="101" width="175" height="269" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
@@ -44,7 +44,7 @@
 				</reportElement>
 			</rectangle>
 			<break>
-				<reportElement positionType="Float" x="0" y="587" width="79" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
+				<reportElement positionType="Float" x="0" y="593" width="78" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
 			</break>
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
@@ -108,7 +108,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[4 - Extending]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="7" y="124" width="160" height="44" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
+				<reportElement x="7" y="124" width="160" height="62" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
@@ -149,7 +149,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 
 <li>critically or creatively express ideas in a limited manner with partial evidence</li><br>
 
-<li>generally, use conventions of language appropriate to audience and purpose; errors are distracting</li>
+<li>generally use conventions of language appropriate to audience and purpose; errors are distracting</li>
 ]]></text>
 			</staticText>
 			<staticText>
@@ -261,7 +261,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[Out of]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="432" width="479" height="22" backcolor="#FFFFFF" uuid="ca20abd2-9d38-41a8-9480-80da1c053469">
+				<reportElement mode="Transparent" x="1" y="432" width="479" height="25" backcolor="#FFFFFF" uuid="ca20abd2-9d38-41a8-9480-80da1c053469">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -280,7 +280,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 <i>Selected-response questions (machine-scored)</i>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="454" width="479" height="22" backcolor="#FFFFFF" uuid="437d7843-db34-4407-9ebb-1680336c7a17">
+				<reportElement mode="Transparent" x="1" y="457" width="479" height="25" backcolor="#FFFFFF" uuid="437d7843-db34-4407-9ebb-1680336c7a17">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -299,7 +299,9 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 <i>Written-response questions (teacher-scored)</i>]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="432" width="100" height="22" uuid="bef2864b-e66b-444a-bb54-dd641632b551"/>
+				<reportElement x="480" y="432" width="100" height="25" uuid="bef2864b-e66b-444a-bb54-dd641632b551">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -313,7 +315,9 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{comprehendScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="432" width="105" height="22" uuid="d30cd488-96cc-47d5-97b1-5cba4c07f084"/>
+				<reportElement x="580" y="432" width="105" height="25" uuid="d30cd488-96cc-47d5-97b1-5cba4c07f084">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -327,7 +331,9 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{comprehendOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="454" width="105" height="22" uuid="60df56e3-7414-4321-9d09-c960ca952d4e"/>
+				<reportElement x="580" y="457" width="105" height="25" uuid="60df56e3-7414-4321-9d09-c960ca952d4e">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -341,7 +347,9 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{communicateOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="454" width="100" height="22" uuid="7393ce8a-3985-4ec2-8a8a-1e6983413356"/>
+				<reportElement x="480" y="457" width="100" height="25" uuid="7393ce8a-3985-4ec2-8a8a-1e6983413356">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -355,7 +363,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{communicateScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Opaque" x="1" y="476" width="484" height="13" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
+				<reportElement mode="Opaque" x="1" y="482" width="484" height="13" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box>
@@ -372,7 +380,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[Raw Scores by Part]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="480" y="476" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
+				<reportElement mode="Opaque" x="480" y="482" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -386,7 +394,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[Your Score]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="580" y="476" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
+				<reportElement mode="Opaque" x="580" y="482" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -400,7 +408,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[Out of]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="489" width="479" height="14" backcolor="#FFFFFF" uuid="ad81b2cb-0a61-4c97-834b-d8f7359b62bd">
+				<reportElement mode="Transparent" x="1" y="495" width="479" height="14" backcolor="#FFFFFF" uuid="ad81b2cb-0a61-4c97-834b-d8f7359b62bd">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				</reportElement>
@@ -418,7 +426,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[<b>Part A</b>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="503" width="479" height="14" backcolor="#FFFFFF" uuid="002b91d3-eb1a-4740-8103-a12113f800a1">
+				<reportElement mode="Transparent" x="1" y="509" width="479" height="14" backcolor="#FFFFFF" uuid="002b91d3-eb1a-4740-8103-a12113f800a1">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
@@ -435,7 +443,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[Selected-response questions (machine-scored)]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="489" width="100" height="14" uuid="7d4b9114-5343-4611-956f-50838e525215"/>
+				<reportElement x="480" y="495" width="100" height="14" uuid="7d4b9114-5343-4611-956f-50838e525215"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -449,7 +457,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="489" width="105" height="14" uuid="de019763-b119-4f92-8227-0eb6f7b80b65"/>
+				<reportElement x="580" y="495" width="105" height="14" uuid="de019763-b119-4f92-8227-0eb6f7b80b65"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -463,7 +471,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="503" width="105" height="14" uuid="aa2a4ba2-189a-46fe-bd8c-aec8d8100e70"/>
+				<reportElement x="580" y="509" width="105" height="14" uuid="aa2a4ba2-189a-46fe-bd8c-aec8d8100e70"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -477,7 +485,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{partASelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="503" width="100" height="14" uuid="b7e8d610-5623-432c-8677-a409539ecd42"/>
+				<reportElement x="480" y="509" width="100" height="14" uuid="b7e8d610-5623-432c-8677-a409539ecd42"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -491,7 +499,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{partASelectedResponseScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="517" width="479" height="14" backcolor="#FFFFFF" uuid="7665b24c-01af-4346-a046-eea0e14d7fd4">
+				<reportElement mode="Transparent" x="1" y="523" width="479" height="14" backcolor="#FFFFFF" uuid="7665b24c-01af-4346-a046-eea0e14d7fd4">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -509,7 +517,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[<b>Written Response:</b> Graphic Organizer]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="580" y="517" width="105" height="14" uuid="aff0c5e1-cff3-4b30-9381-381e21d62aaf"/>
+				<reportElement x="580" y="523" width="105" height="14" uuid="aff0c5e1-cff3-4b30-9381-381e21d62aaf"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -523,7 +531,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="517" width="100" height="14" uuid="3ac15c41-ab1b-4cbe-b5f8-ed7a4c550e03"/>
+				<reportElement x="480" y="523" width="100" height="14" uuid="3ac15c41-ab1b-4cbe-b5f8-ed7a4c550e03"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -537,7 +545,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="531" width="479" height="14" backcolor="#FFFFFF" uuid="75b2a40e-a072-4323-8dc2-b346515092c1">
+				<reportElement mode="Transparent" x="1" y="537" width="479" height="14" backcolor="#FFFFFF" uuid="75b2a40e-a072-4323-8dc2-b346515092c1">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
@@ -554,7 +562,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[<b>Written Response:</b> Communicating Understanding]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="580" y="531" width="105" height="14" uuid="484780fa-ffd0-4205-81fb-247d5bd720a9"/>
+				<reportElement x="580" y="537" width="105" height="14" uuid="484780fa-ffd0-4205-81fb-247d5bd720a9"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -568,7 +576,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="531" width="100" height="14" uuid="ffbbf485-4ecc-4936-8056-82ea38db6a89"/>
+				<reportElement x="480" y="537" width="100" height="14" uuid="ffbbf485-4ecc-4936-8056-82ea38db6a89"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -582,7 +590,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="545" width="479" height="14" backcolor="#FFFFFF" uuid="c595a89b-1d9e-46a8-9be4-bcff9e5a0167">
+				<reportElement mode="Transparent" x="1" y="551" width="479" height="14" backcolor="#FFFFFF" uuid="c595a89b-1d9e-46a8-9be4-bcff9e5a0167">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -600,7 +608,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[<b>Part B</b>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="559" width="479" height="14" backcolor="#FFFFFF" uuid="46cdff92-2cd2-48c9-ade8-14ef5b04339f">
+				<reportElement mode="Transparent" x="1" y="565" width="479" height="14" backcolor="#FFFFFF" uuid="46cdff92-2cd2-48c9-ade8-14ef5b04339f">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
@@ -617,7 +625,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[Select-response questions (machine-scored)]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="545" width="100" height="14" uuid="f612b2cb-e2c7-4167-b294-edbd9936beb4"/>
+				<reportElement x="480" y="551" width="100" height="14" uuid="f612b2cb-e2c7-4167-b294-edbd9936beb4"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -631,7 +639,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="545" width="105" height="14" uuid="c41175c7-96c0-4037-a352-b61c6fd89dc6"/>
+				<reportElement x="580" y="551" width="105" height="14" uuid="c41175c7-96c0-4037-a352-b61c6fd89dc6"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -645,7 +653,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="559" width="105" height="14" uuid="69e47e0a-62ac-484a-9b9a-9b9503d92d03"/>
+				<reportElement x="580" y="565" width="105" height="14" uuid="69e47e0a-62ac-484a-9b9a-9b9503d92d03"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -659,7 +667,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{partBSelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="559" width="100" height="14" uuid="c140d2d5-9eb2-445d-a32b-68fe8cb167d1"/>
+				<reportElement x="480" y="565" width="100" height="14" uuid="c140d2d5-9eb2-445d-a32b-68fe8cb167d1"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -673,7 +681,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{partBSelectedResponseScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="573" width="479" height="14" backcolor="#FFFFFF" uuid="56dbaa42-5776-4ea7-aff0-e4cae8620b39">
+				<reportElement mode="Transparent" x="1" y="579" width="479" height="14" backcolor="#FFFFFF" uuid="56dbaa42-5776-4ea7-aff0-e4cae8620b39">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -691,7 +699,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<text><![CDATA[<b>Written Response:</b> Communicating Personal Connections]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="580" y="573" width="105" height="14" uuid="589ff4a7-0169-4292-9929-d05ba0356e8b"/>
+				<reportElement x="580" y="579" width="105" height="14" uuid="589ff4a7-0169-4292-9929-d05ba0356e8b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -705,7 +713,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 				<textFieldExpression><![CDATA[$P{partBWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="573" width="100" height="14" uuid="4275b21b-de41-43f4-8897-37248d49c94c"/>
+				<reportElement x="480" y="579" width="100" height="14" uuid="4275b21b-de41-43f4-8897-37248d49c94c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>

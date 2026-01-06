@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.21.3.final using JasperReports Library version 6.21.3-4a3078d20785ebe464f18037d738d12fc98c13cf  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ISRMain" pageWidth="792" pageHeight="940" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ISRMain" pageWidth="792" pageHeight="970" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="isrMain"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -323,6 +323,14 @@
 			<property name="net.sf.jasperreports.json.field.expression" value="writtenFairOutOf"/>
 			<fieldDescription><![CDATA[writtenFairOutOf]]></fieldDescription>
 		</field>
+		<field name="writtenModelScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenModelScore"/>
+			<fieldDescription><![CDATA[writtenModelScore]]></fieldDescription>
+		</field>
+		<field name="writtenModelOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenModelOutOf"/>
+			<fieldDescription><![CDATA[writtenModelOutOf]]></fieldDescription>
+		</field>
 		<field name="writtenReasonedEstimatesScore" class="java.lang.String">
 			<property name="net.sf.jasperreports.json.field.expression" value="writtenReasonedEstimatesScore"/>
 			<fieldDescription><![CDATA[writtenReasonedEstimatesScore]]></fieldDescription>
@@ -330,6 +338,14 @@
 		<field name="writtenReasonedEstimatesOutOf" class="java.lang.String">
 			<property name="net.sf.jasperreports.json.field.expression" value="writtenReasonedEstimatesOutOf"/>
 			<fieldDescription><![CDATA[writtenReasonedEstimatesOutOf]]></fieldDescription>
+		</field>
+		<field name="writtenPlanScore" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenPlanScore"/>
+			<fieldDescription><![CDATA[writtenPlanScore]]></fieldDescription>
+		</field>
+		<field name="writtenPlanOutOf" class="java.lang.String">
+			<property name="net.sf.jasperreports.json.field.expression" value="writtenPlanOutOf"/>
+			<fieldDescription><![CDATA[writtenPlanOutOf]]></fieldDescription>
 		</field>
 		<field name="partBChoicePath" class="java.lang.String">
 			<property name="net.sf.jasperreports.json.field.expression" value="partBChoicePath"/>
@@ -894,9 +910,9 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 						</datasetParameter>
 						<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("assessmentDetails")]]></dataSourceExpression>
 					</datasetRun>
-					<jr:listContents height="530" width="752">
+					<jr:listContents height="570" width="752">
 						<subreport overflowType="Stretch">
-							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeefa">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="570" uuid="11223344-5566-7788-9900-aabbccddeefa">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("LTE10")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="assessmentCode">
@@ -953,7 +969,7 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "lte10summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport overflowType="Stretch">
-							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeefa">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="570" uuid="11223344-5566-7788-9900-aabbccddeefa">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("LTE12")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="assessmentCode">
@@ -1010,7 +1026,7 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "lte12summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
-							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="570" uuid="11223344-5566-7788-9900-aabbccddeeda">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("NME10")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="session">
@@ -1049,11 +1065,23 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 							<subreportParameter name="writtenFairOutOf">
 								<subreportParameterExpression><![CDATA[$F{writtenFairOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
+							<subreportParameter name="writtenModelScore">
+								<subreportParameterExpression><![CDATA[$F{writtenModelScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="writtenModelOutOf">
+								<subreportParameterExpression><![CDATA[$F{writtenModelOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
 							<subreportParameter name="writtenReasonedEstimatesScore">
 								<subreportParameterExpression><![CDATA[$F{writtenReasonedEstimatesScore}]]></subreportParameterExpression>
 							</subreportParameter>
 							<subreportParameter name="writtenReasonedEstimatesOutOf">
 								<subreportParameterExpression><![CDATA[$F{writtenReasonedEstimatesOutOf}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="writtenPlanScore">
+								<subreportParameterExpression><![CDATA[$F{writtenPlanScore}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="writtenPlanOutOf">
+								<subreportParameterExpression><![CDATA[$F{writtenPlanOutOf}]]></subreportParameterExpression>
 							</subreportParameter>
 							<subreportParameter name="totalMultiOverall">
 								<subreportParameterExpression><![CDATA[$F{totalMultiOverall}]]></subreportParameterExpression>
@@ -1070,7 +1098,7 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "nme10summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
-							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="570" uuid="11223344-5566-7788-9900-aabbccddeeda">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("LTP10")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="assessmentCode">
@@ -1157,7 +1185,7 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "ltp10summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
-							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="570" uuid="11223344-5566-7788-9900-aabbccddeeda">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("LTP12")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="assessmentCode">
@@ -1238,7 +1266,7 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "ltp12summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
-							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="570" uuid="11223344-5566-7788-9900-aabbccddeeda">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("LTF12")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="assessmentCode">
@@ -1340,7 +1368,7 @@ Note that proficiency scores for the Grade 10 Literacy Assessment do not appear 
 							<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "ltf12summary.jasper"]]></subreportExpression>
 						</subreport>
 						<subreport>
-							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="530" uuid="11223344-5566-7788-9900-aabbccddeeda">
+							<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="752" height="570" uuid="11223344-5566-7788-9900-aabbccddeeda">
 								<printWhenExpression><![CDATA[$F{assessmentCode}.equals("NMF10")]]></printWhenExpression>
 							</reportElement>
 							<subreportParameter name="assessmentCode">

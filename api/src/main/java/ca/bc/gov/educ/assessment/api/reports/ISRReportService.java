@@ -385,16 +385,16 @@ public class ISRReportService extends BaseReportGenerationService {
     
     if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeF)) {
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
-      assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
-      assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
+      assessmentNME10.setWrittenModelScore(writtenFairShare.getLeft());
+      assessmentNME10.setWrittenModelOutOf(writtenFairShare.getRight());
     }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeM)){
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "M");
       assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
       assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
     } else {
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
-      assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
-      assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
+      assessmentNME10.setWrittenModelScore(writtenFairShare.getLeft());
+      assessmentNME10.setWrittenModelOutOf(writtenFairShare.getRight());
     }
 
     var questionsTaskCodeP = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "P");
@@ -402,16 +402,16 @@ public class ISRReportService extends BaseReportGenerationService {
 
     if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeP)) {
       var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "P");
-      assessmentNME10.setWrittenReasonedEstimatesScore(writtenReasoned.getLeft());
-      assessmentNME10.setWrittenReasonedEstimatesOutOf(writtenReasoned.getRight());
+      assessmentNME10.setWrittenPlanScore(writtenReasoned.getLeft());
+      assessmentNME10.setWrittenPlanOutOf(writtenReasoned.getRight());
     }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeR)){
       var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "R");
       assessmentNME10.setWrittenReasonedEstimatesScore(writtenReasoned.getLeft());
       assessmentNME10.setWrittenReasonedEstimatesOutOf(writtenReasoned.getRight());
     } else {
       var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "P");
-      assessmentNME10.setWrittenReasonedEstimatesScore(writtenReasoned.getLeft());
-      assessmentNME10.setWrittenReasonedEstimatesOutOf(writtenReasoned.getRight());
+      assessmentNME10.setWrittenPlanScore(writtenReasoned.getLeft());
+      assessmentNME10.setWrittenPlanScore(writtenReasoned.getRight());
     }
     
     assessmentNME10.setTotalMultiOverall(getTotalOfStrings(List.of(assessmentNME10.getOnlinePlanAndDesignScore(), assessmentNME10.getOnlineReasonedEstimatesScore(), assessmentNME10.getOnlineFairShareScore(), assessmentNME10.getOnlineModelScore())));

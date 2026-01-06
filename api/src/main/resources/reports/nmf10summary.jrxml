@@ -51,26 +51,26 @@
 			</break>
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
-				<textElement>
+				<textElement markup="html">
 					<font fontName="BC Sans" size="11" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["L’Évaluation de numératie de la 10ᵉ année - " + $P{session} + " Session"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["L’Évaluation de numératie de la 10<sup>e</sup> année - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="0" y="-3" width="710" height="87" uuid="e2c26650-2772-4e9f-8f88-c00c999e72e0"/>
-				<textElement>
+				<textElement markup="html">
 					<font fontName="BC Sans" size="9"/>
 				</textElement>
-				<text><![CDATA[L’Évaluation de numératie de la 10ᵉ année est une évaluation requise dans toute la province pour l’obtention du diplôme d’études secondaires. La numératie, comme la littératie, est une compétence de vie importante. Les résultats de cette évaluation peuvent vous aider, vous et votre école, à déterminer vos points forts ainsi que la meilleure approche pour poursuivre au mieux votre parcours d’apprentissage. Cette évaluation fournit également des renseignements sur les paliers de compétence des élèves de la Colombie-Britannique aux écoles, aux conseils scolaires et au Ministère.
+				<text><![CDATA[L’Évaluation de numératie de la 10<sup>e</sup> année est une évaluation requise dans toute la province pour l’obtention du diplôme d’études secondaires. La numératie, comme la littératie, est une compétence de vie importante. Les résultats de cette évaluation peuvent vous aider, vous et votre école, à déterminer vos points forts ainsi que la meilleure approche pour poursuivre au mieux votre parcours d’apprentissage. Cette évaluation fournit également des renseignements sur les paliers de compétence des élèves de la Colombie-Britannique aux écoles, aux conseils scolaires et au Ministère.<br><br>
 
-Ce profil fait état de votre résultat global à l’Évaluation de numératie de la 10ᵉ année. Ces résultats sont présentés sur une échelle à quatre paliers de compétence: Émergente, En voie d'acquisition, Acquise, Approfondie.Votre palier de compétence est mis en évidence.]]></text>
+Ce profil fait état de votre résultat global à l’Évaluation de numératie de la 10<sup>e</sup> année. Ces résultats sont présentés sur une échelle à quatre paliers de compétence: Émergente, En voie d'acquisition, Acquise, Approfondie.Votre palier de compétence est mis en évidence.]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="1" y="84" width="559" height="18" uuid="21b720bd-e3ea-47dc-89a6-f938b3c3da4f"/>
-				<textElement>
+				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Votre palier de compétence pour l’Évaluation de numératie de la 10ᵉ année: " + $P{score}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Votre palier de compétence pour l’Évaluation de numératie de la 10<sup>e</sup> année : " + $P{score}]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="1" y="101" width="708" height="1" forecolor="#BFBFBF" uuid="cbc4970b-06a7-4c18-b33b-1db3b290cfcc">
@@ -115,7 +115,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[L’élève démontre des capacités minimales pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
+				<text><![CDATA[L’élève démontre des capacités minimales pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="-31" y="188" width="202" height="186" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
@@ -137,7 +137,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[L’élève démontre des capacités intermédiaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
+				<text><![CDATA[L’élève démontre des capacités intermédiaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="158" y="192" width="202" height="180" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
@@ -159,7 +159,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[L’élève démontre de solides capacités pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
+				<text><![CDATA[L’élève démontre de solides capacités pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="333" y="185" width="202" height="188" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
@@ -181,7 +181,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[L’élève démontre des capacités exemplaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable:]]></text>
+				<text><![CDATA[L’élève démontre des capacités exemplaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="506" y="187" width="202" height="188" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
@@ -212,10 +212,10 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 			</staticText>
 			<staticText>
 				<reportElement x="1" y="386" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
-				<textElement>
+				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[Vous trouverez ci-dessous vos résultats bruts pour l’Évaluation de numératie de la 10ᵉ année. Ces résultats indiquent votre niveau de réussite dans les différents domaines évalués, et ne peuvent pas être directement transposables en palier de compétence.]]></text>
+				<text><![CDATA[Vous trouverez ci-dessous vos résultats bruts pour l’Évaluation de numératie de la 10<sup>e</sup> année. Ces résultats indiquent votre niveau de réussite dans les différents domaines évalués, et ne peuvent pas être directement transposables en palier de compétence.]]></text>
 			</staticText>
 			<staticText>
 				<reportElement mode="Opaque" x="1" y="416" width="479" height="30" backcolor="#E0E0E0" uuid="1c2bedb1-cd70-4ac5-8de5-8fafca494a25">

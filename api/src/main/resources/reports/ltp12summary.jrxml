@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.21.3.final using JasperReports Library version 6.21.3-4a3078d20785ebe464f18037d738d12fc98c13cf  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ltp10summary" pageWidth="752" pageHeight="792" whenNoDataType="AllSectionsNoDetail" columnWidth="712" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a1b2c3d4-e5f6-7890-1234-567890abcdef">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ltp10summary" pageWidth="752" pageHeight="802" whenNoDataType="AllSectionsNoDetail" columnWidth="712" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a1b2c3d4-e5f6-7890-1234-567890abcdef">
 	<property name="com.jaspersoft.studio.report.description" value=""/>
 	<parameter name="session" class="java.lang.String"/>
 	<parameter name="score" class="java.lang.String"/>
@@ -27,56 +27,56 @@
 	<parameter name="partCOralResponsePart3Score" class="java.lang.String"/>
 	<parameter name="partCOralResponsePart3OutOf" class="java.lang.String"/>
 	<title>
-		<band height="737" splitType="Stretch">
+		<band height="753" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<rectangle>
-				<reportElement mode="Opaque" x="535" y="92" width="175" height="363" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
+				<reportElement mode="Opaque" x="536" y="92" width="173" height="371" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b225861-f4d2-4739-b3da-09ef0c276d3c">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("4 - Approfondie")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="360" y="92" width="175" height="363" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b90587e-7fee-4b7f-99a8-8538b65a05c7">
+				<reportElement mode="Opaque" x="361" y="92" width="175" height="371" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="8b90587e-7fee-4b7f-99a8-8538b65a05c7">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("3 - Acquise")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="92" width="190" height="365" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="e34cd20d-59fd-4469-8aea-20727e814ecd">
+				<reportElement mode="Opaque" x="1" y="92" width="188" height="371" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="e34cd20d-59fd-4469-8aea-20727e814ecd">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<printWhenExpression><![CDATA[$P{score}.equals("1 - Émergente")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="180" y="92" width="180" height="363" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="dfe961e3-e1af-4582-a5c1-027dbd0ac1c6">
+				<reportElement mode="Opaque" x="181" y="92" width="178" height="371" forecolor="#FFFFFF" backcolor="#E6E6E6" uuid="dfe961e3-e1af-4582-a5c1-027dbd0ac1c6">
 					<printWhenExpression><![CDATA[$P{score}.equals("2 - En voie d’acquisition")]]></printWhenExpression>
 				</reportElement>
 			</rectangle>
 			<break>
-				<reportElement positionType="Float" x="0" y="736" width="75" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
+				<reportElement positionType="Float" x="0" y="752" width="75" height="1" uuid="0e698fed-b54e-48a8-ac9f-56851a7d4511"/>
 			</break>
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
-				<textElement>
+				<textElement markup="html">
 					<font fontName="BC Sans" size="11" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Évaluation de littératie de la 12e année – Français langue première - " + $P{session} + " Session"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Évaluation de littératie de la 12<sup>e</sup> année – Français langue première - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="-3" width="710" height="73" uuid="e2c26650-2772-4e9f-8f88-c00c999e72e0"/>
-				<textElement>
+				<reportElement x="0" y="-3" width="710" height="78" uuid="e2c26650-2772-4e9f-8f88-c00c999e72e0"/>
+				<textElement markup="html">
 					<font fontName="BC Sans" size="9"/>
 				</textElement>
-				<text><![CDATA[L’Évaluation de littératie de la 12e année – Français langue première est une évaluation requise dans toute la province pour l’obtention du diplôme d’études secondaires (programme francophone). Les résultats de cette évaluation peuvent vous aider, vous et votre école, à déterminer vos points forts. Cette évaluation fournit également des renseignements sur les paliers de compétence des élèves de la Colombie-Britannique aux écoles, aux conseils scolaires et au Ministère.
+				<text><![CDATA[L’Évaluation de littératie de la 12<sup>e</sup> année – Français langue première est une évaluation requise dans toute la province pour l’obtention du diplôme d’études secondaires (programme francophone). Les résultats de cette évaluation peuvent vous aider, vous et votre école, à déterminer vos points forts. Cette évaluation fournit également des renseignements sur les paliers de compétence des élèves de la Colombie-Britannique aux écoles, aux conseils scolaires et au Ministère.<br><br>
 
-Ce profil fait état de votre résultat global à l’Évaluation de littératie de la 12e année. Ces résultats sont présentés sur une échelle à quatre paliers de compétence : Émergente, En voie d’acquisition, Acquise, Approfondie. Votre palier de compétence est mis en évidence.]]></text>
+Ce profil fait état de votre résultat global à l’Évaluation de littératie de la 12<sup>e</sup> année. Ces résultats sont présentés sur une échelle à quatre paliers de compétence : Émergente, En voie d’acquisition, Acquise, Approfondie. Votre palier de compétence est mis en évidence.]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="1" y="75" width="559" height="18" uuid="21b720bd-e3ea-47dc-89a6-f938b3c3da4f"/>
-				<textElement>
+				<reportElement x="1" y="75" width="708" height="18" uuid="21b720bd-e3ea-47dc-89a6-f938b3c3da4f"/>
+				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Votre palier de compétence pour l'Évaluation de littératie de la 10e année – Français langue première: " + $P{score}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Votre palier de compétence pour l'Évaluation de littératie de la 12<sup>e</sup> année – Français langue première : " + $P{score}]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="1" y="92" width="708" height="1" forecolor="#BFBFBF" uuid="cbc4970b-06a7-4c18-b33b-1db3b290cfcc">
@@ -117,14 +117,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[4 - Approfondie]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="7" y="111" width="173" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
+				<reportElement x="7" y="111" width="163" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[L’élève fait preuve d’une compréhension initiale des concepts et commence à mettre en pratique les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable:]]></text>
+				<text><![CDATA[L’élève fait preuve d’une compréhension initiale des concepts et commence à mettre en pratique les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="-31" y="200" width="194" height="213" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
+				<reportElement x="-31" y="218" width="194" height="213" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
@@ -145,7 +145,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[L’élève fait preuve d’une compréhension partielle des concepts et met en pratique, de manière partielle, les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable:]]></text>
+				<text><![CDATA[L’élève fait preuve d’une compréhension partielle des concepts et met en pratique, de manière partielle, les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="158" y="213" width="194" height="233" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
@@ -169,7 +169,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[L’élève fait preuve d’une pleine compréhension des concepts et met en pratique les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable:]]></text>
+				<text><![CDATA[L’élève fait preuve d’une pleine compréhension des concepts et met en pratique les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="333" y="200" width="194" height="239" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
@@ -191,14 +191,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="543" y="114" width="165" height="97" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
+				<reportElement x="543" y="114" width="165" height="104" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[L’élève fait preuve d’une compréhension poussée des concepts et met en pratique de manière élaborée les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable:]]></text>
+				<text><![CDATA[L’élève fait preuve d’une compréhension poussée des concepts et met en pratique de manière élaborée les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="500" y="205" width="208" height="255" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
+				<reportElement x="502" y="212" width="208" height="259" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
@@ -217,26 +217,26 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 ]]></text>
 			</staticText>
 			<line>
-				<reportElement x="2" y="454" width="708" height="1" forecolor="#BFBFBF" uuid="31f0b0d1-7681-4a9d-a76f-ee8f730e35a1">
+				<reportElement x="2" y="463" width="708" height="1" forecolor="#BFBFBF" uuid="31f0b0d1-7681-4a9d-a76f-ee8f730e35a1">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
 			<staticText>
-				<reportElement x="1" y="460" width="82" height="19" uuid="68f2a54f-ebdb-42c6-814e-2a6d155b0c23"/>
+				<reportElement x="1" y="467" width="82" height="19" uuid="68f2a54f-ebdb-42c6-814e-2a6d155b0c23"/>
 				<textElement>
 					<font fontName="BC Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Résultats bruts]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="1" y="475" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
-				<textElement>
+				<reportElement x="1" y="482" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
+				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[Vous trouverez ci-dessous vos résultats bruts pour l’Évaluation de littératie de la 12e année – Français langue première. Ces résultats indiquent votre niveau de réussite dans les différentes tâches évaluées et ne peuvent pas être directement transposables en palier de compétence.]]></text>
+				<text><![CDATA[Vous trouverez ci-dessous vos résultats bruts pour l’Évaluation de littératie de la 12<sup>e</sup> année – Français langue première. Ces résultats indiquent votre niveau de réussite dans les différentes tâches évaluées et ne peuvent pas être directement transposables en palier de compétence.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="1" y="502" width="484" height="13" backcolor="#E0E0E0" uuid="1c2bedb1-cd70-4ac5-8de5-8fafca494a25">
+				<reportElement mode="Opaque" x="1" y="509" width="484" height="13" backcolor="#E0E0E0" uuid="1c2bedb1-cd70-4ac5-8de5-8fafca494a25">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box>
@@ -253,7 +253,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[Résultat brut pour chaque tâche]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="480" y="502" width="105" height="13" backcolor="#E0E0E0" uuid="091d67d7-aa28-4ba1-bca9-b0bf749e3b5e"/>
+				<reportElement mode="Opaque" x="480" y="509" width="105" height="13" backcolor="#E0E0E0" uuid="091d67d7-aa28-4ba1-bca9-b0bf749e3b5e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -267,7 +267,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="580" y="502" width="105" height="13" backcolor="#E0E0E0" uuid="bc277b69-c609-493b-9a82-9c9aefcbc10b"/>
+				<reportElement mode="Opaque" x="580" y="509" width="105" height="13" backcolor="#E0E0E0" uuid="bc277b69-c609-493b-9a82-9c9aefcbc10b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -281,7 +281,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[Total]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="515" width="479" height="22" backcolor="#FFFFFF" uuid="ca20abd2-9d38-41a8-9480-80da1c053469">
+				<reportElement mode="Transparent" x="1" y="522" width="479" height="25" backcolor="#FFFFFF" uuid="ca20abd2-9d38-41a8-9480-80da1c053469">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -296,13 +296,12 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
-				<text><![CDATA[<b>Compréhension:</b> saisir le sens des documents et les analyser de manière critique<br>
+				<text><![CDATA[<b>Compréhension :</b> saisir le sens des documents et les analyser de manière critique<br>
 <i>Questions à réponses choisies (corrigées informatiquement)</i>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="537" width="479" height="22" backcolor="#FFFFFF" uuid="437d7843-db34-4407-9ebb-1680336c7a17">
+				<reportElement mode="Transparent" x="1" y="547" width="479" height="25" backcolor="#FFFFFF" uuid="437d7843-db34-4407-9ebb-1680336c7a17">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
-					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
@@ -315,11 +314,13 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
-				<text><![CDATA[<b>Communication écrite:</b> s’exprimer à l’écrit<br>
+				<text><![CDATA[<b>Communication écrite :</b> s’exprimer à l’écrit<br>
 <i>Questions à réponse construite (corrigées par une équipe enseignante)</i>]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="515" width="100" height="22" uuid="bef2864b-e66b-444a-bb54-dd641632b551"/>
+				<reportElement x="480" y="522" width="100" height="25" uuid="bef2864b-e66b-444a-bb54-dd641632b551">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -333,7 +334,9 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{comprehendScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="515" width="105" height="22" uuid="d30cd488-96cc-47d5-97b1-5cba4c07f084"/>
+				<reportElement x="580" y="522" width="105" height="25" uuid="d30cd488-96cc-47d5-97b1-5cba4c07f084">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -347,7 +350,9 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{comprehendOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="537" width="105" height="22" uuid="60df56e3-7414-4321-9d09-c960ca952d4e"/>
+				<reportElement x="580" y="547" width="105" height="25" uuid="60df56e3-7414-4321-9d09-c960ca952d4e">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -361,7 +366,9 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{communicateOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="537" width="100" height="22" uuid="7393ce8a-3985-4ec2-8a8a-1e6983413356"/>
+				<reportElement x="480" y="547" width="100" height="25" uuid="7393ce8a-3985-4ec2-8a8a-1e6983413356">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -375,7 +382,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{communicateScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Opaque" x="1" y="581" width="484" height="13" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
+				<reportElement mode="Opaque" x="1" y="597" width="484" height="13" backcolor="#E0E0E0" uuid="ad5881e9-d94b-4098-9272-43d0ae9edc3c">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box>
@@ -392,7 +399,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[Résultat brut pour chaque partie]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="480" y="581" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
+				<reportElement mode="Opaque" x="480" y="597" width="105" height="13" backcolor="#E0E0E0" uuid="d587e421-1aef-47b0-b30f-95a127d3912a"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -406,7 +413,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="580" y="581" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
+				<reportElement mode="Opaque" x="580" y="597" width="105" height="13" backcolor="#E0E0E0" uuid="1fc98f75-61ae-4464-b290-b58b9757060c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -420,7 +427,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[Total]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="594" width="479" height="13" backcolor="#FFFFFF" uuid="ad81b2cb-0a61-4c97-834b-d8f7359b62bd">
+				<reportElement mode="Transparent" x="1" y="610" width="479" height="13" backcolor="#FFFFFF" uuid="ad81b2cb-0a61-4c97-834b-d8f7359b62bd">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -438,7 +445,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[<b>Partie A</b>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="607" width="479" height="13" backcolor="#FFFFFF" uuid="002b91d3-eb1a-4740-8103-a12113f800a1">
+				<reportElement mode="Transparent" x="1" y="623" width="479" height="13" backcolor="#FFFFFF" uuid="002b91d3-eb1a-4740-8103-a12113f800a1">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
@@ -452,10 +459,10 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
-				<text><![CDATA[<b>Questions à réponses choisies:</b> (corrigées informatiquement)]]></text>
+				<text><![CDATA[<b>Questions à réponses choisies :</b> (corrigées informatiquement)]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="594" width="100" height="13" uuid="7d4b9114-5343-4611-956f-50838e525215"/>
+				<reportElement x="480" y="610" width="100" height="13" uuid="7d4b9114-5343-4611-956f-50838e525215"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -469,7 +476,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="594" width="105" height="13" uuid="de019763-b119-4f92-8227-0eb6f7b80b65"/>
+				<reportElement x="580" y="610" width="105" height="13" uuid="de019763-b119-4f92-8227-0eb6f7b80b65"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -483,7 +490,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="607" width="105" height="13" uuid="aa2a4ba2-189a-46fe-bd8c-aec8d8100e70"/>
+				<reportElement x="580" y="623" width="105" height="13" uuid="aa2a4ba2-189a-46fe-bd8c-aec8d8100e70"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -497,7 +504,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partASelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="607" width="100" height="13" uuid="b7e8d610-5623-432c-8677-a409539ecd42"/>
+				<reportElement x="480" y="623" width="100" height="13" uuid="b7e8d610-5623-432c-8677-a409539ecd42"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -511,7 +518,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partASelectedResponseScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="620" width="479" height="13" backcolor="#FFFFFF" uuid="7665b24c-01af-4346-a046-eea0e14d7fd4">
+				<reportElement mode="Transparent" x="1" y="636" width="479" height="13" backcolor="#FFFFFF" uuid="7665b24c-01af-4346-a046-eea0e14d7fd4">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -526,10 +533,10 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
-				<text><![CDATA[<b>Questions à réponses construite:</b> Organigramme]]></text>
+				<text><![CDATA[<b>Questions à réponses construite :</b> Organigramme]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="580" y="620" width="105" height="13" uuid="aff0c5e1-cff3-4b30-9381-381e21d62aaf"/>
+				<reportElement x="580" y="636" width="105" height="13" uuid="aff0c5e1-cff3-4b30-9381-381e21d62aaf"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -543,7 +550,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="620" width="100" height="13" uuid="3ac15c41-ab1b-4cbe-b5f8-ed7a4c550e03"/>
+				<reportElement x="480" y="636" width="100" height="13" uuid="3ac15c41-ab1b-4cbe-b5f8-ed7a4c550e03"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -557,7 +564,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="633" width="479" height="13" backcolor="#FFFFFF" uuid="75b2a40e-a072-4323-8dc2-b346515092c1">
+				<reportElement mode="Transparent" x="1" y="649" width="479" height="13" backcolor="#FFFFFF" uuid="75b2a40e-a072-4323-8dc2-b346515092c1">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
@@ -571,10 +578,10 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
-				<text><![CDATA[<b>Questions à réponses construite:</b> Texte argumentatif]]></text>
+				<text><![CDATA[<b>Questions à réponses construite :</b> Texte argumentatif]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="580" y="633" width="105" height="13" uuid="484780fa-ffd0-4205-81fb-247d5bd720a9"/>
+				<reportElement x="580" y="649" width="105" height="13" uuid="484780fa-ffd0-4205-81fb-247d5bd720a9"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -588,7 +595,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="633" width="100" height="13" uuid="ffbbf485-4ecc-4936-8056-82ea38db6a89"/>
+				<reportElement x="480" y="649" width="100" height="13" uuid="ffbbf485-4ecc-4936-8056-82ea38db6a89"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -602,7 +609,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="646" width="479" height="13" backcolor="#FFFFFF" uuid="c595a89b-1d9e-46a8-9be4-bcff9e5a0167">
+				<reportElement mode="Transparent" x="1" y="662" width="479" height="13" backcolor="#FFFFFF" uuid="c595a89b-1d9e-46a8-9be4-bcff9e5a0167">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -620,7 +627,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[<b>Partie B</b>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="658" width="479" height="13" backcolor="#FFFFFF" uuid="46cdff92-2cd2-48c9-ade8-14ef5b04339f">
+				<reportElement mode="Transparent" x="1" y="674" width="479" height="13" backcolor="#FFFFFF" uuid="46cdff92-2cd2-48c9-ade8-14ef5b04339f">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
@@ -634,10 +641,10 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
-				<text><![CDATA[<b>Questions à réponses choisies:</b> (corrigées informatiquement)]]></text>
+				<text><![CDATA[<b>Questions à réponses choisies :</b> (corrigées informatiquement)]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="646" width="100" height="13" uuid="f612b2cb-e2c7-4167-b294-edbd9936beb4"/>
+				<reportElement x="480" y="662" width="100" height="13" uuid="f612b2cb-e2c7-4167-b294-edbd9936beb4"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -651,7 +658,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="646" width="105" height="13" uuid="c41175c7-96c0-4037-a352-b61c6fd89dc6"/>
+				<reportElement x="580" y="662" width="105" height="13" uuid="c41175c7-96c0-4037-a352-b61c6fd89dc6"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -665,7 +672,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="658" width="105" height="13" uuid="69e47e0a-62ac-484a-9b9a-9b9503d92d03"/>
+				<reportElement x="580" y="674" width="105" height="13" uuid="69e47e0a-62ac-484a-9b9a-9b9503d92d03"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -679,7 +686,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partBSelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="658" width="100" height="13" uuid="c140d2d5-9eb2-445d-a32b-68fe8cb167d1"/>
+				<reportElement x="480" y="674" width="100" height="13" uuid="c140d2d5-9eb2-445d-a32b-68fe8cb167d1"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -693,7 +700,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partBSelectedResponseScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="671" width="479" height="13" backcolor="#FFFFFF" uuid="56dbaa42-5776-4ea7-aff0-e4cae8620b39">
+				<reportElement mode="Transparent" x="1" y="687" width="479" height="13" backcolor="#FFFFFF" uuid="56dbaa42-5776-4ea7-aff0-e4cae8620b39">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -708,10 +715,10 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
-				<text><![CDATA[<b>Questions à réponses construite:</b> Communication écrite créative]]></text>
+				<text><![CDATA[<b>Questions à réponses construite :</b> Communication écrite créative]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="580" y="671" width="105" height="13" uuid="589ff4a7-0169-4292-9929-d05ba0356e8b"/>
+				<reportElement x="580" y="687" width="105" height="13" uuid="589ff4a7-0169-4292-9929-d05ba0356e8b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -725,7 +732,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partBWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="671" width="100" height="13" uuid="4275b21b-de41-43f4-8897-37248d49c94c"/>
+				<reportElement x="480" y="687" width="100" height="13" uuid="4275b21b-de41-43f4-8897-37248d49c94c"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -739,9 +746,8 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partBWrittenResponseUnderstandingScore}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="559" width="479" height="22" backcolor="#FFFFFF" uuid="e104dc09-2c34-46ff-a636-0265d28f451f">
+				<reportElement mode="Transparent" x="1" y="572" width="479" height="25" backcolor="#FFFFFF" uuid="e104dc09-2c34-46ff-a636-0265d28f451f">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
-					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineStyle="Dotted" lineColor="#E6E6E6"/>
@@ -754,11 +760,13 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
-				<text><![CDATA[<b>Communication orale:</b> s’exprimer à l’oral<br>
+				<text><![CDATA[<b>Communication orale :</b> s’exprimer à l’oral<br>
 <i>Questions à réponse construite (corrigées par une équipe enseignante)</i>]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="559" width="100" height="22" uuid="4e89a3f1-b7b6-4b3e-92d5-7ae538a03a7e"/>
+				<reportElement x="480" y="572" width="100" height="25" uuid="4e89a3f1-b7b6-4b3e-92d5-7ae538a03a7e">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -772,7 +780,9 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{communicateOralScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="559" width="105" height="22" uuid="714b2610-1785-4e95-b6dd-48ab116a2a2e"/>
+				<reportElement x="580" y="572" width="105" height="25" uuid="714b2610-1785-4e95-b6dd-48ab116a2a2e">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -786,7 +796,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{communicateOralOutOf}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="685" width="479" height="13" backcolor="#FFFFFF" uuid="7216d03f-a244-4132-a9c6-84418a081656">
+				<reportElement mode="Transparent" x="1" y="701" width="479" height="13" backcolor="#FFFFFF" uuid="7216d03f-a244-4132-a9c6-84418a081656">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -804,7 +814,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<text><![CDATA[<b>Composante Orale</b>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="697" width="479" height="13" backcolor="#FFFFFF" uuid="63a04493-9b57-422f-a523-6f79ed148cb4">
+				<reportElement mode="Transparent" x="1" y="713" width="479" height="13" backcolor="#FFFFFF" uuid="63a04493-9b57-422f-a523-6f79ed148cb4">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<box>
@@ -818,10 +828,10 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
-				<text><![CDATA[<b>Questions à réponses construite:</b> Partie 1]]></text>
+				<text><![CDATA[<b>Questions à réponses construite :</b> Partie 1]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="685" width="100" height="13" uuid="38e8a1be-c580-4d12-8640-19c4ccb64e09"/>
+				<reportElement x="480" y="701" width="100" height="13" uuid="38e8a1be-c580-4d12-8640-19c4ccb64e09"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -835,7 +845,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="685" width="105" height="13" uuid="807a163b-ae32-4a42-b1d5-7bf172244fa5"/>
+				<reportElement x="580" y="701" width="105" height="13" uuid="807a163b-ae32-4a42-b1d5-7bf172244fa5"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -849,7 +859,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="697" width="105" height="13" uuid="09ca9cbc-3117-48b2-94f7-b5f8576bde56"/>
+				<reportElement x="580" y="713" width="105" height="13" uuid="09ca9cbc-3117-48b2-94f7-b5f8576bde56"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -863,7 +873,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart1OutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="697" width="100" height="13" uuid="eb952eb4-8fbf-4f8c-aaed-83da444a9149"/>
+				<reportElement x="480" y="713" width="100" height="13" uuid="eb952eb4-8fbf-4f8c-aaed-83da444a9149"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -877,7 +887,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart1Score}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="710" width="479" height="13" backcolor="#FFFFFF" uuid="87d9efce-46fb-4093-ba41-a195e1482c42">
+				<reportElement mode="Transparent" x="1" y="726" width="479" height="13" backcolor="#FFFFFF" uuid="87d9efce-46fb-4093-ba41-a195e1482c42">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -892,10 +902,10 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
-				<text><![CDATA[<b>Questions à réponses construite:</b> Partie 2]]></text>
+				<text><![CDATA[<b>Questions à réponses construite :</b> Partie 2]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="580" y="710" width="105" height="13" uuid="f79fa7e1-605f-4c24-9050-23913f819531"/>
+				<reportElement x="580" y="726" width="105" height="13" uuid="f79fa7e1-605f-4c24-9050-23913f819531"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -909,7 +919,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart2OutOf}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="710" width="100" height="13" uuid="5671448c-c560-46d5-aef1-26bcdf056fad"/>
+				<reportElement x="480" y="726" width="100" height="13" uuid="5671448c-c560-46d5-aef1-26bcdf056fad"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -923,7 +933,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart2Score}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="480" y="723" width="100" height="13" uuid="5bb68d4b-2755-4962-9ae9-067170c1e48b"/>
+				<reportElement x="480" y="739" width="100" height="13" uuid="5bb68d4b-2755-4962-9ae9-067170c1e48b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -937,7 +947,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart3Score}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement mode="Transparent" x="1" y="723" width="479" height="13" backcolor="#FFFFFF" uuid="3bace97b-2724-48e5-b47c-804ea3c885a5">
+				<reportElement mode="Transparent" x="1" y="739" width="479" height="13" backcolor="#FFFFFF" uuid="3bace97b-2724-48e5-b47c-804ea3c885a5">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -952,10 +962,10 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<font fontName="BC Sans" size="9" isBold="false"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
-				<text><![CDATA[<b>Questions à réponses construite:</b> Partie 3]]></text>
+				<text><![CDATA[<b>Questions à réponses construite :</b> Partie 3]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="580" y="723" width="105" height="13" uuid="515391aa-dc56-4c38-a14c-8c22743b702b"/>
+				<reportElement x="580" y="739" width="105" height="13" uuid="515391aa-dc56-4c38-a14c-8c22743b702b"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#E6E6E6"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
@@ -969,27 +979,27 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart3OutOf}]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="709" y="92" width="1" height="362" forecolor="#BFBFBF" uuid="084d7bc8-f8ad-46c5-9cf7-9c01a535c3ae">
+				<reportElement x="709" y="92" width="1" height="371" forecolor="#BFBFBF" uuid="084d7bc8-f8ad-46c5-9cf7-9c01a535c3ae">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="535" y="92" width="1" height="362" forecolor="#BFBFBF" uuid="0665e4cb-241a-4055-87a6-68ebb56b70af">
+				<reportElement x="535" y="92" width="1" height="371" forecolor="#BFBFBF" uuid="0665e4cb-241a-4055-87a6-68ebb56b70af">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="360" y="92" width="1" height="362" forecolor="#BFBFBF" uuid="93008bdb-aef3-4e33-989e-f6b99a40d6d0">
+				<reportElement x="360" y="92" width="1" height="371" forecolor="#BFBFBF" uuid="93008bdb-aef3-4e33-989e-f6b99a40d6d0">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="180" y="92" width="1" height="362" forecolor="#BFBFBF" uuid="33681ea8-cd78-4cb2-9d7b-f75914f1adbe">
+				<reportElement x="180" y="92" width="1" height="371" forecolor="#BFBFBF" uuid="33681ea8-cd78-4cb2-9d7b-f75914f1adbe">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="1" y="92" width="1" height="362" forecolor="#BFBFBF" uuid="c9f4bab2-81d2-430f-8218-8cc6a49ad7c2">
+				<reportElement x="1" y="92" width="1" height="371" forecolor="#BFBFBF" uuid="c9f4bab2-81d2-430f-8218-8cc6a49ad7c2">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 			</line>
