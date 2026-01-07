@@ -8,11 +8,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class})
+@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, AssessmentStudentChoiceQuestionSetMapper.class})
 public interface AssessmentStudentChoiceMapper {
     AssessmentStudentChoiceMapper mapper = Mappers.getMapper(AssessmentStudentChoiceMapper.class);
 
     @Mapping(target = "assessmentStudentComponentID", source = "assessmentStudentComponentEntity.assessmentStudentComponentID")
     @Mapping(target = "assessmentChoiceID", source = "assessmentChoiceEntity.assessmentChoiceID")
+    @Mapping(target = "assessmentStudentChoiceQuestionSet", source = "assessmentStudentChoiceQuestionSetEntities")
     AssessmentStudentChoice toStructure(AssessmentStudentChoiceEntity entity);
 }
