@@ -89,6 +89,7 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
         UUID sessionID = UUID.fromString(approvalSagaData.getSessionID());
         assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
         var events = assessmentStudentService.flipFlagsForNoWriteStudents(sessionID);
+        log.info("Sending {} events for assessment student updates", events);
         events.forEach(publisher::dispatchChoreographyEvent);
         final Event nextEvent = Event.builder()
                 .sagaId(saga.getSagaId())

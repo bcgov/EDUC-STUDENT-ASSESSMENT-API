@@ -338,8 +338,10 @@ public class AssessmentStudentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<AssessmentEventEntity> flipFlagsForNoWriteStudents(UUID sessionID) {
+       log.info("Flipping flags for students in session {}", sessionID);        
        var students = assessmentStudentRepository.findAllStudentsRegisteredThatHaveNotWritten(sessionID);
-
+       log.info("Found {} students in session {}", students.size(), sessionID);
+       
        List<AssessmentEventEntity> events = new ArrayList<>();
        students.forEach(student -> {
           var event = generateStudentUpdatedEvent(student.toString());
