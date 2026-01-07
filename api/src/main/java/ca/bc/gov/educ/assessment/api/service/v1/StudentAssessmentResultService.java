@@ -233,7 +233,7 @@ public class StudentAssessmentResultService {
         if(studentResult.getComponentType().equalsIgnoreCase("1") || studentResult.getComponentType().equalsIgnoreCase("3")) {
             stagedStudent.setIrtScore(studentResult.getIrtScore());
             stagedStudent.setMarkingSession(studentResult.getMarkingSession());
-            stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
+            stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
         }
 
         stagedStudent.setAssessmentFormID(assessmentFormID);
@@ -255,7 +255,7 @@ public class StudentAssessmentResultService {
         if(studentResult.getComponentType().equalsIgnoreCase("1") || studentResult.getComponentType().equalsIgnoreCase("3")) {
             stagedStudent.setIrtScore(studentResult.getIrtScore());
             stagedStudent.setMarkingSession(studentResult.getMarkingSession());
-            stagedStudent.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode()));
+            stagedStudent.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentCode());
         }
 
         stagedStudent.setAssessmentEntity(assessmentEntity);
@@ -417,7 +417,7 @@ public class StudentAssessmentResultService {
         if(studentResult.getComponentType().equalsIgnoreCase("1") || studentResult.getComponentType().equalsIgnoreCase("3")) {
             student.setIrtScore(studentResult.getIrtScore());
             student.setMarkingSession(studentResult.getMarkingSession());
-            student.setAdaptedAssessmentCode(AssessmentUtil.getAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator()));
+            student.setAdaptedAssessmentCode(studentResult.getAdaptedAssessmentIndicator());
         }
         student.setAssessmentEntity(assessmentEntity);
         student.setAssessmentFormID(assessmentFormID);
