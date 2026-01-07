@@ -58,7 +58,7 @@ public class DOARReportService {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
         AssessmentEntity assessmentEntity = session.getAssessments().stream().filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode)).findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentTypeCode", assessmentTypeCode));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCode(assessmentEntity.getAssessmentID(), UUID.fromString(schoolTombstone.getSchoolId()), StudentStatusCodes.ACTIVE.getCode());
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCodeIn(assessmentEntity.getAssessmentID(), UUID.fromString(schoolTombstone.getSchoolId()), StudentStatusCodes.ACTIVE.getCode(), List.of("X", "E"));
 
         if(results.isEmpty()) {
             throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
