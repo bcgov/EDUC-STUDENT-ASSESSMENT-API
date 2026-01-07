@@ -238,6 +238,7 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
 
         var studentEntity1 = createMockStudentEntity(savedAssessmentEntity);
         studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(schoolTombstone.getSchoolId()));
+        studentEntity1.setProficiencyScore(2);
         var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
         var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
 
