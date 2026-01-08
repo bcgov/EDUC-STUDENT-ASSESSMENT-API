@@ -13,13 +13,11 @@ import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.Collection;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.SdcSchoolCollectionStudent;
-import ca.bc.gov.educ.assessment.api.struct.v1.KeySummaryReportResult;
-import ca.bc.gov.educ.assessment.api.struct.v1.StudentMergeResult;
-import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByFormQueryResponse;
-import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
+import ca.bc.gov.educ.assessment.api.struct.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.YukonAssessmentCount;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -1113,5 +1112,67 @@ public class CSVReportService {
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 specialCase
         ));
+    }
+
+    public DownloadableReportResponse generateYukonReport(UUID districtID, UUID sessionID) {
+        var district = restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", districtID.toString()));
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+        
+        List<UUID> schoolsInDistrict = restUtils.getSchools()
+                .stream()
+                .filter(school -> Objects.equals(school.getDistrictId(), district.getDistrictId()))
+                .map(SchoolTombstone::getSchoolId)
+                .map(UUID::fromString)
+                .toList();
+        
+        var results = assessmentStudentRepository.findYukonAssessmentCounts(schoolsInDistrict, List.of(session.getSessionID()));
+        
+        List<String> headers = Arrays.stream(YukonSummaryReportHeader.values()).map(YukonSummaryReportHeader::getCode).toList();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                .build();
+        try {
+            java.io.ByteArrayOutputStream byteArrayOutputStream = new java.io.ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(headers);
+            for (YukonAssessmentCount assessmentCount : results) {
+                var school = restUtils.getSchoolBySchoolID(assessmentCount.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, "schoolAtWriteSchoolID", assessmentCount.getSchoolID().toString()));
+                
+                List<String> csvRowData = prepareDataForYukonCsv(school, assessmentCount, session.getCourseYear() +  "/" + session.getCourseMonth());
+                csvPrinter.printRecord(csvRowData);
+            }
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType("yukon-report");
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
+    private List<String> prepareDataForYukonCsv(SchoolTombstone school, YukonAssessmentCount yukonAssessmentCount, String session) {
+        return new ArrayList<>(Arrays.asList(
+                session,
+                school.getMincode(),
+                getCountValue(yukonAssessmentCount.getLte10Count()),
+                getCountValue(yukonAssessmentCount.getLte12Count()),
+                getCountValue(yukonAssessmentCount.getLtp10Count()),
+                getCountValue(yukonAssessmentCount.getNme10Count()),
+                getCountValue(yukonAssessmentCount.getNmf10Count()),
+                getCountValue(yukonAssessmentCount.getLtp12Count()),
+                getCountValue(yukonAssessmentCount.getLtf12Count()),
+                getCountValue(yukonAssessmentCount.getTotal())
+        ));
+    }
+    
+    public String getCountValue(Long yukonCount){
+        if(yukonCount == null){
+            return "0";
+        }
+        return String.valueOf(yukonCount);
     }
 }
