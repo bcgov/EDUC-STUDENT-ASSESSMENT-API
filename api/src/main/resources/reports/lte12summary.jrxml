@@ -112,7 +112,7 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[Students demonstrate an <b>initial understanding</b> of the concepts and competencies relevant to the expected learning, specifically, they can:
+				<text><![CDATA[Students demonstrate an <b>initial understanding</b> of the concepts and competencies relevant to the expected learning. Specifically, they can:
 ]]></text>
 			</staticText>
 			<staticText>
@@ -137,7 +137,7 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[Students demonstrate a <b>partial understanding</b> of the concepts and competencies relevant to the expected learning, specifically, they can:]]></text>
+				<text><![CDATA[Students demonstrate a <b>partial understanding</b> of the concepts and competencies relevant to the expected learning. Specifically, they can:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="155" y="160" width="194" height="269" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
@@ -161,7 +161,7 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[Students demonstrate a <b>complete understanding</b> of the concepts and competencies relevant to the expected learning, specifically, they can:]]></text>
+				<text><![CDATA[Students demonstrate a <b>complete understanding</b> of the concepts and competencies relevant to the expected learning. Specifically, they can:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="333" y="161" width="194" height="268" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
@@ -185,7 +185,7 @@ This report describes your overall result on the Grade 12 Literacy Assessment. Y
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
-				<text><![CDATA[Students demonstrate a <b>sophisticated understanding</b> of the concepts and competencies relevant to the expected learning, specifically, they can:]]></text>
+				<text><![CDATA[Students demonstrate a <b>sophisticated understanding</b> of the concepts and competencies relevant to the expected learning. Specifically, they can:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="506" y="161" width="194" height="250" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
