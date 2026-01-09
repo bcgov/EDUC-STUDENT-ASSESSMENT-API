@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentRegistrationTotalsBySchoolResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.YukonAssessmentCount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -60,7 +61,28 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCodeIn(UUID sessionID, UUID schoolAtWriteSchoolID, String studentStatusCode, List<String> allowedSpecialCaseCodes);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDInAndStudentID(List<UUID> assessmentIDs, UUID studentID);
-
+    
+    @Query("""
+        SELECT new ca.bc.gov.educ.assessment.api.struct.v1.reports.YukonAssessmentCount(
+        s.schoolAtWriteSchoolID,
+        SUM(CASE WHEN s.assessmentEntity.assessmentTypeCode = 'LTE10' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN s.assessmentEntity.assessmentTypeCode = 'LTE12' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN s.assessmentEntity.assessmentTypeCode = 'LTP10' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN s.assessmentEntity.assessmentTypeCode = 'NME10' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN s.assessmentEntity.assessmentTypeCode = 'NMF10' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN s.assessmentEntity.assessmentTypeCode = 'LTP12' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN s.assessmentEntity.assessmentTypeCode = 'LTF12' THEN 1 ELSE 0 END),
+        COUNT(s)
+        )
+        FROM AssessmentStudentEntity s
+        WHERE s.assessmentEntity.assessmentSessionEntity.sessionID in (:sessionIDs)
+        AND s.schoolAtWriteSchoolID in (:schoolIDs)
+        AND (s.proficiencyScore is not null
+                OR s.provincialSpecialCaseCode in ('X','Q'))
+        GROUP BY s.schoolAtWriteSchoolID
+    """)
+    List<YukonAssessmentCount> findYukonAssessmentCounts(List<UUID> schoolIDs, List<UUID> sessionIDs);
+    
     @Query("""
         SELECT s FROM AssessmentStudentEntity s
         WHERE s.assessmentEntity.assessmentID in (:assessmentIDs)
@@ -105,6 +127,8 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(UUID sessionID, List<String> statuses);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(UUID sessionID, UUID schoolAtWriteSchoolID, List<String> statuses);
+
+    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDInAndStudentStatusCodeIn(UUID sessionID, List<UUID> schoolAtWriteSchoolID, List<String> statuses);
 
     @Query(value="""
     select stud from AssessmentStudentEntity as stud

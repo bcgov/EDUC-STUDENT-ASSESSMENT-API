@@ -331,6 +331,16 @@ public class RestUtils {
     return Optional.ofNullable(this.districtMap.get(districtID));
   }
 
+
+  public Optional<District> getYukonDistrict() {
+    if (this.districtMap.isEmpty()) {
+      log.info("District map is empty reloading schools");
+      this.populateDistrictMap();
+    }
+    
+    return this.districtMap.values().stream().filter(dist -> dist.getDistrictRegionCode().equalsIgnoreCase("YUKON")).findFirst();
+  }
+
   public Optional<List<UUID>> getSchoolIDsByIndependentAuthorityID(final String independentAuthorityID) {
     if (this.independentAuthorityToSchoolIDMap.isEmpty()) {
       log.info("The map is empty reloading school");
