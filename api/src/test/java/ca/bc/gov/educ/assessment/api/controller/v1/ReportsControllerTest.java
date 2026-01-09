@@ -809,6 +809,84 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 
+    @Test
+    void testGetDownloadableReport_YukonSummaryBySchool_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+        var district = this.createMockDistrict();
+        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
+        
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
+
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+        student1.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student1.setGradeAtRegistration("10");
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+        student2.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student2.setGradeAtRegistration("10");
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment);
+        student3.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student3.setGradeAtRegistration("12");
+
+        studentRepository.saveAll(List.of(student1, student2, student3));
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/yukon-summary-report/download/" + "TESTUSER")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("yukon-summary-report");
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetDownloadableReport_YukonStudentDetail_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+        var district = this.createMockDistrict();
+        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
+
+        AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
+        student1.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student1.setGradeAtRegistration("10");
+        AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
+        student2.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student2.setGradeAtRegistration("10");
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment);
+        student3.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student3.setGradeAtRegistration("12");
+
+        studentRepository.saveAll(List.of(student1, student2, student3));
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/yukon-student-report/download/" + "TESTUSER")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("yukon-student-report");
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
 
     @Test
     void testGetDownloadableReport_NmeDetailedDOARBySchool_ShouldReturnCSVFile() throws Exception {

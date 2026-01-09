@@ -106,6 +106,10 @@ public class ReportsController implements ReportsEndpoint {
                 return csvReportService.generateDataForItemAnalysis(sessionID, AssessmentTypeCodes.LTF12.getCode());
             case DOAR_PROVINCIAL_SUMMARY:
                 return doarProvincialReportService.generateDOARProvincialReport(sessionID);
+            case YUKON_SUMMARY_CSV:
+                return csvReportService.generateYukonReport(sessionID);
+            case YUKON_STUDENT_DETAIL_CSV:
+                return csvReportService.generateYukonStudentDetailsReport(sessionID);
             default:
                 return new DownloadableReportResponse();
         }

@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -1114,8 +1113,8 @@ public class CSVReportService {
         ));
     }
 
-    public DownloadableReportResponse generateYukonReport(UUID districtID, UUID sessionID) {
-        var district = restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", districtID.toString()));
+    public DownloadableReportResponse generateYukonReport(UUID sessionID) {
+        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", "yukon"));
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         
         List<UUID> schoolsInDistrict = restUtils.getSchools()
@@ -1139,13 +1138,13 @@ public class CSVReportService {
             for (YukonAssessmentCount assessmentCount : results) {
                 var school = restUtils.getSchoolBySchoolID(assessmentCount.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, "schoolAtWriteSchoolID", assessmentCount.getSchoolID().toString()));
                 
-                List<String> csvRowData = prepareDataForYukonCsv(school, assessmentCount, session.getCourseYear() +  "/" + session.getCourseMonth());
+                List<String> csvRowData = prepareDataForYukonCsv(school, assessmentCount, session.getCourseYear() + session.getCourseMonth());
                 csvPrinter.printRecord(csvRowData);
             }
             csvPrinter.flush();
 
             var downloadableReport = new DownloadableReportResponse();
-            downloadableReport.setReportType("yukon-report");
+            downloadableReport.setReportType("yukon-summary-report");
             downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
 
             return downloadableReport;
@@ -1174,5 +1173,52 @@ public class CSVReportService {
             return "0";
         }
         return String.valueOf(yukonCount);
+    }
+
+    public DownloadableReportResponse generateYukonStudentDetailsReport(UUID sessionID) {
+        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", "yukon"));
+
+        List<UUID> schoolsInDistrict = restUtils.getSchools()
+                .stream()
+                .filter(school -> Objects.equals(school.getDistrictId(), district.getDistrictId()))
+                .map(SchoolTombstone::getSchoolId)
+                .map(UUID::fromString)
+                .toList();
+        
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDInAndStudentStatusCodeIn(sessionID, schoolsInDistrict, activeStatus);
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+
+            csvPrinter.printRecord(Arrays.stream(YukonStudentResultsHeader.values()).map(YukonStudentResultsHeader::getCode).toList());
+
+            for (AssessmentStudentEntity result : results) {
+                var school = restUtils.getSchoolBySchoolID(result.getSchoolAtWriteSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, "schoolAtWriteSchoolID", result.getSchoolAtWriteSchoolID().toString()));
+                List<String> csvRowData = prepareYukonStudentResultDataForCsv(result, school);
+                csvPrinter.printRecord(csvRowData);
+            }
+            csvPrinter.flush();
+
+            var downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType("yukon-student-report");
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
+    private List<String> prepareYukonStudentResultDataForCsv(AssessmentStudentEntity student, SchoolTombstone school) {
+        return new ArrayList<>(Arrays.asList(
+                student.getPen(),
+                school.getMincode(),
+                student.getAssessmentEntity().getAssessmentTypeCode(),
+                student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
+                student.getProvincialSpecialCaseCode()
+        ));
     }
 }
