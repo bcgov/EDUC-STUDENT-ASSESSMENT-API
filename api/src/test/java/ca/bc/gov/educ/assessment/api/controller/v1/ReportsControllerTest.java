@@ -87,10 +87,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     AssessmentChoiceRepository  assessmentChoiceRepository;
     @Autowired
     private DOARStagingReportService doarStagingReportService;
+    @Autowired
+    private StagedStudentResultRepository stagedStudentResultRepository;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        stagedStudentResultRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         assessmentChoiceRepository.deleteAll();
