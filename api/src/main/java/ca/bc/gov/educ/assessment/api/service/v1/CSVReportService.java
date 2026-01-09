@@ -630,8 +630,7 @@ public class CSVReportService {
 
     private List<String> getDOARHeaders(String assessmentTypeCode) {
         return switch (assessmentTypeCode) {
-            case "NME10" -> Arrays.stream(NMEDoarHeader.values()).map(NMEDoarHeader::getCode).toList();
-            case "NMF10" -> Arrays.stream(NMFDoarHeader.values()).map(NMFDoarHeader::getCode).toList();
+            case "NME10", "NMF10" -> Arrays.stream(NMEDoarHeader.values()).map(NMEDoarHeader::getCode).toList();
             case "LTE10", "LTE12" -> Arrays.stream(LTEDoarHeader.values()).map(LTEDoarHeader::getCode).toList();
             case "LTP12" -> Arrays.stream(LTP12DoarHeader.values()).map(LTP12DoarHeader::getCode).toList();
             case "LTP10" -> Arrays.stream(LTP10DoarHeader.values()).map(LTP10DoarHeader::getCode).toList();
