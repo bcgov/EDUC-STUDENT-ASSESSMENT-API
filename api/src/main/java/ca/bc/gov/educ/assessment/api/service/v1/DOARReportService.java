@@ -10,6 +10,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.*;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentDOARCalculationRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentLightRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
@@ -33,6 +34,7 @@ public class DOARReportService {
 
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
+    private final AssessmentStudentLightRepository assessmentStudentLightRepository;
     private final AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository;
     private final DOARCalculateService doarCalculateService;
     private EnumMap<DOARColumnLookup, DOARCalculate> map;
@@ -44,9 +46,10 @@ public class DOARReportService {
     private static final String LTP10 = "LTP10";
     private static final String LTF12= "LTF12";
 
-    public DOARReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository, DOARCalculateService doarCalculateService) {
+    public DOARReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentLightRepository assessmentStudentLightRepository, AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository, DOARCalculateService doarCalculateService) {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentStudentRepository = assessmentStudentRepository;
+        this.assessmentStudentLightRepository = assessmentStudentLightRepository;
         this.assessmentStudentDOARCalculationRepository = assessmentStudentDOARCalculationRepository;
         this.doarCalculateService = doarCalculateService;
         init();
@@ -58,13 +61,13 @@ public class DOARReportService {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
         AssessmentEntity assessmentEntity = session.getAssessments().stream().filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode)).findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentTypeCode", assessmentTypeCode));
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCodeIn(assessmentEntity.getAssessmentID(), UUID.fromString(schoolTombstone.getSchoolId()), StudentStatusCodes.ACTIVE.getCode(), List.of("X", "E"));
+        List<AssessmentStudentLightEntity> results = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCodeIn(assessmentEntity.getAssessmentID(), UUID.fromString(schoolTombstone.getSchoolId()), StudentStatusCodes.ACTIVE.getCode(), List.of("X", "E"));
 
         if(results.isEmpty()) {
             throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
         }
 
-        for (AssessmentStudentEntity result : results) {
+        for (AssessmentStudentLightEntity result : results) {
             var studentDOARCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentIDAndAssessmentID(result.getAssessmentStudentID(), result.getAssessmentEntity().getAssessmentID());
             if(studentDOARCalc.isPresent()) {
                 List<String> csvRowData = prepareDOARForCsv(result, studentDOARCalc.get(), schoolTombstone.getMincode(), assessmentTypeCode);
@@ -139,7 +142,7 @@ public class DOARReportService {
         }
     }
 
-    private List<String> prepareDOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode, String assessmentTypeCode) {
+    private List<String> prepareDOARForCsv(AssessmentStudentLightEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode, String assessmentTypeCode) {
         return switch (assessmentTypeCode) {
             case "NME10", "NMF10" -> prepareNMEDOARForCsv(student, studentDOARCalc, mincode);
             case "LTE10", "LTE12" -> prepareLTEDOARForCsv(student, studentDOARCalc, mincode);
@@ -192,7 +195,7 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTEDOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
+    private List<String> prepareLTEDOARForCsv(AssessmentStudentLightEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
                 student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
@@ -256,7 +259,7 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTP12DOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
+    private List<String> prepareLTP12DOARForCsv(AssessmentStudentLightEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
                 student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
@@ -326,7 +329,7 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTP10DOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
+    private List<String> prepareLTP10DOARForCsv(AssessmentStudentLightEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
                 student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
@@ -404,7 +407,7 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareLTF12DOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
+    private List<String> prepareLTF12DOARForCsv(AssessmentStudentLightEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
                 student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
@@ -468,7 +471,7 @@ public class DOARReportService {
                 .build();
     }
 
-    private List<String> prepareNMEDOARForCsv(AssessmentStudentEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
+    private List<String> prepareNMEDOARForCsv(AssessmentStudentLightEntity student, AssessmentStudentDOARCalculationEntity studentDOARCalc, String mincode) {
         return new ArrayList<>(Arrays.asList(
                 student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
                 mincode,
