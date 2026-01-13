@@ -41,6 +41,7 @@ public class DOARReportService {
     private static final String SESSION_ID = "sessionID";
     private static final String OPEN_ENDED = "OPEN_ENDED";
     private static final String MUL_CHOICE = "MUL_CHOICE";
+    private static final String MUL_TASK_CHOICE = "MUL_TASK_CHOICE";
     private static final String BOTH = "BOTH";
     private static final String LTP12 = "LTP12";
     private static final String LTP10 = "LTP10";
@@ -363,9 +364,9 @@ public class DOARReportService {
         var taskCommunicate = getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, LTF12, true);
         var taskOral = getStudentTotals(OPEN_ENDED, "O", selectedAssessmentForm, student, LTF12 , true);
 
-        var comprehendPartATask = getStudentTotals(MUL_CHOICE, "A", selectedAssessmentForm, student, LTF12, false);
-        var comprehendPartBInfo = getStudentTotals(MUL_CHOICE, "I", selectedAssessmentForm, student, LTF12, false);
-        var comprehendPartBExp =  getStudentTotals(MUL_CHOICE, "E", selectedAssessmentForm, student, LTF12, false);
+        var comprehendPartATask = getStudentTotals(MUL_TASK_CHOICE, "A", selectedAssessmentForm, student, LTF12, false);
+        var comprehendPartBInfo = getStudentTotals(MUL_TASK_CHOICE, "I", selectedAssessmentForm, student, LTF12, false);
+        var comprehendPartBExp =  getStudentTotals(MUL_TASK_CHOICE, "E", selectedAssessmentForm, student, LTF12, false);
 
         var comprehendPartAShort = getStudentTotals(OPEN_ENDED, "WRS", selectedAssessmentForm, student, LTF12, true);
         var dissertationBackground = getStudentTotals(OPEN_ENDED, "WRD", selectedAssessmentForm, student, LTF12, true);
