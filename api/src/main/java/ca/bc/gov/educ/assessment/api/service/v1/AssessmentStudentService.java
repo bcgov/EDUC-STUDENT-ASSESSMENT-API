@@ -182,6 +182,7 @@ public class AssessmentStudentService {
 
         if (validationIssues.isEmpty()) {
             overrideProficiencyScoreIfSpecialCase(assessmentStudentEntity);
+            overrideSchoolAtWriteSchoolID(assessmentStudentEntity);
             if (currentAssessmentStudentEntity != null) {
                 BeanUtils.copyProperties(assessmentStudentEntity, currentAssessmentStudentEntity, "schoolOfRecordSchoolID", "studentID", "givenName", "surname", "pen", "localID", "courseStatusCode", CREATE_USER, CREATE_DATE);
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
@@ -207,6 +208,12 @@ public class AssessmentStudentService {
     private void overrideProficiencyScoreIfSpecialCase(AssessmentStudentEntity assessmentStudentEntity){
         if(StringUtils.isNotBlank(assessmentStudentEntity.getProvincialSpecialCaseCode())){
             assessmentStudentEntity.setProficiencyScore(null);
+        }
+    }
+
+    private void overrideSchoolAtWriteSchoolID(AssessmentStudentEntity assessmentStudentEntity){
+        if(assessmentStudentEntity.getProficiencyScore() == null && StringUtils.isBlank(assessmentStudentEntity.getProvincialSpecialCaseCode())){
+            assessmentStudentEntity.setSchoolAtWriteSchoolID(null);
         }
     }
 
