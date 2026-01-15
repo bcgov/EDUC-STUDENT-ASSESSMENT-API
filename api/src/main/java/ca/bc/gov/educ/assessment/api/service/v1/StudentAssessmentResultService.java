@@ -314,6 +314,9 @@ public class StudentAssessmentResultService {
                     answer.setUpdateUser(studentResult.getUpdateUser());
                     answer.setUpdateDate(LocalDateTime.now());
                     studentComponent.getStagedAssessmentStudentAnswerEntities().add(answer);
+                } else {
+                    questionCounter.getAndIncrement();
+                    itemCounter.getAndIncrement();
                 }
             }
         } else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
@@ -402,6 +405,8 @@ public class StudentAssessmentResultService {
                         answer.setUpdateDate(LocalDateTime.now());
                         studentComponent.getStagedAssessmentStudentAnswerEntities().add(answer);
                     }
+                } else {
+                    questionCounter++;
                 }
             }
         }
@@ -471,6 +476,9 @@ public class StudentAssessmentResultService {
                     answer.setUpdateUser(fileUpload.getUpdateUser());
                     answer.setUpdateDate(LocalDateTime.now());
                     studentComponent.getAssessmentStudentAnswerEntities().add(answer);
+                } else {
+                    questionCounter.getAndIncrement();
+                    itemCounter.getAndIncrement();
                 }
             }
         } else if(componentType == ComponentTypeCodes.OPEN_ENDED) {
@@ -558,6 +566,8 @@ public class StudentAssessmentResultService {
                         answer.setUpdateDate(LocalDateTime.now());
                         studentComponent.getAssessmentStudentAnswerEntities().add(answer);
                     }
+                } else {
+                    questionCounter++;
                 }
             }
         }
