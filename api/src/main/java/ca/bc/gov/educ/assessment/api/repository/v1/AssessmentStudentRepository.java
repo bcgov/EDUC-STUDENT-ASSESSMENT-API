@@ -49,10 +49,11 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     @Query("""
         SELECT stud.studentID FROM AssessmentStudentEntity stud
-        WHERE 
-            stud.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID AND
-            stud.studentID not in 
-            (SELECT staged.studentID from StagedAssessmentStudentEntity staged WHERE staged.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID)
+        WHERE not exists 
+            (SELECT 1 from StagedAssessmentStudentEntity staged 
+                WHERE staged.studentID = stud.studentID
+                AND staged.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID)
+        AND stud.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
     """)
     List<UUID> findAllStudentsRegisteredThatHaveNotWritten(UUID assessmentSessionID);
 
