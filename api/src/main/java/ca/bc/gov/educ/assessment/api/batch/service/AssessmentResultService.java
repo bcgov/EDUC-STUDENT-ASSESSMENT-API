@@ -161,6 +161,11 @@ public class AssessmentResultService {
         var assessmentEntity = assessmentRepository.findByAssessmentSessionEntity_SessionIDAndAssessmentTypeCode(validSession.getSessionID(), typeCode)
                 .orElseThrow(() -> new ResultsFileUnProcessableException(INVALID_ASSESSMENT_TYPE, correlationID, LOAD_FAIL));
 
+        var stud = stagedStudentResultRepository.findByAssessmentIdAndStagedStudentResultStatusOrderByCreateDateDesc(assessmentEntity.getAssessmentID());
+        if(stud.isPresent()) {
+            throw new ResultsFileUnProcessableException(RESULT_LOAD_ALREADY_IN_FLIGHT, correlationID, LOAD_FAIL);
+        }
+
         Map<String, AssessmentFormEntity> formMap;
         if(!assessmentEntity.getAssessmentForms().isEmpty()) {
             formMap = assessmentEntity.getAssessmentForms().stream()
