@@ -75,6 +75,7 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
         SELECT s
         FROM StagedAssessmentStudentEntity s
         WHERE s.stagedAssessmentStudentStatus = :status
+        AND NOT EXISTS (SELECT 1 FROM AssessmentSagaEntity saga WHERE saga.status != 'COMPLETED' AND saga.stagedAssessmentStudentID = s.assessmentStudentID AND saga.assessmentID = s.assessmentEntity.assessmentID)
         ORDER BY s.updateDate DESC""")
     List<StagedAssessmentStudentEntity> findStudentIdsByStatusOrderByUpdateDate(String status, Pageable pageable);
 
