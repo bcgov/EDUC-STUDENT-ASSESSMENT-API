@@ -136,6 +136,9 @@ public class AssessmentStudentDOARCalculationEntity {
     @Column(name = "COMMUNICATE_ORAL_PART_2_EXPR")
     private BigDecimal communicateOralPart2Expression;
 
+    @Column(name = "SELECTED_RESPONSE_CHOICE_PATH")
+    private String selectedResponseChoicePath;
+
     @Column(name = "CREATE_USER", updatable = false, length = 100)
     private String createUser;
 

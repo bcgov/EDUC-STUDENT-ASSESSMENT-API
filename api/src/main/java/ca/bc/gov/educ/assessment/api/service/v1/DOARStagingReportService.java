@@ -236,7 +236,7 @@ public class DOARStagingReportService {
                 .dok3(new BigDecimal(dok3))
                 .build();
     }
-
+    
     private StagedAssessmentStudentDOARCalculationEntity prepareLTF12DOAREntity(StagedAssessmentStudentEntity student, AssessmentFormEntity selectedAssessmentForm) {
         var taskComprehend = getStudentTotals(MUL_CHOICE, "C", selectedAssessmentForm, student, LTF12, true);
         var taskCommunicate = getStudentTotals(OPEN_ENDED, "W", selectedAssessmentForm, student, LTF12, true);
@@ -262,6 +262,18 @@ public class DOARStagingReportService {
         var dok2 = getStudentTotals("BOTH", "8", selectedAssessmentForm, student, LTF12, true);
         var dok3 = getStudentTotals("BOTH", "9", selectedAssessmentForm, student, LTF12, true);
 
+        var component = selectedAssessmentForm.getAssessmentComponentEntities().stream()
+                .filter(assessmentComponentEntity ->
+                        assessmentComponentEntity.getComponentTypeCode().equalsIgnoreCase(MUL_CHOICE))
+                .findFirst();
+        String selectedChoice = null;
+
+        if(component.isPresent()) {
+            var studentComponent = student.getStagedAssessmentStudentComponentEntities().stream()
+                    .filter(assessmentComponentEntity -> Objects.equals(assessmentComponentEntity.getAssessmentComponentID(), component.get().getAssessmentComponentID()))
+                    .findFirst();
+            selectedChoice = studentComponent.map(StagedAssessmentStudentComponentEntity::getChoicePath).orElse(null);
+        }
         return StagedAssessmentStudentDOARCalculationEntity.builder()
                 .assessmentStudentID(student.getAssessmentStudentID())
                 .assessmentID(student.getAssessmentEntity().getAssessmentID())
@@ -283,6 +295,7 @@ public class DOARStagingReportService {
                 .dok1(new BigDecimal(dok1))
                 .dok2(new BigDecimal(dok2))
                 .dok3(new BigDecimal(dok3))
+                .selectedResponseChoicePath(selectedChoice)
                 .build();
     }
 

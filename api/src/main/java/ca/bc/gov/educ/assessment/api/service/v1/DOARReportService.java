@@ -384,6 +384,19 @@ public class DOARReportService {
         var dok2 = getStudentTotals("BOTH", "8", selectedAssessmentForm, student, LTF12, true);
         var dok3 = getStudentTotals("BOTH", "9", selectedAssessmentForm, student, LTF12, true);
 
+        var component = selectedAssessmentForm.getAssessmentComponentEntities().stream()
+                .filter(assessmentComponentEntity ->
+                        assessmentComponentEntity.getComponentTypeCode().equalsIgnoreCase(MUL_CHOICE))
+                .findFirst();
+        String selectedChoice = null;
+
+        if(component.isPresent()) {
+            var studentComponent = student.getAssessmentStudentComponentEntities().stream()
+                    .filter(assessmentComponentEntity -> Objects.equals(assessmentComponentEntity.getAssessmentComponentID(), component.get().getAssessmentComponentID()))
+                    .findFirst();
+            selectedChoice = studentComponent.map(AssessmentStudentComponentEntity::getChoicePath).orElse(null);
+        }
+
         return AssessmentStudentDOARCalculationEntity.builder()
                 .assessmentStudentID(student.getAssessmentStudentID())
                 .assessmentID(student.getAssessmentEntity().getAssessmentID())
@@ -405,6 +418,7 @@ public class DOARReportService {
                 .dok1(new BigDecimal(dok1))
                 .dok2(new BigDecimal(dok2))
                 .dok3(new BigDecimal(dok3))
+                .selectedResponseChoicePath(selectedChoice)
                 .build();
     }
 

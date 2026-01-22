@@ -448,12 +448,23 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       }
       case LTF12 -> {
         BigDecimal taskCompre = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartATask).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal infoCompre = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBInfo).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal expCompre = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBExp).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        var filteredStudentsForInfo = listOfDOARCalc.stream().filter(calc ->
+                calc.getSelectedResponseChoicePath() != null && calc.getSelectedResponseChoicePath().equalsIgnoreCase("I")).toList();
+        BigDecimal infoCompreAdd = filteredStudentsForInfo.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBInfo).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        var filteredStudentsForExp = listOfDOARCalc.stream().filter(calc ->
+                calc.getSelectedResponseChoicePath() != null && calc.getSelectedResponseChoicePath().equalsIgnoreCase("I")).toList();
+        BigDecimal expCompreAdd = filteredStudentsForExp.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBExp).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        String infoCompre = filteredStudentsForInfo.isEmpty() ? "0.00"
+                :String.valueOf(infoCompreAdd.divide(new BigDecimal(filteredStudentsForInfo.size()), 2, RoundingMode.DOWN));
+        String expCompre = filteredStudentsForExp.isEmpty() ? "0.00"
+                :String.valueOf(expCompreAdd.divide(new BigDecimal(filteredStudentsForExp.size()), 2, RoundingMode.DOWN));
 
         score.setComprehendPartATask(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
-        score.setComprehendPartBInfo(String.valueOf(infoCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
-        score.setComprehendPartBExp(String.valueOf(expCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setComprehendPartBInfo(infoCompre);
+        score.setComprehendPartBExp(expCompre);
         yield score;
       }
       default -> score;
@@ -479,12 +490,22 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       }
       case LTF12 -> {
         BigDecimal taskCompre = listOfDOARCalc.stream().map(StagedAssessmentStudentDOARCalculationEntity::getComprehendPartATask).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal infoCompre = listOfDOARCalc.stream().map(StagedAssessmentStudentDOARCalculationEntity::getComprehendPartBInfo).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal expCompre = listOfDOARCalc.stream().map(StagedAssessmentStudentDOARCalculationEntity::getComprehendPartBExp).reduce(BigDecimal.ZERO, BigDecimal::add);
+        var filteredStudentsForInfo = listOfDOARCalc.stream().filter(calc ->
+                calc.getSelectedResponseChoicePath() != null && calc.getSelectedResponseChoicePath().equalsIgnoreCase("I")).toList();
+        BigDecimal infoCompreAdd = filteredStudentsForInfo.stream().map(StagedAssessmentStudentDOARCalculationEntity::getComprehendPartBInfo).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        var filteredStudentsForExp = listOfDOARCalc.stream().filter(calc ->
+                calc.getSelectedResponseChoicePath() != null && calc.getSelectedResponseChoicePath().equalsIgnoreCase("I")).toList();
+        BigDecimal expCompreAdd = filteredStudentsForExp.stream().map(StagedAssessmentStudentDOARCalculationEntity::getComprehendPartBExp).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        String infoCompre = filteredStudentsForInfo.isEmpty() ? "0.00"
+                :String.valueOf(infoCompreAdd.divide(new BigDecimal(filteredStudentsForInfo.size()), 2, RoundingMode.DOWN));
+        String expCompre = filteredStudentsForExp.isEmpty() ? "0.00"
+                :String.valueOf(expCompreAdd.divide(new BigDecimal(filteredStudentsForExp.size()), 2, RoundingMode.DOWN));
 
         score.setComprehendPartATask(String.valueOf(taskCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
-        score.setComprehendPartBInfo(String.valueOf(infoCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
-        score.setComprehendPartBExp(String.valueOf(expCompre.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN)));
+        score.setComprehendPartBInfo(infoCompre);
+        score.setComprehendPartBExp(expCompre);
         yield score;
       }
       default -> score;
