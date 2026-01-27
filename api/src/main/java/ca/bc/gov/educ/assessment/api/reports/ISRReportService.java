@@ -387,16 +387,16 @@ public class ISRReportService extends BaseReportGenerationService {
     
     if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeF)) {
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
-      assessmentNME10.setWrittenModelScore(writtenFairShare.getLeft());
-      assessmentNME10.setWrittenModelOutOf(writtenFairShare.getRight());
+      assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
+      assessmentNME10.setWrittenFairScore(writtenFairShare.getRight());
     }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeM)){
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "M");
-      assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
-      assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
-    } else {
-      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
       assessmentNME10.setWrittenModelScore(writtenFairShare.getLeft());
       assessmentNME10.setWrittenModelOutOf(writtenFairShare.getRight());
+    } else {
+      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
+      assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
+      assessmentNME10.setWrittenFairScore(writtenFairShare.getRight());
     }
 
     var questionsTaskCodeP = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "P");
