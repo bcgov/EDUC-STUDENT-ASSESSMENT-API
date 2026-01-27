@@ -198,7 +198,7 @@ Ce profil fait état de votre résultat global à l'Évaluation de littératie d
 				<text><![CDATA[L’élève fait preuve d’une compréhension poussée des concepts et met en pratique de manière élaborée les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="507" y="224" width="201" height="224" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
+				<reportElement x="503" y="224" width="207" height="224" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
