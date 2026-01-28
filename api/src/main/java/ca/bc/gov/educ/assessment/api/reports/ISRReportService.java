@@ -388,7 +388,7 @@ public class ISRReportService extends BaseReportGenerationService {
     if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeF)) {
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
       assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
-      assessmentNME10.setWrittenFairScore(writtenFairShare.getRight());
+      assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
     }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeM)){
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "M");
       assessmentNME10.setWrittenModelScore(writtenFairShare.getLeft());
@@ -396,7 +396,7 @@ public class ISRReportService extends BaseReportGenerationService {
     } else {
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
       assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
-      assessmentNME10.setWrittenFairScore(writtenFairShare.getRight());
+      assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
     }
 
     var questionsTaskCodeP = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "P");
@@ -413,7 +413,7 @@ public class ISRReportService extends BaseReportGenerationService {
     } else {
       var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "P");
       assessmentNME10.setWrittenPlanScore(writtenReasoned.getLeft());
-      assessmentNME10.setWrittenPlanScore(writtenReasoned.getRight());
+      assessmentNME10.setWrittenPlanOutOf(writtenReasoned.getRight());
     }
     
     assessmentNME10.setTotalMultiOverall(getTotalOfStrings(getListFromValues(assessmentNME10.getOnlinePlanAndDesignScore(), assessmentNME10.getOnlineReasonedEstimatesScore(), assessmentNME10.getOnlineFairShareScore(), assessmentNME10.getOnlineModelScore())));
