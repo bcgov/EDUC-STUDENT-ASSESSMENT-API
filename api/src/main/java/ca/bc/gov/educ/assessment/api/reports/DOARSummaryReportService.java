@@ -463,7 +463,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         BigDecimal infoCompreAdd = filteredStudentsForInfo.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBInfo).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         var filteredStudentsForExp = listOfDOARCalc.stream().filter(calc ->
-                calc.getSelectedResponseChoicePath() != null && calc.getSelectedResponseChoicePath().equalsIgnoreCase("I")).toList();
+                calc.getSelectedResponseChoicePath() != null && calc.getSelectedResponseChoicePath().equalsIgnoreCase("E")).toList();
         BigDecimal expCompreAdd = filteredStudentsForExp.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBExp).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         String taskCompre = String.valueOf(taskCompreAdd.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN));
