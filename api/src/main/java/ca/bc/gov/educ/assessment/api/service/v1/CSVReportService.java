@@ -58,6 +58,10 @@ public class CSVReportService {
     private static final String STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY = "studentToCollectionSnapshotDateMap";
     private static final String COLLECTION_TYPE_KEY = "collectionType";
     private static final String SEPTEMBER = "SEPTEMBER";
+
+    private static final int CSV_BUFFER_SIZE = 131072;
+    private static final int CSV_FLUSH_INTERVAL = 5000;
+
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentFormRepository assessmentFormRepository;
@@ -1049,18 +1053,21 @@ public class CSVReportService {
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<AssessmentStudentEntity> studentStream = assessmentStudentRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
+            final int[] rowCount = {0};
             studentStream
                     .map(this::prepareAssessmentStudentSearchDataForCsv)
                     .forEach(csvRowData -> {
                         try {
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+                            if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
                             throw new StudentAssessmentAPIRuntimeException(e);
                         }
