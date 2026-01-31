@@ -112,6 +112,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
         and (stud.provincialSpecialCaseCode is not null OR stud.proficiencyScore is not null)    
         and stud.studentStatusCode = 'ACTIVE'
+        and stud.schoolAtWriteSchoolID is not null
         and stud.gradeAtRegistration is not null
         group by stud.assessmentEntity.assessmentTypeCode, stud.gradeAtRegistration
     """)
@@ -134,6 +135,7 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
         and (stud.provincialSpecialCaseCode is not null OR stud.proficiencyScore is not null)    
         and stud.studentStatusCode = 'ACTIVE'
         and stud.assessmentFormID is not null
+        and stud.schoolAtWriteSchoolID is not null
         group by stud.assessmentEntity.assessmentTypeCode, stud.assessmentFormID
     """)
     List<SummaryByFormQueryResponse> getSummaryByFormForSession(UUID sessionID);

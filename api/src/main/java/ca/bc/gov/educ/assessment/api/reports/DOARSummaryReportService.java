@@ -457,12 +457,20 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       }
       case LTF12 -> {
         BigDecimal taskCompreAdd = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartATask).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal infoCompreAdd = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBInfo).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal expCompreAdd = listOfDOARCalc.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBExp).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        var filteredStudentsForInfo = listOfDOARCalc.stream().filter(calc ->
+                calc.getSelectedResponseChoicePath() != null && calc.getSelectedResponseChoicePath().equalsIgnoreCase("I")).toList();
+        BigDecimal infoCompreAdd = filteredStudentsForInfo.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBInfo).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        var filteredStudentsForExp = listOfDOARCalc.stream().filter(calc ->
+                calc.getSelectedResponseChoicePath() != null && calc.getSelectedResponseChoicePath().equalsIgnoreCase("E")).toList();
+        BigDecimal expCompreAdd = filteredStudentsForExp.stream().map(AssessmentStudentDOARCalculationEntity::getComprehendPartBExp).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         String taskCompre = String.valueOf(taskCompreAdd.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN));
-        String infoCompre = String.valueOf(infoCompreAdd.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN));
-        String expCompre = String.valueOf(expCompreAdd.divide(new BigDecimal(noOfStudents), 2, RoundingMode.DOWN));
+        String infoCompre = filteredStudentsForInfo.isEmpty() ? "0.00"
+                :String.valueOf(infoCompreAdd.divide(new BigDecimal(filteredStudentsForInfo.size()), 2, RoundingMode.DOWN));
+        String expCompre = filteredStudentsForExp.isEmpty() ? "0.00"
+                :String.valueOf(expCompreAdd.divide(new BigDecimal(filteredStudentsForExp.size()), 2, RoundingMode.DOWN));
 
         score.setComprehendPartATask(isFrenchAssessment ? replacePeriodsWithCommas(taskCompre) : taskCompre);
         score.setComprehendPartBInfo(isFrenchAssessment ? replacePeriodsWithCommas(infoCompre) : infoCompre);

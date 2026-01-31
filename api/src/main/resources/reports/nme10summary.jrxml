@@ -718,7 +718,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 <i>Example: Predict the likelihood of an event based on a data trend.</i>]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="480" y="600" width="100" height="37" uuid="5c2dcac5-6cbb-405c-819d-b2125a64e643">
+				<reportElement x="480" y="599" width="100" height="37" uuid="5c2dcac5-6cbb-405c-819d-b2125a64e643">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<printWhenExpression><![CDATA[$P{writtenModelScore} != null]]></printWhenExpression>
 				</reportElement>
@@ -735,7 +735,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<textFieldExpression><![CDATA[$P{writtenModelScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="600" width="105" height="37" uuid="2b7d4116-8801-402a-8061-0d9d9a987092">
+				<reportElement x="580" y="599" width="105" height="37" uuid="2b7d4116-8801-402a-8061-0d9d9a987092">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<printWhenExpression><![CDATA[$P{writtenModelOutOf} != null]]></printWhenExpression>
 				</reportElement>
@@ -788,7 +788,7 @@ This report describes your overall result on the Grade 10 Numeracy Assessment. Y
 				<textFieldExpression><![CDATA[$P{writtenPlanScore}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="580" y="637" width="105" height="37" uuid="e81bfdae-289d-4e02-b4c1-a0343984be1a">
+				<reportElement x="580" y="636" width="105" height="37" uuid="e81bfdae-289d-4e02-b4c1-a0343984be1a">
 					<printWhenExpression><![CDATA[$P{writtenPlanOutOf} != null]]></printWhenExpression>
 				</reportElement>
 				<box>

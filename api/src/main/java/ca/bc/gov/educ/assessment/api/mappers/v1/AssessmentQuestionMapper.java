@@ -13,5 +13,6 @@ public interface AssessmentQuestionMapper {
     AssessmentQuestionMapper mapper = Mappers.getMapper(AssessmentQuestionMapper.class);
 
     @Mapping(target = "assessmentComponentID", source = "assessmentComponentEntity.assessmentComponentID")
+    @Mapping(target = "assessmentChoiceID", source = "assessmentChoiceEntity.assessmentChoiceID")
     AssessmentQuestion toStructure(AssessmentQuestionEntity entity);
 }

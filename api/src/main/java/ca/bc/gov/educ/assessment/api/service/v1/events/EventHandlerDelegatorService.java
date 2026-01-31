@@ -8,6 +8,7 @@ import ca.bc.gov.educ.assessment.api.struct.Event;
 import io.nats.client.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import static ca.bc.gov.educ.assessment.api.service.v1.events.EventHandlerService.PAYLOAD_LOG;
@@ -49,6 +50,7 @@ public class EventHandlerDelegatorService {
    * @param event   the event
    * @param message the message
    */
+  @Async("subscriberExecutor")
   public void handleEvent(final Event event, final Message message) {
     byte[] response;
     boolean isSynchronous = message.getReplyTo() != null;

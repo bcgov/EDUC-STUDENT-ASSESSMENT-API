@@ -184,6 +184,7 @@ public class ISRReportService extends BaseReportGenerationService {
               reportNode.getAssessmentDetails().add(populateLTE12Assessment(assessmentSummary, questions, studentAnswers, assessmentStudent.getAssessmentStudentID()));
               break;
             case "LTF12":
+              assessmentSummary.setScore(getLTFProficiencyScore(assessmentStudent.getProficiencyScore()));
               reportNode.getAssessmentDetails().add(populateLTF12Assessment(assessmentSummary, questions, studentAnswers, assessmentStudent.getAssessmentStudentID()));
               break;
             case "LTP10":
@@ -386,16 +387,16 @@ public class ISRReportService extends BaseReportGenerationService {
     
     if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeF)) {
       var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
-      assessmentNME10.setWrittenModelScore(writtenFairShare.getLeft());
-      assessmentNME10.setWrittenModelOutOf(writtenFairShare.getRight());
-    }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeM)){
-      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "M");
       assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
       assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
-    } else {
-      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
+    }else if(checkIfStudentAnsweredOEQues(assessmentStudentEntity, questionsTaskCodeM)){
+      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "M");
       assessmentNME10.setWrittenModelScore(writtenFairShare.getLeft());
       assessmentNME10.setWrittenModelOutOf(writtenFairShare.getRight());
+    } else {
+      var writtenFairShare = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "F");
+      assessmentNME10.setWrittenFairScore(writtenFairShare.getLeft());
+      assessmentNME10.setWrittenFairOutOf(writtenFairShare.getRight());
     }
 
     var questionsTaskCodeP = getQuestionsForTaskCode(questions, OPEN_ENDED.getCode(), "P");
@@ -412,13 +413,13 @@ public class ISRReportService extends BaseReportGenerationService {
     } else {
       var writtenReasoned = getResultSummaryForQuestionsWithTaskCode(assessmentStudentID, questions, studentAnswers, OPEN_ENDED.getCode(), "P");
       assessmentNME10.setWrittenPlanScore(writtenReasoned.getLeft());
-      assessmentNME10.setWrittenPlanScore(writtenReasoned.getRight());
+      assessmentNME10.setWrittenPlanOutOf(writtenReasoned.getRight());
     }
     
     assessmentNME10.setTotalMultiOverall(getTotalOfStrings(getListFromValues(assessmentNME10.getOnlinePlanAndDesignScore(), assessmentNME10.getOnlineReasonedEstimatesScore(), assessmentNME10.getOnlineFairShareScore(), assessmentNME10.getOnlineModelScore())));
     assessmentNME10.setOutOfMultiOverall(getTotalOfStrings(getListFromValues(assessmentNME10.getOnlinePlanAndDesignOutOf(), assessmentNME10.getOnlineReasonedEstimatesOutOf(), assessmentNME10.getOnlineFairShareOutOf(), assessmentNME10.getOnlineModelOutOf())));
-    assessmentNME10.setTotalWrittenOverall(getTotalOfStrings(getListFromValues(assessmentNME10.getWrittenFairScore(), assessmentNME10.getWrittenReasonedEstimatesScore())));
-    assessmentNME10.setOutOfWrittenOverall(getTotalOfStrings(getListFromValues(assessmentNME10.getWrittenFairOutOf(), assessmentNME10.getWrittenReasonedEstimatesOutOf())));
+    assessmentNME10.setTotalWrittenOverall(getTotalOfStrings(getListFromValues(assessmentNME10.getWrittenFairScore(), assessmentNME10.getWrittenReasonedEstimatesScore(), assessmentNME10.getWrittenModelScore(), assessmentNME10.getWrittenPlanScore())));
+    assessmentNME10.setOutOfWrittenOverall(getTotalOfStrings(getListFromValues(assessmentNME10.getWrittenFairOutOf(), assessmentNME10.getWrittenReasonedEstimatesOutOf(), assessmentNME10.getWrittenModelOutOf(), assessmentNME10.getWrittenPlanOutOf())));
     
     return assessmentNME10;
   }
@@ -545,8 +546,8 @@ public class ISRReportService extends BaseReportGenerationService {
     
     assessmentNMF10.setTotalMultiOverall(replacePeriodsWithCommas(getTotalOfStrings(getListFromValues(assessmentNMF10.getMultiChoicePlanningScore(), assessmentNMF10.getMultiChoiceEstimationsScore(), assessmentNMF10.getMultiChoiceGroupingScore(), assessmentNMF10.getMultiChoiceModelScore()))));
     assessmentNMF10.setOutOfMultiOverall(replacePeriodsWithCommas(getTotalOfStrings(getListFromValues(assessmentNMF10.getMultiChoicePlanningOutOf(), assessmentNMF10.getMultiChoiceEstimationsOutOf(), assessmentNMF10.getMultiChoiceGroupingOutOf(), assessmentNMF10.getMultiChoiceModelOutOf()))));
-    assessmentNMF10.setTotalWrittenOverall(replacePeriodsWithCommas(getTotalOfStrings(getListFromValues(assessmentNMF10.getWrittenGroupingScore(), assessmentNMF10.getWrittenPlanningScore()))));
-    assessmentNMF10.setOutOfWrittenOverall(replacePeriodsWithCommas(getTotalOfStrings(getListFromValues(assessmentNMF10.getWrittenGroupingOutOf(), assessmentNMF10.getWrittenPlanningOutOf()))));
+    assessmentNMF10.setTotalWrittenOverall(replacePeriodsWithCommas(getTotalOfStrings(getListFromValues(assessmentNMF10.getWrittenGroupingScore(), assessmentNMF10.getWrittenPlanningScore(), assessmentNMF10.getWrittenModelScore(), assessmentNMF10.getWrittenEstimatesScore()))));
+    assessmentNMF10.setOutOfWrittenOverall(replacePeriodsWithCommas(getTotalOfStrings(getListFromValues(assessmentNMF10.getWrittenGroupingOutOf(), assessmentNMF10.getWrittenPlanningOutOf(), assessmentNMF10.getWrittenModelOutOf(), assessmentNMF10.getWrittenEstimatesOutOf()))));
 
     return assessmentNMF10;
   }

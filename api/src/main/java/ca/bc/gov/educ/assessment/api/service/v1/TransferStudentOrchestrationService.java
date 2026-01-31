@@ -73,7 +73,10 @@ public class TransferStudentOrchestrationService {
     private void sendIndividualStudentAsMessageToTopic(final TransferOnApprovalSagaData transferSaga) {
         final var eventPayload = JsonUtil.getJsonString(transferSaga);
         if (eventPayload.isPresent()) {
-            final Event event = Event.builder().eventType(EventType.TRANSFER_STUDENT_RESULT).eventOutcome(EventOutcome.READ_TRANSFER_STUDENT_RESULT_SUCCESS).eventPayload(eventPayload.get()).assessmentStudentID(String.valueOf(transferSaga.getStagedStudentAssessmentID())).build();
+            final Event event = Event.builder().eventType(EventType.TRANSFER_STUDENT_RESULT).eventOutcome(EventOutcome.READ_TRANSFER_STUDENT_RESULT_SUCCESS).eventPayload(eventPayload.get())
+                    .assessmentStudentID(String.valueOf(transferSaga.getStagedStudentAssessmentID()))
+                    .assessmentID(String.valueOf(transferSaga.getAssessmentID()))
+                    .build();
             final var eventString = JsonUtil.getJsonString(event);
             if (eventString.isPresent()) {
                 this.messagePublisher.dispatchMessage(TopicsEnum.READ_TRANSFER_STUDENT_TOPIC.toString(), eventString.get().getBytes());

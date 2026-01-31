@@ -179,7 +179,7 @@ This report describes your overall result on the Évaluation de littératie de l
 				<text><![CDATA[L’élève fait preuve d’une pleine compréhension des concepts et met en pratique les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="329" y="216" width="204" height="239" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
+				<reportElement x="329" y="221" width="204" height="239" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
 				<textElement markup="html">
 					<font fontName="BC Sans" size="9" isBold="false"/>
 				</textElement>
@@ -1129,7 +1129,7 @@ This report describes your overall result on the Évaluation de littératie de l
 					<font fontName="BC Sans" size="9"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
-				<textFieldExpression><![CDATA["<b>Partie B</b><br>Vous avez choisi le parcours : " + $P{partBChoicePath}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["<b>Partie B</b><br>Vous avez choisi le parcours : " + "<b>" + $P{partBChoicePath} + "</b>"]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="1" y="99" width="1" height="349" forecolor="#BFBFBF" uuid="e731d0cd-34d6-4576-8843-455c07ed0d97">
