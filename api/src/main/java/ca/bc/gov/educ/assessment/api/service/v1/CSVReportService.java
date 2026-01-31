@@ -39,6 +39,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,6 +54,9 @@ import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentRepor
 @Slf4j
 @RequiredArgsConstructor
 public class CSVReportService {
+    // CSV Constants
+    private static final int CSV_BUFFER_SIZE = 1024;
+    private static final int CSV_FLUSH_INTERVAL = 100;
     private static final String SCHOOL_ID = "schoolID";
     private static final String SESSION_ID = "sessionID";
     private static final String STUDENTS_KEY = "students";
@@ -1049,24 +1054,43 @@ public class CSVReportService {
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<AssessmentStudentEntity> studentStream = assessmentStudentRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
+            csvPrinter.flush();
+
+            AtomicInteger rowCount = new AtomicInteger(0);
+            AtomicBoolean clientDisconnected = new AtomicBoolean(false);
+
+            log.debug("Starting assessment student search report stream processing");
 
             studentStream
-                    .map(this::prepareAssessmentStudentSearchDataForCsv)
-                    .forEach(csvRowData -> {
+                    .takeWhile(student -> !clientDisconnected.get())
+                    .forEach(student -> {
                         try {
+                            List<String> csvRowData = prepareAssessmentStudentSearchDataForCsv(student);
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+
+                            int count = rowCount.incrementAndGet();
+                            if (count % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
-                            throw new StudentAssessmentAPIRuntimeException(e);
+                            log.debug("Client disconnected during assessment student search report at record {}. Stopping stream.", rowCount.get());
+                            clientDisconnected.set(true);
                         }
                     });
 
-            csvPrinter.flush();
+            if (!clientDisconnected.get()) {
+                csvPrinter.flush();
+                log.debug("Successfully generated assessment student search report with {} rows", rowCount.get());
+            } else {
+                log.debug("Assessment student search report generation stopped at {} rows due to client disconnect", rowCount.get());
+            }
+        } catch (IOException e) {
+            log.warn("Failed to start or complete assessment student search report generation: {}", e.getMessage());
         }
     }
 
