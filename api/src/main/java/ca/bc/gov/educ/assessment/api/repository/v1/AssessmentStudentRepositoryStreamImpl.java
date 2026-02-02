@@ -7,7 +7,6 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
-import org.hibernate.query.Query;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,14 +34,12 @@ public class AssessmentStudentRepositoryStreamImpl implements AssessmentStudentR
             cq.where(spec.toPredicate(root, cq, cb));
         }
 
-        TypedQuery<AssessmentStudentEntity> typedQuery = entityManager.createQuery(cq);
-        Query<AssessmentStudentEntity> hibernateQuery = typedQuery.unwrap(Query.class);
+        TypedQuery<AssessmentStudentEntity> query = entityManager.createQuery(cq);
 
-        hibernateQuery.setFetchSize(500);
-        hibernateQuery.setReadOnly(true);
-        hibernateQuery.setCacheable(false);
 
-        return hibernateQuery.getResultStream();
-    }
+        query.setHint("org.hibernate.fetchSize", 5000);
+        query.setHint("org.hibernate.readOnly", true);
+
+        return query.getResultStream();    }
 }
 
