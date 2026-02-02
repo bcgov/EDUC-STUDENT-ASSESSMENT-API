@@ -36,10 +36,10 @@ public class AssessmentStudentRepositoryStreamImpl implements AssessmentStudentR
 
         TypedQuery<AssessmentStudentEntity> query = entityManager.createQuery(cq);
 
-
         query.setHint("org.hibernate.fetchSize", 5000);
         query.setHint("org.hibernate.readOnly", true);
 
-        return query.getResultStream();    }
+        return query.getResultStream();
+    }
 }
 
