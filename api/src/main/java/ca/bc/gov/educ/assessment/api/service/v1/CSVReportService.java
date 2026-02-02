@@ -19,6 +19,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.YukonAssessmentCount;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -57,6 +59,7 @@ public class CSVReportService {
     // CSV Constants
     private static final int CSV_BUFFER_SIZE = 1024;
     private static final int CSV_FLUSH_INTERVAL = 100;
+    private static final int ENTITY_MANAGER_MEM_CLEAR = 10000;
     private static final String SCHOOL_ID = "schoolID";
     private static final String SESSION_ID = "sessionID";
     private static final String STUDENTS_KEY = "students";
@@ -74,6 +77,7 @@ public class CSVReportService {
     private final SummaryReportService summaryReportService;
     private final DOARReportService doarReportService;
     private final AssessmentStudentSearchService assessmentStudentSearchService;
+    private final EntityManager entityManager;
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
@@ -1050,11 +1054,13 @@ public class CSVReportService {
                 .toList();
 
         response.setContentType("text/csv");
+        response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Disposition", "attachment; filename=\"StudentAssessmentSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+        response.setBufferSize(CSV_BUFFER_SIZE);
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()), CSV_BUFFER_SIZE);
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<AssessmentStudentEntity> studentStream = assessmentStudentRepository.streamAll(specs)) {
 
@@ -1064,24 +1070,35 @@ public class CSVReportService {
             AtomicInteger rowCount = new AtomicInteger(0);
             AtomicBoolean clientDisconnected = new AtomicBoolean(false);
 
-            log.debug("Starting assessment student search report stream processing");
+            try {
+                studentStream
+                        .takeWhile(student -> !clientDisconnected.get())
+                        .forEach(student -> {
+                            try {
+                                List<String> csvRowData = prepareAssessmentStudentSearchDataForCsv(student);
+                                csvPrinter.printRecord(csvRowData);
 
-            studentStream
-                    .takeWhile(student -> !clientDisconnected.get())
-                    .forEach(student -> {
-                        try {
-                            List<String> csvRowData = prepareAssessmentStudentSearchDataForCsv(student);
-                            csvPrinter.printRecord(csvRowData);
+                                int count = rowCount.incrementAndGet();
+                                if (count % CSV_FLUSH_INTERVAL == 0) {
+                                    csvPrinter.flush();
+                                }
 
-                            int count = rowCount.incrementAndGet();
-                            if (count % CSV_FLUSH_INTERVAL == 0) {
-                                csvPrinter.flush();
+                                if (count % ENTITY_MANAGER_MEM_CLEAR == 0) {
+                                    entityManager.clear();
+                                }
+                            } catch (IOException e) {
+                                log.debug("Client disconnected during assessment student search report at record {}. Stopping stream.", rowCount.get());
+                                clientDisconnected.set(true);
+                                throw new RuntimeException("Client disconnected", e);
                             }
-                        } catch (IOException e) {
-                            log.debug("Client disconnected during assessment student search report at record {}. Stopping stream.", rowCount.get());
-                            clientDisconnected.set(true);
-                        }
-                    });
+                        });
+            } catch (RuntimeException e) {
+                if (e.getMessage() != null && e.getMessage().contains("Client disconnected")) {
+                    log.debug("Stream terminated due to client disconnect at {} rows", rowCount.get());
+                } else {
+                    throw e;
+                }
+            }
 
             if (!clientDisconnected.get()) {
                 csvPrinter.flush();
