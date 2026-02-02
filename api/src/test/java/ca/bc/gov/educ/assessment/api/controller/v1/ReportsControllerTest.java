@@ -2002,7 +2002,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("text/csv"))
+                .andExpect(content().contentType("text/csv;charset=UTF-8"))
                 .andExpect(header().exists("Content-Disposition"));
 
         String csvContent = resultActions.andReturn().getResponse().getContentAsString();
@@ -2054,7 +2054,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("text/csv"));
+                .andExpect(content().contentType("text/csv;charset=UTF-8"));
 
         String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -2102,7 +2102,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("text/csv"));
+                .andExpect(content().contentType("text/csv;charset=UTF-8"));
 
         String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -2151,7 +2151,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("text/csv"));
+                .andExpect(content().contentType("text/csv;charset=UTF-8"));
 
         String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -2194,7 +2194,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("text/csv"));
+                .andExpect(content().contentType("text/csv;charset=UTF-8"));
 
         String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -2243,7 +2243,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("text/csv"));
+                .andExpect(content().contentType("text/csv;charset=UTF-8"));
 
         String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
