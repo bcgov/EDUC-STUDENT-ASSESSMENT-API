@@ -771,7 +771,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     return switch (level) {
       case DISTRICT -> schools.stream().filter(school -> school.getDistrictId().equals(districtOrAuthorityID) && StringUtils.isBlank(school.getIndependentAuthorityId())
               && (school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC) || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode()))).toList();
-      case INDEPENDENT -> schools.stream().filter(school -> school.getIndependentAuthorityId().equals(districtOrAuthorityID)).toList();
+      case INDEPENDENT -> schools.stream().filter(school -> StringUtils.isNotBlank(school.getIndependentAuthorityId()) && school.getIndependentAuthorityId().equals(districtOrAuthorityID)).toList();
       case PUBLIC -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
               || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode())).toList();
       case "Province" -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
