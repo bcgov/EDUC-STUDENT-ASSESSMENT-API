@@ -384,13 +384,18 @@ public abstract class BaseOrchestrator<T> implements EventHandler, Orchestrator 
   @Transactional
   @Async("sagaRetryTaskExecutor")
   public void replaySaga(final AssessmentSagaEntity saga) throws IOException, InterruptedException, TimeoutException {
-    final var eventStates = this.getSagaService().findAllSagaStates(saga);
-    final var t = JsonUtil.getJsonObjectFromString(this.clazz, saga.getPayload());
-    if (eventStates.isEmpty()) { //process did not start last time, lets start from beginning.
-      this.replayFromBeginning(saga, t);
-    } else {
-      this.replayFromLastEvent(saga, eventStates, t);
-    }
+      try {
+          final var eventStates = this.getSagaService().findAllSagaStates(saga);
+          final var t = JsonUtil.getJsonObjectFromString(this.clazz, saga.getPayload());
+          if (eventStates.isEmpty()) { //process did not start last time, lets start from beginning.
+            this.replayFromBeginning(saga, t);
+          } else {
+            this.replayFromLastEvent(saga, eventStates, t);
+          }
+      } catch (Exception e) {
+          log.info("MarcoXX: " + e.getMessage());
+          throw new RuntimeException(e);
+      }
   }
 
   /**
@@ -404,11 +409,8 @@ public abstract class BaseOrchestrator<T> implements EventHandler, Orchestrator 
    * @throws IOException          if there is connectivity problem
    */
   private void replayFromLastEvent(final AssessmentSagaEntity saga, final List<AssessmentSagaEventStatesEntity> eventStates, final T t) throws InterruptedException, TimeoutException, IOException {
-    log.info("Marco1");
     val sagaEventOptional = this.findTheLastEventOccurred(eventStates);
-    log.info("Marco2");
     if (sagaEventOptional.isPresent()) {
-      log.info("Marco3");
       val sagaEvent = sagaEventOptional.get();
       log.trace(sagaEventOptional.toString());
       final EventType currentEvent = EventType.valueOf(sagaEvent.getSagaEventState());
