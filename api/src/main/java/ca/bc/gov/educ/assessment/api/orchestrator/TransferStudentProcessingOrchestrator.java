@@ -80,9 +80,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
         saga.setSagaState(CALCULATE_STUDENT_DOAR.toString());
         saga.setStatus(IN_PROGRESS.toString());
-        log.info("MarcoX10");
         this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
-        log.info("MarcoX11");
         final Event.EventBuilder eventBuilder = Event.builder();
         eventBuilder.sagaId(saga.getSagaId()).eventType(CALCULATE_STUDENT_DOAR);
 

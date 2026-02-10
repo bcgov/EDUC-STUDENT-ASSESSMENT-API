@@ -125,25 +125,19 @@ public class DOARReportService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createAndPopulateDOARSummaryCalculations(TransferOnApprovalSagaData sagaData) {
-        log.info("MarcoX1");
         var assessmentStudentEntity = assessmentStudentRepository
                 .findByAssessmentEntity_AssessmentIDAndStudentID(UUID.fromString(sagaData.getAssessmentID()), UUID.fromString(sagaData.getStudentID()))
                 .orElseThrow(() -> new EntityNotFoundException(AssessmentStudentEntity.class, "StudentID", sagaData.getStudentID()));
-        log.info("MarcoX2");
         var selectedAssessmentForm = assessmentStudentEntity.getAssessmentEntity().getAssessmentForms().stream()
                 .filter(assessmentFormEntity -> assessmentStudentEntity.getAssessmentFormID() != null
                         && Objects.equals(assessmentFormEntity.getAssessmentFormID(), assessmentStudentEntity.getAssessmentFormID()))
                 .findFirst();
-        log.info("MarcoX3");
         if(selectedAssessmentForm.isPresent()) {
-            log.info("MarcoX4");
             var assessmentStudentDOARCalculationEntity = prepareLTEDOARSummaryEntity(assessmentStudentEntity, selectedAssessmentForm.get(), assessmentStudentEntity.getAssessmentEntity().getAssessmentTypeCode());
-            log.info("MarcoX5");
             assessmentStudentDOARCalculationEntity.setCreateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
             assessmentStudentDOARCalculationEntity.setUpdateUser(ApplicationProperties.STUDENT_ASSESSMENT_API);
             assessmentStudentDOARCalculationEntity.setCreateDate(LocalDateTime.now());
             assessmentStudentDOARCalculationEntity.setUpdateDate(LocalDateTime.now());
-            log.info("MarcoX6");
             assessmentStudentDOARCalculationRepository.save(assessmentStudentDOARCalculationEntity);
         }
     }
