@@ -404,8 +404,11 @@ public abstract class BaseOrchestrator<T> implements EventHandler, Orchestrator 
    * @throws IOException          if there is connectivity problem
    */
   private void replayFromLastEvent(final AssessmentSagaEntity saga, final List<AssessmentSagaEventStatesEntity> eventStates, final T t) throws InterruptedException, TimeoutException, IOException {
+    log.info("Marco1");
     val sagaEventOptional = this.findTheLastEventOccurred(eventStates);
+    log.info("Marco2");
     if (sagaEventOptional.isPresent()) {
+      log.info("Marco3");
       val sagaEvent = sagaEventOptional.get();
       log.trace(sagaEventOptional.toString());
       final EventType currentEvent = EventType.valueOf(sagaEvent.getSagaEventState());
@@ -432,7 +435,9 @@ public abstract class BaseOrchestrator<T> implements EventHandler, Orchestrator 
    * @throws IOException          the io exception
    */
   private void findAndInvokeNextStep(final AssessmentSagaEntity saga, final T t, final EventType currentEvent, final EventOutcome eventOutcome, final Event event) throws InterruptedException, TimeoutException, IOException {
+    log.info("Marco4");
     final Optional<SagaEventState<T>> sagaEventState = this.findNextSagaEventState(currentEvent, eventOutcome, t);
+    log.info("Marco5");
     if (sagaEventState.isPresent()) {
       log.trace(SYSTEM_IS_GOING_TO_EXECUTE_NEXT_EVENT_FOR_CURRENT_EVENT, sagaEventState.get().getNextEventType(), event.toString(), saga.getSagaId());
       this.invokeNextEvent(event, saga, t, sagaEventState.get());
@@ -570,7 +575,9 @@ public abstract class BaseOrchestrator<T> implements EventHandler, Orchestrator 
    * @return {@link Optional<SagaEventState>}
    */
   protected Optional<SagaEventState<T>> findNextSagaEventState(final EventType currentEvent, final EventOutcome eventOutcome, final T sagaData) {
+    log.info("Marco6");
     val sagaEventStates = this.nextStepsToExecute.get(currentEvent);
+    log.info("Marco7");
     return sagaEventStates == null ? Optional.empty() : sagaEventStates.stream().filter(el ->
       el.getCurrentEventOutcome() == eventOutcome && el.nextStepPredicate.test(sagaData)
     ).findFirst();
