@@ -357,6 +357,7 @@ public class ISRReportService extends BaseReportGenerationService {
     var school = validateAndReturnSchool(schoolID);
 
     reportNode.setReportGeneratedDate(LocalDate.now().format(formatter));
+    log.info("School name going in is: " + school.getDisplayName());
     reportNode.setSchoolDetail(school.getDisplayName());
     reportNode.setStudentPEN(studentPEN);
     reportNode.setStudentName(studentName);
