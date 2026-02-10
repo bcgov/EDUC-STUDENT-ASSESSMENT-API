@@ -71,7 +71,8 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository;
     protected static final ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
     private AssessmentEntity savedAssessmentEntity;
-
+    @Autowired
+    AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
     @Autowired
     AssessmentChoiceRepository  assessmentChoiceRepository;
 
@@ -79,6 +80,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         stagedStudentResultRepository.deleteAll();
+        assessmentStudentHistoryRepository.deleteAll();
         studentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
         assessmentQuestionRepository.deleteAll();
