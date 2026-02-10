@@ -11,11 +11,11 @@
 	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
-	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false"/>
-	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false"/>
-	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true"/>
-	<style name="Detail" mode="Transparent" fontName="Times New Roman"/>
-	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+	<style name="Title" forecolor="#FFFFFF" fontName="BC Sans" fontSize="50" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="BC Sans" fontSize="18" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Column header" forecolor="#666666" fontName="BC Sans" fontSize="14" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Detail" mode="Transparent" fontName="BC Sans" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Row" mode="Transparent" fontName="BC Sans" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true">
 		<conditionalStyle>
 			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
 			<style mode="Opaque" backcolor="#F0EFEF"/>
@@ -591,7 +591,7 @@
 			<staticText>
 				<reportElement x="287" y="20" width="209" height="14" forecolor="#030303" uuid="8ef7f15d-0e1e-47ce-862d-01e8577c31eb"/>
 				<textElement>
-					<font fontName="BC Sans"/>
+					<font fontName="BC Sans" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Graduation Assessment Results]]></text>
 			</staticText>
@@ -601,7 +601,7 @@
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<textElement textAlignment="Left">
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="8" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["School Name: "]]></textFieldExpression>
 			</textField>
@@ -610,14 +610,14 @@
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<textElement textAlignment="Left">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="8" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{reportGeneratedDate}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="615" y="-14" width="142" height="17" forecolor="#B3B3B3" uuid="c7514b99-e3d3-4301-bbd8-1c9c8ce72e3e"/>
 				<textElement>
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="8" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Ministry of Education and Child Care]]></text>
 			</staticText>
@@ -627,7 +627,7 @@
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="8" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Student Name: "]]></textFieldExpression>
 			</textField>
@@ -637,7 +637,7 @@
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<textElement>
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="8" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Personal Education Number: "]]></textFieldExpression>
 			</textField>
@@ -650,7 +650,7 @@
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<textElement>
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="8" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{studentName}]]></textFieldExpression>
 			</textField>
@@ -659,7 +659,7 @@
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<textElement>
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="8" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{studentPEN}]]></textFieldExpression>
 			</textField>
@@ -668,7 +668,7 @@
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<textElement textAlignment="Left">
-					<font fontName="BC Sans" size="8"/>
+					<font fontName="BC Sans" size="8" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{schoolDetail}]]></textFieldExpression>
 			</textField>
@@ -678,7 +678,7 @@
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<textElement textAlignment="Left">
-					<font fontName="BC Sans" size="8" isBold="true"/>
+					<font fontName="BC Sans" size="8" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Report Generated: "]]></textFieldExpression>
 			</textField>
@@ -700,7 +700,7 @@
 								<staticText>
 									<reportElement style="Table 2_CH" x="0" y="0" width="185" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
-										<font fontName="BC Sans" size="8" isBold="true"/>
+										<font fontName="BC Sans" size="8" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
 									<text><![CDATA[Session]]></text>
@@ -715,7 +715,7 @@
 										<property name="com.jaspersoft.studio.unit.spacingBefore" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
-										<font fontName="BC Sans" size="8" isBold="false"/>
+										<font fontName="BC Sans" size="8" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 										<paragraph firstLineIndent="0" leftIndent="5" spacingBefore="3"/>
 									</textElement>
 									<textFieldExpression><![CDATA[$F{session}]]></textFieldExpression>
@@ -728,7 +728,7 @@
 								<staticText>
 									<reportElement style="Table 2_CH" x="0" y="0" width="295" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
-										<font fontName="BC Sans" size="8" isBold="true"/>
+										<font fontName="BC Sans" size="8" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
 									<text><![CDATA[Assessment]]></text>
@@ -740,7 +740,7 @@
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
-										<font fontName="BC Sans" size="8" isBold="false"/>
+										<font fontName="BC Sans" size="8" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 										<paragraph leftIndent="5" spacingBefore="3"/>
 									</textElement>
 									<textFieldExpression><![CDATA[$F{assessment}]]></textFieldExpression>
@@ -753,7 +753,7 @@
 								<staticText>
 									<reportElement style="Table 2_CH" x="0" y="0" width="90" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="cef160dd-2481-49e5-a8a3-386be78ac5eb"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
-										<font fontName="BC Sans" size="8" isBold="true"/>
+										<font fontName="BC Sans" size="8" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
 									<text><![CDATA[Proficiency Score]]></text>
@@ -765,7 +765,7 @@
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
-										<font fontName="BC Sans" size="8" isBold="false"/>
+										<font fontName="BC Sans" size="8" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 										<paragraph leftIndent="5" spacingBefore="3"/>
 									</textElement>
 									<textFieldExpression><![CDATA[$F{score}]]></textFieldExpression>
@@ -778,7 +778,7 @@
 								<staticText>
 									<reportElement style="Table 2_CH" x="0" y="0" width="99" height="20" forecolor="rgba(89, 88, 88, 0.8235294)" uuid="ebff00d1-1363-4fcd-9c22-924599830329"/>
 									<textElement textAlignment="Left" verticalAlignment="Middle">
-										<font fontName="BC Sans" size="8" isBold="true"/>
+										<font fontName="BC Sans" size="8" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 										<paragraph leftIndent="5"/>
 									</textElement>
 									<text><![CDATA[Special Case]]></text>
@@ -790,7 +790,7 @@
 										<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 									</reportElement>
 									<textElement textAlignment="Left" verticalAlignment="Top">
-										<font fontName="BC Sans" size="8" isBold="false"/>
+										<font fontName="BC Sans" size="8" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 										<paragraph leftIndent="5" spacingBefore="3"/>
 									</textElement>
 									<textFieldExpression><![CDATA[$F{specialCase}]]></textFieldExpression>
@@ -890,14 +890,14 @@
 			<staticText>
 				<reportElement x="33" y="7" width="209" height="14" forecolor="#030303" uuid="6e6ca833-ae3e-4883-b402-35f9df2ed8bf"/>
 				<textElement>
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Summary of Assessment Results]]></text>
 			</staticText>
 			<staticText>
 				<reportElement positionType="Float" x="33" y="120" width="661" height="30" forecolor="#000000" uuid="57c90b68-fb64-41cf-a2d9-a7109fb5a74f"/>
 				<textElement>
-					<font fontName="BC Sans" size="8" isItalic="true"/>
+					<font fontName="BC Sans" size="8" isItalic="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[If you have achieved a proficiency score of 1, 2, 3, 4, or AEG you have met the graduation requirement. 
 Note that proficiency scores for the Grade 10 Literacy Assessment do not appear on transcripts.]]></text>

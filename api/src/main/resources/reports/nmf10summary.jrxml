@@ -56,14 +56,14 @@
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="11" isBold="true"/>
+					<font fontName="BC Sans" size="11" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["L’Évaluation de numératie de la 10<sup>e</sup> année - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="0" y="-3" width="710" height="87" uuid="e2c26650-2772-4e9f-8f88-c00c999e72e0"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’Évaluation de numératie de la 10<sup>e</sup> année est une évaluation requise dans toute la province pour l’obtention du diplôme d’études secondaires. La numératie, comme la littératie, est une compétence de vie importante. Les résultats de cette évaluation peuvent vous aider, vous et votre école, à déterminer vos points forts ainsi que la meilleure approche pour poursuivre au mieux votre parcours d’apprentissage. Cette évaluation fournit également des renseignements sur les paliers de compétence des élèves de la Colombie-Britannique aux écoles, aux conseils scolaires et au Ministère.<br><br>
 
@@ -72,7 +72,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 			<textField>
 				<reportElement x="1" y="84" width="559" height="18" uuid="21b720bd-e3ea-47dc-89a6-f938b3c3da4f"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Votre palier de compétence pour l’Évaluation de numératie de la 10<sup>e</sup> année : " + $P{score}]]></textFieldExpression>
 			</textField>
@@ -89,42 +89,42 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 			<staticText>
 				<reportElement x="3" y="103" width="82" height="14" uuid="cc409ca8-997e-4910-aee8-745d552bad3e"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[1 - Émergente]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="193" y="103" width="106" height="14" uuid="492b5b6a-9cc6-44ad-bdbc-69210bef9b2e"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[2 - En voie d’acquisition]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="366" y="103" width="82" height="14" uuid="83347035-e874-4722-9bbb-5f786365b5e6"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[3 - Acquise]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="540" y="103" width="82" height="14" uuid="90f8dbd7-05e6-442a-ba78-bfd2cea0d7b3"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[4 - Approfondie]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="7" y="123" width="173" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre des capacités minimales pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="-31" y="188" width="202" height="186" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>de repérer des informations dans les sources (p. ex., des graphiques, des images ou des tableaux);</li><br>
@@ -139,14 +139,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 			<staticText>
 				<reportElement x="189" y="123" width="167" height="97" uuid="77ddbd88-ee82-4206-a7f9-1fe731815e47"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre des capacités intermédiaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="158" y="192" width="202" height="180" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>d’appliquer les informations fournies dans les sources (p. ex., des graphiques, des images ou des tableaux);</li><br>
@@ -161,14 +161,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 			<staticText>
 				<reportElement x="369" y="123" width="167" height="97" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre de solides capacités pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="333" y="185" width="202" height="188" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>d’analyser et d’interpréter l’information fournie dans les sources (p. ex., des graphiques, des images ou des tableaux);</li><br>
@@ -183,14 +183,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 			<staticText>
 				<reportElement x="543" y="123" width="165" height="97" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’élève démontre des capacités exemplaires pour mettre en pratique les compétences et les concepts en lien avec l’apprentissage visé. Plus spécifiquement, l’élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="506" y="187" width="202" height="188" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>d’analyser et de synthétiser les données fournies dans les sources (p. ex., des graphiques, des images ou des tableaux) de manière logique et compétente;</li>
@@ -210,14 +210,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 			<staticText>
 				<reportElement x="1" y="371" width="82" height="19" uuid="68f2a54f-ebdb-42c6-814e-2a6d155b0c23"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Résultats bruts]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="1" y="386" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Vous trouverez ci-dessous vos résultats bruts pour l’Évaluation de numératie de la 10<sup>e</sup> année. Ces résultats indiquent votre niveau de réussite dans les différents domaines évalués, et ne peuvent pas être directement transposables en palier de compétence.]]></text>
 			</staticText>
@@ -234,7 +234,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[Questions à réponse choisie (Section commune)]]></text>
@@ -249,7 +249,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
@@ -263,7 +263,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
@@ -280,7 +280,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>La planification et la conception</b><br>L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif pour formuler une recommandation (p. ex., planifier l’expédition efficace de plusieurs conteneurs).]]></text>
@@ -298,7 +298,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de numératie 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Les estimations motivées</b><br>
@@ -314,7 +314,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoicePlanningScore}]]></textFieldExpression>
 			</textField>
@@ -328,7 +328,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoicePlanningOutOf}]]></textFieldExpression>
 			</textField>
@@ -342,7 +342,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceEstimationsOutOf}]]></textFieldExpression>
 			</textField>
@@ -356,7 +356,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceEstimationsScore}]]></textFieldExpression>
 			</textField>
@@ -373,7 +373,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[Questions à réponse construite (Section à options)]]></text>
@@ -390,7 +390,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
@@ -406,7 +406,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
@@ -423,7 +423,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>La répartition</b><br>
@@ -439,7 +439,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceGroupingScore}]]></textFieldExpression>
 			</textField>
@@ -453,7 +453,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceGroupingOutOf}]]></textFieldExpression>
 			</textField>
@@ -470,7 +470,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>L’établissement de modèle</b><br>
@@ -486,7 +486,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceModelScore}]]></textFieldExpression>
 			</textField>
@@ -500,7 +500,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{multiChoiceModelOutOf}]]></textFieldExpression>
 			</textField>
@@ -518,7 +518,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>La répartition</b><br>
@@ -536,7 +536,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenGroupingScore}]]></textFieldExpression>
 			</textField>
@@ -552,7 +552,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenGroupingOutOf}]]></textFieldExpression>
 			</textField>
@@ -570,7 +570,7 @@ L’élève doit créer des groupements ou des catégories pour répartir ou all
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>La planification et la conception</b><br>
@@ -588,7 +588,7 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenPlanningScore}]]></textFieldExpression>
 			</textField>
@@ -604,7 +604,7 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenPlanningOutOf}]]></textFieldExpression>
 			</textField>
@@ -643,7 +643,7 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{totalMultiOverall}]]></textFieldExpression>
 			</textField>
@@ -657,7 +657,7 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{outOfMultiOverall}]]></textFieldExpression>
 			</textField>
@@ -671,7 +671,7 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{totalWrittenOverall}]]></textFieldExpression>
 			</textField>
@@ -685,7 +685,7 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{outOfWrittenOverall}]]></textFieldExpression>
 			</textField>
@@ -703,7 +703,7 @@ L’élève peut avoir à analyser les facteurs temps, espace, coût et effectif
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>L’établissement de modèle</b><br>
@@ -721,7 +721,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenModelScore}]]></textFieldExpression>
 			</textField>
@@ -737,7 +737,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenModelOutOf}]]></textFieldExpression>
 			</textField>
@@ -755,7 +755,7 @@ L’élève doit proposer un modèle ou une stratégie en fonction d’un ensemb
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Les estimations motivées</b><br>
@@ -773,7 +773,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenEstimatesScore}]]></textFieldExpression>
 			</textField>
@@ -789,7 +789,7 @@ L’élève doit faire ou utiliser des estimations de plusieurs variables, afin 
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{writtenEstimatesOutOf}]]></textFieldExpression>
 			</textField>

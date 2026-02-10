@@ -49,14 +49,14 @@
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement>
-					<font fontName="BC Sans" size="11" isBold="true"/>
+					<font fontName="BC Sans" size="11" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Literacy 10 Assessment - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="-1" y="0" width="710" height="79" uuid="e2c26650-2772-4e9f-8f88-c00c999e72e0"/>
 				<textElement>
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[The Grade 10 Literacy Assessment is a province-wide assessment required for graduation. You and your school may use the assessment results to understand your areas of strength and how to support your further learning. The Grade 10 Literacy Assessment also provides information to schools, districts and the Province about the literacy levels of BC students.
 
@@ -65,7 +65,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 			<textField>
 				<reportElement x="1" y="80" width="559" height="18" uuid="21b720bd-e3ea-47dc-89a6-f938b3c3da4f"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Your proficiency level on the Grade 10 Literacy Assessment is: " + $P{score}]]></textFieldExpression>
 			</textField>
@@ -82,35 +82,35 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 			<staticText>
 				<reportElement x="3" y="102" width="82" height="15" uuid="cc409ca8-997e-4910-aee8-745d552bad3e"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[1 - Emerging]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="193" y="102" width="82" height="15" uuid="492b5b6a-9cc6-44ad-bdbc-69210bef9b2e"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[2 - Developing]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="366" y="102" width="82" height="15" uuid="83347035-e874-4722-9bbb-5f786365b5e6"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[3 - Proficient]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="540" y="103" width="82" height="15" uuid="90f8dbd7-05e6-442a-ba78-bfd2cea0d7b3"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[4 - Extending]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="7" y="124" width="160" height="62" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Students demonstrate an <b>initial understanding</b> of the concepts and competencies relevant to the expected learning. Specifically, they can:
 ]]></text>
@@ -118,7 +118,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 			<staticText>
 				<reportElement x="-34" y="186" width="196" height="186" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>retrieve and attempt to apply information from texts</li><br>
@@ -133,14 +133,14 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 			<staticText>
 				<reportElement x="193" y="124" width="148" height="62" uuid="77ddbd88-ee82-4206-a7f9-1fe731815e47"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Students demonstrate a <b>partial understanding</b> of the concepts and competencies relevant to the expected learning. Specifically, they can:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="155" y="186" width="196" height="186" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>comprehend and apply information from texts</li><br>
@@ -155,14 +155,14 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 			<staticText>
 				<reportElement x="369" y="124" width="148" height="62" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Students demonstrate a <b>complete understanding</b> of the concepts and competencies relevant to the expected learning. Specifically, they can:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="330" y="186" width="196" height="190" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>critically analyze and synthesize information from texts</li><br>
@@ -177,14 +177,14 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 			<staticText>
 				<reportElement x="543" y="124" width="148" height="62" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Students demonstrate a <b>sophisticated understanding</b> of the concepts and competencies relevant to the expected learning. Specifically, they can:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="503" y="186" width="196" height="190" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>critically evaluate and synthesize information from texts</li><br>
@@ -204,14 +204,14 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 			<staticText>
 				<reportElement x="1" y="377" width="82" height="19" uuid="68f2a54f-ebdb-42c6-814e-2a6d155b0c23"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Your Raw Scores]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="1" y="392" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Below are your raw scores on the Grade 10 Literacy Assessment. These scores indicate how you performed on the different areas of the assessment. These raw scores can not be directly converted to your proficiency level.]]></text>
 			</staticText>
@@ -227,7 +227,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[Raw Scores by Task]]></text>
@@ -242,7 +242,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Your Score]]></text>
 			</staticText>
@@ -256,7 +256,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Out of]]></text>
 			</staticText>
@@ -273,7 +273,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Comprehend:</b> Analyzing and making meaning from texts<br>
@@ -292,7 +292,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Communicate:</b> Understanding of Texts/Making Personal Connections<br>
@@ -310,7 +310,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{comprehendScore}]]></textFieldExpression>
 			</textField>
@@ -326,7 +326,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{comprehendOutOf}]]></textFieldExpression>
 			</textField>
@@ -342,7 +342,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{communicateOutOf}]]></textFieldExpression>
 			</textField>
@@ -358,7 +358,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{communicateScore}]]></textFieldExpression>
 			</textField>
@@ -374,7 +374,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[Raw Scores by Part]]></text>
@@ -389,7 +389,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Your Score]]></text>
 			</staticText>
@@ -403,7 +403,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true"/>
+					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Out of]]></text>
 			</staticText>
@@ -420,7 +420,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle" markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Part A</b>]]></text>
@@ -437,7 +437,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[Selected-response questions (machine-scored)]]></text>
@@ -452,7 +452,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -466,7 +466,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -480,7 +480,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partASelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
@@ -494,7 +494,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partASelectedResponseScore}]]></textFieldExpression>
 			</textField>
@@ -511,7 +511,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Written Response:</b> Graphic Organizer]]></text>
@@ -526,7 +526,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
 			</textField>
@@ -540,7 +540,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
 			</textField>
@@ -556,7 +556,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Written Response:</b> Communicating Understanding]]></text>
@@ -571,7 +571,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
 			</textField>
@@ -585,7 +585,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingScore}]]></textFieldExpression>
 			</textField>
@@ -602,7 +602,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle" markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Part B</b>]]></text>
@@ -619,7 +619,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[Select-response questions (machine-scored)]]></text>
@@ -634,7 +634,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -648,7 +648,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -662,7 +662,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partBSelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
@@ -676,7 +676,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partBSelectedResponseScore}]]></textFieldExpression>
 			</textField>
@@ -693,7 +693,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false"/>
+					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Written Response:</b> Communicating Personal Connections]]></text>
@@ -708,7 +708,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partBWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
 			</textField>
@@ -722,7 +722,7 @@ This report describes your overall result on the Grade 10 Literacy Assessment. Y
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9"/>
+					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partBWrittenResponseUnderstandingScore}]]></textFieldExpression>
 			</textField>
