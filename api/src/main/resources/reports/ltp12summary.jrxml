@@ -58,14 +58,14 @@
 			<textField>
 				<reportElement x="1" y="-19" width="559" height="18" forecolor="#030303" uuid="a6a5d354-6ed4-4ad6-8206-9b5c4cbdc77f"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="11" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="11" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Évaluation de littératie de la 12<sup>e</sup> année – Français langue première - " + $P{session} + " Session"]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="0" y="-3" width="710" height="78" uuid="e2c26650-2772-4e9f-8f88-c00c999e72e0"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’Évaluation de littératie de la 12<sup>e</sup> année – Français langue première est une évaluation requise dans toute la province pour l’obtention du diplôme d’études secondaires (programme francophone). Les résultats de cette évaluation peuvent vous aider, vous et votre école, à déterminer vos points forts. Cette évaluation fournit également des renseignements sur les paliers de compétence des élèves de la Colombie-Britannique aux écoles, aux conseils scolaires et au Ministère.<br><br>
 
@@ -74,7 +74,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 			<textField>
 				<reportElement x="1" y="75" width="708" height="18" uuid="21b720bd-e3ea-47dc-89a6-f938b3c3da4f"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Votre palier de compétence pour l'Évaluation de littératie de la 12<sup>e</sup> année – Français langue première : " + $P{score}]]></textFieldExpression>
 			</textField>
@@ -91,42 +91,42 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 			<staticText>
 				<reportElement x="3" y="94" width="82" height="14" uuid="cc409ca8-997e-4910-aee8-745d552bad3e"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[1 - Émergente]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="193" y="94" width="106" height="14" uuid="492b5b6a-9cc6-44ad-bdbc-69210bef9b2e"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[2 - En voie d’acquisition]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="366" y="94" width="82" height="14" uuid="83347035-e874-4722-9bbb-5f786365b5e6"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[3 - Acquise]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="540" y="94" width="82" height="14" uuid="90f8dbd7-05e6-442a-ba78-bfd2cea0d7b3"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[4 - Approfondie]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="7" y="111" width="163" height="100" uuid="b06a4233-60ed-4d50-8808-17afaae23d20"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’élève fait preuve d’une compréhension initiale des concepts et commence à mettre en pratique les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="-31" y="218" width="194" height="213" uuid="2a872504-680d-4a90-bfb1-d288b7d56638"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>de repérer de l’information dans un document;</li><br>
@@ -143,14 +143,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 			<staticText>
 				<reportElement x="193" y="114" width="167" height="106" uuid="77ddbd88-ee82-4206-a7f9-1fe731815e47"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’élève fait preuve d’une compréhension partielle des concepts et met en pratique, de manière partielle, les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="158" y="213" width="194" height="233" uuid="7161924f-db8a-448e-9ce6-3d4449b60588"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>de saisir des idées explicites et de tirer certaines déductions à partir d’un document;</li>
@@ -167,14 +167,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 			<staticText>
 				<reportElement x="369" y="114" width="166" height="97" uuid="eaab1862-4da6-4d0a-8d80-aff216785afe"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’élève fait preuve d’une pleine compréhension des concepts et met en pratique les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="333" y="200" width="194" height="239" uuid="7a6af51a-1f50-4564-a1e1-de2e909e21c6"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>de saisir le sens d’un document en tenant compte de ses implications;</li>
@@ -193,14 +193,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 			<staticText>
 				<reportElement x="543" y="114" width="165" height="104" uuid="cab547a2-15a4-45c0-baa1-4d9ef1951965"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[L’élève fait preuve d’une compréhension poussée des concepts et met en pratique de manière élaborée les compétences en lien avec l’apprentissage visé. En présence de documents variés et dans diverses situations de communication, à l'écrit comme à l'oral, l'élève est capable :]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="502" y="212" width="208" height="259" uuid="b3e4e9de-eec5-4c8f-b385-056ff40f7263"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[
 <li>de saisir efficacement le sens d’un document en tenant compte de ses implications;</li>
@@ -224,14 +224,14 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 			<staticText>
 				<reportElement x="1" y="467" width="82" height="19" uuid="68f2a54f-ebdb-42c6-814e-2a6d155b0c23"/>
 				<textElement>
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Résultats bruts]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="1" y="482" width="707" height="30" uuid="56ce6ac6-d83d-4cc1-879c-e963ff960247"/>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Vous trouverez ci-dessous vos résultats bruts pour l’Évaluation de littératie de la 12<sup>e</sup> année – Français langue première. Ces résultats indiquent votre niveau de réussite dans les différentes tâches évaluées et ne peuvent pas être directement transposables en palier de compétence.]]></text>
 			</staticText>
@@ -247,7 +247,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[Résultat brut pour chaque tâche]]></text>
@@ -262,7 +262,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
@@ -276,7 +276,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
@@ -293,7 +293,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Compréhension :</b> saisir le sens des documents et les analyser de manière critique<br>
@@ -311,7 +311,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Communication écrite :</b> s’exprimer à l’écrit<br>
@@ -329,7 +329,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{comprehendScore}]]></textFieldExpression>
 			</textField>
@@ -345,7 +345,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{comprehendOutOf}]]></textFieldExpression>
 			</textField>
@@ -361,7 +361,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{communicateOutOf}]]></textFieldExpression>
 			</textField>
@@ -377,7 +377,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{communicateScore}]]></textFieldExpression>
 			</textField>
@@ -393,7 +393,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[Résultat brut pour chaque partie]]></text>
@@ -408,7 +408,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Résultat]]></text>
 			</staticText>
@@ -422,7 +422,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="BC Sans" size="9" isBold="true" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="true" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
@@ -439,7 +439,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle" markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Partie A</b>]]></text>
@@ -456,7 +456,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Questions à réponses choisies :</b> (corrigées informatiquement)]]></text>
@@ -471,7 +471,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -485,7 +485,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -499,7 +499,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partASelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
@@ -513,7 +513,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partASelectedResponseScore}]]></textFieldExpression>
 			</textField>
@@ -530,7 +530,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Questions à réponses construite :</b> Organigramme]]></text>
@@ -545,7 +545,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicOutOf}]]></textFieldExpression>
 			</textField>
@@ -559,7 +559,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseGraphicScore}]]></textFieldExpression>
 			</textField>
@@ -575,7 +575,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Questions à réponses construite :</b> Texte argumentatif]]></text>
@@ -590,7 +590,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
 			</textField>
@@ -604,7 +604,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partAWrittenResponseUnderstandingScore}]]></textFieldExpression>
 			</textField>
@@ -621,7 +621,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle" markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Partie B</b>]]></text>
@@ -638,7 +638,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Questions à réponses choisies :</b> (corrigées informatiquement)]]></text>
@@ -653,7 +653,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -667,7 +667,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -681,7 +681,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partBSelectedResponseOutOf}]]></textFieldExpression>
 			</textField>
@@ -695,7 +695,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partBSelectedResponseScore}]]></textFieldExpression>
 			</textField>
@@ -712,7 +712,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Questions à réponses construite :</b> Communication écrite créative]]></text>
@@ -727,7 +727,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partBWrittenResponseUnderstandingOutOf}]]></textFieldExpression>
 			</textField>
@@ -741,7 +741,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partBWrittenResponseUnderstandingScore}]]></textFieldExpression>
 			</textField>
@@ -757,7 +757,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Communication orale :</b> s’exprimer à l’oral<br>
@@ -775,7 +775,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{communicateOralScore}]]></textFieldExpression>
 			</textField>
@@ -791,7 +791,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{communicateOralOutOf}]]></textFieldExpression>
 			</textField>
@@ -808,7 +808,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement verticalAlignment="Middle" markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="2"/>
 				</textElement>
 				<text><![CDATA[<b>Composante Orale</b>]]></text>
@@ -825,7 +825,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Questions à réponses construite :</b> Partie 1]]></text>
@@ -840,7 +840,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -854,7 +854,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -868,7 +868,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart1OutOf}]]></textFieldExpression>
 			</textField>
@@ -882,7 +882,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart1Score}]]></textFieldExpression>
 			</textField>
@@ -899,7 +899,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Questions à réponses construite :</b> Partie 2]]></text>
@@ -914,7 +914,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart2OutOf}]]></textFieldExpression>
 			</textField>
@@ -928,7 +928,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart2Score}]]></textFieldExpression>
 			</textField>
@@ -942,7 +942,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart3Score}]]></textFieldExpression>
 			</textField>
@@ -959,7 +959,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement markup="html">
-					<font fontName="BC Sans" size="9" isBold="false" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" isBold="false" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 					<paragraph leftIndent="10"/>
 				</textElement>
 				<text><![CDATA[<b>Questions à réponses construite :</b> Partie 3]]></text>
@@ -974,7 +974,7 @@ Ce profil fait état de votre résultat global à l’Évaluation de littératie
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#E3E3E3"/>
 				</box>
 				<textElement textAlignment="Center">
-					<font fontName="BC Sans" size="9" pdfFontName="BC Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<font fontName="BCSans" size="9" pdfFontName="BCSans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{partCOralResponsePart3OutOf}]]></textFieldExpression>
 			</textField>

@@ -31,6 +31,7 @@ class PurgeOldSagaRecordsSchedulerTest extends BaseAssessmentAPITest {
   void pollSagaTableAndPurgeOldRecords_givenOldRecordsPresent_shouldBeDeleted() {
     final var payload = "{\"createUser\": \"ADMIN\", \"updateUser\": \"ADMIN\"}";
     final var saga = this.getSaga(payload);
+    saga.setStatus("COMPLETED");
     this.repository.save(saga);
     this.sagaEventRepository.save(this.getSagaEvent(saga,payload));
     this.purgeOldSagaRecordsScheduler.setSagaRecordStaleInDays(0);

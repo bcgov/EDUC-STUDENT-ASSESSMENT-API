@@ -34,7 +34,7 @@ public interface SagaRepository extends JpaRepository<AssessmentSagaEntity, UUID
 
   @Transactional
   @Modifying
-  @Query("delete from AssessmentSagaEntity where createDate <= :createDate and status != 'COMPLETED'")
+  @Query("delete from AssessmentSagaEntity where createDate <= :createDate and status = 'COMPLETED'")
   void deleteByCreateDateBefore(LocalDateTime createDate);
 
   @Query(value = "SELECT s.SAGA_ID FROM ASSESSMENT_SAGA s WHERE s.STATUS in :cleanupStatus LIMIT :batchSize", nativeQuery = true)

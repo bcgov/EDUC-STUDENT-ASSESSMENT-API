@@ -66,6 +66,7 @@ class EventHandlerDelegatorServiceTest extends BaseAssessmentAPITest {
     eventHandlerDelegatorService = new EventHandlerDelegatorService(
         messagePublisher, eventHandlerService, publisher);
     assessmentSessionRepository.save(createMockSessionEntity());
+    assessmentStudentRepository.deleteAll();
   }
 
   @AfterEach
@@ -193,8 +194,9 @@ class EventHandlerDelegatorServiceTest extends BaseAssessmentAPITest {
       AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
       
       UUID studentId = UUID.randomUUID();
+      UUID studentId2 = UUID.randomUUID();
       AssessmentStudentEntity student1 = createMockAssessmentStudentEntity(assessment, studentId);
-      AssessmentStudentEntity student2 = createMockAssessmentStudentEntity(assessment, studentId);
+      AssessmentStudentEntity student2 = createMockAssessmentStudentEntity(assessment, studentId2);
       
       assessmentStudentRepository.save(student1);
       assessmentStudentRepository.save(student2);

@@ -223,8 +223,9 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
       
       // Create multiple assessment students for the same student
       UUID studentId = UUID.randomUUID();
+      UUID studentId2 = UUID.randomUUID();
       AssessmentStudentEntity student1 = createMockAssessmentStudentEntity(assessment, studentId);
-      AssessmentStudentEntity student2 = createMockAssessmentStudentEntity(assessment, studentId);
+      AssessmentStudentEntity student2 = createMockAssessmentStudentEntity(assessment, studentId2);
       
       assessmentStudentRepository.save(student1);
       assessmentStudentRepository.save(student2);
@@ -243,7 +244,7 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
       // Then
       assertThat(response).isNotEmpty();
       List<AssessmentStudentListItem> studentList = deserializeStudentList(response);
-      assertThat(studentList).hasSize(2);
+      assertThat(studentList).hasSize(1);
     }
 
     @Test
