@@ -7,10 +7,7 @@ import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentHistoryRepository;
-import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
@@ -42,7 +39,11 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
     @Autowired
     AssessmentSessionRepository assessmentSessionRepository;
     @Autowired
-    AssessmentRepository assessmentRepository;
+    private AssessmentFormRepository assessmentFormRepository;
+    @Autowired
+    private AssessmentRepository assessmentRepository;
+    @Autowired
+    private AssessmentQuestionRepository assessmentQuestionRepository;
     @Autowired
     AssessmentStudentRepository assessmentStudentRepository;
     @Autowired
@@ -56,6 +57,8 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
     void after() {
         assessmentStudentHistoryRepository.deleteAll();
         assessmentStudentRepository.deleteAll();
+        assessmentQuestionRepository.deleteAll();
+        assessmentFormRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
     }
