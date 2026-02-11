@@ -48,6 +48,8 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     @Autowired
     private AssessmentSessionRepository assessmentSessionRepository;
     @Autowired
+    private AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+    @Autowired
     private AssessmentTypeCodeRepository assessmentTypeCodeRepository;
     @Autowired
     private AssessmentFormRepository assessmentFormRepository;
@@ -83,6 +85,7 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
         stagedAssessmentStudentRepository.deleteAll();
         assessmentQuestionRepository.deleteAll();
         assessmentFormRepository.deleteAll();
+        assessmentStudentHistoryRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
 
