@@ -42,11 +42,17 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
     @Autowired
     AssessmentSessionRepository assessmentSessionRepository;
     @Autowired
-    AssessmentRepository assessmentRepository;
+    private AssessmentFormRepository assessmentFormRepository;
+    @Autowired
+    private AssessmentRepository assessmentRepository;
+    @Autowired
+    private AssessmentQuestionRepository assessmentQuestionRepository;
     @Autowired
     AssessmentStudentRepository assessmentStudentRepository;
     @Autowired
     AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+    @Autowired
+    StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
     @Autowired
     RestUtils restUtils;
     @Autowired
@@ -57,6 +63,8 @@ class SummaryReportServiceTest extends BaseAssessmentAPITest {
         stagedAssessmentStudentRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
         assessmentStudentRepository.deleteAll();
+        assessmentQuestionRepository.deleteAll();
+        assessmentFormRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
     }
