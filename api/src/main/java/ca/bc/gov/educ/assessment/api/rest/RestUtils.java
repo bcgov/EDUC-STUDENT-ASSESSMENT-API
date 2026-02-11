@@ -348,25 +348,6 @@ public class RestUtils {
     }
     return Optional.ofNullable(this.independentAuthorityToSchoolIDMap.get(independentAuthorityID));
   }
-
-  @Retryable(retryFor = {Exception.class}, noRetryFor = {StudentAssessmentAPIRuntimeException.class}, backoff = @Backoff(multiplier = 2, delay = 2000))
-  public List<School> getAllSchoolList(UUID correlationID) {
-    try {
-      log.info("Calling Institute api to load all schools to memory");
-      final TypeReference<List<School>> ref = new TypeReference<>() {
-      };
-      val event = Event.builder().sagaId(correlationID).eventType(EventType.GET_PAGINATED_SCHOOLS).eventPayload(PAGE_SIZE.concat("=").concat("100000")).build();
-      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.INSTITUTE_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 60, TimeUnit.SECONDS).get();
-      if (null != responseMessage) {
-        return objectMapper.readValue(responseMessage.getData(), ref);
-      } else {
-        throw new StudentAssessmentAPIRuntimeException(NATS_TIMEOUT + correlationID);
-      }
-    } catch (final Exception ex) {
-      Thread.currentThread().interrupt();
-      throw new StudentAssessmentAPIRuntimeException(NATS_TIMEOUT + correlationID + ex.getMessage());
-    }
-  }
   
   public List<StudentMerge> getMergedStudentsForDateRange(UUID correlationID, String createDateStart, String createDateEnd) {
     try {
@@ -516,6 +497,45 @@ public class RestUtils {
 
         log.debug("Success fetching GradStudentRecord for Student ID {}", studentID);
         return Optional.of(objectMapper.readValue(responseData, refGradStudentRecordResult));
+      } else {
+        throw new StudentAssessmentAPIRuntimeException(NO_RESPONSE_RECEIVED_WITHIN_TIMEOUT_FOR_CORRELATION_ID + correlationID);
+      }
+
+    } catch (EntityNotFoundException ex) {
+      log.debug("Entity Not Found occurred calling GET GRAD STUDENT RECORD service :: {}", ex.getMessage());
+      throw ex;
+    } catch (final Exception ex) {
+      log.error("Error occurred calling GET GRAD STUDENT RECORD service :: {}", ex.getMessage());
+      Thread.currentThread().interrupt();
+      throw new StudentAssessmentAPIRuntimeException(NATS_TIMEOUT + correlationID);
+    }
+  }
+
+  public void setStudentFlagsInGRAD(UUID correlationID, List<UUID> studentIDs) {
+    try {
+      final TypeReference<Event> refSetStudentFlagReturn = new TypeReference<>() {
+      };
+      String commaSeparated = studentIDs.stream()
+              .map(UUID::toString)
+              .collect(Collectors.joining(","));
+      
+      Object event = Event.builder().sagaId(correlationID).eventType(EventType.SET_STUDENT_FLAGS).eventPayload(commaSeparated).build();
+      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.GRAD_STUDENT_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 220, TimeUnit.SECONDS).get();
+      if (responseMessage != null) {
+        String responseData = new String(responseMessage.getData(), StandardCharsets.UTF_8);
+
+        Map<String, Object> response = objectMapper.readValue(responseData, new TypeReference<>() {});
+
+        log.debug("setStudentFlagsInGRAD response{}", response.toString());
+
+        var eventReturn = Optional.of(objectMapper.readValue(responseData, refSetStudentFlagReturn));
+
+        if (!eventReturn.get().getEventOutcome().toString().equalsIgnoreCase("STUDENT_FLAGS_UPDATED")) {
+          log.error("An exception error occurred while writing student flags in GRAD, please inspect GRAD Student API logs");
+          throw new StudentAssessmentAPIRuntimeException("An exception error occurred while writing student flags in GRAD, please inspect GRAD Student API logs");
+        }
+
+        log.info("Success setting flags for students in GRAD for IDs {}", commaSeparated);
       } else {
         throw new StudentAssessmentAPIRuntimeException(NO_RESPONSE_RECEIVED_WITHIN_TIMEOUT_FOR_CORRELATION_ID + correlationID);
       }

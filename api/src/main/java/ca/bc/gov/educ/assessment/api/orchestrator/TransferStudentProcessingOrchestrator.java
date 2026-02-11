@@ -48,8 +48,7 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         this.stepBuilder()
             .begin(PROCESS_STUDENT_TRANSFER_EVENT, this::processStudentTransfer)
             .step(PROCESS_STUDENT_TRANSFER_EVENT, STUDENT_TRANSFER_PROCESSED, CALCULATE_STUDENT_DOAR, this::createAndPopulateDOARCalculations)
-            .step(CALCULATE_STUDENT_DOAR, STUDENT_DOAR_CALCULATED, NOTIFY_GRAD_OF_UPDATED_STUDENTS, this::notifyGradOfUpdatedStudents)
-            .step(NOTIFY_GRAD_OF_UPDATED_STUDENTS, GRAD_STUDENT_API_NOTIFIED, DELETE_FROM_STAGING, this::deleteStagingRecord)
+            .step(CALCULATE_STUDENT_DOAR, STUDENT_DOAR_CALCULATED, DELETE_FROM_STAGING, this::deleteStagingRecord)
             .end(DELETE_FROM_STAGING, DELETED_STUDENT_FROM_STAGING);
     }
 
@@ -108,20 +107,5 @@ public class TransferStudentProcessingOrchestrator extends BaseOrchestrator<Tran
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("message sent to {} for {} Event. :: {}", this.getTopicToSubscribe(), nextEvent, saga.getSagaId());
     }
-
-    private void notifyGradOfUpdatedStudents(Event event, AssessmentSagaEntity saga, TransferOnApprovalSagaData transferOnApprovalSagaData) throws JsonProcessingException {
-        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
-        saga.setSagaState(NOTIFY_GRAD_OF_UPDATED_STUDENTS.toString());
-        saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
-        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
-
-        var pair = transferStudentOrchestrationService.getStudentRegistrationEvents(UUID.fromString(transferOnApprovalSagaData.getStudentID()));
-        pair.getLeft().forEach(publisher::dispatchChoreographyEvent);
-        final Event nextEvent = Event.builder().sagaId(saga.getSagaId())
-                .eventType(NOTIFY_GRAD_OF_UPDATED_STUDENTS).eventOutcome(GRAD_STUDENT_API_NOTIFIED)
-                .eventPayload(JsonUtil.getJsonStringFromObject(transferOnApprovalSagaData))
-                .build();
-        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
-        log.debug("Posted completion message for saga step notifyGradOfUpdatedStudents: {}", saga.getSagaId());
-    }
+    
 }
