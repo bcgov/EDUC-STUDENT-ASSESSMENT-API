@@ -55,8 +55,8 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
             .begin(GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
             .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
             .step(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED, MARK_SESSION_COMPLETION_DATE, this::markSessionCompletionDate)
-            .step(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET, FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS, this::flipFlagsForNoWriteStudents)
-            .step(FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS, GRAD_FLAGS_FLIPPED_FOR_NO_WRITE_STUDENTS, MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
+            .step(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET, FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS, this::flipFlagsForAllStudentsInSession)
+            .step(FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS, GRAD_FLAGS_FLIPPED_FOR_STUDENTS, MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
             .step(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER, DELETE_PEN_ISSUE_STUDENTS_FROM_STAGING, this::deleteStudentsWithPenIssuesFromStaging)
             .end(DELETE_PEN_ISSUE_STUDENTS_FROM_STAGING, DELETE_PEN_ISSUE_STUDENTS_FROM_STAGING_COMPLETED);
     }
@@ -77,28 +77,27 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
                 .eventPayload(JsonUtil.getJsonStringFromObject(approvalSagaData))
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
-        log.debug("Posted completion message for saga step generateXAMFilesAndUpload: {}", saga.getSagaId());
+        log.debug("Posted completion message for saga step markSessionCompletionDate: {}", saga.getSagaId());
     }
 
-    private void flipFlagsForNoWriteStudents(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
+    private void flipFlagsForAllStudentsInSession(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
         final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
-        saga.setSagaState(FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS.toString());
+        saga.setSagaState(FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS.toString());
         saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
         this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
 
         UUID sessionID = UUID.fromString(approvalSagaData.getSessionID());
         assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
-        var events = assessmentStudentService.flipFlagsForNoWriteStudents(sessionID);
-        log.info("Sending {} events for assessment student updates", events);
-        events.forEach(publisher::dispatchChoreographyEvent);
+        assessmentStudentService.flipFlagsForAllStudentsInSession(sessionID);
+        
         final Event nextEvent = Event.builder()
                 .sagaId(saga.getSagaId())
-                .eventType(FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS)
-                .eventOutcome(GRAD_FLAGS_FLIPPED_FOR_NO_WRITE_STUDENTS)
+                .eventType(FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS)
+                .eventOutcome(GRAD_FLAGS_FLIPPED_FOR_STUDENTS)
                 .eventPayload(JsonUtil.getJsonStringFromObject(approvalSagaData))
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
-        log.debug("Posted completion message for saga step markStagedStudentsReadyForTransfer: {}", saga.getSagaId());
+        log.debug("Posted completion message for saga step flipFlagsForAllStudentsInSession: {}", saga.getSagaId());
     }
 
     private void markStagedStudentsReadyForTransfer(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
@@ -169,7 +168,7 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
                 .eventPayload(JsonUtil.getJsonStringFromObject(approvalSagaData))
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
-        log.debug("Posted completion message for saga step notifyGradOfUpdatedStudents: {}", saga.getSagaId());
+        log.debug("Posted completion message for saga step notifyMyEDOfApproval: {}", saga.getSagaId());
     }
 
     @Async("subscriberExecutor")

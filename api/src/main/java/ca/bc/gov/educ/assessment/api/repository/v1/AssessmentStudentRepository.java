@@ -48,14 +48,13 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     Optional<AssessmentStudentEntity> findByIdWithAssessmentDetails(UUID assessmentStudentID, UUID assessmentID);
 
     @Query("""
-        SELECT stud.studentID FROM AssessmentStudentEntity stud
-        WHERE not exists 
-            (SELECT 1 from StagedAssessmentStudentEntity staged 
-                WHERE staged.studentID = stud.studentID
-                AND staged.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID)
-        AND stud.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
+        SELECT DISTINCT stud.studentID 
+        FROM AssessmentStudentEntity stud
+        WHERE 
+            stud.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
+            AND stud.studentStatusCode = 'ACTIVE'
     """)
-    List<UUID> findAllStudentsRegisteredThatHaveNotWritten(UUID assessmentSessionID);
+    List<UUID> findAllActiveStudentsInSession(UUID assessmentSessionID);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCode(UUID sessionID, UUID schoolAtWriteSchoolID, String studentStatusCode);
 

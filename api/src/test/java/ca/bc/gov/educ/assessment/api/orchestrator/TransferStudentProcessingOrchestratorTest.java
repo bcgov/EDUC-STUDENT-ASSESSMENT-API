@@ -223,8 +223,8 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(transferStudentProcessingOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
-        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS);
-        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.GRAD_STUDENT_API_NOTIFIED);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.DELETE_FROM_STAGING);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.DELETED_STUDENT_FROM_STAGING);
     }
 
     @SneakyThrows
@@ -240,8 +240,8 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
         String payload = sagaPayload;
         Event event = Event.builder()
                 .sagaId(saga.getSagaId())
-                .eventType(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS)
-                .eventOutcome(EventOutcome.GRAD_STUDENT_API_NOTIFIED)
+                .eventType(EventType.CALCULATE_STUDENT_DOAR)
+                .eventOutcome(EventOutcome.STUDENT_DOAR_CALCULATED)
                 .eventPayload(payload)
                 .build();
 
@@ -376,8 +376,8 @@ class TransferStudentProcessingOrchestratorTest extends BaseAssessmentAPITest {
     void testProcessDeleteFromStagingTable_shouldRemoveStagingRecord() {
         Event event = Event.builder()
                 .sagaId(saga.getSagaId())
-                .eventType(EventType.NOTIFY_GRAD_OF_UPDATED_STUDENTS)
-                .eventOutcome(EventOutcome.GRAD_STUDENT_API_NOTIFIED)
+                .eventType(EventType.CALCULATE_STUDENT_DOAR)
+                .eventOutcome(EventOutcome.STUDENT_DOAR_CALCULATED)
                 .eventPayload(sagaPayload)
                 .build();
 

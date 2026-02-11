@@ -4,7 +4,6 @@ import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
 import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
-import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
@@ -176,8 +175,8 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
-        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS);
-        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.GRAD_FLAGS_FLIPPED_FOR_NO_WRITE_STUDENTS);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.GRAD_FLAGS_FLIPPED_FOR_STUDENTS);
     }
 
     @SneakyThrows
@@ -186,8 +185,8 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         String payload = sagaPayload;
         Event event = Event.builder()
                 .sagaId(saga.getSagaId())
-                .eventType(EventType.FLIP_GRAD_FLAGS_FOR_NO_WRITE_STUDENTS)
-                .eventOutcome(EventOutcome.GRAD_FLAGS_FLIPPED_FOR_NO_WRITE_STUDENTS)
+                .eventType(EventType.FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS)
+                .eventOutcome(EventOutcome.GRAD_FLAGS_FLIPPED_FOR_STUDENTS)
                 .eventPayload(payload)
                 .build();
 

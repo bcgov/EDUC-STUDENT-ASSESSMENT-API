@@ -343,20 +343,13 @@ public class AssessmentStudentService {
                 .build();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<AssessmentEventEntity> flipFlagsForNoWriteStudents(UUID sessionID) {
+    @Transactional
+    public void flipFlagsForAllStudentsInSession(UUID sessionID) {
        log.info("Flipping flags for students in session {}", sessionID);        
-       var students = assessmentStudentRepository.findAllStudentsRegisteredThatHaveNotWritten(sessionID);
+       var students = assessmentStudentRepository.findAllActiveStudentsInSession(sessionID);
        log.info("Found {} students in session {}", students.size(), sessionID);
-       
-       List<AssessmentEventEntity> events = new ArrayList<>();
-       students.forEach(student -> {
-          var event = generateStudentUpdatedEvent(student.toString());
-          assessmentEventRepository.save(event);
-          events.add(event);
-       });
 
-       return events;
+       restUtils.setStudentFlagsInGRAD(UUID.randomUUID(), students);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
