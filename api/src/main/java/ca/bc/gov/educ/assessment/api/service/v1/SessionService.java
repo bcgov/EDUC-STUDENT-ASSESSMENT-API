@@ -139,7 +139,7 @@ public class SessionService {
     public AssessmentSessionEntity approveAssessment(final AssessmentApproval assessmentApproval) {
         AssessmentSessionEntity assessmentSession = assessmentSessionRepository.findById(UUID.fromString(assessmentApproval.getSessionID())).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentApproval.getSessionID()));
 
-        var existingSaga = sagaService.findByAssessmentSessionIDAndSagaNameAndStatusNot(assessmentSession.getSessionID(), SagaEnum.GENERATE_XAM_FILES.toString(), SagaStatusEnum.COMPLETED.toString());
+        var existingSaga = sagaService.findByAssessmentSessionIDAndSagaNameAndStatusNot(assessmentSession.getSessionID(), SagaEnum.SESSION_APPROVAL.toString(), SagaStatusEnum.COMPLETED.toString());
         if (existingSaga.isPresent()) {
             log.warn("Session approval saga already running for assessmentSession {}", assessmentSession.getSessionID());
             throw new InvalidPayloadException(ApiError.builder()

@@ -152,7 +152,7 @@ class SessionServiceTest extends BaseAssessmentAPITest {
         List<AssessmentSagaEntity> sagas = sagaRepository.findAll();
         assertThat(sagas).isNotEmpty();
         AssessmentSagaEntity createdSaga = sagas.stream()
-                .filter(s -> s.getSagaName().equals(SagaEnum.GENERATE_XAM_FILES.toString()))
+                .filter(s -> s.getSagaName().equals(SagaEnum.SESSION_APPROVAL.toString()))
                 .filter(s -> s.getAssessmentSessionID() != null && s.getAssessmentSessionID().equals(testSession.getSessionID()))
                 .findFirst()
                 .orElse(null);
@@ -238,7 +238,7 @@ class SessionServiceTest extends BaseAssessmentAPITest {
         AssessmentSagaEntity runningSaga = AssessmentSagaEntity.builder()
                 .sagaId(UUID.randomUUID())
                 .assessmentSessionID(testSession.getSessionID())
-                .sagaName(SagaEnum.GENERATE_XAM_FILES.toString())
+                .sagaName(SagaEnum.SESSION_APPROVAL.toString())
                 .sagaState("GENERATE_XAM_FILES_AND_UPLOAD")
                 .status(SagaStatusEnum.IN_PROGRESS.toString())
                 .payload("{\"sessionID\":\"" + testSession.getSessionID() + "\"}")
@@ -272,7 +272,7 @@ class SessionServiceTest extends BaseAssessmentAPITest {
         AssessmentSagaEntity completedSaga = AssessmentSagaEntity.builder()
                 .sagaId(UUID.randomUUID())
                 .assessmentSessionID(testSession.getSessionID())
-                .sagaName(SagaEnum.GENERATE_XAM_FILES.toString())
+                .sagaName(SagaEnum.SESSION_APPROVAL.toString())
                 .sagaState("MARK_STAGED_STUDENTS_READY_FOR_TRANSFER")
                 .status(SagaStatusEnum.COMPLETED.toString())
                 .payload("{\"sessionID\":\"" + testSession.getSessionID() + "\"}")

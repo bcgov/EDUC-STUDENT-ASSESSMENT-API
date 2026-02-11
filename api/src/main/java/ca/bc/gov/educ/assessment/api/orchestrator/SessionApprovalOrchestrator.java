@@ -22,7 +22,7 @@ import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.*;
 import static ca.bc.gov.educ.assessment.api.constants.EventType.*;
-import static ca.bc.gov.educ.assessment.api.constants.SagaEnum.GENERATE_XAM_FILES;
+import static ca.bc.gov.educ.assessment.api.constants.SagaEnum.SESSION_APPROVAL;
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.XAM_FILE_GENERATION_TOPIC;
 import static ca.bc.gov.educ.assessment.api.properties.ApplicationProperties.STUDENT_ASSESSMENT_API;
 
@@ -39,7 +39,7 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
     private final Publisher publisher;
 
     protected SessionApprovalOrchestrator(final SagaService sagaService, final MessagePublisher messagePublisher, final XAMFileService xamFileService, SessionApprovalOrchestrationService sessionApprovalOrchestrationService, AssessmentSessionRepository assessmentSessionRepository, EmailService emailService, AssessmentStudentService assessmentStudentService, Publisher publisher) {
-        super(sagaService, messagePublisher, ApprovalSagaData.class, GENERATE_XAM_FILES.toString(), XAM_FILE_GENERATION_TOPIC.toString());
+        super(sagaService, messagePublisher, ApprovalSagaData.class, SESSION_APPROVAL.toString(), XAM_FILE_GENERATION_TOPIC.toString());
         this.xamFileService = xamFileService;
         this.sagaService = sagaService;
         this.sessionApprovalOrchestrationService = sessionApprovalOrchestrationService;
