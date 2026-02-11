@@ -74,8 +74,6 @@ class FileUploadControllerTest extends BaseAssessmentAPITest {
     protected static final ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
     private AssessmentEntity savedAssessmentEntity;
     @Autowired
-    AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
-    @Autowired
     AssessmentChoiceRepository  assessmentChoiceRepository;
 
     @BeforeEach
