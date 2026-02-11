@@ -34,9 +34,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
@@ -2009,7 +2007,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         String contentDisposition = resultActions.andReturn().getResponse().getHeader("Content-Disposition");
 
         assertThat(csvContent).isNotBlank();
-        assertThat(csvContent).contains("PEN,Surname,Given Name,Grade,School of Record,School at Write,Assessment Code,Assessment Session,Proficiency Score,Special Case");
+        assertThat(csvContent).contains("PEN,Surname,Given Name,Grade,School of Record Code,School of Record Name,School at Write Code,School at Write Name,Assessment Code,Assessment Session,Proficiency Score,Special Case");
         assertThat(csvContent.split("\n").length).isGreaterThanOrEqualTo(1);
         assertThat(contentDisposition).startsWith("attachment; filename=");
     }
@@ -2059,7 +2057,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
         assertThat(csvContent).isNotBlank();
-        assertThat(csvContent).contains("PEN,Surname,Given Name,Grade,School of Record,School at Write,Assessment Code,Assessment Session,Proficiency Score,Special Case");
+        assertThat(csvContent).contains("PEN,Surname,Given Name,Grade,School of Record Code,School of Record Name,School at Write Code,School at Write Name,Assessment Code,Assessment Session,Proficiency Score,Special Case");
         assertThat(csvContent).contains("123456789"); // Student 1 PEN
         assertThat(csvContent).contains("SMITH"); // Student 1 surname
         assertThat(csvContent).doesNotContain("987654321"); // Student 2 should not be in results
