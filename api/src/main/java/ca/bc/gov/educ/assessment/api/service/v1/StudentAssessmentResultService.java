@@ -243,6 +243,8 @@ public class StudentAssessmentResultService {
         stagedStudent.setGradeAtRegistration(gradStudent != null ? gradStudent.getStudentGrade() : null);
         stagedStudent.setUpdateDate(LocalDateTime.now());
         stagedStudent.setUpdateUser(studentResult.getUpdateUser());
+        stagedStudent.setCreateDate(LocalDateTime.now());
+        stagedStudent.setCreateUser(studentResult.getCreateUser());
 
         return stagedStudent;
     }
