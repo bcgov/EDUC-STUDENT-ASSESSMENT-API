@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.assessment.api.constants.EventType.CREATE_STUDENT_RESULT;
+import static ca.bc.gov.educ.assessment.api.constants.EventType.FIND_STUDENT_IN_GRAD_OR_ADOPT;
 import static ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum.IN_PROGRESS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -185,17 +186,17 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         verify(this.messagePublisher, atMost(2)).dispatchMessage(eq(this.studentResultProcessingOrchestrator.getTopicToSubscribe()), this.eventCaptor.capture());
         final var newEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(this.eventCaptor.getValue()));
-        assertThat(newEvent.getEventType()).isEqualTo(CREATE_STUDENT_RESULT);
-        assertThat(newEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_RESULT_CREATED);
+        assertThat(newEvent.getEventType()).isEqualTo(FIND_STUDENT_IN_GRAD_OR_ADOPT);
+        assertThat(newEvent.getEventOutcome()).isEqualTo(EventOutcome.FIND_STUDENT_IN_GRAD_OR_ADOPT_COMPLETED);
 
         val savedSagaInDB = this.sagaRepository.findById(saga.getSagaId());
         assertThat(savedSagaInDB).isPresent();
         assertThat(savedSagaInDB.get().getStatus()).isEqualTo(IN_PROGRESS.toString());
-        assertThat(savedSagaInDB.get().getSagaState()).isEqualTo(CREATE_STUDENT_RESULT.toString());
+        assertThat(savedSagaInDB.get().getSagaState()).isEqualTo(FIND_STUDENT_IN_GRAD_OR_ADOPT.toString());
 
         val stagedResult = stagedStudentResultRepository.findById(savedStudentResult.getStagedStudentResultID());
         assertThat(stagedResult).isPresent();
-        assertThat(stagedResult.get().getStagedStudentResultStatus()).isEqualTo("COMPLETED");
+        assertThat(stagedResult.get().getStagedStudentResultStatus()).isEqualTo("LOADED");
     }
 
     @SneakyThrows
@@ -257,8 +258,8 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         val event = Event.builder()
                 .sagaId(saga.getSagaId())
-                .eventType(EventType.INITIATED)
-                .eventOutcome(EventOutcome.INITIATE_SUCCESS)
+                .eventType(EventType.FIND_STUDENT_IN_GRAD_OR_ADOPT)
+                .eventOutcome(EventOutcome.FIND_STUDENT_IN_GRAD_OR_ADOPT_COMPLETED)
                 .eventPayload(JsonUtil.getJsonStringFromObject(sagaData)).build();
         this.studentResultProcessingOrchestrator.handleEvent(event);
 
@@ -336,17 +337,17 @@ class StudentResultProcessingOrchestratorTest extends BaseAssessmentAPITest {
 
         verify(this.messagePublisher, atMost(2)).dispatchMessage(eq(this.studentResultProcessingOrchestrator.getTopicToSubscribe()), this.eventCaptor.capture());
         final var newEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(this.eventCaptor.getValue()));
-        assertThat(newEvent.getEventType()).isEqualTo(CREATE_STUDENT_RESULT);
-        assertThat(newEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_RESULT_CREATED);
+        assertThat(newEvent.getEventType()).isEqualTo(FIND_STUDENT_IN_GRAD_OR_ADOPT);
+        assertThat(newEvent.getEventOutcome()).isEqualTo(EventOutcome.FIND_STUDENT_IN_GRAD_OR_ADOPT_COMPLETED);
 
         val savedSagaInDB = this.sagaRepository.findById(saga.getSagaId());
         assertThat(savedSagaInDB).isPresent();
         assertThat(savedSagaInDB.get().getStatus()).isEqualTo(IN_PROGRESS.toString());
-        assertThat(savedSagaInDB.get().getSagaState()).isEqualTo(CREATE_STUDENT_RESULT.toString());
+        assertThat(savedSagaInDB.get().getSagaState()).isEqualTo(FIND_STUDENT_IN_GRAD_OR_ADOPT.toString());
 
         val stagedResult = stagedStudentResultRepository.findById(savedStudentResult.getStagedStudentResultID());
         assertThat(stagedResult).isPresent();
-        assertThat(stagedResult.get().getStagedStudentResultStatus()).isEqualTo("COMPLETED");
+        assertThat(stagedResult.get().getStagedStudentResultStatus()).isEqualTo("LOADED");
     }
 
     @SneakyThrows
