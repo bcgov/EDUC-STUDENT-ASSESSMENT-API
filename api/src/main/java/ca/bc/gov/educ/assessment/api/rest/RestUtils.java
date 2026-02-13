@@ -550,6 +550,42 @@ public class RestUtils {
     }
   }
 
+  public void adoptStudentInGRAD(UUID correlationID, UUID studentID) {
+    try {
+      final TypeReference<Event> refAdoptStudentReturn = new TypeReference<>() {
+      };
+
+      Object event = Event.builder().sagaId(correlationID).eventType(EventType.ADOPT_STUDENT).eventPayload(String.valueOf(studentID)).build();
+      val responseMessage = this.messagePublisher.requestMessage(TopicsEnum.GRAD_STUDENT_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 220, TimeUnit.SECONDS).get();
+      if (responseMessage != null) {
+        String responseData = new String(responseMessage.getData(), StandardCharsets.UTF_8);
+
+        Map<String, Object> response = objectMapper.readValue(responseData, new TypeReference<>() {});
+
+        log.debug("adoptStudentInGRAD response{}", response.toString());
+
+        var eventReturn = Optional.of(objectMapper.readValue(responseData, refAdoptStudentReturn));
+
+        if (!eventReturn.get().getEventOutcome().toString().equalsIgnoreCase("GRAD_STUDENT_ADOPTED")) {
+          log.error("An exception error occurred while adopting student in GRAD, please inspect GRAD Student API logs");
+          throw new StudentAssessmentAPIRuntimeException("An exception error occurred while  adopting student in GRAD, please inspect GRAD Student API logs");
+        }
+
+        log.info("Success  adopting student in GRAD for studentID {}", studentID);
+      } else {
+        throw new StudentAssessmentAPIRuntimeException(NO_RESPONSE_RECEIVED_WITHIN_TIMEOUT_FOR_CORRELATION_ID + correlationID);
+      }
+
+    } catch (EntityNotFoundException ex) {
+      log.debug("Entity Not Found occurred calling GET GRAD STUDENT RECORD service :: {}", ex.getMessage());
+      throw ex;
+    } catch (final Exception ex) {
+      log.error("Error occurred calling GET GRAD STUDENT RECORD service :: {}", ex.getMessage());
+      Thread.currentThread().interrupt();
+      throw new StudentAssessmentAPIRuntimeException(NATS_TIMEOUT + correlationID);
+    }
+  }
+
     public PaginatedResponse<Collection> getLastFourCollections(AssessmentSessionEntity assessmentSession) throws JsonProcessingException {
         int pageNumber = 0;
         int pageSize = 4;

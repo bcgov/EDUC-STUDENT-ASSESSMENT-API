@@ -85,6 +85,27 @@ public class StudentAssessmentResultService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void findGradStudentRecordOrCreate(StudentResultSagaData studentResultSagaData) {
+        var optStudent = restUtils.getStudentByPEN(UUID.randomUUID(), studentResultSagaData.getPen());
+        boolean isMergedRecord = false;
+        if(optStudent.isPresent()) {
+            Student studentApiStudent = optStudent.get();
+            Student trueStudentApiStudentRecord = null;
+            if (optStudent.get().getStatusCode().equalsIgnoreCase("M")) {
+                List<Student> mergedStudent = restUtils.getStudents(UUID.randomUUID(), Set.of(optStudent.get().getTrueStudentID()));
+                trueStudentApiStudentRecord = mergedStudent.getFirst();
+                isMergedRecord = true;
+            }
+
+            var studentID = isMergedRecord ? trueStudentApiStudentRecord.getStudentID() : studentApiStudent.getStudentID();
+            var gradStudent = restUtils.getGradStudentRecordByStudentID(UUID.randomUUID(), UUID.fromString(studentID)).orElse(null);
+            if(gradStudent == null) {
+                restUtils.adoptStudentInGRAD(UUID.randomUUID(), UUID.fromString(studentID));
+            }
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processLoadedResultRecord(StudentResultSagaData studentResultSagaData) {
         var assessmentEntity = assessmentRepository.findById(UUID.fromString(studentResultSagaData.getAssessmentID()))
                 .orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", studentResultSagaData.getAssessmentID()));

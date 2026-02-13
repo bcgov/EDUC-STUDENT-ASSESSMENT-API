@@ -35,9 +35,27 @@ public class StudentResultProcessingOrchestrator extends BaseOrchestrator<Studen
   @Override
   public void populateStepsToExecuteMap() {
     this.stepBuilder()
-            .begin(CREATE_STUDENT_RESULT, this::createStudentResultRecord)
+            .begin(FIND_STUDENT_IN_GRAD_OR_ADOPT, this::findStudentInGradOrAdoptRecord)
+            .step(FIND_STUDENT_IN_GRAD_OR_ADOPT, FIND_STUDENT_IN_GRAD_OR_ADOPT_COMPLETED, CREATE_STUDENT_RESULT, this::createStudentResultRecord)
             .step(CREATE_STUDENT_RESULT, STUDENT_RESULT_CREATED, CALCULATE_STAGED_STUDENT_DOAR, this::createAndPopulateDOARCalculations)
             .end(CALCULATE_STAGED_STUDENT_DOAR, STAGED_STUDENT_DOAR_CALCULATED);
+  }
+
+  public void findStudentInGradOrAdoptRecord(final Event event, final AssessmentSagaEntity saga, final StudentResultSagaData studentResultSagaData) {
+    final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
+    saga.setSagaState(FIND_STUDENT_IN_GRAD_OR_ADOPT.toString());
+    saga.setStatus(IN_PROGRESS.toString());
+    this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
+
+    final Event.EventBuilder eventBuilder = Event.builder();
+    eventBuilder.sagaId(saga.getSagaId()).eventType(FIND_STUDENT_IN_GRAD_OR_ADOPT);
+
+    studentAssessmentResultService.findGradStudentRecordOrCreate(studentResultSagaData);
+
+    eventBuilder.eventOutcome(FIND_STUDENT_IN_GRAD_OR_ADOPT_COMPLETED);
+    val nextEvent = eventBuilder.build();
+    this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
+    log.debug("message sent to {} for {} Event. :: {}", this.getTopicToSubscribe(), nextEvent, saga.getSagaId());
   }
 
   public void createStudentResultRecord(final Event event, final AssessmentSagaEntity saga, final StudentResultSagaData studentResultSagaData) {
