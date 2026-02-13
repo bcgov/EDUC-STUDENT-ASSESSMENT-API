@@ -11,6 +11,7 @@ import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.doar.*;
+import ca.bc.gov.educ.assessment.api.util.TextNormalizer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +96,8 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
         setStudentLevels(students, doarSummaryNode, session);
       }
 
-      String payload = objectWriter.writeValueAsString(doarSummaryNode);
+      var normalized = TextNormalizer.normalizeObject(doarSummaryNode);
+      var payload = objectWriter.writeValueAsString(normalized);
       return generateJasperReport(payload, doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
     }
     catch (JsonProcessingException e) {

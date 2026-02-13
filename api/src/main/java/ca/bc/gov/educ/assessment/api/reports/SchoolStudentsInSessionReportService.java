@@ -18,6 +18,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolS
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolStudentNode;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolStudentReportNode;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolStudentRootNode;
+import ca.bc.gov.educ.assessment.api.util.TextNormalizer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -113,7 +114,9 @@ public class SchoolStudentsInSessionReportService extends BaseReportGenerationSe
 
       schoolStudentReportNode.setStudents(studentList.values().stream().sorted(Comparator.comparing(SchoolStudentNode::getName)).toList());
 
-      return generateJasperReport(objectWriter.writeValueAsString(schoolStudentRootNode), schoolStudentInSessionReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_IN_SESSION.getCode());
+      var normalized = TextNormalizer.normalizeObject(schoolStudentRootNode);
+      var payload = objectWriter.writeValueAsString(normalized);
+      return generateJasperReport(payload, schoolStudentInSessionReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_IN_SESSION.getCode());
     } catch (JsonProcessingException e) {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());

@@ -23,6 +23,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.Scho
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentReportNode;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentRootNode;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.inSession.SchoolStudentGradAssessmentNode;
+import ca.bc.gov.educ.assessment.api.util.TextNormalizer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -146,7 +147,9 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
           throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
         }
         var schoolStudentRootNode = populateStudentForApproval(session, schoolID, students);
-        return generateJasperReport(objectWriter.writeValueAsString(schoolStudentRootNode), schoolStudentByAssessmentReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_BY_ASSESSMENT.getCode());
+        var normalized = TextNormalizer.normalizeObject(schoolStudentRootNode);
+        var payload = objectWriter.writeValueAsString(normalized);
+        return generateJasperReport(payload, schoolStudentByAssessmentReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_BY_ASSESSMENT.getCode());
       }else{
         var students = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(assessmentSessionID, schoolID, List.of("ACTIVE"));
 
@@ -154,7 +157,9 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
           throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
         }
         var schoolStudentRootNode = populateStudentForStaged(session, schoolID, students);
-        return generateJasperReport(objectWriter.writeValueAsString(schoolStudentRootNode), schoolStudentByAssessmentReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_BY_ASSESSMENT.getCode());
+        var normalized = TextNormalizer.normalizeObject(schoolStudentRootNode);
+        var payload = objectWriter.writeValueAsString(normalized);
+        return generateJasperReport(payload, schoolStudentByAssessmentReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_BY_ASSESSMENT.getCode());
       }
     } catch (JsonProcessingException e) {
       log.error("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());

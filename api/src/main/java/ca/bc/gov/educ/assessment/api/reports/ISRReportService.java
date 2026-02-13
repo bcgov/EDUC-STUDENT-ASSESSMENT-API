@@ -19,6 +19,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.isr.*;
 import ca.bc.gov.educ.assessment.api.util.PenUtil;
+import ca.bc.gov.educ.assessment.api.util.TextNormalizer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.util.Pair;
 import jakarta.annotation.PostConstruct;
@@ -206,8 +207,9 @@ public class ISRReportService extends BaseReportGenerationService {
           }
         }
       });
-      
-      var payload = objectWriter.writeValueAsString(isrRootNode);
+
+      var normalized = TextNormalizer.normalizeObject(isrRootNode);
+      var payload = objectWriter.writeValueAsString(normalized);
       log.info("Payload for ISR is: " + payload);
       
       return generateJasperReport(payload, isrReport, AssessmentStudentReportTypeCode.ISR.getCode());
@@ -358,8 +360,7 @@ public class ISRReportService extends BaseReportGenerationService {
     var school = validateAndReturnSchool(schoolID);
 
     reportNode.setReportGeneratedDate(LocalDate.now().format(formatter));
-    String normalizedSchoolName = Normalizer.normalize(school.getDisplayName(), Normalizer.Form.NFC);
-    reportNode.setSchoolDetail(normalizedSchoolName);
+    reportNode.setSchoolDetail(school.getDisplayName());
     reportNode.setStudentPEN(studentPEN);
     reportNode.setStudentName(studentName);
   }
