@@ -51,15 +51,15 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     SELECT DISTINCT stud.student_id 
     FROM assessment_student stud
     JOIN assessment assm ON stud.assessment_id = assm.assessment_id
-    JOIN assessment_session sess ON ass.assessment_session_id = sess.session_id
+    JOIN assessment_session sess ON assm.assessment_session_id = sess.session_id
     WHERE 
         sess.session_id = :assessmentSessionID
         AND stud.student_status_code = 'ACTIVE'
     UNION
     SELECT DISTINCT staged.student_id 
     FROM staged_assessment_student staged
-    JOIN assessment ass ON staged.assessment_id = ass.assessment_id
-    JOIN assessment_session sess ON ass.assessment_session_id = sess.session_id
+    JOIN assessment assm ON staged.assessment_id = assm.assessment_id
+    JOIN assessment_session sess ON assm.assessment_session_id = sess.session_id
     WHERE 
         sess.session_id = :assessmentSessionID
         AND staged.student_status_code = 'ACTIVE'
