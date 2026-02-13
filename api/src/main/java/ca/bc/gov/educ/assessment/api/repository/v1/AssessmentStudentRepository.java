@@ -47,13 +47,23 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     """)
     Optional<AssessmentStudentEntity> findByIdWithAssessmentDetails(UUID assessmentStudentID, UUID assessmentID);
 
-    @Query("""
-        SELECT DISTINCT stud.studentID 
-        FROM AssessmentStudentEntity stud
-        WHERE 
-            stud.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
-            AND stud.studentStatusCode = 'ACTIVE'
-    """)
+    @Query(value = """
+    SELECT DISTINCT stud.student_id 
+    FROM assessment_student stud
+    JOIN assessment asm ON stud.assessment_id = asm.assessment_id
+    JOIN assessment_session sess ON asm.session_id = sess.session_id
+    WHERE 
+        sess.session_id = :assessmentSessionID
+        AND stud.student_status_code = 'ACTIVE'
+    UNION
+    SELECT DISTINCT staged.student_id 
+    FROM staged_assessment_student staged
+    JOIN assessment assm ON staged.assessment_id = assm.assessment_id
+    JOIN assessment_session sess ON assm.session_id = sess.session_id
+    WHERE 
+        sess.session_id = :assessmentSessionID
+        AND staged.staged_assessment_student_status = 'ACTIVE'
+    """, nativeQuery = true)
     List<UUID> findAllActiveStudentsInSession(UUID assessmentSessionID);
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCode(UUID sessionID, UUID schoolAtWriteSchoolID, String studentStatusCode);
