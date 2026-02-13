@@ -50,8 +50,8 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     @Query(value = """
     SELECT DISTINCT stud.student_id 
     FROM assessment_student stud
-    JOIN assessment assm ON stud.assessment_id = assm.assessment_id
-    JOIN assessment_session sess ON assm.assessment_session_id = sess.session_id
+    JOIN assessment asm ON stud.assessment_id = asm.assessment_id
+    JOIN assessment_session sess ON asm.session_id = sess.session_id
     WHERE 
         sess.session_id = :assessmentSessionID
         AND stud.student_status_code = 'ACTIVE'
@@ -59,10 +59,10 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     SELECT DISTINCT staged.student_id 
     FROM staged_assessment_student staged
     JOIN assessment assm ON staged.assessment_id = assm.assessment_id
-    JOIN assessment_session sess ON assm.assessment_session_id = sess.session_id
+    JOIN assessment_session sess ON assm.session_id = sess.session_id
     WHERE 
         sess.session_id = :assessmentSessionID
-        AND staged.student_status_code = 'ACTIVE'
+        AND staged.staged_assessment_student_status = 'ACTIVE'
     """, nativeQuery = true)
     List<UUID> findAllActiveStudentsInSession(UUID assessmentSessionID);
 
