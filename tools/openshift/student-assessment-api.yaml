@@ -188,8 +188,8 @@ objects:
         apiVersion: apps/v1
         kind: Deployment
         name: "${APP_NAME}-${BRANCH}"
-      minReplicas: 1
-      maxReplicas: 3
+      minReplicas: ${{MIN_REPLICAS}}
+      maxReplicas: ${{MAX_REPLICAS}}
       metrics:
         - type: Resource
           resource:
