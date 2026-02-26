@@ -137,7 +137,7 @@ public class EventTaskSchedulerAsyncService {
 
     private void processUncompletedSagas(final List<AssessmentSagaEntity> sagas) {
         for (val saga : sagas) {
-            if (saga.getUpdateDate().isBefore(LocalDateTime.now().minusMinutes(2))
+            if (saga.getUpdateDate().isBefore(LocalDateTime.now().minusMinutes(15))
                     && this.sagaOrchestrators.containsKey(saga.getSagaName())) {
                 try {
                     this.setRetryCountAndLog(saga);
