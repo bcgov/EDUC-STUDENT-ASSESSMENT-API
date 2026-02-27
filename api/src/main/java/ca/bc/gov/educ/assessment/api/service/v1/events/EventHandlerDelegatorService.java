@@ -57,39 +57,39 @@ public class EventHandlerDelegatorService {
     try {
       switch (event.getEventType()) {
         case GET_OPEN_ASSESSMENT_SESSIONS:
-          log.info("Received GET_OPEN_ASSESSMENT_SESSIONS event :: {}", event);
+          log.debug("Received GET_OPEN_ASSESSMENT_SESSIONS event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           response = eventHandlerService.handleGetOpenAssessmentSessionsEvent(event, isSynchronous);
-          log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
         case GET_STUDENT_ASSESSMENT_DETAILS:
-          log.info("Received GET_STUDENT_ASSESSMENT_DETAILS event :: {}", event);
+          log.debug("Received GET_STUDENT_ASSESSMENT_DETAILS event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           response = eventHandlerService.handleGetStudentAssessmentDetailEvent(event);
-          log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
         case PROCESS_STUDENT_REGISTRATION:
-          log.info("Received PROCESS_STUDENT_REGISTRATION event :: {}", event);
+          log.debug("Received PROCESS_STUDENT_REGISTRATION event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           var pairResponse = eventHandlerService.handleProcessStudentRegistrationEvent(event);
-          log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, pairResponse.getLeft());
-          log.info("Event response is currently {}", pairResponse.getRight());
+          log.debug("Event response is currently {}", pairResponse.getRight());
           if(pairResponse.getRight() != null) {
             publishToJetStream(pairResponse.getRight());
           }
           break;
         case GET_ASSESSMENT_STUDENTS:
-          log.info("Received GET_PAGINATED_ASSESSMENT_STUDENTS event :: {}", event);
+          log.debug("Received GET_PAGINATED_ASSESSMENT_STUDENTS event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           response = eventHandlerService.handleGetAssessmentStudentsEvent(event);
-          log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
         default:
-          log.info("silently ignoring other events :: {}", event);
+          log.debug("silently ignoring other events :: {}", event);
           break;
       }
     } catch (final Exception e) {
