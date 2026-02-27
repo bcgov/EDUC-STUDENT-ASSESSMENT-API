@@ -87,7 +87,7 @@ public class Subscriber {
 
     public void onMessage(final Message message) {
         if (message != null) {
-            log.info("Received message Subject:: {} , SID :: {} , sequence :: {}, pending :: {} ", message.getSubject(), message.getSID(), message.metaData().consumerSequence(), message.metaData().pendingCount());
+            log.debug("Received message Subject:: {} , SID :: {} , sequence :: {}, pending :: {} ", message.getSubject(), message.getSID(), message.metaData().consumerSequence(), message.metaData().pendingCount());
             try {
                 val eventString = new String(message.getData());
                 LogHelper.logMessagingEventDetails(eventString);
@@ -105,14 +105,14 @@ public class Subscriber {
                             this.jetStreamEventHandlerService.handleEvent(event, message);
                         } else {
                             jetStreamEventHandlerService.updateEventStatus(event);
-                            log.info("Received event :: {} ", event);
+                            log.debug("Received event :: {} ", event);
                             message.ack();
                         }
                     } catch (final IOException e) {
                         log.error("IOException ", e);
                     }
                 });
-                log.info("received event :: {} ", event);
+                log.debug("Received event :: {} ", event);
             } catch (final Exception ex) {
                 log.error("Exception ", ex);
             }

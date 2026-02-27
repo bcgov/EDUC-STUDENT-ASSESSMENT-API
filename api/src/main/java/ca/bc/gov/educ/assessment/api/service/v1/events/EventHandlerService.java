@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -102,6 +103,11 @@ public class EventHandlerService {
             log.info("Student already exists in assessment {} updating school or record school id, local id, local assessment id, assessment center school id", assessmentStudent);
 
             AssessmentStudentEntity existingStudentEntity = student.get();
+
+            if(hasChangeToSchoolOfRecordOrAssessmentCenter(existingStudentEntity, assessmentStudent)){
+                existingStudentEntity.setDownloadDate(null);
+            }
+            
             final String schoolOfRecordSchoolID = assessmentStudent.getSchoolOfRecordSchoolID();
             if (StringUtils.isNotBlank(schoolOfRecordSchoolID)) {
                 try {
@@ -112,6 +118,7 @@ public class EventHandlerService {
             }
             existingStudentEntity.setLocalID(assessmentStudent.getLocalID());
             existingStudentEntity.setLocalAssessmentID(assessmentStudent.getLocalAssessmentID());
+
             final String assessmentCenterSchoolID = assessmentStudent.getAssessmentCenterSchoolID();
             if (StringUtils.isNotBlank(assessmentCenterSchoolID)) {
                 try {
@@ -140,6 +147,24 @@ public class EventHandlerService {
         event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
         val studentEvent = createEventRecord(event);
         return Pair.of(createResponseEvent(studentEvent), assessmentEventEntity);
+    }
+
+    private boolean hasChangeToSchoolOfRecordOrAssessmentCenter(AssessmentStudentEntity existingStudentEntity, AssessmentStudent incomingStudentEntity) {
+        boolean assessmentCenterChanged = incomingStudentEntity.getAssessmentCenterSchoolID() != null
+                && !Objects.equals(existingStudentEntity.getAssessmentCenterSchoolID(), parseUUID(incomingStudentEntity.getAssessmentCenterSchoolID()));
+        boolean schoolOfRecordChanged = incomingStudentEntity.getSchoolOfRecordSchoolID() != null
+                && !Objects.equals(existingStudentEntity.getSchoolOfRecordSchoolID(), parseUUID(incomingStudentEntity.getSchoolOfRecordSchoolID()));
+        return assessmentCenterChanged || schoolOfRecordChanged;
+    }
+
+    private UUID parseUUID(String value) {
+        if (value == null) return null;
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid UUID string encountered: {}", value);
+            return null;
+        }
     }
 
     public byte[] handleGetOpenAssessmentSessionsEvent(Event event, boolean isSynchronous) throws JsonProcessingException {
