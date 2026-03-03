@@ -102,7 +102,7 @@ public class AssessmentStudentEntity {
   private String markingSession;
 
   @PastOrPresent
-  @Column(name = "DOWNLOAD_DATE", updatable = false)
+  @Column(name = "DOWNLOAD_DATE")
   private LocalDateTime downloadDate;
 
   @Column(name = "CREATE_USER", updatable = false , length = 100)
