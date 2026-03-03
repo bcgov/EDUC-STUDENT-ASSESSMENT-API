@@ -180,6 +180,7 @@ public class AssessmentStudentService {
             }
         }
 
+        log.debug("Student was validated with {} number of errors", validationIssues.size());
         if (validationIssues.isEmpty()) {
             overrideProficiencyScoreIfSpecialCase(assessmentStudentEntity);
             overrideSchoolAtWriteSchoolID(assessmentStudentEntity);
@@ -188,12 +189,14 @@ public class AssessmentStudentService {
                 TransformUtil.uppercaseFields(currentAssessmentStudentEntity);
                 currentAssessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(currentAssessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), currentAssessmentStudentEntity.getStudentID())));
                 setSchoolOfRecordAtWriteIfExempt(currentAssessmentStudentEntity);
+                log.debug("Removing download date");
                 currentAssessmentStudentEntity.setDownloadDate(null);
                 return assessmentStudentListItemMapper.toStructure(saveAssessmentStudentWithHistory(currentAssessmentStudentEntity));
             } else {
                 assessmentStudentEntity.setStudentID(UUID.fromString(studentApiStudent.getStudentID()));
                 assessmentStudentEntity.setNumberOfAttempts(Integer.parseInt(getNumberOfAttempts(assessmentStudentEntity.getAssessmentEntity().getAssessmentID().toString(), assessmentStudentEntity.getStudentID())));
                 setSchoolOfRecordAtWriteIfExempt(assessmentStudentEntity);
+                log.debug("Removing download date");
                 assessmentStudentEntity.setDownloadDate(null);
                 return assessmentStudentListItemMapper.toStructure(saveAssessmentStudentWithHistory(assessmentStudentEntity));
             }
