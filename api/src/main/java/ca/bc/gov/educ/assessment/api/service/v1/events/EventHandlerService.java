@@ -154,7 +154,11 @@ public class EventHandlerService {
                 && !Objects.equals(existingStudentEntity.getAssessmentCenterSchoolID(), parseUUID(incomingStudentEntity.getAssessmentCenterSchoolID()));
         boolean schoolOfRecordChanged = incomingStudentEntity.getSchoolOfRecordSchoolID() != null
                 && !Objects.equals(existingStudentEntity.getSchoolOfRecordSchoolID(), parseUUID(incomingStudentEntity.getSchoolOfRecordSchoolID()));
-        return assessmentCenterChanged || schoolOfRecordChanged;
+        boolean sessionChanged = incomingStudentEntity.getMarkingSession() != null
+                && !Objects.equals(existingStudentEntity.getMarkingSession(), incomingStudentEntity.getMarkingSession());
+        boolean assessmentCodeChanged = incomingStudentEntity.getAdaptedAssessmentCode() != null
+                && !Objects.equals(existingStudentEntity.getAdaptedAssessmentCode(), incomingStudentEntity.getAdaptedAssessmentCode());
+        return assessmentCenterChanged || schoolOfRecordChanged || sessionChanged || assessmentCodeChanged;
     }
 
     private UUID parseUUID(String value) {
