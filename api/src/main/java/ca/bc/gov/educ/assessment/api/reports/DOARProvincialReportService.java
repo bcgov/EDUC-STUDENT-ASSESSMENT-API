@@ -89,7 +89,7 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
 
       if(session.getCompletionDate() == null) {
-        var students = stagedAssessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), "X");
+        var students = stagedAssessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, List.of(StudentStatusCodes.ACTIVE.getCode(), StudentStatusCodes.MERGED.getCode()), "X");
         setStudentLevelsForStaging(students, doarSummaryNode, session);
       } else {
         var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), "X");

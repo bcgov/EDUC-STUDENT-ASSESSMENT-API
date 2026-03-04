@@ -90,7 +90,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(assessment.getAssessmentSessionEntity()).thenReturn(sessionEntity);
         when(student.getAssessmentEntity()).thenReturn(assessment);
 
-        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE", "MERGED"))))
                 .thenReturn(List.of(student));
 
         SchoolTombstone school = mock(SchoolTombstone.class);

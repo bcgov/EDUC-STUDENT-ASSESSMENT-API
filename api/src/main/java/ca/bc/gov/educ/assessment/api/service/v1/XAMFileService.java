@@ -55,7 +55,7 @@ public class XAMFileService {
     protected <T> T generateXamContent(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school, boolean forSaga) {
         StringBuilder sb;
         if (forSaga) {
-            List<StagedAssessmentStudentEntity> stagedStudents = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
+            List<StagedAssessmentStudentEntity> stagedStudents = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE", "MERGED"));
             sb = generateRowsStagedAssessmentStudent(stagedStudents, school);
         } else {
             List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
