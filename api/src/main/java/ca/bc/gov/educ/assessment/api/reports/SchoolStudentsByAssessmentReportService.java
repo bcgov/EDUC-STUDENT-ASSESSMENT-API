@@ -151,7 +151,7 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
         var payload = objectWriter.writeValueAsString(normalized);
         return generateJasperReport(payload, schoolStudentByAssessmentReport, AssessmentReportTypeCode.SCHOOL_STUDENTS_BY_ASSESSMENT.getCode());
       }else{
-        var students = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(assessmentSessionID, schoolID, List.of("ACTIVE"));
+        var students = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(assessmentSessionID, schoolID, List.of("ACTIVE", "MERGED"));
 
         if(students.isEmpty()) {
           throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
