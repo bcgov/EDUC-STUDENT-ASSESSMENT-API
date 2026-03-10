@@ -128,6 +128,9 @@ public class EventHandlerService {
                 }
             }
 
+            existingStudentEntity.setUpdateUser(StringUtils.isNotBlank(assessmentStudent.getUpdateUser()) ? assessmentStudent.getUpdateUser() : ApplicationProperties.STUDENT_ASSESSMENT_API );
+            existingStudentEntity.setUpdateDate(LocalDateTime.now());
+
             assessmentStudentService.saveAssessmentStudentWithHistory(existingStudentEntity);
             dataChangedForStudent = true;
         }
