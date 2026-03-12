@@ -2,6 +2,7 @@ package ca.bc.gov.educ.assessment.api.service.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
+import ca.bc.gov.educ.assessment.api.exception.StudentAssessmentAPIRuntimeException;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -335,5 +337,46 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
             }
         }
         return names;
+    }
+
+    @Test
+    void testGenerateAndUploadXamFilesAsync_SessionNotFound_ThrowsEntityNotFoundException() {
+        UUID sessionId = UUID.randomUUID();
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class,
+                () -> xamFileService.generateAndUploadXamFiles(sessionId));
+    }
+
+    @Test
+    void testGenerateAndUploadXamFilesAsync_SessionWithoutCompletionDate_ThrowsRuntimeException() {
+        UUID sessionId = UUID.randomUUID();
+        AssessmentSessionEntity session = mock(AssessmentSessionEntity.class);
+        when(session.getCompletionDate()).thenReturn(null);
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        StudentAssessmentAPIRuntimeException exception = assertThrows(
+                StudentAssessmentAPIRuntimeException.class,
+                () -> xamFileService.generateAndUploadXamFiles(sessionId));
+
+        assertTrue(exception.getMessage().contains("completion date is not set"));
+    }
+
+    @Test
+    void testGenerateAndUploadXamFilesAsync_ValidSession_DelegatesToInternalMethod() {
+        UUID sessionId = UUID.randomUUID();
+        AssessmentSessionEntity session = mock(AssessmentSessionEntity.class);
+        when(session.getSessionID()).thenReturn(sessionId);
+        when(session.getCourseYear()).thenReturn("2024");
+        when(session.getCourseMonth()).thenReturn("06");
+        when(session.getCompletionDate()).thenReturn(LocalDateTime.now().minusDays(1));
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        when(restUtils.getAllSchoolTombstones()).thenReturn(List.of());
+        when(studentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(sessionId)).thenReturn(List.of());
+
+        assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionId));
+        // No MYED schools with students → no zip is uploaded
+        verify(xamFileService, never()).uploadToComs(any(), any());
     }
 }

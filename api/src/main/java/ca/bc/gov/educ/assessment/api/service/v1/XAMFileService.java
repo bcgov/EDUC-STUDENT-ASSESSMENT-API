@@ -223,10 +223,17 @@ public class XAMFileService {
         }
     }
 
+    /**
+    * for async processing from frontend request:
+    * to run xam generation on full table and send zip to s3
+    */
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void generateAndUploadXamFiles(UUID sessionID) {
         var assessmentSessionEntity = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
+        if (assessmentSessionEntity.getCompletionDate() == null) {
+            throw new StudentAssessmentAPIRuntimeException("Cannot generate XAM files for session " + sessionID + " - completion date is not set");
+        }
         generateAndUploadXamFiles(assessmentSessionEntity, false);
     }
 
