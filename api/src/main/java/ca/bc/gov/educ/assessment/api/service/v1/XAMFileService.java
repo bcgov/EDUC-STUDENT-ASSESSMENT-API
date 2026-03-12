@@ -102,7 +102,7 @@ public class XAMFileService {
                             padRight("", 3) + // INTERIM_SCHOOL_PERCENT (BLANK)
                             padRight("", 3) + // FINAL_SCHOOL_PERCENT (BLANK)
                             padRight("", 3) + // EXAM_PERCENT (BLANK)
-                            (student.getProficiencyScore() == null ? "000" : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - 000 if null
+                            (student.getProficiencyScore() == null ? "000" : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - formatted as 001-004 - 000 if null
                             padRight("", 2) + // FINAL_LETTER_GRADE (BLANK)
                             padRight("Y", 1) + // E-EXAM FLAG - Always Y according to spec
                             padRight(student.getProvincialSpecialCaseCode(), 1) + // PROV_SPEC_CASE
@@ -147,7 +147,7 @@ public class XAMFileService {
                             padRight("", 3) + // INTERIM_SCHOOL_PERCENT (BLANK)
                             padRight("", 3) + // FINAL_SCHOOL_PERCENT (BLANK)
                             padRight("", 3) + // EXAM_PERCENT (BLANK)
-                            (student.getProficiencyScore() == null ? "000" : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - 000 if null
+                            (student.getProficiencyScore() == null ? "000" : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - formatted as 001-004 - 000 if null
                             padRight("", 2) + // FINAL_LETTER_GRADE (BLANK)
                             padRight("Y", 1) + // E-EXAM FLAG - Always Y according to spec
                             padRight(student.getProvincialSpecialCaseCode(), 1) + // PROV_SPEC_CASE
