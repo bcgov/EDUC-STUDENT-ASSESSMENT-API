@@ -15,7 +15,6 @@ import ca.bc.gov.educ.assessment.api.rest.ComsRestUtils;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -103,11 +102,7 @@ public class XAMFileService {
                             padRight("", 3) + // INTERIM_SCHOOL_PERCENT (BLANK)
                             padRight("", 3) + // FINAL_SCHOOL_PERCENT (BLANK)
                             padRight("", 3) + // EXAM_PERCENT (BLANK)
-                            (StringUtils.equalsAnyIgnoreCase(student.getProvincialSpecialCaseCode(), "X", "A", "E", "Q")
-                                    ? "000"
-                                    : (student.getProficiencyScore() == null
-                                            ? padRight("", 3)
-                                            : String.format("%03d", student.getProficiencyScore()))) + // FINAL_PERCENT - formatted as 001-004; 000 for special cases X/A/E/Q
+                            (student.getProficiencyScore() == null ? "000" : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - 000 if null
                             padRight("", 2) + // FINAL_LETTER_GRADE (BLANK)
                             padRight("Y", 1) + // E-EXAM FLAG - Always Y according to spec
                             padRight(student.getProvincialSpecialCaseCode(), 1) + // PROV_SPEC_CASE
@@ -152,11 +147,7 @@ public class XAMFileService {
                             padRight("", 3) + // INTERIM_SCHOOL_PERCENT (BLANK)
                             padRight("", 3) + // FINAL_SCHOOL_PERCENT (BLANK)
                             padRight("", 3) + // EXAM_PERCENT (BLANK)
-                            (StringUtils.equalsAnyIgnoreCase(student.getProvincialSpecialCaseCode(), "X", "A", "E", "Q")
-                                    ? "000"
-                                    : (student.getProficiencyScore() == null
-                                            ? padRight("", 3)
-                                            : String.format("%03d", student.getProficiencyScore()))) + // FINAL_PERCENT - formatted as 001-004; 000 for special cases X/A/E/Q
+                            (student.getProficiencyScore() == null ? "000" : String.format("%03d", student.getProficiencyScore())) + // FINAL_PERCENT - 000 if null
                             padRight("", 2) + // FINAL_LETTER_GRADE (BLANK)
                             padRight("Y", 1) + // E-EXAM FLAG - Always Y according to spec
                             padRight(student.getProvincialSpecialCaseCode(), 1) + // PROV_SPEC_CASE
