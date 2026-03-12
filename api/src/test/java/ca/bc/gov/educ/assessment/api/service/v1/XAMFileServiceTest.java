@@ -19,7 +19,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,7 +75,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGenerateXamFile_success() {
+    void testGenerateXamContent_success() {
         AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2023");
@@ -98,9 +102,8 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(school.getMincode()).thenReturn("MINCODE1");
         when(school.getVendorSourceSystemCode()).thenReturn("MYED");
 
-        byte[] data = xamFileService.generateXamContent(sessionEntity, school, true);
-        assertTrue(data.length > 0);
-        String content = new String(data);
+        String content = xamFileService.generateXamContent(sessionEntity, school, true);
+        assertFalse(content.isEmpty());
         assertTrue(content.contains("Doe"));
     }
 
@@ -223,7 +226,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2023");
         when(sessionEntity.getCourseMonth()).thenReturn("09");
-        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE", "MERGED"))))
                 .thenReturn(List.of());
 
         SchoolTombstone myEdSchool = mock(SchoolTombstone.class);
@@ -236,8 +239,8 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
-        // Verify files are uploaded to the dynamic folder structure: xam-files-yyyymm/
-        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202309/MINCODE4-202309-Results.xam"));
+        // Verify a single zip is uploaded
+        verify(xamFileService, times(1)).uploadToComs(any(byte[].class), eq("xam-files-202309/xam-files-202309.zip"));
     }
 
     @Test
@@ -249,7 +252,7 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2025");
         when(sessionEntity.getCourseMonth()).thenReturn("10");
-        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE", "MERGED"))))
                 .thenReturn(List.of());
 
         SchoolTombstone myEdSchool = mock(SchoolTombstone.class);
@@ -262,18 +265,18 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
-        // Verify files are uploaded to xam-files-202510/
-        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202510/12345678-202510-Results.xam"));
+        // Verify single zip uploaded to xam-files-202510/
+        verify(xamFileService, times(1)).uploadToComs(any(byte[].class), eq("xam-files-202510/xam-files-202510.zip"));
     }
 
     @Test
-    void testGenerateAndUploadXamFiles_multipleSchools() {
-        // Test that multiple schools all go to the same session-specific folder
+    void testGenerateAndUploadXamFiles_multipleSchools() throws IOException {
+        // Test that multiple schools all end up in the same zip
         AssessmentSessionEntity sessionEntity = mock(AssessmentSessionEntity.class);
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
         when(sessionEntity.getCourseYear()).thenReturn("2024");
         when(sessionEntity.getCourseMonth()).thenReturn("03");
-        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
+        when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE", "MERGED"))))
                 .thenReturn(List.of());
 
         SchoolTombstone school1 = mock(SchoolTombstone.class);
@@ -290,19 +293,23 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         when(nonMyEdSchool.getVendorSourceSystemCode()).thenReturn("OTHER");
         when(nonMyEdSchool.getMincode()).thenReturn("33333333");
 
-        var schools = List.of(UUID.fromString(school1.getSchoolId()), UUID.fromString(school2.getSchoolId()));
+        var schoolsWithStudents = List.of(UUID.fromString(school1.getSchoolId()), UUID.fromString(school2.getSchoolId()));
         when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2, nonMyEdSchool));
         when(stagedStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(any()))
-                .thenReturn(schools);
+                .thenReturn(schoolsWithStudents);
 
+        org.mockito.ArgumentCaptor<byte[]> zipCaptor = org.mockito.ArgumentCaptor.forClass(byte[].class);
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), any());
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
-        // Verify both MYED schools upload to the same folder (xam-files-202403/)
-        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202403/11111111-202403-Results.xam"));
-        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202403/22222222-202403-Results.xam"));
-        // Verify non-MYED school is not processed
-        verify(xamFileService, never()).uploadToComs(any(byte[].class), contains("33333333"));
+        // Verify a single zip is uploaded
+        verify(xamFileService, times(1)).uploadToComs(zipCaptor.capture(), eq("xam-files-202403/xam-files-202403.zip"));
+
+        // Verify zip contents contain both MYED schools but not the non-MYED school
+        Set<String> entryNames = getZipEntryNames(zipCaptor.getValue());
+        assertTrue(entryNames.contains("11111111-202403-Results.xam"));
+        assertTrue(entryNames.contains("22222222-202403-Results.xam"));
+        assertFalse(entryNames.stream().anyMatch(name -> name.contains("33333333")));
     }
 
     @Test
@@ -317,5 +324,16 @@ class XAMFileServiceTest extends BaseAssessmentAPITest {
         verify(comsRestUtils).uploadObject(testContent, folderKey);
         // Verify upload response was validated (makeObjectPublic only called if validation passed)
         verify(comsRestUtils).makeObjectPublic(eq("test-object-id"));
+    }
+
+    private Set<String> getZipEntryNames(byte[] zipBytes) throws IOException {
+        Set<String> names = new HashSet<>();
+        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                names.add(entry.getName());
+            }
+        }
+        return names;
     }
 }

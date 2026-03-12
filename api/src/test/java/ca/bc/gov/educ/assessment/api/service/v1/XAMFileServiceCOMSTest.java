@@ -17,12 +17,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -163,15 +164,14 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
 
         assertDoesNotThrow(() -> xamFileService.generateAndUploadXamFiles(sessionEntity));
 
-        // Verify uploadToComs was called twice (once for each MYED school)
+        // Verify a single zip upload
         verify(xamFileService, times(1)).uploadToComs(any(byte[].class), anyString());
 
         // Verify the correct keys were used
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
         verify(xamFileService, times(1)).uploadToComs(any(byte[].class), keyCaptor.capture());
 
-        List<String> capturedKeys = keyCaptor.getAllValues();
-        assertTrue(capturedKeys.contains("xam-files-202309/12345678-202309-Results.xam"));
+        assertEquals("xam-files-202309/xam-files-202309.zip", keyCaptor.getValue());
     }
 
     @Test
@@ -194,12 +194,11 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
 
         assertTrue(exception.getMessage().contains("COMS upload failed"));
 
-
-        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202309/12345678-202309-Results.xam"));
+        verify(xamFileService).uploadToComs(any(byte[].class), eq("xam-files-202309/xam-files-202309.zip"));
     }
 
     @Test
-    void testGenerateAndUploadXamFiles_OnlyMyEdSchools() {
+    void testGenerateAndUploadXamFiles_OnlyMyEdSchools() throws IOException {
         AssessmentSessionEntity sessionEntity = createMockSession();
         when(sessionEntity.getSessionID()).thenReturn(UUID.randomUUID());
 
@@ -216,20 +215,19 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         when(stagedStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(eq(sessionEntity.getSessionID()), any(), eq(List.of("ACTIVE"))))
             .thenReturn(List.of());
 
+        ArgumentCaptor<byte[]> zipCaptor = ArgumentCaptor.forClass(byte[].class);
         doNothing().when(xamFileService).uploadToComs(any(byte[].class), anyString());
         when(stagedStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(any())).thenReturn(List.of(UUID.fromString(schoolID)));
         xamFileService.generateAndUploadXamFiles(sessionEntity);
 
-        // Verify uploadToComs was called only for MYED schools (2 times)
-        verify(xamFileService, times(1)).uploadToComs(any(byte[].class), anyString());
+        // Verify a single zip upload
+        verify(xamFileService, times(1)).uploadToComs(zipCaptor.capture(), anyString());
 
-        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        verify(xamFileService, times(1)).uploadToComs(any(byte[].class), keyCaptor.capture());
-
-        List<String> capturedKeys = keyCaptor.getAllValues();
-        assertTrue(capturedKeys.contains("xam-files-202309/12345678-202309-Results.xam"));
-        assertFalse(capturedKeys.stream().anyMatch(key -> key.contains("87654321")));
-        assertFalse(capturedKeys.stream().anyMatch(key -> key.contains("11223344")));
+        // Verify zip only contains the MYED school
+        Set<String> entryNames = getZipEntryNames(zipCaptor.getValue());
+        assertTrue(entryNames.contains("12345678-202309-Results.xam"));
+        assertFalse(entryNames.stream().anyMatch(name -> name.contains("87654321")));
+        assertFalse(entryNames.stream().anyMatch(name -> name.contains("11223344")));
     }
 
     @Test
@@ -248,7 +246,7 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
         verify(xamFileService).uploadToComs(any(byte[].class), keyCaptor.capture());
 
-        String expectedKey = "xam-files-202309/12345678-202309-Results.xam";
+        String expectedKey = "xam-files-202309/xam-files-202309.zip";
         assertEquals(expectedKey, keyCaptor.getValue());
     }
 
@@ -269,5 +267,16 @@ class XAMFileServiceCOMSTest extends BaseAssessmentAPITest {
         when(session.getCourseYear()).thenReturn("2023");
         when(session.getCourseMonth()).thenReturn("09");
         return session;
+    }
+
+    private Set<String> getZipEntryNames(byte[] zipBytes) throws IOException {
+        Set<String> names = new HashSet<>();
+        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                names.add(entry.getName());
+            }
+        }
+        return names;
     }
 }

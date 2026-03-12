@@ -21,10 +21,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 @Slf4j
@@ -48,34 +52,24 @@ public class XAMFileService {
     }
 
     /**
-     * Generic method to generate XAM content and return either a File or DownloadableReportResponse
-     * @param assessmentSessionEntity the assessment session ID
+     * Generic method to generate XAM content
+     * @param assessmentSessionEntity the assessment session
      * @param school the school tombstone
-     * @param forSaga whether for approval saga (staging uploaded to s3) or frontend request (full table students)
-     * @return T - either byte[] or DownloadableReportResponse
+     * @param forSaga whether for approval saga (staged students) or frontend request (full table students)
+     * @return the XAM file content as a String
      */
-    @SuppressWarnings("unchecked")
-    protected <T> T generateXamContent(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school, boolean forSaga) {
+    protected String generateXamContent(AssessmentSessionEntity assessmentSessionEntity, SchoolTombstone school, boolean forSaga) {
         StringBuilder sb;
         if (forSaga) {
-            List<StagedAssessmentStudentEntity> stagedStudents = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE", "MERGED"));
+            List<StagedAssessmentStudentEntity> stagedStudents = stagedAssessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStagedAssessmentStudentStatusIn(
+                    assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE", "MERGED"));
             sb = generateRowsStagedAssessmentStudent(stagedStudents, school);
         } else {
-            List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
+            List<AssessmentStudentEntity> students = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeIn(
+                    assessmentSessionEntity.getSessionID(), UUID.fromString(school.getSchoolId()), List.of("ACTIVE"));
             sb = generateRowsAssessmentStudent(students, school);
         }
-
-        String fileName = generateXamFileName(school, assessmentSessionEntity);
-        String content = sb.toString();
-
-        if (forSaga) {
-            return (T) content.getBytes(StandardCharsets.UTF_8);
-        } else {
-            DownloadableReportResponse response = new DownloadableReportResponse();
-            response.setReportType(fileName);
-            response.setDocumentData(Base64.getEncoder().encodeToString(content.getBytes()));
-            return (T) response;
-        }
+        return sb.toString();
     }
 
     private StringBuilder generateRowsAssessmentStudent(List<AssessmentStudentEntity> assessmentStudents, SchoolTombstone school) {
@@ -168,12 +162,19 @@ public class XAMFileService {
     }
 
     /**
-     * Returns a DownloadableReportResponse for the XAM content (used by controller)
+     * Returns a DownloadableReportResponse for the XAM content (used by controller for single school downloads)
      */
     public DownloadableReportResponse generateXamReport(UUID sessionID, UUID schoolID) {
         var assessmentSession = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
         var schoolTombstone = this.restUtils.getSchoolBySchoolID(schoolID.toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class));
-        return generateXamContent(assessmentSession, schoolTombstone, false);
+
+        String content = generateXamContent(assessmentSession, schoolTombstone, false);
+        String fileName = generateXamFileName(schoolTombstone, assessmentSession);
+
+        DownloadableReportResponse response = new DownloadableReportResponse();
+        response.setReportType(fileName);
+        response.setDocumentData(Base64.getEncoder().encodeToString(content.getBytes(StandardCharsets.UTF_8)));
+        return response;
     }
 
     public void uploadToComs(byte[] content, String key) {
@@ -226,34 +227,61 @@ public class XAMFileService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void generateAndUploadXamFiles(UUID sessionID) {
         var assessmentSessionEntity = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
-        generateAndUploadXamFiles(assessmentSessionEntity);
+        generateAndUploadXamFiles(assessmentSessionEntity, false);
     }
 
     /**
      * for orchestration:
-     * Generates and uploads XAM files for all schools for the given session.
-     * Only schools with vendor source system code MYED
+     * Generates XAM files for all MYED schools for the given session
+     * zips them into a single archive, and uploads the zip to COMS.
      */
     public void generateAndUploadXamFiles(AssessmentSessionEntity assessmentSessionEntity) {
+        generateAndUploadXamFiles(assessmentSessionEntity, true);
+    }
+
+    private void generateAndUploadXamFiles(AssessmentSessionEntity assessmentSessionEntity, boolean forSaga) {
         List<SchoolTombstone> schools = restUtils.getAllSchoolTombstones();
         List<SchoolTombstone> myEdSchools = schools.stream()
                 .filter(school -> "MYED".equalsIgnoreCase(school.getVendorSourceSystemCode()))
                 .toList();
         String folderName = generateXamFolderName(assessmentSessionEntity);
-        var schoolsWithStudents = stagedAssessmentStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(assessmentSessionEntity.getSessionID());
-        log.info("Starting generation and upload of XAM files for {} MYED schools, session {} to folder {}", myEdSchools.size(), assessmentSessionEntity.getSessionID(), folderName);
-        for (SchoolTombstone school : myEdSchools) {
-            if(schoolsWithStudents.contains(UUID.fromString(school.getSchoolId()))) {
-                log.debug("Generating XAM file for school: {}", school.getMincode());
-                byte[] xamFileContent = generateXamContent(assessmentSessionEntity, school, true);
-                log.debug("Uploading XAM file for school: {} ({} bytes)", school.getMincode(), xamFileContent.length);
-                String fileName = generateXamFileName(school, assessmentSessionEntity);
-                String key = folderName + "/" + fileName;
-                uploadToComs(xamFileContent, key);
-                log.debug("Successfully uploaded XAM file for school: {}", school.getMincode());
+        var schoolsWithStudents = forSaga
+                ? stagedAssessmentStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(assessmentSessionEntity.getSessionID())
+                : assessmentStudentRepository.getSchoolIDsOfSchoolsWithStudentsInSession(assessmentSessionEntity.getSessionID());
+        log.info("Starting generation of XAM zip for {} MYED schools, session {}, forSaga={}", myEdSchools.size(), assessmentSessionEntity.getSessionID(), forSaga);
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ZipOutputStream zos = new ZipOutputStream(baos)) {
+
+            int fileCount = 0;
+            for (SchoolTombstone school : myEdSchools) {
+                if (schoolsWithStudents.contains(UUID.fromString(school.getSchoolId()))) {
+                    log.debug("Generating XAM file for school: {}", school.getMincode());
+                    String xamContent = generateXamContent(assessmentSessionEntity, school, forSaga);
+                    String fileName = generateXamFileName(school, assessmentSessionEntity);
+
+                    ZipEntry entry = new ZipEntry(fileName);
+                    zos.putNextEntry(entry);
+                    zos.write(xamContent.getBytes(StandardCharsets.UTF_8));
+                    zos.closeEntry();
+                    fileCount++;
+                    log.debug("Added XAM file to zip for school: {}", school.getMincode());
+                }
             }
+            zos.finish();
+
+            if (fileCount > 0) {
+                byte[] zipBytes = baos.toByteArray();
+                String zipKey = folderName + "/" + folderName + ".zip";
+                log.info("Uploading zip with {} XAM files ({} bytes) to COMS as {}", fileCount, zipBytes.length, zipKey);
+                uploadToComs(zipBytes, zipKey);
+            } else {
+                log.info("No XAM files generated for session {}, skipping upload", assessmentSessionEntity.getSessionID());
+            }
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException("Failed to create XAM zip file: " + e.getMessage());
         }
-        log.info("Completed processing XAM files for session {} to folder {}", assessmentSessionEntity.getSessionID(), folderName);
+        log.info("Completed processing XAM files for session {}", assessmentSessionEntity.getSessionID());
     }
 
     /**

@@ -30,7 +30,17 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         HAVING COUNT(*) > 10
     """)
     List<UUID> getSchoolIDsOfSchoolsWithMoreThanStudentsInSession(UUID assessmentSessionID);
-    
+
+    @Query("""
+        SELECT s.schoolAtWriteSchoolID
+        FROM AssessmentStudentEntity s
+        WHERE s.assessmentEntity.assessmentSessionEntity.sessionID = :assessmentSessionID
+        AND s.schoolAtWriteSchoolID is not null
+        AND s.studentStatusCode = 'ACTIVE'
+        GROUP BY s.schoolAtWriteSchoolID
+    """)
+    List<UUID> getSchoolIDsOfSchoolsWithStudentsInSession(UUID assessmentSessionID);
+
     @Query("""
         SELECT DISTINCT s FROM AssessmentStudentEntity s
         LEFT JOIN FETCH s.assessmentEntity a
