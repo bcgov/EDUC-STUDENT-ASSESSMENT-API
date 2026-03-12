@@ -412,7 +412,7 @@ class ComsRestUtilsTest {
         Bucket parentBucket = Bucket.builder()
                 .bucketId("parent-bucket-id")
                 .bucket("test-bucket")
-                .key("/")   // Root bucket is identified by key="/"
+                .key("/")
                 .build();
 
         ObjectMetadata uploadedObject = ObjectMetadata.builder()
