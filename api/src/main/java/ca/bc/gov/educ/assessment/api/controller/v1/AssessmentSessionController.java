@@ -6,6 +6,7 @@ import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.mappers.v1.SessionMapper;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.service.v1.SessionService;
+import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentApproval;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentSession;
 import ca.bc.gov.educ.assessment.api.util.RequestUtil;
@@ -14,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
@@ -35,6 +37,8 @@ public class AssessmentSessionController implements AssessmentSessionEndpoint {
 
     @Getter(AccessLevel.PRIVATE)
     private final SessionService sessionService;
+
+    private final XAMFileService xamFileService;
 
     @Override
     public List<AssessmentSession> getAllSessions() {
@@ -73,6 +77,12 @@ public class AssessmentSessionController implements AssessmentSessionEndpoint {
         RequestUtil.setAuditColumnsForUpdate(assessmentApproval);
         getSessionService().approveAssessment(assessmentApproval);
         return assessmentApproval;
+    }
+
+    @Override
+    public ResponseEntity<Void> writeMyEDFileGen(UUID sessionID) {
+        xamFileService.generateAndUploadXamFiles(sessionID);
+        return ResponseEntity.noContent().build();
     }
 
 }

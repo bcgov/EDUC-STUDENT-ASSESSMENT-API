@@ -5,6 +5,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentApproval;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentSession;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -42,5 +43,10 @@ public interface AssessmentSessionEndpoint {
     @PostMapping("/approval/{sessionID}")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND."), @ApiResponse(responseCode = "409", description = "CONFLICT - Session approval saga is already in progress."), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
     AssessmentApproval approveAssessmentSession(@PathVariable UUID sessionID, @Validated @RequestBody AssessmentApproval assessmentApproval);
+
+    @PreAuthorize("hasAuthority('SCOPE_WRITE_MYED_FILEGEN')")
+    @PostMapping("/myedgen/{sessionID}")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "NOT FOUND."), @ApiResponse(responseCode = "409", description = "CONFLICT - Session approval saga is already in progress."), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
+    ResponseEntity<Void> writeMyEDFileGen(@PathVariable UUID sessionID);
 
 }

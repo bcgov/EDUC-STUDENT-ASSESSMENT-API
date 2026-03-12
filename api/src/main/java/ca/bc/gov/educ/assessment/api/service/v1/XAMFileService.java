@@ -16,7 +16,10 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportRespons
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -219,6 +222,12 @@ public class XAMFileService {
         }
     }
 
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void generateAndUploadXamFiles(UUID sessionID) {
+        var assessmentSessionEntity = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class));
+        generateAndUploadXamFiles(assessmentSessionEntity);
+    }
 
     /**
      * for orchestration:
