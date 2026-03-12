@@ -75,7 +75,7 @@ public class ComsRestUtils {
             log.debug("Retrieving bucket by name from COMS: {}", bucketName);
             List<Bucket> buckets = getBuckets();
             return buckets.stream()
-                    .filter(b -> bucketName.equals(b.getBucket()))
+                    .filter(b -> bucketName.equals(b.getBucket()) && "/".equals(b.getKey()))
                     .findFirst()
                     .orElseThrow(() -> new StudentAssessmentAPIRuntimeException("Bucket not found: " + bucketName));
         } catch (Exception e) {
