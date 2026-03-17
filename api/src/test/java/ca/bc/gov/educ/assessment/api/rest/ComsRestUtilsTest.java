@@ -358,6 +358,7 @@ class ComsRestUtilsTest {
         Bucket parentBucket = Bucket.builder()
                 .bucketId("parent-bucket-id")
                 .bucket("test-bucket")  // Match the config bucket name
+                .key("/")
                 .build();
 
         Bucket childBucket = Bucket.builder()
@@ -411,6 +412,7 @@ class ComsRestUtilsTest {
         Bucket parentBucket = Bucket.builder()
                 .bucketId("parent-bucket-id")
                 .bucket("test-bucket")
+                .key("/")
                 .build();
 
         ObjectMetadata uploadedObject = ObjectMetadata.builder()
