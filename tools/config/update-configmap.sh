@@ -120,6 +120,13 @@ curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scope
   -H "Authorization: Bearer $TKN" \
   -d "{\"description\": \"Write Assessment Sessions Data\",\"id\": \"WRITE_ASSESSMENT_SESSIONS\",\"name\": \"WRITE_ASSESSMENT_SESSIONS\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
 
+echo
+echo Writing scope WRITE_MYED_FILEGEN
+curl -sX POST "https://$SOAM_KC/auth/admin/realms/$SOAM_KC_REALM_ID/client-scopes" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TKN" \
+  -d "{\"description\": \"Write MYED XAM files to BCBOX\",\"id\": \"WRITE_MYED_FILEGEN\",\"name\": \"WRITE_MYED_FILEGEN\",\"protocol\": \"openid-connect\",\"attributes\" : {\"include.in.token.scope\" : \"true\",\"display.on.consent.screen\" : \"false\"}}"
+
 
 ###########################################################
 #Setup for config-map
