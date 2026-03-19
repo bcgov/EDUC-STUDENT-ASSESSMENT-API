@@ -296,4 +296,31 @@ class AssessmentSessionControllerTest extends BaseAssessmentAPITest {
     }
 
 
+    @Test
+    void testWriteMyEDFileGen_WithoutCorrectScope_ShouldReturn403() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_SESSIONS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        this.mockMvc.perform(
+                        post(URL.SESSIONS_URL + "/myedgen/" + UUID.randomUUID())
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testWriteMyEDFileGen_WithValidSessionAndCompletionDate_ShouldReturn204() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRITE_MYED_FILEGEN";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var sess = createMockSessionEntity();
+        sess.setCompletionDate(LocalDateTime.now().minusDays(1));
+        AssessmentSessionEntity session = assessmentSessionRepository.save(sess);
+
+        this.mockMvc.perform(
+                        post(URL.SESSIONS_URL + "/myedgen/" + session.getSessionID())
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
 }
