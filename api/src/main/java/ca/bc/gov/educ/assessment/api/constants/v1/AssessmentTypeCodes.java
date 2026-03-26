@@ -9,14 +9,14 @@ import java.util.Optional;
 @Getter
 public enum AssessmentTypeCodes {
   LTE10("LTE10"),
-  LTE12("LTE12"),
-  LTF12("LTF12"),
   LTP10("LTP10"),
-  LTP12("LTP12"),
-  NME("NME"),
   NME10("NME10"),
-  NMF("NMF"),
-  NMF10("NMF10");
+  NMF10("NMF10"),
+  LTE12("LTE12"),
+  LTP12("LTP12"),
+  LTF12("LTF12"),
+  NME("NME"),
+  NMF("NMF");
 
   private final String code;
   AssessmentTypeCodes(String code) {
@@ -25,5 +25,11 @@ public enum AssessmentTypeCodes {
 
   public static Optional<AssessmentTypeCodes> findByValue(String value) {
     return Arrays.stream(values()).filter(e -> Objects.equals(e.code, value)).findFirst();
+  }
+
+  public static int sortOrderFor(String assessmentTypeCode) {
+    return findByValue(assessmentTypeCode)
+        .map(Enum::ordinal)
+        .orElse(Integer.MAX_VALUE);
   }
 }
