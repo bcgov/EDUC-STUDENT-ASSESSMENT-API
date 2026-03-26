@@ -13,8 +13,10 @@ import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentNode;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentReportNode;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.student.byAssessment.SchoolStudentRootNode;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +31,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -77,13 +78,14 @@ class SchoolStudentsByAssessmentReportServiceTest {
     AssessmentStudentEntity studentLtp = student(ltp12, "B", "Alpha");
     List<AssessmentStudentEntity> students = List.of(studentLtp, studentLte);
 
-    SchoolStudentRootNode root = (SchoolStudentRootNode) ReflectionTestUtils.invokeMethod(
+    SchoolStudentRootNode root = ReflectionTestUtils.invokeMethod(
         service,
         "populateStudentForApproval",
         session,
         schoolId,
         students);
 
+    Assertions.assertNotNull(root);
     assertThat(root.getReports()).hasSize(2);
     List<String> typeLabels = root.getReports().stream()
         .map(SchoolStudentReportNode::getAssessmentType)
@@ -107,15 +109,16 @@ class SchoolStudentsByAssessmentReportServiceTest {
         student(ltp10, "Bob", "Zebra"),
         student(ltp10, "Ann", "Alpha"));
 
-    SchoolStudentRootNode root = (SchoolStudentRootNode) ReflectionTestUtils.invokeMethod(
+    SchoolStudentRootNode root = ReflectionTestUtils.invokeMethod(
         service,
         "populateStudentForApproval",
         session,
         schoolId,
         students);
 
+    Assertions.assertNotNull(root);
     assertThat(root.getReports()).hasSize(1);
-    assertThat(root.getReports().getFirst().getStudents().stream().map(s -> s.getName()).toList())
+    assertThat(root.getReports().getFirst().getStudents().stream().map(SchoolStudentNode::getName).toList())
         .containsExactly("Alpha, Ann", "Zebra, Bob");
   }
 
