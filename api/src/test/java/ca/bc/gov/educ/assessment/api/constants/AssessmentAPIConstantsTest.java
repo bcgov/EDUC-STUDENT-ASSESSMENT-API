@@ -18,6 +18,19 @@ class AssessmentAPIConstantsTest extends BaseAssessmentAPITest {
     }
 
     @Test
+    void test_AssessmentTypeCodesSortOrderFor_KnownCodes_UsesEnumOrder() {
+        assertThat(AssessmentTypeCodes.sortOrderFor(AssessmentTypeCodes.LTE10.getCode()))
+                .isLessThan(AssessmentTypeCodes.sortOrderFor(AssessmentTypeCodes.LTP12.getCode()));
+        assertThat(AssessmentTypeCodes.sortOrderFor(AssessmentTypeCodes.NME10.getCode()))
+                .isLessThan(AssessmentTypeCodes.sortOrderFor(AssessmentTypeCodes.NMF10.getCode()));
+    }
+
+    @Test
+    void test_AssessmentTypeCodesSortOrderFor_UnknownCode_UsesMaxValue() {
+        assertThat(AssessmentTypeCodes.sortOrderFor("UNKNOWN")).isEqualTo(Integer.MAX_VALUE);
+    }
+
+    @Test
     void test_CourseStatusCodes() {
         Optional<CourseStatusCodes> courseStatusCode = CourseStatusCodes.findByValue("A");
         assertThat(courseStatusCode.get().name()).isEqualTo(CourseStatusCodes.ACTIVE.name());
