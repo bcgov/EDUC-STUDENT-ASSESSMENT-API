@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api.reports;
 
+import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.SchoolReportingRequirementCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
@@ -172,7 +173,11 @@ public class SchoolStudentsByAssessmentReportService extends BaseReportGeneratio
     schoolStudentRootNode.setReports(new ArrayList<>());
 
     var studentsHash = organizeStudentsInEachAssessmentApproved(students);
-    studentsHash.forEach((assessmentType, studentList) -> {
+    studentsHash.entrySet().stream()
+        .sorted(Comparator.comparingInt(e -> AssessmentTypeCodes.sortOrderFor(e.getKey())))
+        .forEach(entry -> {
+      String assessmentType = entry.getKey();
+      List<AssessmentStudentEntity> studentList = entry.getValue();
       SchoolStudentReportNode schoolStudentReportNode = new SchoolStudentReportNode();
       setReportTombstoneValues(schoolID, session, schoolStudentReportNode, assessmentType);
       schoolStudentReportNode.setStudents(new ArrayList<>());
