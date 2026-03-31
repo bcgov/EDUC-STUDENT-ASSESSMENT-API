@@ -62,4 +62,10 @@ public interface ReportsEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     void getAssessmentStudentSearchReport(@RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson, HttpServletResponse response) throws IOException;
+
+    @GetMapping("/{sessionID}/school/{schoolID}/results/available")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    boolean checkSchoolReportAvailability(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @RequestParam(required = false) String assessmentTypeCode);
 }

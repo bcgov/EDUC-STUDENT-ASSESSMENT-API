@@ -89,6 +89,10 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     }
   }
 
+  public boolean isDOARSummaryAvailable(UUID sessionID, UUID schoolID) {
+    return assessmentStudentLightRepository.countBySessionIDAndSchoolIDWithResults(sessionID, schoolID) > 0;
+  }
+
   public DownloadableReportResponse generateDOARSummaryReport(UUID assessmentSessionID, UUID schoolID){
     try {
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));

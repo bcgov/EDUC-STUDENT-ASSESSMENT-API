@@ -39,6 +39,7 @@ public class ReportsController implements ReportsEndpoint {
     private final SessionService sessionService;
     private final DOARSummaryReportService doarSummaryReportService;
     private final DOARProvincialReportService doarProvincialReportService;
+    private final DOARReportService doarReportService;
 
     @Override
     public DownloadableReportResponse getDownloadableReport(UUID sessionID, String type, String updateUser) {
@@ -207,5 +208,13 @@ public class ReportsController implements ReportsEndpoint {
     @Override
     public void getAssessmentStudentSearchReport(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
         csvReportService.generateAssessmentStudentSearchReportStream(searchCriteriaListJson, response);
+    }
+
+    @Override
+    public boolean checkSchoolReportAvailability(UUID sessionID, UUID schoolID, String assessmentTypeCode) {
+        if (assessmentTypeCode != null) {
+            return doarReportService.isDetailedDOARAvailable(sessionID, schoolID, assessmentTypeCode);
+        }
+        return doarSummaryReportService.isDOARSummaryAvailable(sessionID, schoolID);
     }
 }

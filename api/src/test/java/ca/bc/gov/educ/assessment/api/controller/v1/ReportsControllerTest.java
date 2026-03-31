@@ -2261,4 +2261,117 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                                 .with(mockAuthority))
                 .andDo(print()).andExpect(status().isForbidden());
     }
+
+    @Test
+    void testCheckSchoolReportAvailability_WhenSchoolHasResults_ReturnsTrue() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.NME10.getCode()));
+
+        var schoolID = UUID.randomUUID();
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(schoolID);
+        student.setProficiencyScore(2);
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/school/" + schoolID + "/results/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
+    void testCheckSchoolReportAvailability_WhenSchoolHasNoResults_ReturnsFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/school/" + UUID.randomUUID() + "/results/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
+
+    @Test
+    void testCheckSchoolReportAvailability_WithAssessmentTypeCode_WhenResultsExist_ReturnsTrue() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTE10.getCode()));
+
+        var schoolID = UUID.randomUUID();
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(schoolID);
+        student.setProvincialSpecialCaseCode("X");
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/school/" + schoolID + "/results/available")
+                                .param("assessmentTypeCode", AssessmentTypeCodes.LTE10.getCode())
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
+    void testCheckSchoolReportAvailability_WithAssessmentTypeCode_WhenNoResultsForType_ReturnsFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.NME10.getCode()));
+
+        var schoolID = UUID.randomUUID();
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/school/" + schoolID + "/results/available")
+                                .param("assessmentTypeCode", AssessmentTypeCodes.NME10.getCode())
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
+
+    @Test
+    void testCheckSchoolReportAvailability_WithAssessmentTypeCode_WhenTypeNotInSession_ReturnsFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.NME10.getCode()));
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/school/" + UUID.randomUUID() + "/results/available")
+                                .param("assessmentTypeCode", AssessmentTypeCodes.LTP10.getCode())
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
+
+    @Test
+    void testCheckSchoolReportAvailability_WithoutPermission_ShouldReturn403() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRONG_PERMISSION";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + UUID.randomUUID() + "/school/" + UUID.randomUUID() + "/results/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
 }

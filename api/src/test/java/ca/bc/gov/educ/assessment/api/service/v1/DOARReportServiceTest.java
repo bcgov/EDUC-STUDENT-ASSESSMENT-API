@@ -204,6 +204,92 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         assertThat(row.get(9)).isEqualTo("0.00");
     }
 
+    @Test
+    void testIsDetailedDOARAvailable_WhenStudentHasProficiencyScore_ReturnsTrue() {
+        var school = this.createMockSchool();
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, "NME10"));
+
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student.setProficiencyScore(3);
+        studentRepository.save(student);
+
+        boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "NME10");
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void testIsDetailedDOARAvailable_WhenStudentHasSpecialCaseX_ReturnsTrue() {
+        var school = this.createMockSchool();
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, "LTE10"));
+
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student.setProvincialSpecialCaseCode("X");
+        studentRepository.save(student);
+
+        boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "LTE10");
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void testIsDetailedDOARAvailable_WhenStudentHasSpecialCaseE_ReturnsTrue() {
+        var school = this.createMockSchool();
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, "LTF12"));
+
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student.setProvincialSpecialCaseCode("E");
+        studentRepository.save(student);
+
+        boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "LTF12");
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void testIsDetailedDOARAvailable_WhenNoStudentsWithResults_ReturnsFalse() {
+        var school = this.createMockSchool();
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        assessmentRepository.save(createMockAssessmentEntity(savedSession, "NMF10"));
+
+        boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "NMF10");
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void testIsDetailedDOARAvailable_WhenAssessmentTypeNotInSession_ReturnsFalse() {
+        var school = this.createMockSchool();
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        assessmentRepository.save(createMockAssessmentEntity(savedSession, "NME10"));
+
+        boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "LTP10");
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void testIsDetailedDOARAvailable_WhenStudentBelongsToDifferentSchool_ReturnsFalse() {
+        var school = this.createMockSchool();
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, "NME10"));
+
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(UUID.randomUUID());
+        student.setProficiencyScore(2);
+        studentRepository.save(student);
+
+        boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "NME10");
+        assertThat(result).isFalse();
+    }
+
     private AssessmentFormEntity setData(String assessmentTypeCode, SchoolTombstone schoolTombstone) {
         var session = createMockSessionEntity();
         session.setCourseMonth("01");

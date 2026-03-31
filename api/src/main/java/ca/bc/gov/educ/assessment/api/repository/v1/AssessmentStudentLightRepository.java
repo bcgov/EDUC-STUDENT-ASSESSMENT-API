@@ -96,6 +96,26 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     """)
     Optional<AssessmentStudentLightEntity> findBySessionIDAndDownloadDateIsNotNullAndProvincialSpecialCaseCodeNotAndStudentStatusCodeActive(UUID sessionID, String provincialSpecialCaseCode);
 
+    @Query("""
+    select count(stud)
+    from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and stud.schoolAtWriteSchoolID = :schoolID
+    and stud.studentStatusCode = 'ACTIVE'
+    and (stud.proficiencyScore is not null or stud.provincialSpecialCaseCode = 'X')
+    """)
+    long countBySessionIDAndSchoolIDWithResults(UUID sessionID, UUID schoolID);
+
+    @Query("""
+    select count(stud)
+    from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentID = :assessmentID
+    and stud.schoolAtWriteSchoolID = :schoolID
+    and stud.studentStatusCode = 'ACTIVE'
+    and (stud.proficiencyScore is not null or stud.provincialSpecialCaseCode in ('X', 'E'))
+    """)
+    long countByAssessmentIDAndSchoolIDWithResults(UUID assessmentID, UUID schoolID);
+
     @Query(value="""
         select stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode,
         stud.gradeAtRegistration as grade,
