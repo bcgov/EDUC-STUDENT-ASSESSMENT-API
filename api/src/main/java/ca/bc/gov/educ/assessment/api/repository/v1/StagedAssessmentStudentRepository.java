@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.assessment.api.repository.v1;
 
-import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -88,4 +87,6 @@ public interface StagedAssessmentStudentRepository extends JpaRepository<StagedA
     Optional<StagedAssessmentStudentEntity> findByAssessmentEntity_assessmentIDAndPen(UUID assessmentID, String pen);
 
     Optional<StagedAssessmentStudentEntity> findByAssessmentEntity_assessmentIDAndMergedPen(UUID assessmentID, String pen);
+
+    boolean existsByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatus(UUID sessionID, String stagedAssessmentStudentStatus);
 }

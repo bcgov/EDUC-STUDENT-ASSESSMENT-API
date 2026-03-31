@@ -10,6 +10,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.SessionApprovalOrchestrator;
 import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentApproval;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
@@ -294,6 +295,99 @@ class SessionServiceTest extends BaseAssessmentAPITest {
         assertNotNull(result);
         assertEquals("USER1", result.getApprovalStudentCertUserID());
         assertNotNull(result.getApprovalStudentCertSignDate());
+    }
+
+    @Test
+    void testGetAllSessions_noSessions_returnsEmptyList() {
+        sagaEventRepository.deleteAll();
+        sagaRepository.deleteAll();
+        stagedAssessmentStudentRepository.deleteAll();
+        assessmentStudentRepository.deleteAll();
+        assessmentRepository.deleteAll();
+        assessmentSessionRepository.deleteAll();
+
+        List<AssessmentSession> result = sessionService.getAllSessions();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testGetAllSessions_noSaga_allSessionsHaveApprovalInFlightFalse() {
+        List<AssessmentSession> result = sessionService.getAllSessions();
+
+        assertThat(result).isNotEmpty();
+        assertThat(result).allMatch(s -> "false".equals(s.getApprovalInFlight()));
+    }
+
+    @Test
+    void testGetAllSessions_activeSagaInProgress_matchingSessionHasApprovalInFlightTrue() {
+        sagaRepository.save(createSessionApprovalSaga(testSession.getSessionID(), SagaStatusEnum.IN_PROGRESS.toString()));
+
+        List<AssessmentSession> result = sessionService.getAllSessions();
+
+        AssessmentSession matchingSession = result.stream()
+                .filter(s -> s.getSessionID().equals(testSession.getSessionID().toString()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(matchingSession.getApprovalInFlight()).isEqualTo("true");
+    }
+
+    @Test
+    void testGetAllSessions_activeSagaStarted_matchingSessionHasApprovalInFlightTrue() {
+        sagaRepository.save(createSessionApprovalSaga(testSession.getSessionID(), SagaStatusEnum.STARTED.toString()));
+
+        List<AssessmentSession> result = sessionService.getAllSessions();
+
+        AssessmentSession matchingSession = result.stream()
+                .filter(s -> s.getSessionID().equals(testSession.getSessionID().toString()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(matchingSession.getApprovalInFlight()).isEqualTo("true");
+    }
+
+    @Test
+    void testGetAllSessions_completedSagaWithTransferStudents_matchingSessionHasApprovalInFlightTrue() {
+        sagaRepository.save(createSessionApprovalSaga(testSession.getSessionID(), SagaStatusEnum.COMPLETED.toString()));
+
+        var assessment = assessmentRepository.findAll().stream()
+                .filter(a -> a.getAssessmentSessionEntity().getSessionID().equals(testSession.getSessionID()))
+                .findFirst().orElseThrow();
+        var transferStudent = createMockStagedStudentEntity(assessment);
+        transferStudent.setStagedAssessmentStudentStatus("TRANSFER");
+        stagedAssessmentStudentRepository.save(transferStudent);
+
+        List<AssessmentSession> result = sessionService.getAllSessions();
+
+        AssessmentSession matchingSession = result.stream()
+                .filter(s -> s.getSessionID().equals(testSession.getSessionID().toString()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(matchingSession.getApprovalInFlight()).isEqualTo("true");
+    }
+
+    @Test
+    void testGetAllSessions_completedSagaNoTransferStudents_allSessionsHaveApprovalInFlightFalse() {
+        sagaRepository.save(createSessionApprovalSaga(testSession.getSessionID(), SagaStatusEnum.COMPLETED.toString()));
+
+        List<AssessmentSession> result = sessionService.getAllSessions();
+
+        assertThat(result).allMatch(s -> "false".equals(s.getApprovalInFlight()));
+    }
+
+    private AssessmentSagaEntity createSessionApprovalSaga(UUID sessionID, String status) {
+        return AssessmentSagaEntity.builder()
+                .sagaId(UUID.randomUUID())
+                .assessmentSessionID(sessionID)
+                .sagaName(SagaEnum.SESSION_APPROVAL.toString())
+                .sagaState("GENERATE_XAM_FILES_AND_UPLOAD")
+                .status(status)
+                .payload("{\"sessionID\":\"" + sessionID + "\"}")
+                .createUser("system")
+                .updateUser("system")
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .retryCount(0)
+                .build();
     }
 }
 
