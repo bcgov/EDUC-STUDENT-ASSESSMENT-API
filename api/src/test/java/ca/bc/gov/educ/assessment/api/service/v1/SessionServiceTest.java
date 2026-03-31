@@ -315,8 +315,7 @@ class SessionServiceTest extends BaseAssessmentAPITest {
     void testGetAllSessions_noSaga_allSessionsHaveApprovalInFlightFalse() {
         List<AssessmentSession> result = sessionService.getAllSessions();
 
-        assertThat(result).isNotEmpty();
-        assertThat(result).allMatch(s -> "false".equals(s.getApprovalInFlight()));
+        assertThat(result).isNotEmpty().allMatch(s -> "false".equals(s.getApprovalInFlight()));
     }
 
     @Test
@@ -371,7 +370,7 @@ class SessionServiceTest extends BaseAssessmentAPITest {
 
         List<AssessmentSession> result = sessionService.getAllSessions();
 
-        assertThat(result).allMatch(s -> "false".equals(s.getApprovalInFlight()));
+        assertThat(result).isNotEmpty().allMatch(s -> "false".equals(s.getApprovalInFlight()));
     }
 
     private AssessmentSagaEntity createSessionApprovalSaga(UUID sessionID, String status) {
