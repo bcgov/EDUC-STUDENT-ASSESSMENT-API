@@ -1155,19 +1155,16 @@ public class CSVReportService {
         ));
     }
 
-    public DownloadableReportResponse generateYukonReport(UUID sessionID) {
+    public DownloadableReportResponse generateYukonReport() {
         var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", "yukon"));
-        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
-        
+
         List<UUID> schoolsInDistrict = restUtils.getSchools()
                 .stream()
                 .filter(school -> Objects.equals(school.getDistrictId(), district.getDistrictId()))
                 .map(SchoolTombstone::getSchoolId)
                 .map(UUID::fromString)
                 .toList();
-        
-        var results = assessmentStudentRepository.findYukonAssessmentCounts(schoolsInDistrict, List.of(session.getSessionID()));
-        
+        List<AssessmentSessionEntity> sessions = getYukonSessions();
         List<String> headers = Arrays.stream(YukonSummaryReportHeader.values()).map(YukonSummaryReportHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .build();
@@ -1177,11 +1174,16 @@ public class CSVReportService {
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
 
             csvPrinter.printRecord(headers);
-            for (YukonAssessmentCount assessmentCount : results) {
-                var school = restUtils.getSchoolBySchoolID(assessmentCount.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, "schoolAtWriteSchoolID", assessmentCount.getSchoolID().toString()));
-                
-                List<String> csvRowData = prepareDataForYukonCsv(school, assessmentCount, session.getCourseYear() + session.getCourseMonth());
-                csvPrinter.printRecord(csvRowData);
+            for (AssessmentSessionEntity session : sessions) {
+                var results = assessmentStudentRepository.findYukonAssessmentCounts(
+                    schoolsInDistrict, List.of(session.getSessionID())
+                );
+                String sessionLabel = session.getCourseYear() + session.getCourseMonth();
+                for (YukonAssessmentCount assessmentCount : results) {
+                    var school = restUtils.getSchoolBySchoolID(assessmentCount.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, "schoolAtWriteSchoolID", assessmentCount.getSchoolID().toString()));
+                    List<String> csvRowData = prepareDataForYukonCsv(school, assessmentCount, sessionLabel);
+                    csvPrinter.printRecord(csvRowData);
+                }
             }
             csvPrinter.flush();
 
@@ -1193,6 +1195,19 @@ public class CSVReportService {
         } catch (IOException e) {
             throw new StudentAssessmentAPIRuntimeException(e);
         }
+    }
+
+    private List<AssessmentSessionEntity> getYukonSessions() {
+        LocalDate today = LocalDate.now();
+        LocalDate lastAprilFirst = today.getMonthValue() >= 4
+            ? LocalDate.of(today.getYear(), 4, 1)
+            : LocalDate.of(today.getYear() - 1, 4, 1);
+        return assessmentSessionRepository.findSessionsInYearMonthRange(
+            String.valueOf(lastAprilFirst.getYear()),
+            String.format("%02d", lastAprilFirst.getMonthValue()),
+            String.valueOf(today.getYear()),
+            String.format("%02d", today.getMonthValue())
+        );
     }
 
     private List<String> prepareDataForYukonCsv(SchoolTombstone school, YukonAssessmentCount yukonAssessmentCount, String session) {
@@ -1217,7 +1232,7 @@ public class CSVReportService {
         return String.valueOf(yukonCount);
     }
 
-    public DownloadableReportResponse generateYukonStudentDetailsReport(UUID sessionID) {
+    public DownloadableReportResponse generateYukonStudentDetailsReport() {
         var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", "yukon"));
 
         List<UUID> schoolsInDistrict = restUtils.getSchools()
@@ -1226,8 +1241,12 @@ public class CSVReportService {
                 .map(SchoolTombstone::getSchoolId)
                 .map(UUID::fromString)
                 .toList();
+
+        List<UUID> sessionIDs = getYukonSessions().stream()
+            .map(AssessmentSessionEntity::getSessionID)
+            .toList();
         
-        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDInAndStudentStatusCodeIn(sessionID, schoolsInDistrict, activeStatus);
+        List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDInAndSchoolAtWriteSchoolIDInAndStudentStatusCodeIn(sessionIDs, schoolsInDistrict, activeStatus);
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

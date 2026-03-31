@@ -107,9 +107,9 @@ public class ReportsController implements ReportsEndpoint {
             case DOAR_PROVINCIAL_SUMMARY:
                 return doarProvincialReportService.generateDOARProvincialReport(sessionID);
             case YUKON_SUMMARY_CSV:
-                return csvReportService.generateYukonReport(sessionID);
+                return csvReportService.generateYukonReport();
             case YUKON_STUDENT_DETAIL_CSV:
-                return csvReportService.generateYukonStudentDetailsReport(sessionID);
+                return csvReportService.generateYukonStudentDetailsReport();
             default:
                 return new DownloadableReportResponse();
         }
