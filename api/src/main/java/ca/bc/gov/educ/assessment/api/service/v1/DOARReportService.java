@@ -56,6 +56,16 @@ public class DOARReportService {
         init();
     }
 
+    public boolean isDetailedDOARAvailable(UUID sessionID, UUID schoolID, String assessmentTypeCode) {
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+        AssessmentEntity assessmentEntity = session.getAssessments().stream()
+            .filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode))
+            .findFirst()
+            .orElse(null);
+        if (assessmentEntity == null) return false;
+        return assessmentStudentLightRepository.countByAssessmentIDAndSchoolIDWithResults(assessmentEntity.getAssessmentID(), schoolID) > 0;
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<List<String>> generateDetailedDOARBySchoolAndAssessmentType(UUID sessionID, SchoolTombstone schoolTombstone, String assessmentTypeCode) {
         List<List<String>> csvRecords = new ArrayList<>();
