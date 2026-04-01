@@ -214,4 +214,8 @@ public class SagaService {
   public Optional<AssessmentSagaEntity> findByAssessmentSessionIDAndSagaNameAndStatusNot(final UUID assessmentSessionID, final String sagaName, final String status) {
     return this.getSagaRepository().findByAssessmentSessionIDAndSagaNameAndStatusNot(assessmentSessionID, sagaName, status);
   }
+
+  public Optional<AssessmentSagaEntity> findSagaByName(final String sagaName) {
+    return this.getSagaRepository().findFirstBySagaName(sagaName);
+  }
 }

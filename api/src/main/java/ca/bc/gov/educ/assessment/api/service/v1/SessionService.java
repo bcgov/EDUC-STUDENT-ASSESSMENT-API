@@ -63,16 +63,17 @@ public class SessionService {
     private final AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
 
     @Getter(AccessLevel.PRIVATE)
-    private final SagaService sagaService;
+    private final StagedAssessmentStudentRepository stagedAssessmentStudentRepository;
 
-    private final StagedStudentResultRepository  stagedStudentResultRepository;
+    @Getter(AccessLevel.PRIVATE)
+    private final SagaService sagaService;
 
     private static final String ASSESSMENT_API = "ASSESSMENT_API";
 
     private static final SessionMapper mapper = SessionMapper.mapper;
 
     @Autowired
-    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository, SagaService sagaService, StagedStudentResultRepository stagedStudentResultRepository) {
+    public SessionService(final AssessmentSessionRepository assessmentSessionRepository, AssessmentSessionCriteriaRepository assessmentSessionCriteriaRepository, AssessmentRepository assessmentRepository, AssessmentService assessmentService, SessionApprovalOrchestrator sessionApprovalOrchestrator, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentHistoryRepository assessmentStudentHistoryRepository, SagaService sagaService, StagedAssessmentStudentRepository stagedAssessmentStudentRepository) {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentSessionCriteriaRepository = assessmentSessionCriteriaRepository;
         this.assessmentRepository = assessmentRepository;
@@ -81,7 +82,7 @@ public class SessionService {
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentStudentHistoryRepository = assessmentStudentHistoryRepository;
         this.sagaService = sagaService;
-        this.stagedStudentResultRepository = stagedStudentResultRepository;
+        this.stagedAssessmentStudentRepository = stagedAssessmentStudentRepository;
     }
 
     public List<AssessmentSession> getAllSessions() {
@@ -92,12 +93,24 @@ public class SessionService {
         sessionsSorted.forEach(session -> {
            session.setApprovalInFlight("false");
         });
-        
-        if(!sessionsSorted.isEmpty()){
-            var topRecord = sessionsSorted.getLast();
-            var optStud = stagedStudentResultRepository.findByAssessmentSessionAndStagedStudentResultStatusOrderByCreateDateDesc(UUID.fromString(topRecord.getSessionID()));
-            if(optStud.isPresent()) {
-                topRecord.setApprovalInFlight("true");
+
+        if (!sessionsSorted.isEmpty()) {
+            var activeSaga = sagaService.findSagaByName(SagaEnum.SESSION_APPROVAL.toString());
+            if (activeSaga.isPresent()) {
+                if(activeSaga.get().getStatus().equalsIgnoreCase(SagaStatusEnum.COMPLETED.toString())) {
+                    //Since these saga records are purged daily, we know this is for the current approval
+                    if (stagedAssessmentStudentRepository.existsByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatus(activeSaga.get().getAssessmentSessionID(), "TRANSFER")) {
+                        sessionsSorted.stream()
+                            .filter(s -> s.getSessionID().equals(activeSaga.get().getAssessmentSessionID().toString()))
+                            .findFirst()
+                            .ifPresent(s -> s.setApprovalInFlight("true"));
+                    }
+                } else {
+                    sessionsSorted.stream()
+                        .filter(s -> s.getSessionID().equals(activeSaga.get().getAssessmentSessionID().toString()))
+                        .findFirst()
+                        .ifPresent(s -> s.setApprovalInFlight("true"));
+                }
             }
         }
 
