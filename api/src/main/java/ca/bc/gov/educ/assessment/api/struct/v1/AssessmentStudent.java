@@ -41,7 +41,6 @@ public class AssessmentStudent extends BaseRequest implements Serializable {
     @Size(max = 10)
     private String studentStatusCode;
 
-    @NotBlank(message = "givenName cannot be null")
     private String givenName;
 
     @NotBlank(message = "surName cannot be null")
