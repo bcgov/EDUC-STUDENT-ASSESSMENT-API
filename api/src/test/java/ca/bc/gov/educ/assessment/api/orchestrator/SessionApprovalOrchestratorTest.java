@@ -4,6 +4,7 @@ import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
 import ca.bc.gov.educ.assessment.api.constants.EventOutcome;
 import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
+import ca.bc.gov.educ.assessment.api.constants.TopicsEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.messaging.MessagePublisher;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
@@ -18,6 +19,7 @@ import ca.bc.gov.educ.assessment.api.rest.ComsRestUtils;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.v1.ApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
+import ca.bc.gov.educ.assessment.api.struct.v1.ChoreographedEvent;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
@@ -71,6 +73,8 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
 
     @Captor 
     private ArgumentCaptor<byte[]> eventCaptor;
+    @Captor
+    private ArgumentCaptor<byte[]> gdcEventCaptor;
     ApprovalSagaData sagaData;
     String sagaPayload;
     private AssessmentSagaEntity saga;
@@ -175,13 +179,39 @@ class SessionApprovalOrchestratorTest extends BaseAssessmentAPITest {
         verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
         String dispatchedPayload = new String(eventCaptor.getValue());
         Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
+        assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.REFRESH_GDC_CACHE);
+        assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.GDC_CACHE_UPDATED);
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(TopicsEnum.GDC_EVENTS_TOPIC.toString()), gdcEventCaptor.capture());
+        ChoreographedEvent gdcEvent = JsonUtil.getJsonObjectFromString(ChoreographedEvent.class, new String(gdcEventCaptor.getValue()));
+        assertThat(gdcEvent.getEventType()).isEqualTo(EventType.REFRESH_GDC_CACHE);
+        assertThat(gdcEvent.getEventOutcome()).isEqualTo(EventOutcome.GDC_CACHE_UPDATED);
+        assertThat(gdcEvent.getEventPayload()).isEqualTo(payload);
+    }
+
+    @SneakyThrows
+    @Test
+    void testOrchestratorHandlesEventAndDelegatesStep4ToService() {
+        String payload = sagaPayload;
+        Event event = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(EventType.REFRESH_GDC_CACHE)
+                .eventOutcome(EventOutcome.GDC_CACHE_UPDATED)
+                .eventPayload(payload)
+                .build();
+
+        sessionApprovalOrchestrator.handleEvent(event);
+
+        verify(messagePublisher, atLeastOnce()).dispatchMessage(eq(sessionApprovalOrchestrator.getTopicToSubscribe()), eventCaptor.capture());
+        String dispatchedPayload = new String(eventCaptor.getValue());
+        Event dispatchedEvent = JsonUtil.getJsonObjectFromString(Event.class, dispatchedPayload);
         assertThat(dispatchedEvent.getEventType()).isEqualTo(EventType.FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS);
         assertThat(dispatchedEvent.getEventOutcome()).isEqualTo(EventOutcome.GRAD_FLAGS_FLIPPED_FOR_STUDENTS);
     }
 
     @SneakyThrows
     @Test
-    void testOrchestratorHandlesEventAndDelegatesStep4ToService() {
+    void testOrchestratorHandlesEventAndDelegatesStep5ToService() {
         String payload = sagaPayload;
         Event event = Event.builder()
                 .sagaId(saga.getSagaId())

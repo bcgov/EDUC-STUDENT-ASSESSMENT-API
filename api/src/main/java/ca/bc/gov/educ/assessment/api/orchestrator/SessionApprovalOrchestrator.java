@@ -12,6 +12,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.v1.ApprovalSagaData;
+import ca.bc.gov.educ.assessment.api.struct.v1.ChoreographedEvent;
 import ca.bc.gov.educ.assessment.api.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.util.UUID;
 import static ca.bc.gov.educ.assessment.api.constants.EventOutcome.*;
 import static ca.bc.gov.educ.assessment.api.constants.EventType.*;
 import static ca.bc.gov.educ.assessment.api.constants.SagaEnum.SESSION_APPROVAL;
+import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.GDC_EVENTS_TOPIC;
 import static ca.bc.gov.educ.assessment.api.constants.TopicsEnum.XAM_FILE_GENERATION_TOPIC;
 import static ca.bc.gov.educ.assessment.api.properties.ApplicationProperties.STUDENT_ASSESSMENT_API;
 
@@ -55,7 +57,8 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
             .begin(GENERATE_XAM_FILES_AND_UPLOAD, this::generateXAMFilesAndUpload)
             .step(GENERATE_XAM_FILES_AND_UPLOAD, XAM_FILES_GENERATED_AND_UPLOADED, NOTIFY_MYED_OF_UPDATED_STUDENTS, this::notifyMyEDOfApproval)
             .step(NOTIFY_MYED_OF_UPDATED_STUDENTS, MYED_NOTIFIED, MARK_SESSION_COMPLETION_DATE, this::markSessionCompletionDate)
-            .step(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET, FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS, this::flipFlagsForAllStudentsInSession)
+            .step(MARK_SESSION_COMPLETION_DATE, COMPLETION_DATE_SET, REFRESH_GDC_CACHE, this::refreshGdcCache)
+            .step(REFRESH_GDC_CACHE, GDC_CACHE_UPDATED, FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS, this::flipFlagsForAllStudentsInSession)
             .step(FLIP_GRAD_FLAGS_FOR_SESSION_STUDENTS, GRAD_FLAGS_FLIPPED_FOR_STUDENTS, MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, this::markStagedStudentsReadyForTransfer)
             .step(MARK_STAGED_STUDENTS_READY_FOR_TRANSFER, STAGED_STUDENTS_MARKED_READY_FOR_TRANSFER, DELETE_PEN_ISSUE_STUDENTS_FROM_STAGING, this::deleteStudentsWithPenIssuesFromStaging)
             .end(DELETE_PEN_ISSUE_STUDENTS_FROM_STAGING, DELETE_PEN_ISSUE_STUDENTS_FROM_STAGING_COMPLETED);
@@ -78,6 +81,30 @@ public class SessionApprovalOrchestrator extends BaseOrchestrator<ApprovalSagaDa
                 .build();
         this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
         log.debug("Posted completion message for saga step markSessionCompletionDate: {}", saga.getSagaId());
+    }
+
+    private void refreshGdcCache(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
+        final AssessmentSagaEventStatesEntity eventStates = this.createEventState(saga, event.getEventType(), event.getEventOutcome(), event.getEventPayload());
+        saga.setSagaState(REFRESH_GDC_CACHE.toString());
+        saga.setStatus(SagaStatusEnum.IN_PROGRESS.toString());
+        this.getSagaService().updateAttachedSagaWithEvents(saga, eventStates);
+
+        final ChoreographedEvent gdcCacheRefreshEvent = new ChoreographedEvent();
+        gdcCacheRefreshEvent.setEventType(REFRESH_GDC_CACHE);
+        gdcCacheRefreshEvent.setEventOutcome(GDC_CACHE_UPDATED);
+        gdcCacheRefreshEvent.setEventPayload(JsonUtil.getJsonStringFromObject(approvalSagaData));
+        gdcCacheRefreshEvent.setCreateUser(STUDENT_ASSESSMENT_API);
+        gdcCacheRefreshEvent.setUpdateUser(STUDENT_ASSESSMENT_API);
+        this.getMessagePublisher().dispatchMessage(GDC_EVENTS_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(gdcCacheRefreshEvent));
+
+        final Event nextEvent = Event.builder()
+                .sagaId(saga.getSagaId())
+                .eventType(REFRESH_GDC_CACHE)
+                .eventOutcome(GDC_CACHE_UPDATED)
+                .eventPayload(JsonUtil.getJsonStringFromObject(approvalSagaData))
+                .build();
+        this.postMessageToTopic(this.getTopicToSubscribe(), nextEvent);
+        log.debug("Posted completion message for saga step refreshGdcCache: {}", saga.getSagaId());
     }
 
     private void flipFlagsForAllStudentsInSession(Event event, AssessmentSagaEntity saga, ApprovalSagaData approvalSagaData) throws JsonProcessingException {
