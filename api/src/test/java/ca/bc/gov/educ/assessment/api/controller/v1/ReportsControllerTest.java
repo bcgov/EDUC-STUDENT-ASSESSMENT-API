@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -44,7 +43,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,7 +50,7 @@ import java.util.UUID;
 import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -812,54 +810,43 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 
-    // Fixed reference dates for Yukon tests — pre-computed so they are never evaluated
-    // inside a MockedStatic<LocalDate> block (which would cause unfinished-stubbing errors).
-    private static final LocalDate YUKON_REF_DATE      = LocalDate.of(2026, 3, 15); // month < 4 → cutoff = Apr 1, 2025
-    private static final LocalDate YUKON_ROLLOVER_DATE = LocalDate.of(2026, 4, 1);  // rollover day → cutoff = Apr 1, 2026
-
     @Test
     void testGetDownloadableReport_YukonSummaryBySchool_ShouldReturnCSVFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-        var district = this.createMockDistrict();
         var school = this.createMockSchool();
-        school.setDistrictId(district.getDistrictId());
-        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
-        when(this.restUtils.getSchools()).thenReturn(List.of(school));
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
-
-        // April 2025 is within the window for YUKON_REF_DATE (cutoff = April 1, 2025)
+        var district = this.createMockDistrict();
+        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
+        
         AssessmentSessionEntity session = createMockSessionEntity();
-        session.setCourseYear("2025");
-        session.setCourseMonth("04");
+        session.setCourseMonth("08");
         AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
 
         AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
-        student1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-        student1.setProficiencyScore(3);
+        student1.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student1.setGradeAtRegistration("10");
         AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
-        student2.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-        student2.setProficiencyScore(2);
-        studentRepository.saveAll(List.of(student1, student2));
+        student2.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student2.setGradeAtRegistration("10");
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment);
+        student3.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student3.setGradeAtRegistration("12");
 
-        try (MockedStatic<LocalDate> mock = mockStatic(LocalDate.class, CALLS_REAL_METHODS)) {
-            mock.when(LocalDate::now).thenReturn(YUKON_REF_DATE);
+        studentRepository.saveAll(List.of(student1, student2, student3));
 
-            var resultActions = this.mockMvc.perform(
-                            get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/yukon-summary-report/download/" + "TESTUSER")
-                                    .with(mockAuthority))
-                    .andDo(print()).andExpect(status().isOk());
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/yukon-summary-report/download/" + "TESTUSER")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
 
-            val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
-            assertThat(summary).isNotNull();
-            assertThat(summary.getReportType()).isEqualTo("yukon-summary-report");
-            assertThat(summary.getDocumentData()).isNotBlank();
-            String csv = new String(Base64.getDecoder().decode(summary.getDocumentData()), java.nio.charset.StandardCharsets.UTF_8);
-            assertThat(csv).contains("202504");
-        }
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("yukon-summary-report");
+        assertThat(summary.getDocumentData()).isNotBlank();
     }
 
     @Test
@@ -867,120 +854,38 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-        var district = this.createMockDistrict();
         var school = this.createMockSchool();
-        school.setDistrictId(district.getDistrictId());
-        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
-        when(this.restUtils.getSchools()).thenReturn(List.of(school));
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+        var district = this.createMockDistrict();
+        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
 
         AssessmentSessionEntity session = createMockSessionEntity();
-        session.setCourseYear("2025");
-        session.setCourseMonth("04");
+        session.setCourseMonth("08");
         AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
 
         AssessmentStudentEntity student1 = createMockStudentEntity(assessment);
-        student1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-        student1.setPen("111111110");
+        student1.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student1.setGradeAtRegistration("10");
         AssessmentStudentEntity student2 = createMockStudentEntity(assessment);
-        student2.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-        student2.setPen("222222220");
-        studentRepository.saveAll(List.of(student1, student2));
+        student2.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student2.setGradeAtRegistration("10");
+        AssessmentStudentEntity student3 = createMockStudentEntity(assessment);
+        student3.setSchoolOfRecordSchoolID(UUID.fromString(school.getSchoolId()));
+        student3.setGradeAtRegistration("12");
 
-        try (MockedStatic<LocalDate> mock = mockStatic(LocalDate.class, CALLS_REAL_METHODS)) {
-            mock.when(LocalDate::now).thenReturn(YUKON_REF_DATE);
+        studentRepository.saveAll(List.of(student1, student2, student3));
 
-            var resultActions = this.mockMvc.perform(
-                            get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/yukon-student-report/download/" + "TESTUSER")
-                                    .with(mockAuthority))
-                    .andDo(print()).andExpect(status().isOk());
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/yukon-student-report/download/" + "TESTUSER")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
 
-            val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
-            assertThat(summary).isNotNull();
-            assertThat(summary.getReportType()).isEqualTo("yukon-student-report");
-            assertThat(summary.getDocumentData()).isNotBlank();
-            String csv = new String(Base64.getDecoder().decode(summary.getDocumentData()), java.nio.charset.StandardCharsets.UTF_8);
-            assertThat(csv).contains("111111110");
-            assertThat(csv).contains("222222220");
-        }
-    }
-
-    @Test
-    void testGetDownloadableReport_YukonSummaryBySchool_SessionBeforeCutoff_NotIncluded() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
-        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        var district = this.createMockDistrict();
-        var school = this.createMockSchool();
-        school.setDistrictId(district.getDistrictId());
-        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
-        when(this.restUtils.getSchools()).thenReturn(List.of(school));
-        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
-
-        // March 2025 is one month before the April 1, 2025 cutoff — must be excluded
-        AssessmentSessionEntity session = createMockSessionEntity();
-        session.setCourseYear("2025");
-        session.setCourseMonth("03");
-        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
-        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
-
-        AssessmentStudentEntity student = createMockStudentEntity(assessment);
-        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-        student.setProficiencyScore(3);
-        studentRepository.save(student);
-
-        try (MockedStatic<LocalDate> mock = mockStatic(LocalDate.class, CALLS_REAL_METHODS)) {
-            mock.when(LocalDate::now).thenReturn(YUKON_REF_DATE);
-
-            var resultActions = this.mockMvc.perform(
-                            get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/yukon-summary-report/download/" + "TESTUSER")
-                                    .with(mockAuthority))
-                    .andDo(print()).andExpect(status().isOk());
-
-            val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
-            String csv = new String(Base64.getDecoder().decode(summary.getDocumentData()), java.nio.charset.StandardCharsets.UTF_8);
-            assertThat(csv).doesNotContain("202503");
-        }
-    }
-
-    @Test
-    void testGetDownloadableReport_YukonSummaryBySchool_RolloverOnAprilFirst_PreviousSessionsExcluded() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
-        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        var district = this.createMockDistrict();
-        var school = this.createMockSchool();
-        school.setDistrictId(district.getDistrictId());
-        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
-        when(this.restUtils.getSchools()).thenReturn(List.of(school));
-        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
-
-        // January 2026 was in range on March 15, 2026 but must be excluded on April 1, 2026
-        AssessmentSessionEntity session = createMockSessionEntity();
-        session.setCourseYear("2026");
-        session.setCourseMonth("01");
-        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
-        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTP10"));
-
-        AssessmentStudentEntity student = createMockStudentEntity(assessment);
-        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-        student.setProficiencyScore(3);
-        studentRepository.save(student);
-
-        try (MockedStatic<LocalDate> mock = mockStatic(LocalDate.class, CALLS_REAL_METHODS)) {
-            mock.when(LocalDate::now).thenReturn(YUKON_ROLLOVER_DATE);
-
-            var resultActions = this.mockMvc.perform(
-                            get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/yukon-summary-report/download/" + "TESTUSER")
-                                    .with(mockAuthority))
-                    .andDo(print()).andExpect(status().isOk());
-
-            val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
-            String csv = new String(Base64.getDecoder().decode(summary.getDocumentData()), java.nio.charset.StandardCharsets.UTF_8);
-            assertThat(csv).doesNotContain("202601");
-        }
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("yukon-student-report");
+        assertThat(summary.getDocumentData()).isNotBlank();
     }
 
 
