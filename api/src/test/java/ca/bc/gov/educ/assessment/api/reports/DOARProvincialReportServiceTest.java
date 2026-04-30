@@ -59,16 +59,14 @@ class DOARProvincialReportServiceTest {
       stagedAssessmentStudentDOARCalculationRepository,
       restUtils
     );
-    when(assessmentStudentDOARCalculationRepository.findAllByAssessmentIDAndAssessmentStudentIDIn(any(), anyList()))
-      .thenReturn(List.of());
-    when(stagedAssessmentStudentDOARCalculationRepository.findAllByAssessmentIDAndAssessmentStudentIDIn(any(), anyList()))
-      .thenReturn(List.of());
   }
 
   @Test
   void setStudentLevelsForStaging_ordersReportsByAssessmentTypeCode() {
     UUID schoolId = UUID.randomUUID();
     when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(publicSchool(schoolId)));
+    when(stagedAssessmentStudentDOARCalculationRepository.findAllByAssessmentIDAndAssessmentStudentIDIn(any(), anyList()))
+      .thenReturn(List.of());
 
     AssessmentSessionEntity session = session();
     List<StagedAssessmentStudentLightEntity> students = List.of(
@@ -94,6 +92,8 @@ class DOARProvincialReportServiceTest {
   void setStudentLevels_ordersReportsByAssessmentTypeCode() {
     UUID schoolId = UUID.randomUUID();
     when(restUtils.getAllSchoolTombstones()).thenReturn(List.of(publicSchool(schoolId)));
+    when(assessmentStudentDOARCalculationRepository.findAllByAssessmentIDAndAssessmentStudentIDIn(any(), anyList()))
+      .thenReturn(List.of());
 
     AssessmentSessionEntity session = session();
     List<AssessmentStudentLightEntity> students = List.of(
