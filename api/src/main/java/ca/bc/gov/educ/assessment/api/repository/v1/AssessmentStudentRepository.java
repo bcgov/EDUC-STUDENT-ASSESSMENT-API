@@ -147,12 +147,6 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
 
     List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDInAndStudentStatusCodeIn(UUID sessionID, List<UUID> schoolAtWriteSchoolID, List<String> statuses);
 
-    List<AssessmentStudentEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDInAndSchoolAtWriteSchoolIDInAndStudentStatusCodeIn(
-        List<UUID> sessionIDs,
-        List<UUID> schoolAtWriteSchoolIDs,
-        List<String> statuses
-    );
-
     @Query(value="""
     select stud from AssessmentStudentEntity as stud
     where stud.studentID = :studentID
