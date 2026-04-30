@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.assessment.api.reports;
 
+import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
@@ -119,24 +120,28 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       }
     });
 
-    studentsByAssessment.forEach((assessmentType, studentList) -> {
-      if(!studentList.isEmpty()) {
-        DOARSummaryPage doarSummaryPage = new DOARSummaryPage();
-        setReportTombstoneValues(session, doarSummaryPage, assessmentType);
-        doarSummaryPage.setProficiencySection(new ArrayList<>());
-        doarSummaryPage.setTaskScore(new ArrayList<>());
-        doarSummaryPage.setComprehendScore(new ArrayList<>());
-        doarSummaryPage.setCommunicateScore(new ArrayList<>());
-        doarSummaryPage.setCommunicateOralScore(new ArrayList<>());
-        doarSummaryPage.setNumeracyScore(new ArrayList<>());
-        doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
+    studentsByAssessment.entrySet().stream()
+      .sorted(Comparator.comparingInt(e -> AssessmentTypeCodes.sortOrderFor(e.getKey())))
+      .forEach(entry -> {
+        var assessmentType = entry.getKey();
+        var studentList = entry.getValue();
+        if(!studentList.isEmpty()) {
+          DOARSummaryPage doarSummaryPage = new DOARSummaryPage();
+          setReportTombstoneValues(session, doarSummaryPage, assessmentType);
+          doarSummaryPage.setProficiencySection(new ArrayList<>());
+          doarSummaryPage.setTaskScore(new ArrayList<>());
+          doarSummaryPage.setComprehendScore(new ArrayList<>());
+          doarSummaryPage.setCommunicateScore(new ArrayList<>());
+          doarSummaryPage.setCommunicateOralScore(new ArrayList<>());
+          doarSummaryPage.setNumeracyScore(new ArrayList<>());
+          doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
 
-        setProficiencyLevelsForStaging(studentList, doarSummaryPage);
-        setAssessmentRawScoresForStaging(studentList, doarSummaryPage, assessmentType);
+          setProficiencyLevelsForStaging(studentList, doarSummaryPage);
+          setAssessmentRawScoresForStaging(studentList, doarSummaryPage, assessmentType);
 
-        doarSummaryNode.getReports().add(doarSummaryPage);
-      }
-    });
+          doarSummaryNode.getReports().add(doarSummaryPage);
+        }
+      });
   }
 
   private void setStudentLevels(List<AssessmentStudentLightEntity> students, DOARSummaryNode doarSummaryNode, AssessmentSessionEntity session) {
@@ -152,24 +157,28 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
       }
     });
 
-    studentsByAssessment.forEach((assessmentType, studentList) -> {
-      if(!studentList.isEmpty()) {
-        DOARSummaryPage doarSummaryPage = new DOARSummaryPage();
-        setReportTombstoneValues(session, doarSummaryPage, assessmentType);
-        doarSummaryPage.setProficiencySection(new ArrayList<>());
-        doarSummaryPage.setTaskScore(new ArrayList<>());
-        doarSummaryPage.setComprehendScore(new ArrayList<>());
-        doarSummaryPage.setCommunicateScore(new ArrayList<>());
-        doarSummaryPage.setCommunicateOralScore(new ArrayList<>());
-        doarSummaryPage.setNumeracyScore(new ArrayList<>());
-        doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
+    studentsByAssessment.entrySet().stream()
+      .sorted(Comparator.comparingInt(e -> AssessmentTypeCodes.sortOrderFor(e.getKey())))
+      .forEach(entry -> {
+        var assessmentType = entry.getKey();
+        var studentList = entry.getValue();
+        if(!studentList.isEmpty()) {
+          DOARSummaryPage doarSummaryPage = new DOARSummaryPage();
+          setReportTombstoneValues(session, doarSummaryPage, assessmentType);
+          doarSummaryPage.setProficiencySection(new ArrayList<>());
+          doarSummaryPage.setTaskScore(new ArrayList<>());
+          doarSummaryPage.setComprehendScore(new ArrayList<>());
+          doarSummaryPage.setCommunicateScore(new ArrayList<>());
+          doarSummaryPage.setCommunicateOralScore(new ArrayList<>());
+          doarSummaryPage.setNumeracyScore(new ArrayList<>());
+          doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
 
-        setProficiencyLevels(studentList, doarSummaryPage);
-        setAssessmentRawScores(studentList, doarSummaryPage, assessmentType);
+          setProficiencyLevels(studentList, doarSummaryPage);
+          setAssessmentRawScores(studentList, doarSummaryPage, assessmentType);
 
-        doarSummaryNode.getReports().add(doarSummaryPage);
-      }
-    });
+          doarSummaryNode.getReports().add(doarSummaryPage);
+        }
+      });
   }
 
   protected void setReportTombstoneValues(AssessmentSessionEntity assessmentSession, DOARSummaryPage reportNode, String assessmentType){
