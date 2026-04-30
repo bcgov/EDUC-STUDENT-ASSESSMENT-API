@@ -166,7 +166,6 @@ class DOARProvincialReportServiceTest {
       .assessmentEntity(assessment)
       .schoolAtWriteSchoolID(schoolId)
       .schoolOfRecordSchoolID(schoolId)
-      .studentID(UUID.randomUUID())
       .givenName("Given" + suffix)
       .surname("Surname" + suffix)
       .pen("22016444" + suffix)
