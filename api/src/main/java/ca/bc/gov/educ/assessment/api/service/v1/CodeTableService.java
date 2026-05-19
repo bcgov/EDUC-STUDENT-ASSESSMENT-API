@@ -29,7 +29,7 @@ public class CodeTableService {
 
     @Cacheable("assessmentTypeCodes")
     public List<AssessmentTypeCodeEntity> getAllAssessmentTypeCodes() {
-        return assessmentTypeCodeRepository.findAll();
+        return assessmentTypeCodeRepository.findAllByOrderByDisplayOrderAscAssessmentTypeCodeAsc();
     }
 
     public Map<String, String> getAllAssessmentTypeCodesAsMap() {

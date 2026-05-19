@@ -11,12 +11,12 @@ public enum AssessmentTypeCodes {
   LTE10("LTE10"),
   LTP10("LTP10"),
   NME10("NME10"),
+  NME("NME"),
   NMF10("NMF10"),
+  NMF("NMF"),
   LTE12("LTE12"),
   LTP12("LTP12"),
-  LTF12("LTF12"),
-  NME("NME"),
-  NMF("NMF");
+  LTF12("LTF12");
 
   private final String code;
   AssessmentTypeCodes(String code) {

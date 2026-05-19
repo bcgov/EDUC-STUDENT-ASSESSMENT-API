@@ -65,13 +65,25 @@ class AssessmentStudentHistoryControllerTest extends BaseAssessmentAPITest {
   @Autowired
   private AssessmentFormRepository assessmentFormRepository;
 
+  @Autowired
+  private AssessmentQuestionRepository assessmentQuestionRepository;
+
+  @Autowired
+  private AssessmentChoiceRepository assessmentChoiceRepository;
+
+  @Autowired
+  private AssessmentComponentRepository assessmentComponentRepository;
+
   private static final AssessmentStudentMapper mapper = AssessmentStudentMapper.mapper;
 
   @BeforeEach
   void setUp() {
-    assessmentFormRepository.deleteAll();
     this.assessmentStudentHistoryRepository.deleteAll();
     this.studentRepository.deleteAll();
+    this.assessmentQuestionRepository.deleteAll();
+    this.assessmentChoiceRepository.deleteAll();
+    this.assessmentComponentRepository.deleteAll();
+    this.assessmentFormRepository.deleteAll();
     this.assessmentRepository.deleteAll();
     this.assessmentSessionRepository.deleteAll();
   }
