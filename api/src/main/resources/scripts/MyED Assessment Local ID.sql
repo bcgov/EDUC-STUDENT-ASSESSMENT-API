@@ -1,22 +1,24 @@
 --Create table temp_assmnt_load via CSV import in DBeaver
+--Get data from MYED
 
 select "SESSION_DATE", count(*) from temp_assmnt_load tal group by "SESSION_DATE" ;
 
---Data Cleanup
+--Data Cleanup (IMPORTANT CHANGE SESSION DATE TO CURRENT SESSION)
+-- check for other sessions not below to normalize to the current session
 update temp_assmnt_load tal
-set "SESSION_DATE" = '202601'
+set "SESSION_DATE" = '202604'
 where tal."SESSION_DATE" = '202701';
 
 update temp_assmnt_load tal
-set "SESSION_DATE" = '202601'
+set "SESSION_DATE" = '202604'
 where tal."SESSION_DATE" = '202603';
 
 update temp_assmnt_load tal
-set "SESSION_DATE" = '202601'
+set "SESSION_DATE" = '202604'
 where tal."SESSION_DATE" = '202602';
 
 update temp_assmnt_load tal
-set "SESSION_DATE" = '202601'
+set "SESSION_DATE" = '202604'
 where tal."SESSION_DATE" = '202612';
 
 --Create the index
@@ -31,7 +33,18 @@ WHERE ctid NOT IN (
 );
 
 
---Update of our table
+--Update of our staging table (for if running before approval)
+UPDATE staged_assessment_student asm_stu
+SET    local_assessment_id = tmp."STUDENT_ASSESSMENT_ID"
+    FROM   assessment asm
+JOIN   assessment_session sess ON sess.session_id           = asm.session_id
+    JOIN   temp_assmnt_load   tmp  ON tmp."SESSION_DATE"        = sess.course_year || sess.course_month
+    AND tmp."ASSESSMENT_SHORT_NAME" = asm.assessment_type_code
+WHERE  asm_stu.assessment_id                                = asm.assessment_id
+  AND    asm_stu.pen                                          = tmp."PEN"
+  AND    asm_stu.local_assessment_id IS DISTINCT FROM tmp."STUDENT_ASSESSMENT_ID";
+
+--Update of our table (for if running after approval)
 UPDATE assessment_student asm_stu
 SET    local_assessment_id = tmp."STUDENT_ASSESSMENT_ID"
     FROM   assessment asm
