@@ -762,6 +762,7 @@ public class CSVReportService {
                 student.getSurname(),
                 student.getAssessmentEntity().getAssessmentTypeCode(),
                 student.getAssessmentEntity().getAssessmentSessionEntity().getCourseYear() + student.getAssessmentEntity().getAssessmentSessionEntity().getCourseMonth(),
+                school.isPresent() ? school.get().getDisplayName(): "",
                 school.isPresent() ? school.get().getMincode(): "",
                 district.isPresent() ? district.get().getDistrictNumber(): "",
                 school.isPresent() ? school.get().getSchoolCategoryCode(): ""

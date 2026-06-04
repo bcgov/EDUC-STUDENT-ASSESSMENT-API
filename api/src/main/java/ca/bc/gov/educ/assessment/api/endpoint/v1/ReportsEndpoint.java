@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.util.UUID;
 
-@RequestMapping( URL.BASE_URL_REPORT)
+@RequestMapping(URL.BASE_URL_REPORT)
 public interface ReportsEndpoint {
 
     @GetMapping("/{sessionID}/{type}/download/{updateUser}")
