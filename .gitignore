@@ -26,12 +26,19 @@ api/target/
 api/src/main/java/META-INF/
 /api/src/main/resources/application-local.properties
 
+# Shell Environment
+.envrc
+.direnv/
 
 # IDE
 .idea
 *.iml
 api/src/main/resources/*.http
 api/*.iml
-.envrc
 shell.nix
 Session.vim
+.settings/
+bin/
+.classpath
+.factorypath
+.project
