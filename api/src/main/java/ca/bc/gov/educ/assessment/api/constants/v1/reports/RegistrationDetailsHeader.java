@@ -10,6 +10,7 @@ public enum RegistrationDetailsHeader {
     SURNAME("Surname"),
     ASSESSMENT("Assessment"),
     SESSION("Session"),
+    SCHOOL_NAME("School Name"),
     MINCODE("School"),
     DISTRICT_NUMBER("District"),
     SCHOOL_CATEGORY("School Category"),

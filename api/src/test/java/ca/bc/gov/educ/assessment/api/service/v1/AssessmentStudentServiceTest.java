@@ -91,6 +91,7 @@ class AssessmentStudentServiceTest extends BaseAssessmentAPITest {
 
   @AfterEach
   public void after() {
+    assessmentStudentAnswerRepository.deleteAll();
     stagedAssessmentStudentRepository.deleteAll();
     this.assessmentStudentRepository.deleteAll();
     this.assessmentStudentHistoryRepository.deleteAll();

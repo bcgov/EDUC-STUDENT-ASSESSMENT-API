@@ -7,6 +7,7 @@ import ca.bc.gov.educ.assessment.api.repository.v1.*;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,6 +52,10 @@ class DOARStagingReportServiceTest extends BaseAssessmentAPITest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    void tearDown() {
         assessmentStudentDOARCalculationRepository.deleteAll();
         studentRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
