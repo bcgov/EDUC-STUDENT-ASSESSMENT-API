@@ -211,6 +211,11 @@ public class ReportsController implements ReportsEndpoint {
     }
 
     @Override
+    public void getAssessmentRegistrationSearchReport(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
+        csvReportService.generateAssessmentRegistrationSearchReportStream(searchCriteriaListJson, response);
+    }
+
+    @Override
     public boolean checkSchoolReportAvailability(UUID sessionID, UUID schoolID, String assessmentTypeCode) {
         if (assessmentTypeCode != null) {
             return doarReportService.isDetailedDOARAvailable(sessionID, schoolID, assessmentTypeCode);

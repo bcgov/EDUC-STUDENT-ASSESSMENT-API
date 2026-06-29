@@ -1047,17 +1047,27 @@ public class CSVReportService {
      * @throws IOException if writing to response fails
      */
     public void generateAssessmentStudentSearchReportStream(String searchCriteriaListJson, jakarta.servlet.http.HttpServletResponse response) throws IOException {
+        List<String> headers = Arrays.stream(AssessmentStudentSearchReportHeader.values())
+                .map(AssessmentStudentSearchReportHeader::getCode)
+                .toList();
+        streamAssessmentStudentCsvReport(searchCriteriaListJson, response, headers, "StudentAssessmentSearch", this::prepareAssessmentStudentSearchDataForCsv);
+    }
+
+    public void generateAssessmentRegistrationSearchReportStream(String searchCriteriaListJson, jakarta.servlet.http.HttpServletResponse response) throws IOException {
+        List<String> headers = Arrays.stream(AssessmentRegistrationSearchReportHeader.values())
+                .map(AssessmentRegistrationSearchReportHeader::getCode)
+                .toList();
+        streamAssessmentStudentCsvReport(searchCriteriaListJson, response, headers, "AssessmentRegistrations", this::prepareAssessmentRegistrationSearchDataForCsv);
+    }
+
+    private void streamAssessmentStudentCsvReport(String searchCriteriaListJson, jakarta.servlet.http.HttpServletResponse response, List<String> headers, String filenamePrefix, Function<AssessmentStudentEntity, List<String>> rowMapper) throws IOException {
         List<Sort.Order> sorts = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
         Specification<AssessmentStudentEntity> specs = assessmentStudentSearchService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
 
-        List<String> headers = Arrays.stream(AssessmentStudentSearchReportHeader.values())
-                .map(AssessmentStudentSearchReportHeader::getCode)
-                .toList();
-
         response.setContentType("text/csv");
         response.setCharacterEncoding("UTF-8");
-        response.setHeader("Content-Disposition", "attachment; filename=\"StudentAssessmentSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filenamePrefix + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
         response.setBufferSize(CSV_BUFFER_SIZE);
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
@@ -1077,7 +1087,7 @@ public class CSVReportService {
                         .takeWhile(student -> !clientDisconnected.get())
                         .forEach(student -> {
                             try {
-                                List<String> csvRowData = prepareAssessmentStudentSearchDataForCsv(student);
+                                List<String> csvRowData = rowMapper.apply(student);
                                 csvPrinter.printRecord(csvRowData);
 
                                 int count = rowCount.incrementAndGet();
@@ -1089,14 +1099,14 @@ public class CSVReportService {
                                     entityManager.clear();
                                 }
                             } catch (IOException e) {
-                                log.debug("Client disconnected during assessment student search report at record {}. Stopping stream.", rowCount.get());
+                                log.debug("Client disconnected during {} report at record {}. Stopping stream.", filenamePrefix, rowCount.get());
                                 clientDisconnected.set(true);
                                 throw new RuntimeException("Client disconnected", e);
                             }
                         });
             } catch (RuntimeException e) {
                 if (e.getMessage() != null && e.getMessage().contains("Client disconnected")) {
-                    log.debug("Stream terminated due to client disconnect at {} rows", rowCount.get());
+                    log.debug("{} stream terminated due to client disconnect at {} rows", filenamePrefix, rowCount.get());
                 } else {
                     throw e;
                 }
@@ -1104,12 +1114,12 @@ public class CSVReportService {
 
             if (!clientDisconnected.get()) {
                 csvPrinter.flush();
-                log.debug("Successfully generated assessment student search report with {} rows", rowCount.get());
+                log.debug("Successfully generated {} report with {} rows", filenamePrefix, rowCount.get());
             } else {
-                log.debug("Assessment student search report generation stopped at {} rows due to client disconnect", rowCount.get());
+                log.debug("{} report generation stopped at {} rows due to client disconnect", filenamePrefix, rowCount.get());
             }
         } catch (IOException e) {
-            log.warn("Failed to start or complete assessment student search report generation: {}", e.getMessage());
+            log.warn("Failed to start or complete {} report generation: {}", filenamePrefix, e.getMessage());
         }
     }
 
@@ -1151,6 +1161,37 @@ public class CSVReportService {
                 assessmentSession,
                 student.getProficiencyScore() != null ? student.getProficiencyScore().toString() : "",
                 specialCase
+        ));
+    }
+
+    private List<String> prepareAssessmentRegistrationSearchDataForCsv(AssessmentStudentEntity student) {
+        Optional<SchoolTombstone> schoolOfRecord = student.getSchoolOfRecordSchoolID() != null
+                ? restUtils.getSchoolBySchoolID(student.getSchoolOfRecordSchoolID().toString())
+                : Optional.empty();
+
+        Optional<SchoolTombstone> assessmentCentre = student.getAssessmentCenterSchoolID() != null
+                ? restUtils.getSchoolBySchoolID(student.getAssessmentCenterSchoolID().toString())
+                : Optional.empty();
+
+        String assessmentCode = student.getAssessmentEntity() != null
+                ? student.getAssessmentEntity().getAssessmentTypeCode()
+                : "";
+
+        String assessmentSession = "";
+        if (student.getAssessmentEntity() != null && student.getAssessmentEntity().getAssessmentSessionEntity() != null) {
+            AssessmentSessionEntity session = student.getAssessmentEntity().getAssessmentSessionEntity();
+            assessmentSession = session.getCourseYear() + "/" + session.getCourseMonth();
+        }
+
+        return new ArrayList<>(Arrays.asList(
+                assessmentSession,
+                assessmentCode,
+                student.getPen() != null ? student.getPen() : "",
+                student.getLocalID() != null ? student.getLocalID() : "",
+                student.getSurname() != null ? student.getSurname() : "",
+                student.getGivenName() != null ? student.getGivenName() : "",
+                schoolOfRecord.map(SchoolTombstone::getDisplayName).orElse(""),
+                assessmentCentre.map(SchoolTombstone::getDisplayName).orElse("")
         ));
     }
 
