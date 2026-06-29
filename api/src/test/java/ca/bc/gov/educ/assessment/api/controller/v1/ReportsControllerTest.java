@@ -2275,8 +2275,8 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         schoolOfRecord.setDisplayName("12345678 - School Of Record");
         assessmentCentre.setSchoolId(assessmentCentreId.toString());
         assessmentCentre.setDisplayName("87654321 - Assessment Centre");
-        when(this.restUtils.getSchoolBySchoolID(eq(schoolOfRecordId.toString()))).thenReturn(Optional.of(schoolOfRecord));
-        when(this.restUtils.getSchoolBySchoolID(eq(assessmentCentreId.toString()))).thenReturn(Optional.of(assessmentCentre));
+        when(this.restUtils.getSchoolBySchoolID(schoolOfRecordId.toString())).thenReturn(Optional.of(schoolOfRecord));
+        when(this.restUtils.getSchoolBySchoolID(assessmentCentreId.toString())).thenReturn(Optional.of(assessmentCentre));
 
         AssessmentSessionEntity session = createMockSessionEntity();
         session.setCourseYear("2026");
@@ -2303,8 +2303,9 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
-        assertThat(csvContent).contains("Session,Assessment Code,PEN,Local ID,Surname,Given Name,School of Record,Assessment Centre");
-        assertThat(csvContent).contains("2026/04,LTE10,123456789,A001,SMITH,JOHN,12345678 - School Of Record,87654321 - Assessment Centre");
+        assertThat(csvContent)
+                .contains("Session,Assessment Code,PEN,Local ID,Surname,Given Name,School of Record,Assessment Centre")
+                .contains("2026/04,LTE10,123456789,A001,SMITH,JOHN,12345678 - School Of Record,87654321 - Assessment Centre");
     }
 
     @Test
@@ -2316,7 +2317,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         UUID schoolId = UUID.randomUUID();
         school.setSchoolId(schoolId.toString());
         school.setDisplayName("12345678 - Filter School");
-        when(this.restUtils.getSchoolBySchoolID(eq(schoolId.toString()))).thenReturn(Optional.of(school));
+        when(this.restUtils.getSchoolBySchoolID(schoolId.toString())).thenReturn(Optional.of(school));
 
         AssessmentSessionEntity session = createMockSessionEntity();
         session.setCourseYear("2026");
