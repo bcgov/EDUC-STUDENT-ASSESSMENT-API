@@ -1053,6 +1053,9 @@ public class CSVReportService {
         streamAssessmentStudentCsvReport(searchCriteriaListJson, response, headers, "StudentAssessmentSearch", this::prepareAssessmentStudentSearchDataForCsv);
     }
 
+    /**
+     * Generate assessment registration response
+     */
     public void generateAssessmentRegistrationSearchReportStream(String searchCriteriaListJson, jakarta.servlet.http.HttpServletResponse response) throws IOException {
         List<String> headers = Arrays.stream(AssessmentRegistrationSearchReportHeader.values())
                 .map(AssessmentRegistrationSearchReportHeader::getCode)
