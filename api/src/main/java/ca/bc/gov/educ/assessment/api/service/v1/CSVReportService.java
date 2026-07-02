@@ -79,6 +79,10 @@ public class CSVReportService {
     private final AssessmentStudentSearchService assessmentStudentSearchService;
     private final EntityManager entityManager;
 
+    public boolean isSessionReportAvailable(UUID sessionID) {
+        return assessmentStudentLightRepository.existsActiveStudentsBySessionID(sessionID);
+    }
+
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         List<AssessmentStudentEntity> results = assessmentStudentRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(sessionID, activeStatus);

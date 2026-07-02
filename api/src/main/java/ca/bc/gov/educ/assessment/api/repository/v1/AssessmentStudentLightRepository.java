@@ -107,6 +107,16 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     long countBySessionIDAndSchoolIDWithResults(UUID sessionID, UUID schoolID);
 
     @Query("""
+    select count(stud) > 0
+    from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and stud.studentStatusCode = 'ACTIVE'
+    """)
+    boolean existsActiveStudentsBySessionID(UUID sessionID);
+
+
+
+    @Query("""
     select count(stud)
     from AssessmentStudentLightEntity stud
     where stud.assessmentEntity.assessmentID = :assessmentID

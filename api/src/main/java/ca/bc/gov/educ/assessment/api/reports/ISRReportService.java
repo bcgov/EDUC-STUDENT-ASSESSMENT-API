@@ -15,7 +15,6 @@ import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.service.v1.CodeTableService;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
-import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.isr.*;
 import ca.bc.gov.educ.assessment.api.util.PenUtil;
@@ -35,7 +34,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -123,6 +121,23 @@ public class ISRReportService extends BaseReportGenerationService {
       e.printStackTrace();
       throw new StudentAssessmentAPIRuntimeException("Compiling Jasper reports has failed :: " + e.getMessage());
     }
+  }
+
+  public boolean isStudentReportAvailable(UUID studentID) {
+    return assessmentStudentRepository.existsWrittenAssessmentsByStudentID(studentID);
+  }
+
+  public boolean isStudentReportAvailableByPEN(String pen) {
+    if (!PenUtil.validCheckDigit(pen)) {
+      ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid PEN").status(BAD_REQUEST).build();
+      throw new InvalidPayloadException(error);
+    }
+    var student = restUtils.getStudentByPEN(UUID.randomUUID(), pen);
+    if (student.isEmpty()) {
+      ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid PEN").status(BAD_REQUEST).build();
+      throw new InvalidPayloadException(error);
+    }
+    return isStudentReportAvailable(UUID.fromString(student.get().getStudentID()));
   }
 
   public DownloadableReportResponse generateIndividualStudentReportByPEN(String pen){
