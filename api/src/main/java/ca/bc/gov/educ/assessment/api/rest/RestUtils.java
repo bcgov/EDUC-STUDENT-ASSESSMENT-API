@@ -12,6 +12,7 @@ import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.ReportGradStudentData;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.Collection;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.SdcSchoolCollectionStudent;
@@ -339,6 +340,24 @@ public class RestUtils {
     }
     
     return this.districtMap.values().stream().filter(dist -> dist.getDistrictRegionCode().equalsIgnoreCase("YUKON")).findFirst();
+  }
+
+  public PaginatedResponse<ReportGradStudentData> getGradStudentReportPage(final String searchCriteriaListJson, final int pageNumber, final int pageSize) {
+    final String encodedSearchJson = URLEncoder.encode(searchCriteriaListJson, StandardCharsets.UTF_8);
+    final String fullUrl = this.props.getGradStudentApiURL()
+      + "/grad/student/search"
+      + "?pageNumber=" + pageNumber
+      + "&pageSize=" + pageSize
+      + "&searchCriteriaList=" + encodedSearchJson;
+
+    log.debug("Fetching grad student report page from URL: {}", fullUrl);
+    return this.webClient.get()
+      .uri(fullUrl)
+      .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+      .retrieve()
+      .bodyToMono(new ParameterizedTypeReference<PaginatedResponse<ReportGradStudentData>>() {
+      })
+      .block();
   }
 
   public Optional<List<UUID>> getSchoolIDsByIndependentAuthorityID(final String independentAuthorityID) {

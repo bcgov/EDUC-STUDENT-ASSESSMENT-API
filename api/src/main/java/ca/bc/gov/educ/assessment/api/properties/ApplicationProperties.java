@@ -54,6 +54,8 @@ public class ApplicationProperties {
   private Integer maxSubscriberThreads;
   @Value("${url.api.institute}")
   private String instituteApiURL;
+  @Value("${url.api.grad-student}")
+  private String gradStudentApiURL;
   @Value("${number.students.process.saga}")
   private String numberOfStudentsToProcessInSaga;
 

@@ -216,6 +216,16 @@ public class ReportsController implements ReportsEndpoint {
     }
 
     @Override
+    public void getAssessmentCompletionCurrentStudentsReportForSchool(UUID schoolID, HttpServletResponse response) throws IOException {
+        csvReportService.generateAssessmentCompletionCurrentStudentsForSchoolStream(schoolID, response);
+    }
+
+    @Override
+    public void getAssessmentCompletionCurrentStudentsReportForDistrict(UUID districtID, HttpServletResponse response) throws IOException {
+        csvReportService.generateAssessmentCompletionCurrentStudentsForDistrictStream(districtID, response);
+    }
+
+    @Override
     public boolean checkSchoolReportAvailability(UUID sessionID, UUID schoolID, String assessmentTypeCode) {
         if (assessmentTypeCode != null) {
             return doarReportService.isDetailedDOARAvailable(sessionID, schoolID, assessmentTypeCode);
