@@ -7,6 +7,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.ReportGradStudentData;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.Collection;
@@ -664,6 +665,38 @@ class RestUtilsTest {
         // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetGradStudentReportPage_WhenApiCallSucceeds_ShouldReturnPage() {
+        final ReportGradStudentData student = ReportGradStudentData.builder()
+                .pen("123456789")
+                .studentStatus("CUR")
+                .build();
+
+        PaginatedResponse<ReportGradStudentData> expectedResponse = new PaginatedResponse<>(
+                List.of(student),
+                PageRequest.of(0, 1000),
+                1L
+        );
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class))).thenReturn(Mono.just(expectedResponse));
+        when(props.getGradStudentApiURL()).thenReturn("http://localhost:8092/api/v1/student");
+
+        PaginatedResponse<ReportGradStudentData> result = restUtils.getGradStudentReportPage("[{\"searchCriteriaList\":[]}]", 0, 1000);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("123456789", result.getContent().get(0).getPen());
+        verify(webClient).get();
     }
 
     @Test

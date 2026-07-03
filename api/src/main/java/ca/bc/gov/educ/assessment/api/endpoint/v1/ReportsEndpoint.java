@@ -69,6 +69,18 @@ public interface ReportsEndpoint {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     void getAssessmentRegistrationSearchReport(@RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson, HttpServletResponse response) throws IOException;
 
+    @GetMapping("/school/{schoolID}/assessment-completions/current-students/download")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    void getAssessmentCompletionCurrentStudentsReportForSchool(@PathVariable UUID schoolID, HttpServletResponse response) throws IOException;
+
+    @GetMapping("/district/{districtID}/assessment-completions/current-students/download")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    void getAssessmentCompletionCurrentStudentsReportForDistrict(@PathVariable UUID districtID, HttpServletResponse response) throws IOException;
+
     @GetMapping("/{sessionID}/school/{schoolID}/results/available")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
     @Transactional(readOnly = true)
