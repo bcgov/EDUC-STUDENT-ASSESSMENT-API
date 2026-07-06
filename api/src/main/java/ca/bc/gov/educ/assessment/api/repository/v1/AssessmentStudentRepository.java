@@ -2,6 +2,7 @@ package ca.bc.gov.educ.assessment.api.repository.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentRegistrationTotalsBySchoolResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentCompletionSummaryResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.YukonAssessmentCount;
@@ -177,6 +178,24 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
     and (stud.proficiencyScore is not null
     or stud.provincialSpecialCaseCode in ('X','Q'))""")
     int findNumberOfAttemptsForStudent(UUID studentID, List<String> assessmentCodes);
+
+    @Query(value = """
+        select stud.pen as pen,
+        max(case when stud.assessmentEntity.assessmentTypeCode = 'LTE10' then 1 else 0 end) as lte10Completed,
+        max(case when stud.assessmentEntity.assessmentTypeCode in ('NME', 'NME10') then 1 else 0 end) as nme10Completed,
+        max(case when stud.assessmentEntity.assessmentTypeCode in ('NMF', 'NMF10') then 1 else 0 end) as nmf10Completed,
+        max(case when stud.assessmentEntity.assessmentTypeCode = 'LTE12' then 1 else 0 end) as lte12Completed,
+        max(case when stud.assessmentEntity.assessmentTypeCode = 'LTF12' then 1 else 0 end) as ltf12Completed,
+        max(case when stud.assessmentEntity.assessmentTypeCode = 'LTP10' then 1 else 0 end) as ltp10Completed,
+        max(case when stud.assessmentEntity.assessmentTypeCode = 'LTP12' then 1 else 0 end) as ltp12Completed
+        from AssessmentStudentEntity stud
+        where stud.pen in (:pens)
+        and stud.studentStatusCode = 'ACTIVE'
+        and (stud.proficiencyScore is not null
+             or stud.provincialSpecialCaseCode in ('A', 'E', 'Q', 'X'))
+        group by stud.pen
+        """)
+    List<AssessmentCompletionSummaryResult> findAssessmentCompletionSummaryByPenIn(List<String> pens);
 
     List<AssessmentStudentEntity> findByAssessmentFormIDIn(List<UUID> assessmentFormIDs); //Only used in tests so didn't add ACTIVE check
 

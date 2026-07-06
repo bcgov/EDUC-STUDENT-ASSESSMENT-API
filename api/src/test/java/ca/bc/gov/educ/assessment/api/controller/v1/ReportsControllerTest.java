@@ -17,6 +17,7 @@ import ca.bc.gov.educ.assessment.api.service.v1.DOARStagingReportService;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.ReportGradStudentData;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
@@ -2477,6 +2478,92 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void testGetAssessmentCompletionCurrentStudentsReportForSchool_ShouldReturnCsvFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(school.getSchoolId())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTE10.getCode()));
+        AssessmentStudentEntity student = createMockStudentEntity(assessment);
+        student.setPen("123456789");
+        student.setProficiencyScore(3);
+        studentRepository.save(student);
+
+        PaginatedResponse<ReportGradStudentData> gradPage = new PaginatedResponse<>(
+                List.of(ReportGradStudentData.builder()
+                        .graduationStudentRecordId(UUID.randomUUID())
+                        .schoolOfRecordId(UUID.fromString(school.getSchoolId()))
+                        .pen("123456789")
+                        .localID("L123")
+                        .lastName("DOE")
+                        .firstName("JANE")
+                        .middleName("Q")
+                        .dob("2008/01/02")
+                        .studentGrade("12")
+                        .programCode("2023-EN")
+                        .studentStatus("CUR")
+                        .build()),
+                PageRequest.of(0, 1000),
+                1L
+        );
+        when(this.restUtils.getGradStudentReportPage(anyString(), anyInt(), anyInt())).thenReturn(gradPage);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/school/" + school.getSchoolId() + "/assessment-completions/current-students/download")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("PEN,Local ID,Last Name,First Name,Middle Name,Birthdate,Grade,Program,LTE10,NME10,NMF10,LTE12,LTF12,LTP10,LTP12")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("123456789,L123,DOE,JANE,Q,2008/01/02,12,2023-EN,Yes,No,No,No,No,No,No")));
+    }
+
+    @Test
+    void testGetAssessmentCompletionCurrentStudentsReportForDistrict_ShouldReturnCsvFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        when(this.restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
+
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTP12.getCode()));
+        AssessmentStudentEntity student = createMockStudentEntity(assessment);
+        student.setPen("123456789");
+        student.setProvincialSpecialCaseCode("E");
+        studentRepository.save(student);
+
+        PaginatedResponse<ReportGradStudentData> gradPage = new PaginatedResponse<>(
+                List.of(ReportGradStudentData.builder()
+                        .graduationStudentRecordId(UUID.randomUUID())
+                        .pen("123456789")
+                        .localID("L123")
+                        .lastName("DOE")
+                        .firstName("JANE")
+                        .middleName("Q")
+                        .dob("2008/01/02")
+                        .studentGrade("12")
+                        .programCode("2023-EN")
+                        .schoolName("Marco's school")
+                        .studentStatus("CUR")
+                        .build()),
+                PageRequest.of(0, 1000),
+                1L
+        );
+        when(this.restUtils.getGradStudentReportPage(anyString(), anyInt(), anyInt())).thenReturn(gradPage);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/district/" + district.getDistrictId() + "/assessment-completions/current-students/download")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("School of Record,PEN,Local ID,Last Name,First Name,Middle Name,Birthdate,Grade,Program,LTE10,NME10,NMF10,LTE12,LTF12,LTP10,LTP12")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Marco's school,123456789,L123,DOE,JANE,Q,2008/01/02,12,2023-EN,No,No,No,No,No,No,Yes")));
+    }
+
     // ---- checkSessionReportAvailability ----
 
     @Test
@@ -2651,6 +2738,8 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
         var district = this.createMockDistrict();
+        when(this.restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
+
         var school = this.createMockSchool();
         school.setDistrictId(district.getDistrictId());
         when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));

@@ -12,6 +12,7 @@ import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.ReportGradStudentData;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.*;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.Collection;
 import ca.bc.gov.educ.assessment.api.struct.external.sdc.v1.SdcSchoolCollectionStudent;
@@ -77,6 +78,10 @@ public class RestUtils {
   private final ReadWriteLock authorityLock = new ReentrantReadWriteLock();
   private final ReadWriteLock schoolLock = new ReentrantReadWriteLock();
   private final ReadWriteLock districtLock = new ReentrantReadWriteLock();
+  private static final String PAGE_NUMBER_QUERY_PARAM = "?pageNumber=";
+  private static final String PAGE_SIZE_QUERY_PARAM = "&pageSize=";
+  private static final String SEARCH_CRITERIA_QUERY_PARAM = "&searchCriteriaList=";
+  private static final String SORT_QUERY_PARAM = "&sort=";
   @Getter
   private final ApplicationProperties props;
 
@@ -339,6 +344,24 @@ public class RestUtils {
     }
     
     return this.districtMap.values().stream().filter(dist -> dist.getDistrictRegionCode().equalsIgnoreCase("YUKON")).findFirst();
+  }
+
+  public PaginatedResponse<ReportGradStudentData> getGradStudentReportPage(final String searchCriteriaListJson, final int pageNumber, final int pageSize) {
+    final String encodedSearchJson = URLEncoder.encode(searchCriteriaListJson, StandardCharsets.UTF_8);
+    final String fullUrl = this.props.getGradStudentApiURL()
+      + "/grad/student/search"
+      + PAGE_NUMBER_QUERY_PARAM + pageNumber
+      + PAGE_SIZE_QUERY_PARAM + pageSize
+      + SEARCH_CRITERIA_QUERY_PARAM + encodedSearchJson;
+
+    log.debug("Fetching grad student report page from URL: {}", fullUrl);
+    return this.webClient.get()
+      .uri(fullUrl)
+      .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+      .retrieve()
+      .bodyToMono(new ParameterizedTypeReference<PaginatedResponse<ReportGradStudentData>>() {
+      })
+      .block();
   }
 
   public Optional<List<UUID>> getSchoolIDsByIndependentAuthorityID(final String independentAuthorityID) {
@@ -617,10 +640,10 @@ public class RestUtils {
 
             String fullUrl = this.props.getSdcApiURL()
                     + "/collection/paginated"
-                    + "?pageNumber=" + pageNumber
-                    + "&pageSize=" + pageSize
-                    + "&sort=" + encodedSortJson
-                    + "&searchCriteriaList=" + encodedSearchJson;
+                    + PAGE_NUMBER_QUERY_PARAM + pageNumber
+                    + PAGE_SIZE_QUERY_PARAM + pageSize
+                    + SORT_QUERY_PARAM + encodedSortJson
+                    + SEARCH_CRITERIA_QUERY_PARAM + encodedSearchJson;
 
             log.debug("Calling SDC API to get last 4 collections: {}", fullUrl);
 
@@ -683,10 +706,10 @@ public class RestUtils {
             try {
                 String fullUrl = this.props.getSdcApiURL()
                         + "/sdcSchoolCollectionStudent/paginated-shallow"
-                        + "?pageNumber=" + pageNumber
-                        + "&pageSize=" + pageSize
-                        + "&sort=" // optional: add sort json or keep empty
-                        + "&searchCriteriaList=" + encodedSearchJson;
+                        + PAGE_NUMBER_QUERY_PARAM + pageNumber
+                        + PAGE_SIZE_QUERY_PARAM + pageSize
+                        + SORT_QUERY_PARAM // optional: add sort json or keep empty
+                        + SEARCH_CRITERIA_QUERY_PARAM + encodedSearchJson;
 
                 PaginatedResponse<SdcSchoolCollectionStudent> response = webClient.get()
                         .uri(fullUrl)
