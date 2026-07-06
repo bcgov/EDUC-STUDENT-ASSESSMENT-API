@@ -230,10 +230,20 @@ public class ReportsController implements ReportsEndpoint {
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build();
             throw new InvalidPayloadException(error);
         }
-        if (code.get() == AssessmentReportTypeCode.PEN_MERGES) {
-            return true;
-        }
-        return csvReportService.isSessionReportAvailable(sessionID);
+        return switch (code.get()) {
+            case PEN_MERGES -> true;
+            case DOAR_PROVINCIAL_SUMMARY -> doarProvincialReportService.isDOARProvincialSummaryAvailable(sessionID);
+            case YUKON_SUMMARY_CSV -> csvReportService.isYukonSummaryReportAvailable(sessionID);
+            case YUKON_STUDENT_DETAIL_CSV -> csvReportService.isYukonStudentDetailReportAvailable(sessionID);
+            case NME_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.NME10.getCode());
+            case NMF_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.NMF10.getCode());
+            case LTE10_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTE10.getCode());
+            case LTE12_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTE12.getCode());
+            case LTP10_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTP10.getCode());
+            case LTP12_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTP12.getCode());
+            case LTF12_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTF12.getCode());
+            default -> csvReportService.isSessionReportAvailable(sessionID);
+        };
     }
 
     @Override

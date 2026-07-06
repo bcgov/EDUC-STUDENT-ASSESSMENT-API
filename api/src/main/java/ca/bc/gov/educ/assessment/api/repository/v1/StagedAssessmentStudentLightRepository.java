@@ -65,4 +65,14 @@ public interface StagedAssessmentStudentLightRepository extends JpaRepository<St
     """)
     List<StagedAssessmentStudentLightEntity> findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(UUID sessionID, List<String> studentStatusCodes, String provincialSpecialCaseCode);
 
+    @Query("""
+    select count(stud) > 0
+    from StagedAssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and stud.stagedAssessmentStudentStatus in (:studentStatusCodes)
+    and (stud.proficiencyScore is not null
+         or stud.provincialSpecialCaseCode = :provincialSpecialCaseCode)
+    """)
+    boolean existsActiveStudentsWithResultsBySessionID(UUID sessionID, List<String> studentStatusCodes, String provincialSpecialCaseCode);
+
 }

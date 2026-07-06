@@ -2556,6 +2556,262 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void testCheckSessionReportAvailability_DOARProvincialSummary_ApprovedSession_WhenScoredStudentExists_ReturnsTrue() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        session.setCompletionDate(LocalDateTime.now().minusDays(1));
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.NME10.getCode()));
+
+        var student = createMockStudentEntity(savedAssessment);
+        student.setProficiencyScore(2);
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + DOAR_PROVINCIAL_SUMMARY.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
+    void testCheckSessionReportAvailability_DOARProvincialSummary_ApprovedSession_WhenNoScoredStudent_ReturnsFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        session.setCompletionDate(LocalDateTime.now().minusDays(1));
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.NME10.getCode()));
+
+        // student is registered (ACTIVE) but not yet scored -- the generic "any active student" check
+        // would say true, but the DOAR provincial report itself would render blank
+        var student = createMockStudentEntity(savedAssessment);
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + DOAR_PROVINCIAL_SUMMARY.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
+
+    @Test
+    void testCheckSessionReportAvailability_DOARProvincialSummary_OngoingSession_WhenScoredStagedStudentExists_ReturnsTrue() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.NME10.getCode()));
+
+        var stagedStudent = createMockStagedStudentEntity(savedAssessment);
+        stagedStudent.setProficiencyScore(3);
+        stagedAssessmentStudentRepository.save(stagedStudent);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + DOAR_PROVINCIAL_SUMMARY.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
+    void testCheckSessionReportAvailability_DOARProvincialSummary_OngoingSession_WhenNoScoredStagedStudent_ReturnsFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.NME10.getCode()));
+
+        // an ACTIVE, scored student exists in the FINAL table (the generic check would say true), but the
+        // session is still ongoing so the DOAR provincial report reads from staging, which has no data
+        var student = createMockStudentEntity(savedAssessment);
+        student.setProficiencyScore(2);
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + DOAR_PROVINCIAL_SUMMARY.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
+
+    @Test
+    void testCheckSessionReportAvailability_YukonSummary_WhenScoredYukonStudentExists_ReturnsTrue() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school = this.createMockSchool();
+        school.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
+        when(this.restUtils.getSchools()).thenReturn(List.of(school));
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTE10.getCode()));
+
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student.setProficiencyScore(3);
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + YUKON_SUMMARY_CSV.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
+    void testCheckSessionReportAvailability_YukonSummary_WhenNoYukonStudents_ReturnsFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school = this.createMockSchool();
+        school.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
+        when(this.restUtils.getSchools()).thenReturn(List.of(school));
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTE10.getCode()));
+
+        // student exists and is scored, but is NOT in a Yukon-district school -- the generic check
+        // (any active student in the session) would say true, but Yukon summary is scoped to Yukon schools
+        var student = createMockStudentEntity(savedAssessment);
+        student.setProficiencyScore(3);
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + YUKON_SUMMARY_CSV.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
+
+    @Test
+    void testCheckSessionReportAvailability_YukonStudentDetail_WhenYukonStudentExists_ReturnsTrue() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school = this.createMockSchool();
+        school.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
+        when(this.restUtils.getSchools()).thenReturn(List.of(school));
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTP10.getCode()));
+
+        // no score needed for this report -- registration alone is sufficient
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + YUKON_STUDENT_DETAIL_CSV.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
+    void testCheckSessionReportAvailability_YukonStudentDetail_WhenNoYukonStudents_ReturnsFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school = this.createMockSchool();
+        school.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getYukonDistrict()).thenReturn(Optional.of(district));
+        when(this.restUtils.getSchools()).thenReturn(List.of(school));
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + YUKON_STUDENT_DETAIL_CSV.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
+
+    @Test
+    void testCheckSessionReportAvailability_ItemAnalysis_WhenScoredStudentForTypeExists_ReturnsTrue() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        session.setCompletionDate(LocalDateTime.now().minusDays(1));
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.NME10.getCode()));
+
+        var student = createMockStudentEntity(savedAssessment);
+        student.setProficiencyScore(2);
+        studentRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + NME_ITEM_ANALYSIS.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
+    void testCheckSessionReportAvailability_ItemAnalysis_WhenSessionHasScoresForDifferentAssessmentType_ReturnsFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var session = createMockSessionEntity();
+        session.setCompletionDate(LocalDateTime.now().minusDays(1));
+        var savedSession = assessmentSessionRepository.save(session);
+
+        // the session is approved and HAS scored results, but only for LTE10 -- not NME10
+        var ltAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTE10.getCode()));
+        var scoredStudent = createMockStudentEntity(ltAssessment);
+        scoredStudent.setProficiencyScore(3);
+        studentRepository.save(scoredStudent);
+
+        var nmeAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.NME10.getCode()));
+        var unscoredStudent = createMockStudentEntity(nmeAssessment);
+        studentRepository.save(unscoredStudent);
+
+        // the generic isSessionReportAvailable(sessionID) check would say true here (active students exist
+        // in the session), but NME_ITEM_ANALYSIS specifically has no scored NME10 student -- this is exactly
+        // the "approved session, headers-only CSV" scenario being fixed
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + NME_ITEM_ANALYSIS.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+
+        // sanity check: LTE10 item analysis for the same session correctly reports true
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/" + LTE10_ITEM_ANALYSIS.getCode() + "/available")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
     // ---- checkSchoolReportTypeAvailability ----
 
     @Test

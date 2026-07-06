@@ -1199,6 +1199,33 @@ public class CSVReportService {
         ));
     }
 
+    public boolean isYukonSummaryReportAvailable(UUID sessionID) {
+        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", "yukon"));
+        List<UUID> schoolsInDistrict = restUtils.getSchools()
+                .stream()
+                .filter(school -> Objects.equals(school.getDistrictId(), district.getDistrictId()))
+                .map(SchoolTombstone::getSchoolId)
+                .map(UUID::fromString)
+                .toList();
+        var results = assessmentStudentRepository.findYukonAssessmentCounts(schoolsInDistrict, List.of(sessionID));
+        return !results.isEmpty();
+    }
+
+    public boolean isYukonStudentDetailReportAvailable(UUID sessionID) {
+        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", "yukon"));
+        List<UUID> schoolsInDistrict = restUtils.getSchools()
+                .stream()
+                .filter(school -> Objects.equals(school.getDistrictId(), district.getDistrictId()))
+                .map(SchoolTombstone::getSchoolId)
+                .map(UUID::fromString)
+                .toList();
+        return assessmentStudentRepository.existsByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDInAndStudentStatusCodeIn(sessionID, schoolsInDistrict, activeStatus);
+    }
+
+    public boolean isItemAnalysisDataAvailable(UUID sessionID, String assessmentTypeCode) {
+        return assessmentStudentLightRepository.existsByAssessmentTypeCodeAndSessionIDWithResults(assessmentTypeCode, sessionID);
+    }
+
     public DownloadableReportResponse generateYukonReport(UUID sessionID) {
         var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", "yukon"));
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
