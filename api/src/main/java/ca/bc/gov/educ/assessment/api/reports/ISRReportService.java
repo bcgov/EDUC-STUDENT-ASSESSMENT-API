@@ -127,19 +127,6 @@ public class ISRReportService extends BaseReportGenerationService {
     return assessmentStudentRepository.existsWrittenAssessmentsByStudentID(studentID);
   }
 
-  public boolean isStudentReportAvailableByPEN(String pen) {
-    if (!PenUtil.validCheckDigit(pen)) {
-      ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid PEN").status(BAD_REQUEST).build();
-      throw new InvalidPayloadException(error);
-    }
-    var student = restUtils.getStudentByPEN(UUID.randomUUID(), pen);
-    if (student.isEmpty()) {
-      ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid PEN").status(BAD_REQUEST).build();
-      throw new InvalidPayloadException(error);
-    }
-    return isStudentReportAvailable(UUID.fromString(student.get().getStudentID()));
-  }
-
   public DownloadableReportResponse generateIndividualStudentReportByPEN(String pen){
     if(!PenUtil.validCheckDigit(pen)){
       ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid PEN").status(BAD_REQUEST).build();
