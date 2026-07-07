@@ -13,7 +13,6 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentDOARCalculat
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentLightRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
-import ca.bc.gov.educ.assessment.api.struct.external.studentapi.v1.Student;
 import ca.bc.gov.educ.assessment.api.struct.v1.DOARCalculate;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import jakarta.annotation.PostConstruct;

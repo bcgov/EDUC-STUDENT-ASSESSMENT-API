@@ -83,6 +83,14 @@ public class DOARProvincialReportService extends BaseReportGenerationService {
     }
   }
 
+  public boolean isDOARProvincialSummaryAvailable(UUID assessmentSessionID) {
+    var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
+    if (session.getCompletionDate() == null) {
+      return stagedAssessmentStudentLightRepository.existsActiveStudentsWithResultsBySessionID(assessmentSessionID, List.of(StudentStatusCodes.ACTIVE.getCode(), StudentStatusCodes.MERGED.getCode()), "X");
+    }
+    return assessmentStudentLightRepository.existsActiveStudentsWithResultsBySessionID(assessmentSessionID);
+  }
+
   public DownloadableReportResponse generateDOARProvincialReport(UUID assessmentSessionID){
     try {
       DOARSummaryNode doarSummaryNode = new DOARSummaryNode();

@@ -232,4 +232,58 @@ public class ReportsController implements ReportsEndpoint {
         }
         return doarSummaryReportService.isDOARSummaryAvailable(sessionID, schoolID);
     }
+
+    @Override
+    public boolean checkSessionReportAvailability(UUID sessionID, String type) {
+        Optional<AssessmentReportTypeCode> code = AssessmentReportTypeCode.findByValue(type);
+        if (code.isEmpty()) {
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build();
+            throw new InvalidPayloadException(error);
+        }
+        return switch (code.get()) {
+            case PEN_MERGES -> true;
+            case DOAR_PROVINCIAL_SUMMARY -> doarProvincialReportService.isDOARProvincialSummaryAvailable(sessionID);
+            case YUKON_SUMMARY_CSV -> csvReportService.isYukonSummaryReportAvailable(sessionID);
+            case YUKON_STUDENT_DETAIL_CSV -> csvReportService.isYukonStudentDetailReportAvailable(sessionID);
+            case NME_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.NME10.getCode());
+            case NMF_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.NMF10.getCode());
+            case LTE10_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTE10.getCode());
+            case LTE12_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTE12.getCode());
+            case LTP10_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTP10.getCode());
+            case LTP12_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTP12.getCode());
+            case LTF12_ITEM_ANALYSIS -> csvReportService.isItemAnalysisDataAvailable(sessionID, AssessmentTypeCodes.LTF12.getCode());
+            default -> csvReportService.isSessionReportAvailable(sessionID);
+        };
+    }
+
+    @Override
+    public boolean checkSchoolReportTypeAvailability(UUID sessionID, UUID schoolID, String type) {
+        Optional<AssessmentReportTypeCode> code = AssessmentReportTypeCode.findByValue(type);
+        if (code.isEmpty()) {
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build();
+            throw new InvalidPayloadException(error);
+        }
+        return switch (code.get()) {
+            case DOAR_SUMMARY -> doarSummaryReportService.isDOARSummaryAvailable(sessionID, schoolID);
+            case NME_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailable(sessionID, schoolID, AssessmentTypeCodes.NME10.getCode());
+            case NMF_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailable(sessionID, schoolID, AssessmentTypeCodes.NMF10.getCode());
+            case LTE10_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailable(sessionID, schoolID, AssessmentTypeCodes.LTE10.getCode());
+            case LTE12_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailable(sessionID, schoolID, AssessmentTypeCodes.LTE12.getCode());
+            case LTP10_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailable(sessionID, schoolID, AssessmentTypeCodes.LTP10.getCode());
+            case LTP12_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailable(sessionID, schoolID, AssessmentTypeCodes.LTP12.getCode());
+            case LTF12_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailable(sessionID, schoolID, AssessmentTypeCodes.LTF12.getCode());
+            default -> doarSummaryReportService.isDOARSummaryAvailable(sessionID, schoolID);
+        };
+    }
+
+    @Override
+    public boolean checkStudentReportAvailability(UUID studentID, String type) {
+        Optional<AssessmentStudentReportTypeCode> code = AssessmentStudentReportTypeCode.findByValue(type);
+        if (code.isEmpty()) {
+            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build();
+            throw new InvalidPayloadException(error);
+        }
+        return isrReportService.isStudentReportAvailable(studentID);
+    }
+
 }
