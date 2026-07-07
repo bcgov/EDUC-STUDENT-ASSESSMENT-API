@@ -95,7 +95,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     private XAMFileService xamFileService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         stagedStudentResultRepository.deleteAll();
         assessmentStudentHistoryRepository.deleteAll();
