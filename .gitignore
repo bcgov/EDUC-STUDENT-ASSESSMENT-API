@@ -42,3 +42,6 @@ bin/
 .classpath
 .factorypath
 .project
+
+# Agent Cruft
+session-*.md

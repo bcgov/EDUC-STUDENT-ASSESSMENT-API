@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -284,6 +285,11 @@ public class ReportsController implements ReportsEndpoint {
             throw new InvalidPayloadException(error);
         }
         return isrReportService.isStudentReportAvailable(studentID);
+    }
+
+    @Override
+    public List<UUID> getDistrictSchoolsWithResults(UUID sessionID, UUID districtID) {
+        return doarSummaryReportService.getDistrictSchoolIDsWithResults(sessionID, districtID);
     }
 
 }

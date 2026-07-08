@@ -2595,4 +2595,139 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void testGetDistrictSchoolsWithResults_ShouldReturnSchoolsThatHaveResults() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var schoolWithResults = this.createMockSchool();
+        schoolWithResults.setDistrictId(district.getDistrictId());
+        var schoolWithoutResults = this.createMockSchool();
+        schoolWithoutResults.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(schoolWithResults, schoolWithoutResults));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        var student = createMockStudentEntity(assessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(schoolWithResults.getSchoolId()));
+        student.setProficiencyScore(2);
+        studentRepository.save(student);
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/schools-with-results")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val schoolIDs = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), new TypeReference<List<UUID>>() {
+        });
+
+        assertThat(schoolIDs).containsExactly(UUID.fromString(schoolWithResults.getSchoolId()));
+    }
+
+    @Test
+    void testGetDistrictSchoolsWithResults_WhenNoSchoolsInDistrict_ShouldReturnEmptyList() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var otherDistrictSchool = this.createMockSchool();
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(otherDistrictSchool));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        var student = createMockStudentEntity(assessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(otherDistrictSchool.getSchoolId()));
+        student.setProficiencyScore(2);
+        studentRepository.save(student);
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/schools-with-results")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val schoolIDs = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), new TypeReference<List<UUID>>() {
+        });
+
+        assertThat(schoolIDs).isEmpty();
+    }
+
+    @Test
+    void testGetDistrictSchoolsWithResults_WhenNoStudentsHaveResults_ShouldReturnEmptyList() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school = this.createMockSchool();
+        school.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        var student = createMockStudentEntity(assessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student.setProficiencyScore(null);
+        student.setProvincialSpecialCaseCode(null);
+        studentRepository.save(student);
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/schools-with-results")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val schoolIDs = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), new TypeReference<List<UUID>>() {
+        });
+
+        assertThat(schoolIDs).isEmpty();
+    }
+
+    @Test
+    void testGetDistrictSchoolsWithResults_ShouldExcludeIndependentAndOffshoreSchools() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var publicSchool = this.createMockSchool();
+        publicSchool.setDistrictId(district.getDistrictId());
+        publicSchool.setSchoolCategoryCode("PUBLIC");
+        var independentSchool = this.createMockSchool();
+        independentSchool.setDistrictId(district.getDistrictId());
+        independentSchool.setSchoolCategoryCode("INDEPEND");
+        var offshoreSchool = this.createMockSchool();
+        offshoreSchool.setDistrictId(district.getDistrictId());
+        offshoreSchool.setSchoolCategoryCode("OFFSHORE");
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(publicSchool, independentSchool, offshoreSchool));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTP10.getCode()));
+
+        for (var school : List.of(publicSchool, independentSchool, offshoreSchool)) {
+            var student = createMockStudentEntity(assessment);
+            student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+            student.setProficiencyScore(2);
+            studentRepository.save(student);
+        }
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/schools-with-results")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val schoolIDs = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), new TypeReference<List<UUID>>() {
+        });
+
+        assertThat(schoolIDs).containsExactly(UUID.fromString(publicSchool.getSchoolId()));
+    }
+
 }

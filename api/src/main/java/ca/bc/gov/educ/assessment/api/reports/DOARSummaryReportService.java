@@ -93,6 +93,21 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     return assessmentStudentLightRepository.countBySessionIDAndSchoolIDWithResults(sessionID, schoolID) > 0;
   }
 
+  public List<UUID> getDistrictSchoolIDsWithResults(UUID sessionID, UUID districtID) {
+    var schoolTombstones = restUtils.getAllSchoolTombstones();
+    List<UUID> districtSchoolIDs = schoolTombstones.stream()
+            .filter(school -> StringUtils.isNotBlank(school.getSchoolId()))
+            .filter(school -> districtID.toString().equalsIgnoreCase(school.getDistrictId()))
+            .filter(school -> StringUtils.isBlank(school.getIndependentAuthorityId()))
+            .filter(school -> !INDEPENDENTS_AND_OFFSHORE.contains(school.getSchoolCategoryCode()))
+            .map(school -> UUID.fromString(school.getSchoolId()))
+            .toList();
+    if (districtSchoolIDs.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return assessmentStudentLightRepository.findSchoolIDsWithResultsBySessionID(sessionID, districtSchoolIDs);
+  }
+
   public DownloadableReportResponse generateDOARSummaryReport(UUID assessmentSessionID, UUID schoolID){
     try {
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));

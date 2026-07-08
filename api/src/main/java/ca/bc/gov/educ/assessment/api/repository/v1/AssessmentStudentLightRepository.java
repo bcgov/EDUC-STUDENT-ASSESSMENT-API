@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -105,6 +106,16 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     and (stud.proficiencyScore is not null or stud.provincialSpecialCaseCode = 'X')
     """)
     long countBySessionIDAndSchoolIDWithResults(UUID sessionID, UUID schoolID);
+
+    @Query("""
+    select distinct stud.schoolAtWriteSchoolID
+    from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and stud.studentStatusCode = 'ACTIVE'
+    and (stud.proficiencyScore is not null or stud.provincialSpecialCaseCode = 'X')
+    and stud.schoolAtWriteSchoolID in :schoolIDs
+    """)
+    List<UUID> findSchoolIDsWithResultsBySessionID(UUID sessionID, Collection<UUID> schoolIDs);
 
     @Query("""
     select count(stud) > 0
