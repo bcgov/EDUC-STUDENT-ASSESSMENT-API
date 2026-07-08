@@ -69,6 +69,7 @@ public class CSVReportService {
     private static final String COLLECTION_TYPE_KEY = "collectionType";
     private static final String SEPTEMBER = "SEPTEMBER";
     private static final String DISTRICT_ID_FIELD = "districtId";
+    private static final String YUKON_DISTRICT_ID = "yukon";
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentFormRepository assessmentFormRepository;
@@ -82,6 +83,10 @@ public class CSVReportService {
     private final AssessmentStudentSearchService assessmentStudentSearchService;
     private final AssessmentCompletionCurrentStudentsService assessmentCompletionCurrentStudentsService;
     private final EntityManager entityManager;
+
+    public boolean isSessionReportAvailable(UUID sessionID) {
+        return assessmentStudentLightRepository.existsActiveStudentsBySessionID(sessionID);
+    }
 
     public DownloadableReportResponse generateSessionRegistrationsReport(UUID sessionID) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
@@ -1281,7 +1286,32 @@ public class CSVReportService {
                 assessmentCentre.map(SchoolTombstone::getDisplayName).orElse("")
         ));
     }
+    public boolean isYukonSummaryReportAvailable(UUID sessionID) {
+        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, DISTRICT_ID_FIELD, YUKON_DISTRICT_ID));
+        List<UUID> schoolsInDistrict = restUtils.getSchools()
+                .stream()
+                .filter(school -> Objects.equals(school.getDistrictId(), district.getDistrictId()))
+                .map(SchoolTombstone::getSchoolId)
+                .map(UUID::fromString)
+                .toList();
+        var results = assessmentStudentRepository.findYukonAssessmentCounts(schoolsInDistrict, List.of(sessionID));
+        return !results.isEmpty();
+    }
 
+    public boolean isYukonStudentDetailReportAvailable(UUID sessionID) {
+        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, DISTRICT_ID_FIELD, YUKON_DISTRICT_ID));
+        List<UUID> schoolsInDistrict = restUtils.getSchools()
+                .stream()
+                .filter(school -> Objects.equals(school.getDistrictId(), district.getDistrictId()))
+                .map(SchoolTombstone::getSchoolId)
+                .map(UUID::fromString)
+                .toList();
+        return assessmentStudentRepository.existsByAssessmentEntity_AssessmentSessionEntity_SessionIDAndSchoolAtWriteSchoolIDInAndStudentStatusCodeIn(sessionID, schoolsInDistrict, activeStatus);
+    }
+
+    public boolean isItemAnalysisDataAvailable(UUID sessionID, String assessmentTypeCode) {
+        return assessmentStudentLightRepository.existsByAssessmentTypeCodeAndSessionIDWithResults(assessmentTypeCode, sessionID);
+    }
     private List<String> prepareAssessmentCompletionCurrentStudentsRow(
             ReportGradStudentData student,
             AssessmentCompletionSummaryResult completionSummary,
@@ -1313,7 +1343,7 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateYukonReport(UUID sessionID) {
-        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, DISTRICT_ID_FIELD, "yukon"));
+        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, DISTRICT_ID_FIELD, YUKON_DISTRICT_ID));
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
 
         List<UUID> schoolsInDistrict = restUtils.getSchools()
@@ -1375,7 +1405,7 @@ public class CSVReportService {
     }
 
     public DownloadableReportResponse generateYukonStudentDetailsReport(UUID sessionID) {
-        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, DISTRICT_ID_FIELD, "yukon"));
+        var district = restUtils.getYukonDistrict().orElseThrow(() -> new EntityNotFoundException(District.class, DISTRICT_ID_FIELD, YUKON_DISTRICT_ID));
 
         List<UUID> schoolsInDistrict = restUtils.getSchools()
                 .stream()

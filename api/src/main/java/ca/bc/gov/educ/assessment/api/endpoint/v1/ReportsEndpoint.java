@@ -86,4 +86,23 @@ public interface ReportsEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     boolean checkSchoolReportAvailability(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @RequestParam(required = false) String assessmentTypeCode);
+
+    @GetMapping("/{sessionID}/{type}/available")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    boolean checkSessionReportAvailability(@PathVariable UUID sessionID, @PathVariable(name = "type") String type);
+
+    @GetMapping("/{sessionID}/school/{schoolID}/{type}/available")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    boolean checkSchoolReportTypeAvailability(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @PathVariable(name = "type") String type);
+
+    @GetMapping("/student/{studentID}/{type}/available")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    boolean checkStudentReportAvailability(@PathVariable UUID studentID, @PathVariable(name = "type") String type);
+
 }
