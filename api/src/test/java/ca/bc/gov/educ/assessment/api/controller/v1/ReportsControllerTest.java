@@ -18,6 +18,7 @@ import ca.bc.gov.educ.assessment.api.service.v1.XAMFileService;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentMerge;
 import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.AssessmentCompletionCurrentStudentPage;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.ReportGradStudentData;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
@@ -1985,15 +1986,15 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTE10.getCode()));
         AssessmentStudentEntity student = createMockStudentEntity(assessment);
         student.setPen("123456789");
+        student.setLocalID("L123");
         student.setProficiencyScore(3);
         studentRepository.save(student);
 
-        PaginatedResponse<ReportGradStudentData> gradPage = new PaginatedResponse<>(
-                List.of(ReportGradStudentData.builder()
+        AssessmentCompletionCurrentStudentPage gradPage = AssessmentCompletionCurrentStudentPage.builder()
+                .content(List.of(ReportGradStudentData.builder()
                         .graduationStudentRecordId(UUID.randomUUID())
                         .schoolOfRecordId(UUID.fromString(school.getSchoolId()))
                         .pen("123456789")
-                        .localID("L123")
                         .lastName("DOE")
                         .firstName("JANE")
                         .middleName("Q")
@@ -2001,11 +2002,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                         .studentGrade("12")
                         .programCode("2023-EN")
                         .studentStatus("CUR")
-                        .build()),
-                PageRequest.of(0, 1000),
-                1L
-        );
-        when(this.restUtils.getGradStudentReportPage(anyString(), anyInt(), anyInt())).thenReturn(gradPage);
+                        .build()))
+                .pageNumber(0)
+                .pageSize(2000)
+                .numberOfElements(1)
+                .hasNext(false)
+                .build();
+        when(this.restUtils.getGradAssessmentCompletionCurrentStudentsPage(eq("schoolId"), eq(school.getSchoolId()), anyInt(), anyInt())).thenReturn(gradPage);
 
         this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/school/" + school.getSchoolId() + "/assessment-completions/current-students/download")
@@ -2028,14 +2031,14 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTP12.getCode()));
         AssessmentStudentEntity student = createMockStudentEntity(assessment);
         student.setPen("123456789");
+        student.setLocalID("L123");
         student.setProvincialSpecialCaseCode("E");
         studentRepository.save(student);
 
-        PaginatedResponse<ReportGradStudentData> gradPage = new PaginatedResponse<>(
-                List.of(ReportGradStudentData.builder()
+        AssessmentCompletionCurrentStudentPage gradPage = AssessmentCompletionCurrentStudentPage.builder()
+                .content(List.of(ReportGradStudentData.builder()
                         .graduationStudentRecordId(UUID.randomUUID())
                         .pen("123456789")
-                        .localID("L123")
                         .lastName("DOE")
                         .firstName("JANE")
                         .middleName("Q")
@@ -2044,11 +2047,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                         .programCode("2023-EN")
                         .schoolName("Marco's school")
                         .studentStatus("CUR")
-                        .build()),
-                PageRequest.of(0, 1000),
-                1L
-        );
-        when(this.restUtils.getGradStudentReportPage(anyString(), anyInt(), anyInt())).thenReturn(gradPage);
+                        .build()))
+                .pageNumber(0)
+                .pageSize(2000)
+                .numberOfElements(1)
+                .hasNext(false)
+                .build();
+        when(this.restUtils.getGradAssessmentCompletionCurrentStudentsPage(eq("districtId"), eq(district.getDistrictId()), anyInt(), anyInt())).thenReturn(gradPage);
 
         this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/district/" + district.getDistrictId() + "/assessment-completions/current-students/download")
