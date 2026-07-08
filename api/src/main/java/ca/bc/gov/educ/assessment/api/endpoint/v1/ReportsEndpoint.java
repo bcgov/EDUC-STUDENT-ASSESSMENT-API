@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @RequestMapping(URL.BASE_URL_REPORT)
@@ -104,5 +105,11 @@ public interface ReportsEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     boolean checkStudentReportAvailability(@PathVariable UUID studentID, @PathVariable(name = "type") String type);
+
+    @GetMapping("/{sessionID}/district/{districtID}/schools-with-results")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    List<UUID> getDistrictSchoolsWithResults(@PathVariable UUID sessionID, @PathVariable UUID districtID);
 
 }
