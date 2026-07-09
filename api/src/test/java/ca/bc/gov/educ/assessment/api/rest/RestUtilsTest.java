@@ -7,6 +7,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.AssessmentCompletionCurrentStudentPage;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.ReportGradStudentData;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.District;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
@@ -697,6 +698,61 @@ class RestUtilsTest {
         assertEquals(1, result.getContent().size());
         assertEquals("123456789", result.getContent().get(0).getPen());
         verify(webClient).get();
+    }
+
+    @Test
+    void testGetGradAssessmentCompletionCurrentStudentsPage_ForSchool_WhenApiCallSucceeds_ShouldReturnPage() {
+        AssessmentCompletionCurrentStudentPage expectedResponse = AssessmentCompletionCurrentStudentPage.builder()
+                .content(List.of(ReportGradStudentData.builder().pen("123456789").build()))
+                .pageNumber(0)
+                .pageSize(2000)
+                .numberOfElements(1)
+                .hasNext(false)
+                .build();
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(AssessmentCompletionCurrentStudentPage.class)).thenReturn(Mono.just(expectedResponse));
+        when(props.getGradStudentApiURL()).thenReturn("http://localhost:8092/api/v1/student");
+
+        AssessmentCompletionCurrentStudentPage result = restUtils.getGradAssessmentCompletionCurrentStudentsPage("schoolId", "school-guid", 0, 2000);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        verify(uriSpec).uri("http://localhost:8092/api/v1/student/grad/student/reports/assessment-completions/current-students?schoolId=school-guid&pageNumber=0&pageSize=2000");
+    }
+
+    @Test
+    void testGetGradAssessmentCompletionCurrentStudentsPage_ForDistrict_ShouldAppendSchoolCategoryCode() {
+        AssessmentCompletionCurrentStudentPage expectedResponse = AssessmentCompletionCurrentStudentPage.builder()
+                .content(List.of())
+                .pageNumber(1)
+                .pageSize(2000)
+                .numberOfElements(0)
+                .hasNext(false)
+                .build();
+
+        WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(webClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(AssessmentCompletionCurrentStudentPage.class)).thenReturn(Mono.just(expectedResponse));
+        when(props.getGradStudentApiURL()).thenReturn("http://localhost:8092/api/v1/student");
+
+        AssessmentCompletionCurrentStudentPage result = restUtils.getGradAssessmentCompletionCurrentStudentsPage("districtId", "district-guid", 1, 2000);
+
+        assertNotNull(result);
+        verify(uriSpec).uri("http://localhost:8092/api/v1/student/grad/student/reports/assessment-completions/current-students?districtId=district-guid&pageNumber=1&pageSize=2000&schoolCategoryCode=PUBLIC");
     }
 
     @Test

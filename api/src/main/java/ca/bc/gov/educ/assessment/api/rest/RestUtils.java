@@ -11,6 +11,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.struct.Event;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
+import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.AssessmentCompletionCurrentStudentPage;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.GradStudentRecord;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.ReportGradStudentData;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.*;
@@ -361,6 +362,31 @@ public class RestUtils {
       .retrieve()
       .bodyToMono(new ParameterizedTypeReference<PaginatedResponse<ReportGradStudentData>>() {
       })
+      .block();
+  }
+
+  public AssessmentCompletionCurrentStudentPage getGradAssessmentCompletionCurrentStudentsPage(
+    final String scopeType,
+    final String scopeId,
+    final int pageNumber,
+    final int pageSize
+  ) {
+    String fullUrl = this.props.getGradStudentApiURL()
+      + "/grad/student/reports/assessment-completions/current-students"
+      + "?" + scopeType + "=" + scopeId
+      + "&pageNumber=" + pageNumber
+      + PAGE_SIZE_QUERY_PARAM + pageSize;
+
+    if ("districtId".equals(scopeType)) {
+      fullUrl = fullUrl + "&schoolCategoryCode=PUBLIC";
+    }
+
+    log.debug("Fetching grad assessment completion current students page from URL: {}", fullUrl);
+    return this.webClient.get()
+      .uri(fullUrl)
+      .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+      .retrieve()
+      .bodyToMono(AssessmentCompletionCurrentStudentPage.class)
       .block();
   }
 

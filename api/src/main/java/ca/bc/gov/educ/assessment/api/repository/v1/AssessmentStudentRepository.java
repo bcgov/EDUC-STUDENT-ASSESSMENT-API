@@ -3,6 +3,7 @@ package ca.bc.gov.educ.assessment.api.repository.v1;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentRegistrationTotalsBySchoolResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentCompletionSummaryResult;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.AssessmentStudentLocalIdResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.NumberOfAttemptsStudent;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.RegistrationSummaryResult;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.YukonAssessmentCount;
@@ -196,6 +197,17 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         group by stud.pen
         """)
     List<AssessmentCompletionSummaryResult> findAssessmentCompletionSummaryByPenIn(List<String> pens);
+
+    @Query(value = """
+        select stud.pen as pen,
+        max(stud.localID) as localID
+        from AssessmentStudentEntity stud
+        where stud.pen in (:pens)
+        and stud.studentStatusCode = 'ACTIVE'
+        and stud.localID is not null
+        group by stud.pen
+        """)
+    List<AssessmentStudentLocalIdResult> findStudentLocalIdsByPenIn(List<String> pens);
 
     List<AssessmentStudentEntity> findByAssessmentFormIDIn(List<UUID> assessmentFormIDs); //Only used in tests so didn't add ACTIVE check
 

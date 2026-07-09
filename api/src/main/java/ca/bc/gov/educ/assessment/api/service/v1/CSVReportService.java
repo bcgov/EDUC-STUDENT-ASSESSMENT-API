@@ -1198,7 +1198,8 @@ public class CSVReportService {
 
                 for (var student : gradStudentsPage.getContent()) {
                     final var completionSummary = chunk.getAssessmentCompletionByPen().get(student.getPen());
-                    csvPrinter.printRecord(prepareAssessmentCompletionCurrentStudentsRow(student, completionSummary, includeSchoolOfRecord));
+                    final String localId = chunk.getLocalIdByPen().get(student.getPen());
+                    csvPrinter.printRecord(prepareAssessmentCompletionCurrentStudentsRow(student, localId, completionSummary, includeSchoolOfRecord));
                     rowCount++;
 
                     if (rowCount % CSV_FLUSH_INTERVAL == 0) {
@@ -1206,7 +1207,8 @@ public class CSVReportService {
                     }
                 }
 
-                lastPage = gradStudentsPage.isLast();
+                csvPrinter.flush();
+                lastPage = !Boolean.TRUE.equals(gradStudentsPage.getHasNext());
                 pageNumber++;
             } while (!lastPage);
 
@@ -1314,6 +1316,7 @@ public class CSVReportService {
     }
     private List<String> prepareAssessmentCompletionCurrentStudentsRow(
             ReportGradStudentData student,
+            String localId,
             AssessmentCompletionSummaryResult completionSummary,
             boolean includeSchoolOfRecord) {
         final List<String> row = new ArrayList<>();
@@ -1321,7 +1324,7 @@ public class CSVReportService {
             row.add(StringUtils.defaultString(student.getSchoolName()));
         }
         row.add(StringUtils.defaultString(student.getPen()));
-        row.add(StringUtils.defaultString(student.getLocalID()));
+        row.add(StringUtils.defaultString(localId));
         row.add(StringUtils.defaultString(student.getLastName()));
         row.add(StringUtils.defaultString(student.getFirstName()));
         row.add(StringUtils.defaultString(student.getMiddleName()));
