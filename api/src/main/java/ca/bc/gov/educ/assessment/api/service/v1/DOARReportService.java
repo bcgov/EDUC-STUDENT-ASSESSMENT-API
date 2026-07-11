@@ -12,9 +12,11 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentDOARCalculationRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentLightRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
+import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.DOARCalculate;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
+import ca.bc.gov.educ.assessment.api.util.SchoolTombstoneUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -36,6 +40,7 @@ public class DOARReportService {
     private final AssessmentStudentLightRepository assessmentStudentLightRepository;
     private final AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository;
     private final DOARCalculateService doarCalculateService;
+    private final RestUtils restUtils;
     private EnumMap<DOARColumnLookup, DOARCalculate> map;
     private static final String SESSION_ID = "sessionID";
     private static final String OPEN_ENDED = "OPEN_ENDED";
@@ -46,12 +51,13 @@ public class DOARReportService {
     private static final String LTP10 = "LTP10";
     private static final String LTF12= "LTF12";
 
-    public DOARReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentLightRepository assessmentStudentLightRepository, AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository, DOARCalculateService doarCalculateService) {
+    public DOARReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentRepository assessmentStudentRepository, AssessmentStudentLightRepository assessmentStudentLightRepository, AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository, DOARCalculateService doarCalculateService, RestUtils restUtils) {
         this.assessmentSessionRepository = assessmentSessionRepository;
         this.assessmentStudentRepository = assessmentStudentRepository;
         this.assessmentStudentLightRepository = assessmentStudentLightRepository;
         this.assessmentStudentDOARCalculationRepository = assessmentStudentDOARCalculationRepository;
         this.doarCalculateService = doarCalculateService;
+        this.restUtils = restUtils;
         init();
     }
 
@@ -81,6 +87,57 @@ public class DOARReportService {
             var studentDOARCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentIDAndAssessmentID(result.getAssessmentStudentID(), result.getAssessmentEntity().getAssessmentID());
             if(studentDOARCalc.isPresent()) {
                 List<String> csvRowData = prepareDOARForCsv(result, studentDOARCalc.get(), schoolTombstone.getMincode(), assessmentTypeCode);
+                csvRecords.add(csvRowData);
+            }
+        }
+        return csvRecords;
+    }
+
+    public boolean isDistrictDetailedDOARAvailable(UUID sessionID, UUID districtID, String assessmentTypeCode) {
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+        AssessmentEntity assessmentEntity = session.getAssessments().stream()
+            .filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode))
+            .findFirst()
+            .orElse(null);
+        if (assessmentEntity == null) return false;
+        List<UUID> districtSchoolIDs = SchoolTombstoneUtil.filterDistrictPublicSchools(restUtils.getAllSchoolTombstones(), districtID).stream()
+                .map(school -> UUID.fromString(school.getSchoolId()))
+                .toList();
+        if (districtSchoolIDs.isEmpty()) return false;
+        return assessmentStudentLightRepository.countByAssessmentIDAndSchoolIDInWithResults(assessmentEntity.getAssessmentID(), districtSchoolIDs) > 0;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public List<List<String>> generateDetailedDOARByDistrictAndAssessmentType(UUID sessionID, UUID districtID, String assessmentTypeCode) {
+        List<List<String>> csvRecords = new ArrayList<>();
+        var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
+
+        AssessmentEntity assessmentEntity = session.getAssessments().stream().filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode)).findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentTypeCode", assessmentTypeCode));
+
+        Map<UUID, SchoolTombstone> districtSchoolsBySchoolID = SchoolTombstoneUtil.filterDistrictPublicSchools(restUtils.getAllSchoolTombstones(), districtID).stream()
+                .collect(Collectors.toMap(school -> UUID.fromString(school.getSchoolId()), Function.identity()));
+
+        if(districtSchoolsBySchoolID.isEmpty()) {
+            throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
+        }
+
+        List<AssessmentStudentLightEntity> results = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDInAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCodeIn(assessmentEntity.getAssessmentID(), districtSchoolsBySchoolID.keySet(), StudentStatusCodes.ACTIVE.getCode(), List.of("X", "E"));
+
+        if(results.isEmpty()) {
+            throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
+        }
+
+        List<AssessmentStudentLightEntity> sortedResults = results.stream()
+                .sorted(Comparator.comparing((AssessmentStudentLightEntity result) -> districtSchoolsBySchoolID.get(result.getSchoolAtWriteSchoolID()).getMincode())
+                        .thenComparing(result -> StringUtils.defaultString(result.getPen())))
+                .toList();
+
+        for (AssessmentStudentLightEntity result : sortedResults) {
+            System.out.println(result);
+            var studentDOARCalc = assessmentStudentDOARCalculationRepository.findByAssessmentStudentIDAndAssessmentID(result.getAssessmentStudentID(), result.getAssessmentEntity().getAssessmentID());
+            if(studentDOARCalc.isPresent()) {
+                var mincode = districtSchoolsBySchoolID.get(result.getSchoolAtWriteSchoolID()).getMincode();
+                List<String> csvRowData = prepareDOARForCsv(result, studentDOARCalc.get(), mincode, assessmentTypeCode);
                 csvRecords.add(csvRowData);
             }
         }

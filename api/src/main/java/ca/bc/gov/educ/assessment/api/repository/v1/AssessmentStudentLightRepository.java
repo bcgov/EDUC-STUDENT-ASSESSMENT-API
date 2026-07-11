@@ -27,6 +27,16 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     """)
     List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCodeIn(UUID assessmentID, UUID schoolAtWriteSchoolID, String studentStatusCode, List<String> allowedSpecialCaseCodes);
 
+    @Query("""
+    select stud from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentID = :assessmentID
+    and stud.schoolAtWriteSchoolID in :schoolAtWriteSchoolIDs
+    and stud.studentStatusCode = :studentStatusCode
+    and (stud.proficiencyScore is not null
+         or stud.provincialSpecialCaseCode in :allowedSpecialCaseCodes)
+    """)
+    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDInAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCodeIn(UUID assessmentID, Collection<UUID> schoolAtWriteSchoolIDs, String studentStatusCode, List<String> allowedSpecialCaseCodes);
+
 
     @Query("""
     select stud from AssessmentStudentLightEntity stud
@@ -155,6 +165,16 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     and (stud.proficiencyScore is not null or stud.provincialSpecialCaseCode in ('X', 'E'))
     """)
     long countByAssessmentIDAndSchoolIDWithResults(UUID assessmentID, UUID schoolID);
+
+    @Query("""
+    select count(stud)
+    from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentID = :assessmentID
+    and stud.schoolAtWriteSchoolID in :schoolIDs
+    and stud.studentStatusCode = 'ACTIVE'
+    and (stud.proficiencyScore is not null or stud.provincialSpecialCaseCode in ('X', 'E'))
+    """)
+    long countByAssessmentIDAndSchoolIDInWithResults(UUID assessmentID, Collection<UUID> schoolIDs);
 
     @Query(value="""
         select stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode,

@@ -40,6 +40,12 @@ public interface ReportsEndpoint {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     DownloadableReportResponse getDownloadableReportForSchool(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @PathVariable(name = "type") String type);
 
+    @GetMapping("/{sessionID}/district/{districtID}/{type}/download")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    DownloadableReportResponse getDownloadableReportForDistrict(@PathVariable UUID sessionID, @PathVariable UUID districtID, @PathVariable(name = "type") String type);
+
     @GetMapping("/{sessionID}/{type}")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
     @Transactional(readOnly = true)
@@ -99,6 +105,18 @@ public interface ReportsEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     boolean checkSchoolReportTypeAvailability(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @PathVariable(name = "type") String type);
+
+    @GetMapping("/{sessionID}/district/{districtID}/results/available")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    boolean checkDistrictReportAvailability(@PathVariable UUID sessionID, @PathVariable UUID districtID, @RequestParam(required = false) String assessmentTypeCode);
+
+    @GetMapping("/{sessionID}/district/{districtID}/{type}/available")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    boolean checkDistrictReportTypeAvailability(@PathVariable UUID sessionID, @PathVariable UUID districtID, @PathVariable(name = "type") String type);
 
     @GetMapping("/student/{studentID}/{type}/available")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")

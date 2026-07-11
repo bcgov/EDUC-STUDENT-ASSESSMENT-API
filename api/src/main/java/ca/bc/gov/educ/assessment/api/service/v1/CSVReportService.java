@@ -525,6 +525,32 @@ public class CSVReportService {
         }
     }
 
+    public DownloadableReportResponse generateDetailedDOARByDistrict(UUID sessionID, UUID districtID, String assessmentTypeCode) {
+        this.restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, DISTRICT_ID_FIELD, districtID.toString()));
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+                 CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat)) {
+
+                csvPrinter.printRecord(getDOARHeaders(assessmentTypeCode));
+
+                for (List<String> row : doarReportService.generateDetailedDOARByDistrictAndAssessmentType(sessionID, districtID, assessmentTypeCode)) {
+                    csvPrinter.printRecord(row);
+                }
+                csvPrinter.flush();
+            }
+
+            DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
+            downloadableReport.setReportType(assessmentTypeCode);
+            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
+            return downloadableReport;
+        } catch (IOException e) {
+            throw new StudentAssessmentAPIRuntimeException(e);
+        }
+    }
+
     public DownloadableReportResponse generateKeyReport(UUID sessionID, String assessmentTypeCode) {
         var session = assessmentSessionRepository.findById(sessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, SESSION_ID, sessionID.toString()));
         AssessmentEntity assessmentEntity = session.getAssessments().stream().filter(entity -> entity.getAssessmentTypeCode().equalsIgnoreCase(assessmentTypeCode)).findFirst().orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentTypeCode", assessmentTypeCode));

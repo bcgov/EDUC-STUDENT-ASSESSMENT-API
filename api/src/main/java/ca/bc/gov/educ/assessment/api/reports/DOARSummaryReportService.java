@@ -18,6 +18,7 @@ import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.doar.*;
+import ca.bc.gov.educ.assessment.api.util.SchoolTombstoneUtil;
 import ca.bc.gov.educ.assessment.api.util.TextNormalizer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.annotation.PostConstruct;
@@ -94,18 +95,17 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
   }
 
   public List<UUID> getDistrictSchoolIDsWithResults(UUID sessionID, UUID districtID) {
-    var schoolTombstones = restUtils.getAllSchoolTombstones();
-    List<UUID> districtSchoolIDs = schoolTombstones.stream()
-            .filter(school -> StringUtils.isNotBlank(school.getSchoolId()))
-            .filter(school -> districtID.toString().equalsIgnoreCase(school.getDistrictId()))
-            .filter(school -> StringUtils.isBlank(school.getIndependentAuthorityId()))
-            .filter(school -> !INDEPENDENTS_AND_OFFSHORE.contains(school.getSchoolCategoryCode()))
+    List<UUID> districtSchoolIDs = SchoolTombstoneUtil.filterDistrictPublicSchools(restUtils.getAllSchoolTombstones(), districtID).stream()
             .map(school -> UUID.fromString(school.getSchoolId()))
             .toList();
     if (districtSchoolIDs.isEmpty()) {
       return Collections.emptyList();
     }
     return assessmentStudentLightRepository.findSchoolIDsWithResultsBySessionID(sessionID, districtSchoolIDs);
+  }
+
+  public boolean isDistrictDOARSummaryAvailable(UUID sessionID, UUID districtID) {
+    return !getDistrictSchoolIDsWithResults(sessionID, districtID).isEmpty();
   }
 
   public DownloadableReportResponse generateDOARSummaryReport(UUID assessmentSessionID, UUID schoolID){
@@ -118,34 +118,11 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       if(!schoolHasAnyResult){
         throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
       }
-      boolean isIndependent = school.getIndependentAuthorityId() != null;
       DOARSummaryNode doarSummaryNode = new DOARSummaryNode();
       doarSummaryNode.setReports(new ArrayList<>());
 
       var studentsByAssessment = organizeStudentsInEachAssessment(students);
-      studentsByAssessment.entrySet().stream()
-        .sorted(Comparator.comparingInt(e -> AssessmentTypeCodes.sortOrderFor(e.getKey())))
-        .forEach(entry -> {
-          var studentList = entry.getValue();
-          var assessmentType = entry.getKey();
-          boolean schoolHasResult = studentList.stream().anyMatch(student -> Objects.equals(student.getSchoolAtWriteSchoolID(), UUID.fromString(school.getSchoolId())));
-          if(!studentList.isEmpty() && schoolHasResult) {
-            DOARSummaryPage doarSummaryPage = new DOARSummaryPage();
-            setReportTombstoneValues(session, doarSummaryPage, assessmentType, school);
-            doarSummaryPage.setProficiencySection(new ArrayList<>());
-            doarSummaryPage.setTaskScore(new ArrayList<>());
-            doarSummaryPage.setComprehendScore(new ArrayList<>());
-            doarSummaryPage.setCommunicateScore(new ArrayList<>());
-            doarSummaryPage.setCommunicateOralScore(new ArrayList<>());
-            doarSummaryPage.setNumeracyScore(new ArrayList<>());
-            doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
-
-            setProficiencyLevels(studentList, isIndependent, school, doarSummaryPage, assessmentType);
-            setAssessmentRawScores(studentList, isIndependent, school, doarSummaryPage, assessmentType);
-
-            doarSummaryNode.getReports().add(doarSummaryPage);
-          }
-      });
+      addSchoolPagesToReport(session, studentsByAssessment, school, doarSummaryNode);
       var normalized = TextNormalizer.normalizeObject(doarSummaryNode);
       var payload = objectWriter.writeValueAsString(normalized);
       return generateJasperReport(payload, doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
@@ -155,6 +132,69 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report for ell programs :: " + e.getMessage());
     }
   }
+
+  public DownloadableReportResponse generateDistrictDOARSummaryReport(UUID assessmentSessionID, UUID districtID){
+    try {
+      var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
+      var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), "X");
+
+      Set<UUID> schoolIDsWithResults = students.stream()
+              .map(AssessmentStudentLightEntity::getSchoolAtWriteSchoolID)
+              .filter(Objects::nonNull)
+              .collect(Collectors.toSet());
+
+      List<SchoolTombstone> districtSchoolsWithResults = SchoolTombstoneUtil.filterDistrictPublicSchools(restUtils.getAllSchoolTombstones(), districtID).stream()
+              .filter(school -> schoolIDsWithResults.contains(UUID.fromString(school.getSchoolId())))
+              .sorted(Comparator.comparing(SchoolTombstone::getMincode))
+              .toList();
+
+      if(districtSchoolsWithResults.isEmpty()){
+        throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
+      }
+
+      DOARSummaryNode doarSummaryNode = new DOARSummaryNode();
+      doarSummaryNode.setReports(new ArrayList<>());
+
+      var studentsByAssessment = organizeStudentsInEachAssessment(students);
+      districtSchoolsWithResults.forEach(school -> addSchoolPagesToReport(session, studentsByAssessment, school, doarSummaryNode));
+
+      var normalized = TextNormalizer.normalizeObject(doarSummaryNode);
+      var payload = objectWriter.writeValueAsString(normalized);
+      return generateJasperReport(payload, doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
+    }
+    catch (JsonProcessingException e) {
+      log.error("Exception occurred while writing district DOAR summary PDF report :: " + e.getMessage());
+      throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing district DOAR summary PDF report :: " + e.getMessage());
+    }
+  }
+
+  private void addSchoolPagesToReport(AssessmentSessionEntity session, Map<String, List<AssessmentStudentLightEntity>> studentsByAssessment, SchoolTombstone school, DOARSummaryNode doarSummaryNode) {
+    boolean isIndependent = school.getIndependentAuthorityId() != null;
+    studentsByAssessment.entrySet().stream()
+      .sorted(Comparator.comparingInt(e -> AssessmentTypeCodes.sortOrderFor(e.getKey())))
+      .forEach(entry -> {
+        var studentList = entry.getValue();
+        var assessmentType = entry.getKey();
+        boolean schoolHasResult = studentList.stream().anyMatch(student -> Objects.equals(student.getSchoolAtWriteSchoolID(), UUID.fromString(school.getSchoolId())));
+        if(!studentList.isEmpty() && schoolHasResult) {
+          DOARSummaryPage doarSummaryPage = new DOARSummaryPage();
+          setReportTombstoneValues(session, doarSummaryPage, assessmentType, school);
+          doarSummaryPage.setProficiencySection(new ArrayList<>());
+          doarSummaryPage.setTaskScore(new ArrayList<>());
+          doarSummaryPage.setComprehendScore(new ArrayList<>());
+          doarSummaryPage.setCommunicateScore(new ArrayList<>());
+          doarSummaryPage.setCommunicateOralScore(new ArrayList<>());
+          doarSummaryPage.setNumeracyScore(new ArrayList<>());
+          doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
+
+          setProficiencyLevels(studentList, isIndependent, school, doarSummaryPage, assessmentType);
+          setAssessmentRawScores(studentList, isIndependent, school, doarSummaryPage, assessmentType);
+
+          doarSummaryNode.getReports().add(doarSummaryPage);
+        }
+    });
+  }
+
   
   private HashMap<String, List<AssessmentStudentLightEntity>> organizeStudentsInEachAssessment(List<AssessmentStudentLightEntity> students) {
     HashMap<String, List<AssessmentStudentLightEntity>> studentsHash = new HashMap<>();
