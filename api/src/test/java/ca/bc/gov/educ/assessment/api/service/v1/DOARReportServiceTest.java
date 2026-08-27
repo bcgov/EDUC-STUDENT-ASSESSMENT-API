@@ -14,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -214,7 +215,8 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         var student = createMockStudentEntity(savedAssessment);
         student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
         student.setProficiencyScore(3);
-        studentRepository.save(student);
+        var savedStudent = studentRepository.save(student);
+        saveMinimalDOARCalculation(savedStudent);
 
         boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "NME10");
         assertThat(result).isTrue();
@@ -230,7 +232,8 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         var student = createMockStudentEntity(savedAssessment);
         student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
         student.setProvincialSpecialCaseCode("X");
-        studentRepository.save(student);
+        var savedStudent = studentRepository.save(student);
+        saveMinimalDOARCalculation(savedStudent);
 
         boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "LTE10");
         assertThat(result).isTrue();
@@ -246,10 +249,27 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
         var student = createMockStudentEntity(savedAssessment);
         student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
         student.setProvincialSpecialCaseCode("E");
-        studentRepository.save(student);
+        var savedStudent = studentRepository.save(student);
+        saveMinimalDOARCalculation(savedStudent);
 
         boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "LTF12");
         assertThat(result).isTrue();
+    }
+
+    @Test
+    void testIsDetailedDOARAvailable_WhenStudentHasResultsButNoDOARCalculation_ReturnsFalse() {
+        var school = this.createMockSchool();
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, "NME10"));
+
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student.setProficiencyScore(3);
+        studentRepository.save(student);
+
+        boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "NME10");
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -288,6 +308,17 @@ class DOARReportServiceTest extends BaseAssessmentAPITest {
 
         boolean result = doarReportService.isDetailedDOARAvailable(savedSession.getSessionID(), UUID.fromString(school.getSchoolId()), "NME10");
         assertThat(result).isFalse();
+    }
+
+    private void saveMinimalDOARCalculation(AssessmentStudentEntity student) {
+        assessmentStudentDOARCalculationRepository.save(AssessmentStudentDOARCalculationEntity.builder()
+                .assessmentStudentID(student.getAssessmentStudentID())
+                .assessmentID(student.getAssessmentEntity().getAssessmentID())
+                .createUser("TEST")
+                .createDate(LocalDateTime.now())
+                .updateUser("TEST")
+                .updateDate(LocalDateTime.now())
+                .build());
     }
 
     private AssessmentFormEntity setData(String assessmentTypeCode, SchoolTombstone schoolTombstone) {

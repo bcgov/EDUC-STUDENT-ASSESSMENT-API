@@ -24,8 +24,24 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     and stud.studentStatusCode = :studentStatusCode
     and (stud.proficiencyScore is not null
          or stud.provincialSpecialCaseCode in :allowedSpecialCaseCodes)
+    and exists (select 1 from AssessmentStudentDOARCalculationEntity calc
+                where calc.assessmentStudentID = stud.assessmentStudentID
+                and calc.assessmentID = :assessmentID)
     """)
-    List<AssessmentStudentLightEntity> findByAssessmentEntity_AssessmentIDAndSchoolAtWriteSchoolIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCodeIn(UUID assessmentID, UUID schoolAtWriteSchoolID, String studentStatusCode, List<String> allowedSpecialCaseCodes);
+    List<AssessmentStudentLightEntity> findStudentsWithResultsAndDOARCalculationsByAssessmentIDAndSchoolID(UUID assessmentID, UUID schoolAtWriteSchoolID, String studentStatusCode, List<String> allowedSpecialCaseCodes);
+
+    @Query("""
+    select stud from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentID = :assessmentID
+    and stud.schoolAtWriteSchoolID in :schoolAtWriteSchoolIDs
+    and stud.studentStatusCode = :studentStatusCode
+    and (stud.proficiencyScore is not null
+         or stud.provincialSpecialCaseCode in :allowedSpecialCaseCodes)
+    and exists (select 1 from AssessmentStudentDOARCalculationEntity calc
+                where calc.assessmentStudentID = stud.assessmentStudentID
+                and calc.assessmentID = :assessmentID)
+    """)
+    List<AssessmentStudentLightEntity> findStudentsWithResultsAndDOARCalculationsByAssessmentIDAndSchoolIDIn(UUID assessmentID, Collection<UUID> schoolAtWriteSchoolIDs, String studentStatusCode, List<String> allowedSpecialCaseCodes);
 
 
     @Query("""
@@ -153,8 +169,24 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
     and stud.schoolAtWriteSchoolID = :schoolID
     and stud.studentStatusCode = 'ACTIVE'
     and (stud.proficiencyScore is not null or stud.provincialSpecialCaseCode in ('X', 'E'))
+    and exists (select 1 from AssessmentStudentDOARCalculationEntity calc
+                where calc.assessmentStudentID = stud.assessmentStudentID
+                and calc.assessmentID = :assessmentID)
     """)
-    long countByAssessmentIDAndSchoolIDWithResults(UUID assessmentID, UUID schoolID);
+    long countStudentsWithResultsAndDOARCalculationsByAssessmentIDAndSchoolID(UUID assessmentID, UUID schoolID);
+
+    @Query("""
+    select count(stud)
+    from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentID = :assessmentID
+    and stud.schoolAtWriteSchoolID in :schoolIDs
+    and stud.studentStatusCode = 'ACTIVE'
+    and (stud.proficiencyScore is not null or stud.provincialSpecialCaseCode in ('X', 'E'))
+    and exists (select 1 from AssessmentStudentDOARCalculationEntity calc
+                where calc.assessmentStudentID = stud.assessmentStudentID
+                and calc.assessmentID = :assessmentID)
+    """)
+    long countStudentsWithResultsAndDOARCalculationsByAssessmentIDAndSchoolIDIn(UUID assessmentID, Collection<UUID> schoolIDs);
 
     @Query(value="""
         select stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode,
