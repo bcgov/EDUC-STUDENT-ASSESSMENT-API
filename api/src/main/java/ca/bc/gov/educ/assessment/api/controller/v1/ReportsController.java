@@ -9,6 +9,7 @@ import ca.bc.gov.educ.assessment.api.exception.InvalidPayloadException;
 import ca.bc.gov.educ.assessment.api.exception.errors.ApiError;
 import ca.bc.gov.educ.assessment.api.reports.*;
 import ca.bc.gov.educ.assessment.api.service.v1.*;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.DistrictReportAvailability;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import jakarta.servlet.http.HttpServletResponse;
@@ -168,7 +169,7 @@ public class ReportsController implements ReportsEndpoint {
     }
 
     @Override
-    public DownloadableReportResponse getDownloadableReportForDistrict(UUID sessionID, UUID districtID, String type) {
+    public void streamDistrictReport(UUID sessionID, UUID districtID, String type, HttpServletResponse response) throws IOException {
         Optional<AssessmentReportTypeCode> code = AssessmentReportTypeCode.findByValue(type);
 
         if (code.isEmpty()) {
@@ -178,24 +179,37 @@ public class ReportsController implements ReportsEndpoint {
 
         switch (code.get()) {
             case NME_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.NME10.getCode());
+                csvReportService.streamDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.NME10.getCode(), response);
+                break;
             case NMF_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.NMF10.getCode());
+                csvReportService.streamDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.NMF10.getCode(), response);
+                break;
             case LTE10_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTE10.getCode());
+                csvReportService.streamDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTE10.getCode(), response);
+                break;
             case LTE12_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTE12.getCode());
+                csvReportService.streamDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTE12.getCode(), response);
+                break;
             case LTP10_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTP10.getCode());
+                csvReportService.streamDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTP10.getCode(), response);
+                break;
             case LTP12_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTP12.getCode());
+                csvReportService.streamDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTP12.getCode(), response);
+                break;
             case LTF12_DETAILED_DOAR:
-                return csvReportService.generateDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTF12.getCode());
+                csvReportService.streamDetailedDOARByDistrict(sessionID, districtID, AssessmentTypeCodes.LTF12.getCode(), response);
+                break;
             case DOAR_SUMMARY:
-                return doarSummaryReportService.generateDistrictDOARSummaryReport(sessionID, districtID);
+                doarSummaryReportService.streamDistrictDOARSummaryReport(sessionID, districtID, response);
+                break;
             default:
-                return new DownloadableReportResponse();
+                throw new InvalidPayloadException(ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build());
         }
+    }
+
+    @Override
+    public DistrictReportAvailability getDistrictReportAvailability(UUID sessionID, UUID districtID) {
+        return doarReportService.getDistrictReportAvailability(sessionID, districtID);
     }
 
     @Override
@@ -221,7 +235,7 @@ public class ReportsController implements ReportsEndpoint {
             ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build();
             throw new InvalidPayloadException(error);
         }
-        
+
        return isrReportService.generateIndividualStudentReport(studentID);
     }
 
@@ -271,25 +285,6 @@ public class ReportsController implements ReportsEndpoint {
             return doarReportService.isDetailedDOARAvailableForDistrict(sessionID, districtID, assessmentTypeCode);
         }
         return doarSummaryReportService.isDistrictDOARSummaryAvailable(sessionID, districtID);
-    }
-
-    @Override
-    public boolean checkDistrictReportTypeAvailability(UUID sessionID, UUID districtID, String type) {
-        Optional<AssessmentReportTypeCode> code = AssessmentReportTypeCode.findByValue(type);
-        if (code.isEmpty()) {
-            ApiError error = ApiError.builder().timestamp(LocalDateTime.now()).message("Payload contains invalid report type code.").status(BAD_REQUEST).build();
-            throw new InvalidPayloadException(error);
-        }
-        return switch (code.get()) {
-            case NME_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailableForDistrict(sessionID, districtID, AssessmentTypeCodes.NME10.getCode());
-            case NMF_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailableForDistrict(sessionID, districtID, AssessmentTypeCodes.NMF10.getCode());
-            case LTE10_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailableForDistrict(sessionID, districtID, AssessmentTypeCodes.LTE10.getCode());
-            case LTE12_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailableForDistrict(sessionID, districtID, AssessmentTypeCodes.LTE12.getCode());
-            case LTP10_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailableForDistrict(sessionID, districtID, AssessmentTypeCodes.LTP10.getCode());
-            case LTP12_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailableForDistrict(sessionID, districtID, AssessmentTypeCodes.LTP12.getCode());
-            case LTF12_DETAILED_DOAR -> doarReportService.isDetailedDOARAvailableForDistrict(sessionID, districtID, AssessmentTypeCodes.LTF12.getCode());
-            default -> doarSummaryReportService.isDistrictDOARSummaryAvailable(sessionID, districtID);
-        };
     }
 
     @Override

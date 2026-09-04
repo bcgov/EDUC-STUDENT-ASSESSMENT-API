@@ -525,28 +525,25 @@ public class CSVReportService {
         }
     }
 
-    public DownloadableReportResponse generateDetailedDOARByDistrict(UUID sessionID, UUID districtID, String assessmentTypeCode) {
-        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+    public void streamDetailedDOARByDistrict(UUID sessionID, UUID districtID, String assessmentTypeCode, jakarta.servlet.http.HttpServletResponse response) throws IOException {
+        var district = restUtils.getDistrictByDistrictID(districtID.toString())
+                .orElseThrow(() -> new EntityNotFoundException(District.class, DISTRICT_ID_FIELD, districtID.toString()));
+        List<List<String>> csvRecords = doarReportService.generateDetailedDOARByDistrictAndAssessmentType(sessionID, districtID, assessmentTypeCode);
 
-        try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
-                 CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat)) {
+        String filename = "%s-%s-Detailed DOAR.csv".formatted(district.getDistrictNumber(), assessmentTypeCode);
+        response.setContentType("text/csv");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        response.setBufferSize(CSV_BUFFER_SIZE);
 
-                csvPrinter.printRecord(getDOARHeaders(assessmentTypeCode));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
+             CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.builder().build())) {
 
-                for (List<String> row : doarReportService.generateDetailedDOARByDistrictAndAssessmentType(sessionID, districtID, assessmentTypeCode)) {
-                    csvPrinter.printRecord(row);
-                }
-                csvPrinter.flush();
+            csvPrinter.printRecord(getDOARHeaders(assessmentTypeCode));
+            for (List<String> row : csvRecords) {
+                csvPrinter.printRecord(row);
             }
-
-            DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
-            downloadableReport.setReportType(assessmentTypeCode);
-            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
-            return downloadableReport;
-        } catch (IOException e) {
-            throw new StudentAssessmentAPIRuntimeException(e);
+            csvPrinter.flush();
         }
     }
 

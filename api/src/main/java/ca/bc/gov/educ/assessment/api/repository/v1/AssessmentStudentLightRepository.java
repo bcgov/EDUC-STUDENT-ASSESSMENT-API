@@ -2,6 +2,7 @@ package ca.bc.gov.educ.assessment.api.repository.v1;
 
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentLightEntity;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentTypeCount;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByFormQueryResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -187,6 +188,20 @@ public interface AssessmentStudentLightRepository extends JpaRepository<Assessme
                 and calc.assessmentID = :assessmentID)
     """)
     long countStudentsWithResultsAndDOARCalculationsByAssessmentIDAndSchoolIDIn(UUID assessmentID, Collection<UUID> schoolIDs);
+
+    @Query("""
+    select stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode, count(stud) as studentCount
+    from AssessmentStudentLightEntity stud
+    where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
+    and stud.schoolAtWriteSchoolID in :schoolIDs
+    and stud.studentStatusCode = 'ACTIVE'
+    and (stud.proficiencyScore is not null or stud.provincialSpecialCaseCode in ('X', 'E'))
+    and exists (select 1 from AssessmentStudentDOARCalculationEntity calc
+                where calc.assessmentStudentID = stud.assessmentStudentID
+                and calc.assessmentID = stud.assessmentEntity.assessmentID)
+    group by stud.assessmentEntity.assessmentTypeCode
+    """)
+    List<AssessmentTypeCount> countStudentsWithResultsAndDOARCalculationsBySessionIDAndSchoolIDInGroupByAssessmentType(UUID sessionID, Collection<UUID> schoolIDs);
 
     @Query(value="""
         select stud.assessmentEntity.assessmentTypeCode as assessmentTypeCode,

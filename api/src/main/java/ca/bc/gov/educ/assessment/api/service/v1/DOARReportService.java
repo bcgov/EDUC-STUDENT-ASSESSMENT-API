@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.service.v1;
 
 
+import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.SchoolCategoryCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.*;
@@ -15,8 +16,10 @@ import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentLightReposit
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.rest.RestUtils;
 import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.assessment.api.struct.v1.AssessmentTypeCount;
 import ca.bc.gov.educ.assessment.api.struct.v1.DOARCalculate;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.DistrictReportAvailability;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +86,32 @@ public class DOARReportService {
                 .toList();
         if (districtSchoolIDs.isEmpty()) return false;
         return assessmentStudentLightRepository.countStudentsWithResultsAndDOARCalculationsByAssessmentIDAndSchoolIDIn(assessmentEntity.getAssessmentID(), districtSchoolIDs) > 0;
+    }
+
+    public DistrictReportAvailability getDistrictReportAvailability(UUID sessionID, UUID districtID) {
+        DistrictReportAvailability availability = new DistrictReportAvailability();
+        var districtSchoolIDs = getDistrictPublicSchoolTombstones(districtID).stream()
+                .map(school -> UUID.fromString(school.getSchoolId()))
+                .toList();
+        if (districtSchoolIDs.isEmpty()) {
+            return availability;
+        }
+        boolean resultsAvailable = !assessmentStudentLightRepository.findSchoolIDsWithResultsBySessionID(sessionID, districtSchoolIDs).isEmpty();
+        availability.setResultsAvailable(resultsAvailable);
+        availability.setDoarSummaryAvailable(resultsAvailable);
+
+        Map<String, Long> studentCountsByAssessmentType = assessmentStudentLightRepository
+                .countStudentsWithResultsAndDOARCalculationsBySessionIDAndSchoolIDInGroupByAssessmentType(sessionID, districtSchoolIDs).stream()
+                .collect(Collectors.toMap(AssessmentTypeCount::getAssessmentTypeCode, AssessmentTypeCount::getStudentCount));
+
+        availability.setNmeDetailedDoar(studentCountsByAssessmentType.getOrDefault(AssessmentTypeCodes.NME10.getCode(), 0L) > 0);
+        availability.setNmfDetailedDoar(studentCountsByAssessmentType.getOrDefault(AssessmentTypeCodes.NMF10.getCode(), 0L) > 0);
+        availability.setLte10DetailedDoar(studentCountsByAssessmentType.getOrDefault(AssessmentTypeCodes.LTE10.getCode(), 0L) > 0);
+        availability.setLte12DetailedDoar(studentCountsByAssessmentType.getOrDefault(AssessmentTypeCodes.LTE12.getCode(), 0L) > 0);
+        availability.setLtp10DetailedDoar(studentCountsByAssessmentType.getOrDefault(AssessmentTypeCodes.LTP10.getCode(), 0L) > 0);
+        availability.setLtp12DetailedDoar(studentCountsByAssessmentType.getOrDefault(AssessmentTypeCodes.LTP12.getCode(), 0L) > 0);
+        availability.setLtf12DetailedDoar(studentCountsByAssessmentType.getOrDefault(AssessmentTypeCodes.LTF12.getCode(), 0L) > 0);
+        return availability;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
