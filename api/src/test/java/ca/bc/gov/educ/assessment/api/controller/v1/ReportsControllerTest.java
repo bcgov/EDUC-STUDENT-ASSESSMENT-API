@@ -2063,6 +2063,51 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("123456789,L123,DOE,JANE,Q,2008/01/02,12,2023-EN,Yes,No,No,No,No,No,No")));
     }
 
+    @ParameterizedTest
+    @CsvSource({"Q", "X"})
+    void testGetAssessmentCompletionCurrentStudentsReportForSchool_DsqOrNcShouldNotBeCompleted(String specialCaseCode) throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var school = this.createMockSchool();
+        when(this.restUtils.getSchoolBySchoolID(school.getSchoolId())).thenReturn(Optional.of(school));
+
+        AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTE10.getCode()));
+        AssessmentStudentEntity student = createMockStudentEntity(assessment);
+        student.setPen("123456789");
+        student.setLocalID("L123");
+        student.setProvincialSpecialCaseCode(specialCaseCode);
+        studentRepository.save(student);
+
+        AssessmentCompletionCurrentStudentPage gradPage = AssessmentCompletionCurrentStudentPage.builder()
+                .content(List.of(ReportGradStudentData.builder()
+                        .graduationStudentRecordId(UUID.randomUUID())
+                        .schoolOfRecordId(UUID.fromString(school.getSchoolId()))
+                        .pen("123456789")
+                        .lastName("DOE")
+                        .firstName("JANE")
+                        .middleName("Q")
+                        .dob("2008/01/02")
+                        .studentGrade("12")
+                        .programCode("2023-EN")
+                        .studentStatus("CUR")
+                        .build()))
+                .pageNumber(0)
+                .pageSize(2000)
+                .numberOfElements(1)
+                .hasNext(false)
+                .build();
+        when(this.restUtils.getGradAssessmentCompletionCurrentStudentsPage(eq("schoolId"), eq(school.getSchoolId()), anyInt(), anyInt())).thenReturn(gradPage);
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/school/" + school.getSchoolId() + "/assessment-completions/current-students/download")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("123456789,L123,DOE,JANE,Q,2008/01/02,12,2023-EN,No,No,No,No,No,No,No")));
+    }
+
     @Test
     void testGetAssessmentCompletionCurrentStudentsReportForDistrict_ShouldReturnCsvFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
