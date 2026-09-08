@@ -193,7 +193,7 @@ public interface AssessmentStudentRepository extends JpaRepository<AssessmentStu
         where stud.pen in (:pens)
         and stud.studentStatusCode = 'ACTIVE'
         and (stud.proficiencyScore is not null
-             or stud.provincialSpecialCaseCode in ('A', 'E', 'Q', 'X'))
+             or stud.provincialSpecialCaseCode in ('A', 'E'))
         group by stud.pen
         """)
     List<AssessmentCompletionSummaryResult> findAssessmentCompletionSummaryByPenIn(List<String> pens);
