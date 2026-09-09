@@ -71,6 +71,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
   private static final String LTP10= "LTP10";
   private static final String LTP12= "LTP12";
   private static final String LTF12= "LTF12";
+  private static final String INVALID_TYPE_MESSAGE = "Invalid assessment type";
 
   public DOARSummaryReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentLightRepository assessmentStudentLightRepository, AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository, RestUtils restUtils) {
     super(restUtils);
@@ -291,7 +292,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         publicCommunicateOral[0] = createCommunicateOralSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench);
         provinceCommunicateOral[0] = createCommunicateOralSectionByLevel(assessmentType, provinceLabel, data.provinceLevelCalc(), isFrench);
       }
-      default -> log.info("Invalid assessment type");
+      default -> log.info(INVALID_TYPE_MESSAGE);
     }
 
     return new SharedAssessmentSections(
@@ -360,13 +361,11 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                 shared.provinceCognitive()));
 
         switch (assessmentType) {
-          case NME10, NMF10 ->  {
-            doarSummaryPage.getNumeracyScore().addAll(List.of(
-                    createNumeracySectionByLevel(schoolLabel, schoolCalc, isFrench),
-                    useSharedOrCompute(labelsMatch, shared.districtNumeracy(), () -> createNumeracySectionByLevel(districtLabel, data.districtLevelCalc(), isFrench)),
-                    useSharedOrCompute(labelsMatch, shared.publicNumeracy(), () -> createNumeracySectionByLevel(publicLabel, data.publicLevelCalc(), isFrench)),
-                    shared.provinceNumeracy()));
-          }
+          case NME10, NMF10 -> doarSummaryPage.getNumeracyScore().addAll(List.of(
+                createNumeracySectionByLevel(schoolLabel, schoolCalc, isFrench),
+                useSharedOrCompute(labelsMatch, shared.districtNumeracy(), () -> createNumeracySectionByLevel(districtLabel, data.districtLevelCalc(), isFrench)),
+                useSharedOrCompute(labelsMatch, shared.publicNumeracy(), () -> createNumeracySectionByLevel(publicLabel, data.publicLevelCalc(), isFrench)),
+                shared.provinceNumeracy()));
           case LTE10, LTE12 -> {
             doarSummaryPage.getComprehendScore().addAll(List.of(
                     createComprehendSectionByLevel(assessmentType, schoolLabel, schoolCalc, isFrench),
@@ -399,7 +398,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                     useSharedOrCompute(labelsMatch, shared.publicCommunicateOral(), () -> createCommunicateOralSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench)),
                     shared.provinceCommunicateOral()));
           }
-          default -> log.info("Invalid assessment type");
+          default -> log.info(INVALID_TYPE_MESSAGE);
         }
 
         doarSummaryNode.getReports().add(doarSummaryPage);
@@ -477,10 +476,10 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     });
   }
 
-  
+
   private HashMap<String, List<AssessmentStudentLightEntity>> organizeStudentsInEachAssessment(List<AssessmentStudentLightEntity> students) {
     HashMap<String, List<AssessmentStudentLightEntity>> studentsHash = new HashMap<>();
-    
+
     students.forEach(student -> {
       if(studentsHash.containsKey(student.getAssessmentEntity().getAssessmentTypeCode())) {
         studentsHash.get(student.getAssessmentEntity().getAssessmentTypeCode()).add(student);
@@ -490,7 +489,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         studentsHash.put(student.getAssessmentEntity().getAssessmentTypeCode(), studentList);
       }
     });
-    
+
     return studentsHash;
   }
 
@@ -664,7 +663,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                 createCommunicateOralSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getCommunicateOralScore().addAll(communicateOralScores);
       }
-      default -> log.info("Invalid assessment type");
+      default -> log.info(INVALID_TYPE_MESSAGE);
     }
   }
 
@@ -721,7 +720,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                 createCommunicateOralSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getCommunicateOralScore().addAll(communicateOralScores);
       }
-      default -> log.info("Invalid assessment type");
+      default -> log.info(INVALID_TYPE_MESSAGE);
     }
   }
 

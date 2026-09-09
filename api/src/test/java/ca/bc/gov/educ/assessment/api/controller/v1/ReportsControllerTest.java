@@ -3461,13 +3461,11 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         var sessionEntity = saveSessionWithTwoSchoolResultsAndCalculations(AssessmentTypeCodes.LTF12.getCode(), school1, school2);
 
-        var result = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
-                                .with(mockAuthority))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/pdf"))
-                .andReturn();
+        this.mockMvc
+          .perform(get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream").with(mockAuthority))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(content().contentType("application/pdf"));
     }
 
     @Test
