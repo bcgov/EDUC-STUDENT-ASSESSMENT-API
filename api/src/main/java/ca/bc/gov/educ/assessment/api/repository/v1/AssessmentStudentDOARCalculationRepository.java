@@ -15,6 +15,8 @@ public interface AssessmentStudentDOARCalculationRepository extends JpaRepositor
 
     List<AssessmentStudentDOARCalculationEntity> findAllByAssessmentIDAndAssessmentStudentIDIn(UUID assessmentStudentID, List<UUID> assessmentStudentIDs);
 
+    List<AssessmentStudentDOARCalculationEntity> findAllByAssessmentID(UUID assessmentID);
+
     Optional<AssessmentStudentDOARCalculationEntity> findByAssessmentStudentIDAndAssessmentID(UUID assessmentStudentID, UUID assessmentID);
 
 }

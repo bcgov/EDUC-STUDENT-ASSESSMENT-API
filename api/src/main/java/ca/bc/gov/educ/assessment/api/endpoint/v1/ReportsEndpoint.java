@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.endpoint.v1;
 
 import ca.bc.gov.educ.assessment.api.constants.v1.URL;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.DistrictReportAvailability;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,11 +41,17 @@ public interface ReportsEndpoint {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     DownloadableReportResponse getDownloadableReportForSchool(@PathVariable UUID sessionID, @PathVariable UUID schoolID, @PathVariable(name = "type") String type);
 
-    @GetMapping("/{sessionID}/district/{districtID}/{type}/download")
+    @GetMapping("/{sessionID}/district/{districtID}/{type}/stream")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    DownloadableReportResponse getDownloadableReportForDistrict(@PathVariable UUID sessionID, @PathVariable UUID districtID, @PathVariable(name = "type") String type);
+    void streamDistrictReport(@PathVariable UUID sessionID, @PathVariable UUID districtID, @PathVariable(name = "type") String type, HttpServletResponse response) throws IOException;
+
+    @GetMapping("/{sessionID}/district/{districtID}/availability")
+    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    DistrictReportAvailability getDistrictReportAvailability(@PathVariable UUID sessionID, @PathVariable UUID districtID);
 
     @GetMapping("/{sessionID}/{type}")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
@@ -99,12 +106,6 @@ public interface ReportsEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     boolean checkDistrictReportAvailability(@PathVariable UUID sessionID, @PathVariable UUID districtID, @RequestParam(required = false) String assessmentTypeCode);
-
-    @GetMapping("/{sessionID}/district/{districtID}/{type}/available")
-    @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")
-    @Transactional(readOnly = true)
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    boolean checkDistrictReportTypeAvailability(@PathVariable UUID sessionID, @PathVariable UUID districtID, @PathVariable(name = "type") String type);
 
     @GetMapping("/{sessionID}/{type}/available")
     @PreAuthorize("hasAuthority('SCOPE_READ_ASSESSMENT_REPORT')")

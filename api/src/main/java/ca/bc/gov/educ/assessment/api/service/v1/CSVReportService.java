@@ -68,13 +68,26 @@ public class CSVReportService {
     private static final String STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY = "studentToCollectionSnapshotDateMap";
     private static final String COLLECTION_TYPE_KEY = "collectionType";
     private static final String SEPTEMBER = "SEPTEMBER";
+    private static final String FEBRUARY = "FEBRUARY";
+    private static final String MAY = "MAY";
     private static final String DISTRICT_ID_FIELD = "districtId";
     private static final String YUKON_DISTRICT_ID = "yukon";
+    private static final String CSV_CONTENT_TYPE = "text/csv";
+    private static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
+    private static final String ATTACHMENT_FILENAME_FORMAT = "attachment; filename=\"%s\"";
+    private static final String ASSESSMENT_FORM_FIELD = "AssessmentForm";
+    private static final String SCHOOL_AT_WRITE_FIELD = "schoolAtWriteSchoolID";
+    private static final String COLLECTION_KEY = "collection";
+    private static final String COLLECTIONS_USED_KEY = "collectionsUsed";
+    private static final String ASSESSMENT_COMPLETIONS_FILENAME_FORMAT = "%s - Assessment Completions - %s.csv";
+    private static final String CLIENT_DISCONNECTED_MESSAGE = "Client disconnected";
+    private static final String NA = "NA";
+    private static final DateTimeFormatter REPORT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private final AssessmentSessionRepository assessmentSessionRepository;
     private final AssessmentStudentRepository assessmentStudentRepository;
     private final AssessmentFormRepository assessmentFormRepository;
     private final StudentMergeService studentMergeService;
-    private final List<String> activeStatus = List.of("ACTIVE");
+    private final List<String> activeStatus = List.of(StudentStatusCodes.ACTIVE.getCode());
     private final RestUtils restUtils;
     private final AssessmentStudentLightRepository assessmentStudentLightRepository;
     private final StagedAssessmentStudentLightRepository stagedAssessmentStudentLightRepository;
@@ -380,7 +393,7 @@ public class CSVReportService {
                 csvPrinter.printRecord(headers);
 
                 if (sessionIsApproved(session)) {
-                    List<AssessmentStudentLightEntity> students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(sessionID, List.of("ACTIVE"));
+                    List<AssessmentStudentLightEntity> students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeIn(sessionID, List.of(StudentStatusCodes.ACTIVE.getCode()));
                     populateCSVPrinterForApproval(students, forms, csvPrinter);
                 } else {
                     List<StagedAssessmentStudentLightEntity> students = stagedAssessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStagedAssessmentStudentStatusIn(sessionID, List.of("ACTIVE", "MERGED"));
@@ -404,7 +417,7 @@ public class CSVReportService {
         for (SummaryByFormQueryResponse result : results) {
             var form = result.getFormID() != null ? forms.stream()
                     .filter(assessmentFormEntity -> assessmentFormEntity.getAssessmentFormID().equals(result.getFormID())).findFirst()
-                    .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "AssessmentForm", result.getFormID().toString())).getFormCode() : "";
+                    .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, ASSESSMENT_FORM_FIELD, result.getFormID().toString())).getFormCode() : "";
             List<String> csvRowData = prepareFormSummaryDetailsDataForCsv(result, form, session);
             csvPrinter.printRecord(csvRowData);
         }
@@ -423,7 +436,7 @@ public class CSVReportService {
             Optional<SchoolTombstone> assessmentCenter = (result.getAssessmentCenterSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString()) : Optional.empty();
             var form = result.getAssessmentFormID() != null ? forms.stream()
                     .filter(assessmentFormEntity -> assessmentFormEntity.getAssessmentFormID().equals(result.getAssessmentFormID())).findFirst()
-                    .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "AssessmentForm", result.getAssessmentFormID().toString())).getFormCode() : "";
+                    .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, ASSESSMENT_FORM_FIELD, result.getAssessmentFormID().toString())).getFormCode() : "";
             List<String> csvRowData = prepareAllStudentDetailsRegistrationDetailsDataForCsv(result, school, form, assessmentCenter);
             csvPrinter.printRecord(csvRowData);
         }
@@ -435,7 +448,7 @@ public class CSVReportService {
             Optional<SchoolTombstone> assessmentCenter = (result.getAssessmentCenterSchoolID() != null) ? restUtils.getSchoolBySchoolID(result.getAssessmentCenterSchoolID().toString()) : Optional.empty();
             var form = result.getAssessmentFormID() != null ? forms.stream()
                     .filter(assessmentFormEntity -> assessmentFormEntity.getAssessmentFormID().equals(result.getAssessmentFormID())).findFirst()
-                    .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, "AssessmentForm", result.getAssessmentFormID().toString())).getFormCode() : "";
+                    .orElseThrow(() -> new EntityNotFoundException(AssessmentFormEntity.class, ASSESSMENT_FORM_FIELD, result.getAssessmentFormID().toString())).getFormCode() : "";
             List<String> csvRowData = prepareAllStudentDetailsRegistrationDetailsDataForCsv(result, school, form, assessmentCenter);
             csvPrinter.printRecord(csvRowData);
         }
@@ -525,28 +538,29 @@ public class CSVReportService {
         }
     }
 
-    public DownloadableReportResponse generateDetailedDOARByDistrict(UUID sessionID, UUID districtID, String assessmentTypeCode) {
-        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+    private void setCsvDownloadHeaders(jakarta.servlet.http.HttpServletResponse response, String filename) {
+        response.setContentType(CSV_CONTENT_TYPE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_FORMAT.formatted(filename));
+        response.setBufferSize(CSV_BUFFER_SIZE);
+    }
 
-        try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
-                 CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat)) {
+    public void streamDetailedDOARByDistrict(UUID sessionID, UUID districtID, String assessmentTypeCode, jakarta.servlet.http.HttpServletResponse response) throws IOException {
+        var district = restUtils.getDistrictByDistrictID(districtID.toString())
+                .orElseThrow(() -> new EntityNotFoundException(District.class, DISTRICT_ID_FIELD, districtID.toString()));
+        List<List<String>> csvRecords = doarReportService.generateDetailedDOARByDistrictAndAssessmentType(sessionID, districtID, assessmentTypeCode);
 
-                csvPrinter.printRecord(getDOARHeaders(assessmentTypeCode));
+        String filename = "%s-%s-Detailed DOAR.csv".formatted(district.getDistrictNumber(), assessmentTypeCode);
+        setCsvDownloadHeaders(response, filename);
 
-                for (List<String> row : doarReportService.generateDetailedDOARByDistrictAndAssessmentType(sessionID, districtID, assessmentTypeCode)) {
-                    csvPrinter.printRecord(row);
-                }
-                csvPrinter.flush();
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
+             CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.builder().build())) {
+
+            csvPrinter.printRecord(getDOARHeaders(assessmentTypeCode));
+            for (List<String> row : csvRecords) {
+                csvPrinter.printRecord(row);
             }
-
-            DownloadableReportResponse downloadableReport = new DownloadableReportResponse();
-            downloadableReport.setReportType(assessmentTypeCode);
-            downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
-            return downloadableReport;
-        } catch (IOException e) {
-            throw new StudentAssessmentAPIRuntimeException(e);
+            csvPrinter.flush();
         }
     }
 
@@ -877,7 +891,7 @@ public class CSVReportService {
     private List<String> prepareStudentForItemAnalysis(AssessmentStudentLightEntity student, SdcSchoolCollectionStudent sdcStudent, String session, String collectionSnapshotDate) {
         List<String> enrolledPrograms = new ArrayList<>();
         String sdcStudentNativeAcnestry = "0";
-        String sdcStudentGender = "NA";
+        String sdcStudentGender = NA;
         String mincode = "";
 
         if (student.getSchoolAtWriteSchoolID() != null) {
@@ -900,7 +914,7 @@ public class CSVReportService {
             }
 
             sdcStudentNativeAcnestry = sdcStudent.getNativeAncestryInd() != null && sdcStudent.getNativeAncestryInd().equalsIgnoreCase("Y") ? "1" : "0";
-            sdcStudentGender = sdcStudent.getGender() != null ? sdcStudent.getGender() : "NA";
+            sdcStudentGender = sdcStudent.getGender() != null ? sdcStudent.getGender() : NA;
         }
 
         String formCode = null;
@@ -986,9 +1000,9 @@ public class CSVReportService {
             case "01", "11" ->
                     List.of(SEPTEMBER);
             case "04" ->
-                    List.of(SEPTEMBER, "FEBRUARY");
+                    List.of(SEPTEMBER, FEBRUARY);
             case "06" ->
-                    List.of(SEPTEMBER, "FEBRUARY", "MAY");
+                    List.of(SEPTEMBER, FEBRUARY, MAY);
             default ->
                     List.of(SEPTEMBER);
         };
@@ -1051,11 +1065,11 @@ public class CSVReportService {
             List<SdcSchoolCollectionStudent> blendedStudentList = new ArrayList<>(blendedStudentMap.values());
 
             Map<String, Object> result = new HashMap<>();
-            result.put("collection", primaryCollection);
+            result.put(COLLECTION_KEY, primaryCollection);
             result.put(STUDENTS_KEY, blendedStudentList);
             result.put(STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY, studentToCollectionSnapshotDateMap);
             result.put(COLLECTION_TYPE_KEY, collectionsUsed.getFirst());
-            result.put("collectionsUsed", collectionsUsed);
+            result.put(COLLECTIONS_USED_KEY, collectionsUsed);
 
             log.info("Using blended data for course month {} with {} unique students from collections: {}",
                     courseMonth, blendedStudentList.size(), String.join(", ", collectionsUsed));
@@ -1064,11 +1078,11 @@ public class CSVReportService {
 
         log.warn("No SDC students found in any available collections for course month {}", courseMonth);
         Map<String, Object> result = new HashMap<>();
-        result.put("collection", null);
+        result.put(COLLECTION_KEY, null);
         result.put(STUDENTS_KEY, Collections.emptyList());
         result.put(STUDENT_TO_COLLECTION_SNAPSHOT_DATE_MAP_KEY, Collections.emptyMap());
         result.put(COLLECTION_TYPE_KEY, "NONE");
-        result.put("collectionsUsed", Collections.emptyList());
+        result.put(COLLECTIONS_USED_KEY, Collections.emptyList());
         return result;
     }
 
@@ -1100,9 +1114,9 @@ public class CSVReportService {
         final List<String> headers = Arrays.stream(AssessmentCompletionCurrentStudentsSchoolHeader.values())
                 .map(AssessmentCompletionCurrentStudentsSchoolHeader::getCode)
                 .toList();
-        final String filename = "%s - Assessment Completions - %s.csv".formatted(
+        final String filename = ASSESSMENT_COMPLETIONS_FILENAME_FORMAT.formatted(
                 school.getMincode(),
-                LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+                LocalDate.now().format(REPORT_DATE_FORMATTER)
         );
         streamAssessmentCompletionCurrentStudentsCsvReport(
                 response,
@@ -1119,9 +1133,9 @@ public class CSVReportService {
         final List<String> headers = Arrays.stream(AssessmentCompletionCurrentStudentsDistrictHeader.values())
                 .map(AssessmentCompletionCurrentStudentsDistrictHeader::getCode)
                 .toList();
-        final String filename = "%s - Assessment Completions - %s.csv".formatted(
+        final String filename = ASSESSMENT_COMPLETIONS_FILENAME_FORMAT.formatted(
                 district.getDistrictNumber(),
-                LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+                LocalDate.now().format(REPORT_DATE_FORMATTER)
         );
         streamAssessmentCompletionCurrentStudentsCsvReport(
                 response,
@@ -1137,10 +1151,8 @@ public class CSVReportService {
         ObjectMapper objectMapper = new ObjectMapper();
         Specification<AssessmentStudentEntity> specs = assessmentStudentSearchService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
 
-        response.setContentType("text/csv");
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + filenamePrefix + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
-        response.setBufferSize(CSV_BUFFER_SIZE);
+        String filename = filenamePrefix + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv";
+        setCsvDownloadHeaders(response, filename);
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
@@ -1173,11 +1185,11 @@ public class CSVReportService {
                             } catch (IOException e) {
                                 log.debug("Client disconnected during {} report at record {}. Stopping stream.", filenamePrefix, rowCount.get());
                                 clientDisconnected.set(true);
-                                throw new RuntimeException("Client disconnected", e);
+                                throw new RuntimeException(CLIENT_DISCONNECTED_MESSAGE, e);
                             }
                         });
             } catch (RuntimeException e) {
-                if (e.getMessage() != null && e.getMessage().contains("Client disconnected")) {
+                if (e.getMessage() != null && e.getMessage().contains(CLIENT_DISCONNECTED_MESSAGE)) {
                     log.debug("{} stream terminated due to client disconnect at {} rows", filenamePrefix, rowCount.get());
                 } else {
                     throw e;
@@ -1201,10 +1213,7 @@ public class CSVReportService {
             String filename,
             Function<Integer, AssessmentCompletionCurrentStudentsService.AssessmentCompletionCurrentStudentsChunk> chunkFetcher,
             boolean includeSchoolOfRecord) throws IOException {
-        response.setContentType("text/csv");
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-        response.setBufferSize(CSV_BUFFER_SIZE);
+        setCsvDownloadHeaders(response, filename);
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
@@ -1392,7 +1401,7 @@ public class CSVReportService {
 
                 csvPrinter.printRecord(headers);
                 for (YukonAssessmentCount assessmentCount : results) {
-                    var school = restUtils.getSchoolBySchoolID(assessmentCount.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, "schoolAtWriteSchoolID", assessmentCount.getSchoolID().toString()));
+                    var school = restUtils.getSchoolBySchoolID(assessmentCount.getSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_AT_WRITE_FIELD, assessmentCount.getSchoolID().toString()));
 
                     List<String> csvRowData = prepareDataForYukonCsv(school, assessmentCount, session.getCourseYear() + session.getCourseMonth());
                     csvPrinter.printRecord(csvRowData);
@@ -1452,7 +1461,7 @@ public class CSVReportService {
                 csvPrinter.printRecord(Arrays.stream(YukonStudentResultsHeader.values()).map(YukonStudentResultsHeader::getCode).toList());
 
                 for (AssessmentStudentEntity result : results) {
-                    var school = restUtils.getSchoolBySchoolID(result.getSchoolAtWriteSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, "schoolAtWriteSchoolID", result.getSchoolAtWriteSchoolID().toString()));
+                    var school = restUtils.getSchoolBySchoolID(result.getSchoolAtWriteSchoolID().toString()).orElseThrow(() -> new EntityNotFoundException(SchoolTombstone.class, SCHOOL_AT_WRITE_FIELD, result.getSchoolAtWriteSchoolID().toString()));
                     List<String> csvRowData = prepareYukonStudentResultDataForCsv(result, school);
                     csvPrinter.printRecord(csvRowData);
                 }

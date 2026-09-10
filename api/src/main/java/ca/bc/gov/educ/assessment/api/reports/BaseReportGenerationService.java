@@ -10,12 +10,14 @@ import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombston
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.query.JsonQueryExecuterFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
@@ -51,6 +53,25 @@ public abstract class BaseReportGenerationService {
       downloadableReport.setReportType(schoolReportTypeCode);
       downloadableReport.setDocumentData(Base64.getEncoder().encodeToString(JasperExportManager.exportReportToPdf(jasperPrint)));
       return downloadableReport;
+    } catch (JRException e) {
+       log.error("Exception occurred while writing PDF report :: " + e.getMessage());
+       throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report :: " + e.getMessage());
+    }
+  }
+
+  protected void generateJasperReportStream(String reportJSON, JasperReport jasperReport, String filename, HttpServletResponse response) throws IOException {
+    try{
+      response.setContentType("application/pdf");
+      response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
+      var params = getJasperParams();
+      InputStream targetStream = new ByteArrayInputStream(reportJSON.getBytes());
+      String tempDir = System.getProperty("java.io.tmpdir") + "/jasper-reports/";
+      params.put("SUBREPORT_DIR", tempDir);
+      params.put(JsonQueryExecuterFactory.JSON_INPUT_STREAM, targetStream);
+
+      JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+      JasperExportManager.exportReportToPdfStream(jasperPrint, response.getOutputStream());
     } catch (JRException e) {
        log.error("Exception occurred while writing PDF report :: " + e.getMessage());
        throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing PDF report :: " + e.getMessage());

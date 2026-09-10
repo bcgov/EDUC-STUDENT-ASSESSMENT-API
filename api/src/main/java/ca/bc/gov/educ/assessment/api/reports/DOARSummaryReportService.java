@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.assessment.api.reports;
 
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.SchoolReportingRequirementCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
@@ -22,6 +23,7 @@ import ca.bc.gov.educ.assessment.api.struct.v1.reports.doar.*;
 import ca.bc.gov.educ.assessment.api.util.TextNormalizer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -29,6 +31,7 @@ import net.sf.jasperreports.engine.JasperReport;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -56,6 +59,11 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
   private static final String SCHOOL= "School";
   private static final String PUBLIC= "Public";
   private static final String ALL_INDP= "All Independent";
+  private static final String PROVINCE = "Province";
+  private static final String ALL_PUBLIC = "All Public";
+  private static final String SCHOOL_CSF = "École";
+  private static final String DISTRICT_CSF = "Conseil scolaire";
+  private static final String PUBLIC_CSF = "Écoles publiques";
   private static final String NME10= "NME10";
   private static final String NMF10= "NMF10";
   private static final String LTE10= "LTE10";
@@ -63,6 +71,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
   private static final String LTP10= "LTP10";
   private static final String LTP12= "LTP12";
   private static final String LTF12= "LTF12";
+  private static final String INVALID_TYPE_MESSAGE = "Invalid assessment type";
 
   public DOARSummaryReportService(AssessmentSessionRepository assessmentSessionRepository, AssessmentStudentLightRepository assessmentStudentLightRepository, AssessmentStudentDOARCalculationRepository assessmentStudentDOARCalculationRepository, RestUtils restUtils) {
     super(restUtils);
@@ -121,7 +130,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
   public DownloadableReportResponse generateDOARSummaryReport(UUID assessmentSessionID, UUID schoolID){
     try {
       var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
-      var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), "X");
+      var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), ProvincialSpecialCaseCodes.NOTCOMPLETED.getCode());
       var school = validateAndReturnSchool(schoolID);
 
       boolean schoolHasAnyResult = students.stream().anyMatch(student -> Objects.equals(student.getSchoolAtWriteSchoolID(), schoolID));
@@ -143,40 +152,301 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     }
   }
 
-  public DownloadableReportResponse generateDistrictDOARSummaryReport(UUID assessmentSessionID, UUID districtID){
-    try {
-      var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
-      restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", districtID.toString()));
-      var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), "X");
+  public void streamDistrictDOARSummaryReport(UUID assessmentSessionID, UUID districtID, HttpServletResponse response) throws IOException {
+    var doarSummaryNode = buildDistrictDOARSummaryNode(assessmentSessionID, districtID);
+    var normalized = TextNormalizer.normalizeObject(doarSummaryNode);
+    var payload = objectWriter.writeValueAsString(normalized);
+    var district = restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", districtID.toString()));
+    String filename = "%s-DOAR Summary.pdf".formatted(district.getDistrictNumber());
+    generateJasperReportStream(payload, doarSummaryReport, filename, response);
+  }
 
-      Set<UUID> schoolIDsWithResults = students.stream()
-              .map(AssessmentStudentLightEntity::getSchoolAtWriteSchoolID)
-              .filter(Objects::nonNull)
-              .collect(Collectors.toSet());
+  private DOARSummaryNode buildDistrictDOARSummaryNode(UUID assessmentSessionID, UUID districtID){
+    var session = assessmentSessionRepository.findById(assessmentSessionID).orElseThrow(() -> new EntityNotFoundException(AssessmentSessionEntity.class, "sessionID", assessmentSessionID.toString()));
+    restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", districtID.toString()));
+    var students = assessmentStudentLightRepository.findByAssessmentEntity_AssessmentSessionEntity_SessionIDAndStudentStatusCodeAndProficiencyScoreIsNotNullOrProvincialSpecialCaseCode(assessmentSessionID, StudentStatusCodes.ACTIVE.getCode(), ProvincialSpecialCaseCodes.NOTCOMPLETED.getCode());
 
-      var districtSchoolsWithResults = getDistrictPublicSchoolTombstones(districtID).stream()
-              .filter(school -> schoolIDsWithResults.contains(UUID.fromString(school.getSchoolId())))
-              .sorted(Comparator.comparing(SchoolTombstone::getMincode))
-              .toList();
+    Set<UUID> schoolIDsWithResults = students.stream()
+            .map(AssessmentStudentLightEntity::getSchoolAtWriteSchoolID)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
 
-      if(districtSchoolsWithResults.isEmpty()){
-        throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
+    var districtSchoolsWithResults = getDistrictPublicSchoolTombstones(districtID).stream()
+            .filter(school -> schoolIDsWithResults.contains(UUID.fromString(school.getSchoolId())))
+            .sorted(Comparator.comparing(SchoolTombstone::getMincode))
+            .toList();
+
+    if(districtSchoolsWithResults.isEmpty()){
+      throw new PreconditionRequiredException(AssessmentSessionEntity.class, "Results not available in this session:: ", session.getSessionID().toString());
+    }
+
+    Set<UUID> districtLevelSchoolIds = getSchoolsByLevel(DISTRICT, districtID.toString()).stream()
+            .map(school -> UUID.fromString(school.getSchoolId()))
+            .collect(Collectors.toSet());
+    Set<UUID> publicLevelSchoolIds = getSchoolsByLevel(PUBLIC, null).stream()
+            .map(school -> UUID.fromString(school.getSchoolId()))
+            .collect(Collectors.toSet());
+    Set<UUID> provinceLevelSchoolIds = getSchoolsByLevel(PROVINCE, null).stream()
+            .map(school -> UUID.fromString(school.getSchoolId()))
+            .collect(Collectors.toSet());
+
+    var studentsByAssessment = organizeStudentsInEachAssessment(students);
+    Map<String, DistrictAssessmentData> dataByAssessment = new HashMap<>();
+    for (var entry : studentsByAssessment.entrySet()) {
+      dataByAssessment.put(entry.getKey(), prepareDistrictAssessmentData(entry.getKey(), entry.getValue(), districtLevelSchoolIds, publicLevelSchoolIds, provinceLevelSchoolIds));
+    }
+
+    boolean canonicalIsCsf = districtSchoolsWithResults.getFirst().getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode());
+    Map<String, SharedAssessmentSections> sharedSectionsByAssessment = new HashMap<>();
+    dataByAssessment.forEach((assessmentType, data) -> sharedSectionsByAssessment.put(assessmentType, buildSharedAssessmentSections(assessmentType, canonicalIsCsf, data)));
+
+    DOARSummaryNode doarSummaryNode = new DOARSummaryNode();
+    doarSummaryNode.setReports(new ArrayList<>());
+    districtSchoolsWithResults.forEach(school -> addDistrictSchoolPagesToNode(session, dataByAssessment, sharedSectionsByAssessment, canonicalIsCsf, school, doarSummaryNode));
+    return doarSummaryNode;
+  }
+
+  private DistrictAssessmentData prepareDistrictAssessmentData(String assessmentType, List<AssessmentStudentLightEntity> assessmentStudents, Set<UUID> districtLevelSchoolIds, Set<UUID> publicLevelSchoolIds, Set<UUID> provinceLevelSchoolIds) {
+    Map<UUID, List<AssessmentStudentLightEntity>> studentsBySchool = new HashMap<>();
+    List<AssessmentStudentLightEntity> districtLevelStudents = new ArrayList<>();
+    List<AssessmentStudentLightEntity> publicLevelStudents = new ArrayList<>();
+    List<AssessmentStudentLightEntity> provinceLevelStudents = new ArrayList<>();
+
+    for (AssessmentStudentLightEntity student : assessmentStudents) {
+      UUID schoolId = student.getSchoolAtWriteSchoolID();
+      if (schoolId == null) {
+        continue;
       }
-
-      DOARSummaryNode doarSummaryNode = new DOARSummaryNode();
-      doarSummaryNode.setReports(new ArrayList<>());
-
-      var studentsByAssessment = organizeStudentsInEachAssessment(students);
-      districtSchoolsWithResults.forEach(school -> addSchoolPagesToNode(session, studentsByAssessment, school, doarSummaryNode));
-
-      var normalized = TextNormalizer.normalizeObject(doarSummaryNode);
-      var payload = objectWriter.writeValueAsString(normalized);
-      return generateJasperReport(payload, doarSummaryReport, AssessmentReportTypeCode.DOAR_SUMMARY.getCode());
+      studentsBySchool.computeIfAbsent(schoolId, id -> new ArrayList<>()).add(student);
+      if (districtLevelSchoolIds.contains(schoolId)) {
+        districtLevelStudents.add(student);
+      }
+      if (publicLevelSchoolIds.contains(schoolId)) {
+        publicLevelStudents.add(student);
+      }
+      if (provinceLevelSchoolIds.contains(schoolId)) {
+        provinceLevelStudents.add(student);
+      }
     }
-    catch (JsonProcessingException e) {
-      log.error("Exception occurred while writing district DOAR summary PDF report :: " + e.getMessage());
-      throw new StudentAssessmentAPIRuntimeException("Exception occurred while writing district DOAR summary PDF report :: " + e.getMessage());
+
+    UUID assessmentID = assessmentStudents.getFirst().getAssessmentEntity().getAssessmentID();
+    Map<UUID, AssessmentStudentDOARCalculationEntity> calcByStudentID = assessmentStudentDOARCalculationRepository
+            .findAllByAssessmentID(assessmentID).stream()
+            .collect(Collectors.toMap(AssessmentStudentDOARCalculationEntity::getAssessmentStudentID, Function.identity()));
+
+    return new DistrictAssessmentData(assessmentType, studentsBySchool, calcByStudentID,
+            districtLevelStudents, publicLevelStudents, provinceLevelStudents,
+            calcForStudents(calcByStudentID, districtLevelStudents),
+            calcForStudents(calcByStudentID, publicLevelStudents),
+            calcForStudents(calcByStudentID, provinceLevelStudents));
+  }
+
+  private List<AssessmentStudentDOARCalculationEntity> calcForStudents(Map<UUID, AssessmentStudentDOARCalculationEntity> calcByStudentID, List<AssessmentStudentLightEntity> students) {
+    return students.stream()
+            .map(student -> calcByStudentID.get(student.getAssessmentStudentID()))
+            .filter(Objects::nonNull)
+            .toList();
+  }
+
+  private SharedAssessmentSections buildSharedAssessmentSections(String assessmentType, boolean isCsf, DistrictAssessmentData data) {
+    boolean isFrench = isFrenchAssessment(assessmentType);
+    String districtLabel = isCsf ? DISTRICT_CSF : DISTRICT;
+    String publicLabel = isCsf ? PUBLIC_CSF : ALL_PUBLIC;
+    String provinceLabel = PROVINCE;
+
+    var districtNumeracy = new NumeracyScore[1];
+    var publicNumeracy = new NumeracyScore[1];
+    var provinceNumeracy = new NumeracyScore[1];
+    var districtComprehend = new ComprehendScore[1];
+    var publicComprehend = new ComprehendScore[1];
+    var provinceComprehend = new ComprehendScore[1];
+    var districtCommunicate = new CommunicateScore[1];
+    var publicCommunicate = new CommunicateScore[1];
+    var provinceCommunicate = new CommunicateScore[1];
+    var districtCommunicateOral = new CommunicateOralScore[1];
+    var publicCommunicateOral = new CommunicateOralScore[1];
+    var provinceCommunicateOral = new CommunicateOralScore[1];
+
+    switch (assessmentType) {
+      case NME10, NMF10 -> {
+        districtNumeracy[0] = createNumeracySectionByLevel(districtLabel, data.districtLevelCalc(), isFrench);
+        publicNumeracy[0] = createNumeracySectionByLevel(publicLabel, data.publicLevelCalc(), isFrench);
+        provinceNumeracy[0] = createNumeracySectionByLevel(provinceLabel, data.provinceLevelCalc(), isFrench);
+      }
+      case LTE10, LTE12 -> {
+        districtComprehend[0] = createComprehendSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench);
+        publicComprehend[0] = createComprehendSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench);
+        provinceComprehend[0] = createComprehendSectionByLevel(assessmentType, provinceLabel, data.provinceLevelCalc(), isFrench);
+        districtCommunicate[0] = createCommunicateSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench);
+        publicCommunicate[0] = createCommunicateSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench);
+        provinceCommunicate[0] = createCommunicateSectionByLevel(assessmentType, provinceLabel, data.provinceLevelCalc(), isFrench);
+      }
+      case LTP10, LTP12, LTF12 -> {
+        districtComprehend[0] = createComprehendSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench);
+        publicComprehend[0] = createComprehendSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench);
+        provinceComprehend[0] = createComprehendSectionByLevel(assessmentType, provinceLabel, data.provinceLevelCalc(), isFrench);
+        districtCommunicate[0] = createCommunicateSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench);
+        publicCommunicate[0] = createCommunicateSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench);
+        provinceCommunicate[0] = createCommunicateSectionByLevel(assessmentType, provinceLabel, data.provinceLevelCalc(), isFrench);
+        districtCommunicateOral[0] = createCommunicateOralSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench);
+        publicCommunicateOral[0] = createCommunicateOralSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench);
+        provinceCommunicateOral[0] = createCommunicateOralSectionByLevel(assessmentType, provinceLabel, data.provinceLevelCalc(), isFrench);
+      }
+      default -> log.info(INVALID_TYPE_MESSAGE);
     }
+
+    return new SharedAssessmentSections(
+            createProficiencyLevelSection(districtLabel, data.districtLevelStudents(), isFrench),
+            createProficiencyLevelSection(publicLabel, data.publicLevelStudents(), isFrench),
+            createProficiencyLevelSection(provinceLabel, data.provinceLevelStudents(), isFrench),
+            createTaskSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench),
+            createTaskSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench),
+            createTaskSectionByLevel(assessmentType, provinceLabel, data.provinceLevelCalc(), isFrench),
+            createCognitiveSectionByLevel(districtLabel, data.districtLevelCalc(), isFrench),
+            createCognitiveSectionByLevel(publicLabel, data.publicLevelCalc(), isFrench),
+            createCognitiveSectionByLevel(provinceLabel, data.provinceLevelCalc(), isFrench),
+            districtNumeracy[0], publicNumeracy[0], provinceNumeracy[0],
+            districtComprehend[0], publicComprehend[0], provinceComprehend[0],
+            districtCommunicate[0], publicCommunicate[0], provinceCommunicate[0],
+            districtCommunicateOral[0], publicCommunicateOral[0], provinceCommunicateOral[0]);
+  }
+
+  private void addDistrictSchoolPagesToNode(AssessmentSessionEntity session, Map<String, DistrictAssessmentData> dataByAssessment, Map<String, SharedAssessmentSections> sharedSectionsByAssessment, boolean canonicalIsCsf, SchoolTombstone school, DOARSummaryNode doarSummaryNode) {
+    UUID schoolId = UUID.fromString(school.getSchoolId());
+    boolean isCsf = school.getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode());
+    boolean labelsMatch = isCsf == canonicalIsCsf;
+    String schoolLabel = isCsf ? SCHOOL_CSF : SCHOOL;
+    String districtLabel = isCsf ? DISTRICT_CSF : DISTRICT;
+    String publicLabel = isCsf ? PUBLIC_CSF : ALL_PUBLIC;
+
+    dataByAssessment.entrySet().stream()
+      .sorted(Comparator.comparingInt(e -> AssessmentTypeCodes.sortOrderFor(e.getKey())))
+      .forEach(entry -> {
+        var assessmentType = entry.getKey();
+        var data = entry.getValue();
+        var shared = sharedSectionsByAssessment.get(assessmentType);
+        var schoolStudents = data.studentsBySchool().get(schoolId);
+        if(schoolStudents == null || schoolStudents.isEmpty()) {
+          return;
+        }
+        boolean isFrench = isFrenchAssessment(assessmentType);
+        var schoolCalc = calcForStudents(data.calcByStudentID(), schoolStudents);
+
+        DOARSummaryPage doarSummaryPage = new DOARSummaryPage();
+        setReportTombstoneValues(session, doarSummaryPage, assessmentType, school);
+        doarSummaryPage.setProficiencySection(new ArrayList<>());
+        doarSummaryPage.setTaskScore(new ArrayList<>());
+        doarSummaryPage.setComprehendScore(new ArrayList<>());
+        doarSummaryPage.setCommunicateScore(new ArrayList<>());
+        doarSummaryPage.setCommunicateOralScore(new ArrayList<>());
+        doarSummaryPage.setNumeracyScore(new ArrayList<>());
+        doarSummaryPage.setCognitiveLevelScore(new ArrayList<>());
+
+        doarSummaryPage.getProficiencySection().addAll(List.of(
+                createProficiencyLevelSection(schoolLabel, schoolStudents, isFrench),
+                useSharedOrCompute(labelsMatch, shared.districtProficiency(), () -> createProficiencyLevelSection(districtLabel, data.districtLevelStudents(), isFrench)),
+                useSharedOrCompute(labelsMatch, shared.publicProficiency(), () -> createProficiencyLevelSection(publicLabel, data.publicLevelStudents(), isFrench)),
+                shared.provinceProficiency()));
+
+        doarSummaryPage.getTaskScore().addAll(List.of(
+                createTaskSectionByLevel(assessmentType, schoolLabel, schoolCalc, isFrench),
+                useSharedOrCompute(labelsMatch, shared.districtTask(), () -> createTaskSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench)),
+                useSharedOrCompute(labelsMatch, shared.publicTask(), () -> createTaskSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench)),
+                shared.provinceTask()));
+
+        doarSummaryPage.getCognitiveLevelScore().addAll(List.of(
+                createCognitiveSectionByLevel(schoolLabel, schoolCalc, isFrench),
+                useSharedOrCompute(labelsMatch, shared.districtCognitive(), () -> createCognitiveSectionByLevel(districtLabel, data.districtLevelCalc(), isFrench)),
+                useSharedOrCompute(labelsMatch, shared.publicCognitive(), () -> createCognitiveSectionByLevel(publicLabel, data.publicLevelCalc(), isFrench)),
+                shared.provinceCognitive()));
+
+        switch (assessmentType) {
+          case NME10, NMF10 -> doarSummaryPage.getNumeracyScore().addAll(List.of(
+                createNumeracySectionByLevel(schoolLabel, schoolCalc, isFrench),
+                useSharedOrCompute(labelsMatch, shared.districtNumeracy(), () -> createNumeracySectionByLevel(districtLabel, data.districtLevelCalc(), isFrench)),
+                useSharedOrCompute(labelsMatch, shared.publicNumeracy(), () -> createNumeracySectionByLevel(publicLabel, data.publicLevelCalc(), isFrench)),
+                shared.provinceNumeracy()));
+          case LTE10, LTE12 -> {
+            doarSummaryPage.getComprehendScore().addAll(List.of(
+                    createComprehendSectionByLevel(assessmentType, schoolLabel, schoolCalc, isFrench),
+                    useSharedOrCompute(labelsMatch, shared.districtComprehend(), () -> createComprehendSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench)),
+                    useSharedOrCompute(labelsMatch, shared.publicComprehend(), () -> createComprehendSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench)),
+                    shared.provinceComprehend()));
+
+            doarSummaryPage.getCommunicateScore().addAll(List.of(
+                    createCommunicateSectionByLevel(assessmentType, schoolLabel, schoolCalc, isFrench),
+                    useSharedOrCompute(labelsMatch, shared.districtCommunicate(), () -> createCommunicateSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench)),
+                    useSharedOrCompute(labelsMatch, shared.publicCommunicate(), () -> createCommunicateSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench)),
+                    shared.provinceCommunicate()));
+          }
+          case LTP10, LTP12, LTF12 -> {
+            doarSummaryPage.getComprehendScore().addAll(List.of(
+                    createComprehendSectionByLevel(assessmentType, schoolLabel, schoolCalc, isFrench),
+                    useSharedOrCompute(labelsMatch, shared.districtComprehend(), () -> createComprehendSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench)),
+                    useSharedOrCompute(labelsMatch, shared.publicComprehend(), () -> createComprehendSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench)),
+                    shared.provinceComprehend()));
+
+            doarSummaryPage.getCommunicateScore().addAll(List.of(
+                    createCommunicateSectionByLevel(assessmentType, schoolLabel, schoolCalc, isFrench),
+                    useSharedOrCompute(labelsMatch, shared.districtCommunicate(), () -> createCommunicateSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench)),
+                    useSharedOrCompute(labelsMatch, shared.publicCommunicate(), () -> createCommunicateSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench)),
+                    shared.provinceCommunicate()));
+
+            doarSummaryPage.getCommunicateOralScore().addAll(List.of(
+                    createCommunicateOralSectionByLevel(assessmentType, schoolLabel, schoolCalc, isFrench),
+                    useSharedOrCompute(labelsMatch, shared.districtCommunicateOral(), () -> createCommunicateOralSectionByLevel(assessmentType, districtLabel, data.districtLevelCalc(), isFrench)),
+                    useSharedOrCompute(labelsMatch, shared.publicCommunicateOral(), () -> createCommunicateOralSectionByLevel(assessmentType, publicLabel, data.publicLevelCalc(), isFrench)),
+                    shared.provinceCommunicateOral()));
+          }
+          default -> log.info(INVALID_TYPE_MESSAGE);
+        }
+
+        doarSummaryNode.getReports().add(doarSummaryPage);
+    });
+  }
+
+  private <T> T useSharedOrCompute(boolean reuseShared, T sharedSection, java.util.function.Supplier<T> computeSection) {
+    return reuseShared ? sharedSection : computeSection.get();
+  }
+
+  private boolean isFrenchAssessment(String assessmentType) {
+    return assessmentType.equalsIgnoreCase(NMF10) || assessmentType.equalsIgnoreCase(LTP10) || assessmentType.equalsIgnoreCase(LTP12) || assessmentType.equalsIgnoreCase(LTF12);
+  }
+
+  private record DistrictAssessmentData(
+          String assessmentType,
+          Map<UUID, List<AssessmentStudentLightEntity>> studentsBySchool,
+          Map<UUID, AssessmentStudentDOARCalculationEntity> calcByStudentID,
+          List<AssessmentStudentLightEntity> districtLevelStudents,
+          List<AssessmentStudentLightEntity> publicLevelStudents,
+          List<AssessmentStudentLightEntity> provinceLevelStudents,
+          List<AssessmentStudentDOARCalculationEntity> districtLevelCalc,
+          List<AssessmentStudentDOARCalculationEntity> publicLevelCalc,
+          List<AssessmentStudentDOARCalculationEntity> provinceLevelCalc) {
+  }
+
+  private record SharedAssessmentSections(
+          ProficiencyLevel districtProficiency,
+          ProficiencyLevel publicProficiency,
+          ProficiencyLevel provinceProficiency,
+          TaskScore districtTask,
+          TaskScore publicTask,
+          TaskScore provinceTask,
+          CognitiveLevelScore districtCognitive,
+          CognitiveLevelScore publicCognitive,
+          CognitiveLevelScore provinceCognitive,
+          NumeracyScore districtNumeracy,
+          NumeracyScore publicNumeracy,
+          NumeracyScore provinceNumeracy,
+          ComprehendScore districtComprehend,
+          ComprehendScore publicComprehend,
+          ComprehendScore provinceComprehend,
+          CommunicateScore districtCommunicate,
+          CommunicateScore publicCommunicate,
+          CommunicateScore provinceCommunicate,
+          CommunicateOralScore districtCommunicateOral,
+          CommunicateOralScore publicCommunicateOral,
+          CommunicateOralScore provinceCommunicateOral) {
   }
 
   private void addSchoolPagesToNode(AssessmentSessionEntity session, HashMap<String, List<AssessmentStudentLightEntity>> studentsByAssessment, SchoolTombstone school, DOARSummaryNode doarSummaryNode) {
@@ -206,10 +476,10 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     });
   }
 
-  
+
   private HashMap<String, List<AssessmentStudentLightEntity>> organizeStudentsInEachAssessment(List<AssessmentStudentLightEntity> students) {
     HashMap<String, List<AssessmentStudentLightEntity>> studentsHash = new HashMap<>();
-    
+
     students.forEach(student -> {
       if(studentsHash.containsKey(student.getAssessmentEntity().getAssessmentTypeCode())) {
         studentsHash.get(student.getAssessmentEntity().getAssessmentTypeCode()).add(student);
@@ -219,7 +489,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
         studentsHash.put(student.getAssessmentEntity().getAssessmentTypeCode(), studentList);
       }
     });
-    
+
     return studentsHash;
   }
 
@@ -262,7 +532,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     List<AssessmentStudentDOARCalculationEntity> schoolLevelDOARCalc =
             filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get(SCHOOL));
     List<AssessmentStudentDOARCalculationEntity> provinceLevelDOARCalc =
-            filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get("Province"));
+            filterDOARCalcByStudentIds(doarCalcMap, studentIdsByLevel.get(PROVINCE));
 
     if(isIndependent) {
       List<AssessmentStudentDOARCalculationEntity> indpLevelDOARCalc =
@@ -308,7 +578,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                     .map(s -> UUID.fromString(s.getSchoolId()))
                     .collect(Collectors.toSet()) : Collections.emptySet();
 
-    Set<UUID> provinceSchoolIds = getSchoolsByLevel("Province", null).stream()
+    Set<UUID> provinceSchoolIds = getSchoolsByLevel(PROVINCE, null).stream()
             .map(s -> UUID.fromString(s.getSchoolId()))
             .collect(Collectors.toSet());
 
@@ -344,7 +614,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     result.put(DISTRICT, districtLevel);
     result.put(PUBLIC, publicLevel);
     result.put(INDEPENDENT, independentLevel);
-    result.put("Province", provinceLevel);
+    result.put(PROVINCE, provinceLevel);
 
     return result;
   }
@@ -353,104 +623,104 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     boolean isFrenchAssessment = assessmentType.equalsIgnoreCase(NMF10) || assessmentType.equalsIgnoreCase(LTP10) || assessmentType.equalsIgnoreCase(LTP12) || assessmentType.equalsIgnoreCase(LTF12);
 
     List<TaskScore> taskScores = List.of(createTaskSectionByLevel(assessmentType, SCHOOL, schoolLevel, isFrenchAssessment),
-            createTaskSectionByLevel(assessmentType, ALL_INDP, indpLevel, isFrenchAssessment), createTaskSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+            createTaskSectionByLevel(assessmentType, ALL_INDP, indpLevel, isFrenchAssessment), createTaskSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
     doarSummaryPage.getTaskScore().addAll(taskScores);
 
     List<CognitiveLevelScore> cognScore = List.of(createCognitiveSectionByLevel(SCHOOL, schoolLevel, isFrenchAssessment),
-            createCognitiveSectionByLevel(ALL_INDP, indpLevel, isFrenchAssessment), createCognitiveSectionByLevel("Province", provinceLevel, isFrenchAssessment));
+            createCognitiveSectionByLevel(ALL_INDP, indpLevel, isFrenchAssessment), createCognitiveSectionByLevel(PROVINCE, provinceLevel, isFrenchAssessment));
     doarSummaryPage.getCognitiveLevelScore().addAll(cognScore);
 
     switch (assessmentType) {
       case NME10, NMF10 ->  {
         List<NumeracyScore> numScores = List.of(createNumeracySectionByLevel(SCHOOL, schoolLevel, isFrenchAssessment),
-                createNumeracySectionByLevel(ALL_INDP, indpLevel, isFrenchAssessment), createNumeracySectionByLevel("Province", provinceLevel, isFrenchAssessment));
+                createNumeracySectionByLevel(ALL_INDP, indpLevel, isFrenchAssessment), createNumeracySectionByLevel(PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getNumeracyScore().addAll(numScores);
       }
       case LTE10, LTE12 -> {
         List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel, isFrenchAssessment),
                 createComprehendSectionByLevel(assessmentType, ALL_INDP, indpLevel, isFrenchAssessment),
-                createComprehendSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createComprehendSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getComprehendScore().addAll(comprehendScores);
 
         List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel, isFrenchAssessment),
                 createCommunicateSectionByLevel(assessmentType, ALL_INDP, indpLevel, isFrenchAssessment),
-                createCommunicateSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createCommunicateSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getCommunicateScore().addAll(communicateScores);
       }
       case LTP10, LTP12, LTF12 -> {
         List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, SCHOOL, schoolLevel, isFrenchAssessment),
                 createComprehendSectionByLevel(assessmentType, ALL_INDP, indpLevel, isFrenchAssessment),
-                createComprehendSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createComprehendSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getComprehendScore().addAll(comprehendScores);
 
         List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, SCHOOL, schoolLevel, isFrenchAssessment),
                 createCommunicateSectionByLevel(assessmentType, ALL_INDP, indpLevel, isFrenchAssessment),
-                createCommunicateSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createCommunicateSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getCommunicateScore().addAll(communicateScores);
 
         List<CommunicateOralScore> communicateOralScores = List.of(createCommunicateOralSectionByLevel(assessmentType, SCHOOL, schoolLevel, isFrenchAssessment),
                 createCommunicateOralSectionByLevel(assessmentType, ALL_INDP, indpLevel, isFrenchAssessment),
-                createCommunicateOralSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createCommunicateOralSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getCommunicateOralScore().addAll(communicateOralScores);
       }
-      default -> log.info("Invalid assessment type");
+      default -> log.info(INVALID_TYPE_MESSAGE);
     }
   }
 
   private void populateRawScoresForPublicSchools(List<AssessmentStudentDOARCalculationEntity> schoolLevel, List<AssessmentStudentDOARCalculationEntity> districtLevel, List<AssessmentStudentDOARCalculationEntity> publicLevel, List<AssessmentStudentDOARCalculationEntity> provinceLevel, DOARSummaryPage doarSummaryPage, String assessmentType, SchoolTombstone school) {
     boolean isCsf = school.getSchoolReportingRequirementCode().equalsIgnoreCase(SchoolReportingRequirementCodes.CSF.getCode());
     boolean isFrenchAssessment = assessmentType.equalsIgnoreCase(NMF10) || assessmentType.equalsIgnoreCase(LTP10) || assessmentType.equalsIgnoreCase(LTP12) || assessmentType.equalsIgnoreCase(LTF12);
-    String schoolLabel = isCsf ? "École" : SCHOOL;
-    String districtLabel = isCsf ? "Conseil scolaire" : DISTRICT;
-    String publicLabel = isCsf ? "Écoles publiques" : "All Public";
+    String schoolLabel = isCsf ? SCHOOL_CSF : SCHOOL;
+    String districtLabel = isCsf ? DISTRICT_CSF : DISTRICT;
+    String publicLabel = isCsf ? PUBLIC_CSF : ALL_PUBLIC;
     List<TaskScore> taskScores = List.of(createTaskSectionByLevel(assessmentType, schoolLabel, schoolLevel, isFrenchAssessment),
             createTaskSectionByLevel(assessmentType, districtLabel, districtLevel, isFrenchAssessment),
-            createTaskSectionByLevel(assessmentType, publicLabel, publicLevel, isFrenchAssessment), createTaskSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+            createTaskSectionByLevel(assessmentType, publicLabel, publicLevel, isFrenchAssessment), createTaskSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
     doarSummaryPage.getTaskScore().addAll(taskScores);
 
     List<CognitiveLevelScore> cognScore = List.of(createCognitiveSectionByLevel(schoolLabel, schoolLevel, isFrenchAssessment),
             createCognitiveSectionByLevel(districtLabel, districtLevel, isFrenchAssessment),
-            createCognitiveSectionByLevel(publicLabel, publicLevel, isFrenchAssessment), createCognitiveSectionByLevel("Province", provinceLevel, isFrenchAssessment));
+            createCognitiveSectionByLevel(publicLabel, publicLevel, isFrenchAssessment), createCognitiveSectionByLevel(PROVINCE, provinceLevel, isFrenchAssessment));
     doarSummaryPage.getCognitiveLevelScore().addAll(cognScore);
 
     switch (assessmentType) {
       case NME10, NMF10 ->  {
         List<NumeracyScore> numScores = List.of(createNumeracySectionByLevel(schoolLabel, schoolLevel, isFrenchAssessment),
                 createNumeracySectionByLevel(districtLabel, districtLevel, isFrenchAssessment),
-                createNumeracySectionByLevel(publicLabel, publicLevel, isFrenchAssessment), createNumeracySectionByLevel("Province", provinceLevel, isFrenchAssessment));
+                createNumeracySectionByLevel(publicLabel, publicLevel, isFrenchAssessment), createNumeracySectionByLevel(PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getNumeracyScore().addAll(numScores);
       }
       case LTE10, LTE12 -> {
         List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, schoolLabel, schoolLevel, isFrenchAssessment),
                 createComprehendSectionByLevel(assessmentType, districtLabel, districtLevel, isFrenchAssessment),
-                createComprehendSectionByLevel(assessmentType, publicLabel, publicLevel, isFrenchAssessment), createComprehendSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createComprehendSectionByLevel(assessmentType, publicLabel, publicLevel, isFrenchAssessment), createComprehendSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getComprehendScore().addAll(comprehendScores);
 
         List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, schoolLabel, schoolLevel, isFrenchAssessment),
                 createCommunicateSectionByLevel(assessmentType, districtLabel, districtLevel, isFrenchAssessment),
                 createCommunicateSectionByLevel(assessmentType, publicLabel, publicLevel, isFrenchAssessment),
-                createCommunicateSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createCommunicateSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getCommunicateScore().addAll(communicateScores);
       }
       case LTP10, LTP12, LTF12 -> {
         List<ComprehendScore> comprehendScores = List.of(createComprehendSectionByLevel(assessmentType, schoolLabel, schoolLevel, isFrenchAssessment),
                 createComprehendSectionByLevel(assessmentType, districtLabel, districtLevel, isFrenchAssessment),
-                createComprehendSectionByLevel(assessmentType, publicLabel, publicLevel, isFrenchAssessment), createComprehendSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createComprehendSectionByLevel(assessmentType, publicLabel, publicLevel, isFrenchAssessment), createComprehendSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getComprehendScore().addAll(comprehendScores);
 
         List<CommunicateScore> communicateScores = List.of(createCommunicateSectionByLevel(assessmentType, schoolLabel, schoolLevel, isFrenchAssessment),
                 createCommunicateSectionByLevel(assessmentType, districtLabel, districtLevel, isFrenchAssessment),
                 createCommunicateSectionByLevel(assessmentType, publicLabel, publicLevel, isFrenchAssessment),
-                createCommunicateSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createCommunicateSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getCommunicateScore().addAll(communicateScores);
 
         List<CommunicateOralScore> communicateOralScores = List.of(createCommunicateOralSectionByLevel(assessmentType, schoolLabel, schoolLevel, isFrenchAssessment),
                 createCommunicateOralSectionByLevel(assessmentType, districtLabel, districtLevel, isFrenchAssessment),
                 createCommunicateOralSectionByLevel(assessmentType, publicLabel, publicLevel, isFrenchAssessment),
-                createCommunicateOralSectionByLevel(assessmentType, "Province", provinceLevel, isFrenchAssessment));
+                createCommunicateOralSectionByLevel(assessmentType, PROVINCE, provinceLevel, isFrenchAssessment));
         doarSummaryPage.getCommunicateOralScore().addAll(communicateOralScores);
       }
-      default -> log.info("Invalid assessment type");
+      default -> log.info(INVALID_TYPE_MESSAGE);
     }
   }
 
@@ -718,7 +988,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     Map<String, List<AssessmentStudentLightEntity>> studentsByLevel =
             categorizeStudentsEntitiesByLevel(students, school, isIndependent);
 
-    var provinceLevel = createProficiencyLevelSection("Province" , studentsByLevel.get("Province"), isFrenchAssessment);
+    var provinceLevel = createProficiencyLevelSection(PROVINCE , studentsByLevel.get(PROVINCE), isFrenchAssessment);
     if(isIndependent) {
       doarSummaryPage.getProficiencySection().addAll(List.of(
               createProficiencyLevelSection(SCHOOL, studentsByLevel.get(SCHOOL), isFrenchAssessment),
@@ -727,9 +997,9 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
       ));
     } else {
       doarSummaryPage.getProficiencySection().addAll(List.of(
-              createProficiencyLevelSection(isCsf ? "École" : SCHOOL, studentsByLevel.get(SCHOOL), isFrenchAssessment),
-              createProficiencyLevelSection(isCsf ? "Conseil scolaire" : DISTRICT, studentsByLevel.get(DISTRICT), isFrenchAssessment),
-              createProficiencyLevelSection(isCsf ? "Écoles publiques" : "All Public", studentsByLevel.get(PUBLIC), isFrenchAssessment),
+              createProficiencyLevelSection(isCsf ? SCHOOL_CSF : SCHOOL, studentsByLevel.get(SCHOOL), isFrenchAssessment),
+              createProficiencyLevelSection(isCsf ? DISTRICT_CSF : DISTRICT, studentsByLevel.get(DISTRICT), isFrenchAssessment),
+              createProficiencyLevelSection(isCsf ? PUBLIC_CSF : ALL_PUBLIC, studentsByLevel.get(PUBLIC), isFrenchAssessment),
               provinceLevel
       ));
     }
@@ -756,7 +1026,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
                     .map(s -> UUID.fromString(s.getSchoolId()))
                     .collect(Collectors.toSet()) : Collections.emptySet();
 
-    Set<UUID> provinceSchoolIds = getSchoolsByLevel("Province", null).stream()
+    Set<UUID> provinceSchoolIds = getSchoolsByLevel(PROVINCE, null).stream()
             .map(s -> UUID.fromString(s.getSchoolId()))
             .collect(Collectors.toSet());
 
@@ -791,7 +1061,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     result.put(DISTRICT, districtLevel);
     result.put(PUBLIC, publicLevel);
     result.put(INDEPENDENT, independentLevel);
-    result.put("Province", provinceLevel);
+    result.put(PROVINCE, provinceLevel);
 
     return result;
   }
@@ -805,7 +1075,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
     schoolProficiencyLevel.setStudentsWithProficiency2(getProficiencyScorePercent(students, 2, totalCount, isFrenchAssessment));
     schoolProficiencyLevel.setStudentsWithProficiency3(getProficiencyScorePercent(students, 3, totalCount, isFrenchAssessment));
     schoolProficiencyLevel.setStudentsWithProficiency4(getProficiencyScorePercent(students, 4, totalCount, isFrenchAssessment));
-    schoolProficiencyLevel.setNotCounted(getSpecialCasePercent(students, "X", totalCount, isFrenchAssessment));
+    schoolProficiencyLevel.setNotCounted(getSpecialCasePercent(students, ProvincialSpecialCaseCodes.NOTCOMPLETED.getCode(), totalCount, isFrenchAssessment));
 
     return schoolProficiencyLevel;
   }
@@ -852,7 +1122,7 @@ public class DOARSummaryReportService extends BaseReportGenerationService {
               ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDP_FNS.getCode()))).toList();
       case PUBLIC -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
               || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode())).toList();
-      case "Province" -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
+      case PROVINCE -> schools.stream().filter(school -> school.getSchoolCategoryCode().equalsIgnoreCase(PUBLIC)
               || school.getSchoolCategoryCode().equalsIgnoreCase(YUKON.getCode()) ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDEPEND.getCode())
               ||  school.getSchoolCategoryCode().equalsIgnoreCase(INDP_FNS.getCode()) || school.getSchoolCategoryCode().equalsIgnoreCase(OFFSHORE.getCode())).toList();
 

@@ -3,6 +3,8 @@ package ca.bc.gov.educ.assessment.api.controller.v1;
 
 import ca.bc.gov.educ.assessment.api.BaseAssessmentAPITest;
 import ca.bc.gov.educ.assessment.api.constants.v1.AssessmentTypeCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.ProvincialSpecialCaseCodes;
+import ca.bc.gov.educ.assessment.api.constants.v1.SchoolReportingRequirementCodes;
 import ca.bc.gov.educ.assessment.api.constants.v1.URL;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode;
 import ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentStudentReportTypeCode;
@@ -21,6 +23,8 @@ import ca.bc.gov.educ.assessment.api.struct.v1.StudentResultSagaData;
 import ca.bc.gov.educ.assessment.api.struct.v1.TransferOnApprovalSagaData;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.AssessmentCompletionCurrentStudentPage;
 import ca.bc.gov.educ.assessment.api.struct.external.grad.v1.ReportGradStudentData;
+import ca.bc.gov.educ.assessment.api.struct.external.institute.v1.SchoolTombstone;
+import ca.bc.gov.educ.assessment.api.struct.v1.reports.DistrictReportAvailability;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.DownloadableReportResponse;
 import ca.bc.gov.educ.assessment.api.struct.v1.reports.SimpleHeadcountResultsTable;
 import ca.bc.gov.educ.assessment.api.struct.external.PaginatedResponse;
@@ -45,6 +49,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -123,8 +128,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
             "/%s/INVALID_TYPE",
             "/%s/INVALID_TYPE/available",
             "/%s/school/%s/INVALID_TYPE/available",
-            "/%s/district/%s/INVALID_TYPE/download",
-            "/%s/district/%s/INVALID_TYPE/available",
+            "/%s/district/%s/INVALID_TYPE/stream",
             "/student/%s/INVALID_TYPE/available"
     })
     void testReportEndpoints_WithWrongType_ShouldReturnBadRequest(String urlTemplate) throws Exception {
@@ -1166,6 +1170,156 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         school.setDistrictId(district.getDistrictId());
         when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
         when(restUtils.getDistrictByDistrictID(school.getDistrictId())).thenReturn(Optional.of(district));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTE12"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        var oe1 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        var oe4 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var studentEntity1 = createMockStudentEntity(assessment);
+        studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        studentEntity1.setProficiencyScore(1);
+        var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
+        var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
+
+        var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
+        for(int i = 1;i < multiQues.size() ;i++) {
+            if(i % 2 == 0) {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ZERO, componentEntity1));
+            } else {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ONE, componentEntity1));
+
+            }
+        }
+
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe1.getAssessmentQuestionID(), BigDecimal.ONE, componentEntity2));
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe4.getAssessmentQuestionID(), new BigDecimal(9999), componentEntity2));
+
+        studentEntity1.getAssessmentStudentComponentEntities().addAll(List.of(componentEntity1, componentEntity2));
+        studentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        var student = studentRepository.save(studentEntity1);
+
+        var sagaData = TransferOnApprovalSagaData
+                .builder()
+                .stagedStudentAssessmentID(UUID.randomUUID().toString())
+                .studentID(String.valueOf(student.getStudentID()))
+                .assessmentID(String.valueOf(student.getAssessmentEntity().getAssessmentID()))
+                .build();
+        doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "NME10",
+            "LTP10",
+            "LTF12"
+    })
+    void testGetDownloadableReport_DOARSummaryBySchool_ShouldReturnPDFFile(String assessmentTypeCode) throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school = this.createMockSchool();
+        school.setSchoolReportingRequirementCode("CSF");
+        school.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
+        when(restUtils.getDistrictByDistrictID(school.getDistrictId())).thenReturn(Optional.of(district));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, assessmentTypeCode));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        var oe1 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        var oe4 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var studentEntity1 = createMockStudentEntity(assessment);
+        studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        studentEntity1.setProficiencyScore(1);
+        var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
+        var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
+
+        var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
+        for(int i = 1;i < multiQues.size() ;i++) {
+            if(i % 2 == 0) {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ZERO, componentEntity1));
+            } else {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ONE, componentEntity1));
+
+            }
+        }
+
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe1.getAssessmentQuestionID(), BigDecimal.ONE, componentEntity2));
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe4.getAssessmentQuestionID(), new BigDecimal(9999), componentEntity2));
+
+        studentEntity1.getAssessmentStudentComponentEntities().addAll(List.of(componentEntity1, componentEntity2));
+        studentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        var student = studentRepository.save(studentEntity1);
+
+        var sagaData = TransferOnApprovalSagaData
+                .builder()
+                .stagedStudentAssessmentID(UUID.randomUUID().toString())
+                .studentID(String.valueOf(student.getStudentID()))
+                .assessmentID(String.valueOf(student.getAssessmentEntity().getAssessmentID()))
+                .build();
+        doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
+
+        var resultActions = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetDownloadableReport_DOARSummaryBySchool_IndependentSchool_ShouldReturnPDFFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var authority = this.createMockAuthority();
+        when(this.restUtils.getAuthorityByAuthorityID(anyString())).thenReturn(Optional.of(authority));
+
+        var school = this.createMockSchool();
+        school.setSchoolCategoryCode("INDEPEND");
+        school.setIndependentAuthorityId(authority.getIndependentAuthorityId());
+        when(this.restUtils.getSchoolBySchoolID(anyString())).thenReturn(Optional.of(school));
 
         AssessmentSessionEntity session = createMockSessionEntity();
         session.setCourseMonth("08");
@@ -2861,81 +3015,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     // ---- district DOAR reports ----
 
     @Test
-    void testGetDownloadableReport_DistrictDOARSummary_ShouldReturnPDFFile() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
-        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        var district = this.createMockDistrict();
-        var school1 = this.createMockSchool();
-        school1.setDistrictId(district.getDistrictId());
-        school1.setMincode("22222222");
-        var school2 = this.createMockSchool();
-        school2.setDistrictId(district.getDistrictId());
-        school2.setMincode("11111111");
-        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2));
-        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
-
-        AssessmentSessionEntity session = createMockSessionEntity();
-        session.setCourseMonth("08");
-        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
-        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTE12"));
-
-        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
-
-        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
-        for(int i = 1;i < 29;i++) {
-            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
-        }
-
-        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
-        var oe1 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
-        var oe4 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
-
-        var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
-
-        for (var school : List.of(school1, school2)) {
-            var studentEntity = createMockStudentEntity(assessment);
-            studentEntity.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-            studentEntity.setProficiencyScore(2);
-            var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity, savedMultiComp.getAssessmentComponentID());
-            var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity, savedOpenEndedComp.getAssessmentComponentID());
-
-            for(int i = 1;i < multiQues.size() ;i++) {
-                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), i % 2 == 0 ? BigDecimal.ZERO : BigDecimal.ONE, componentEntity1));
-            }
-
-            componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe1.getAssessmentQuestionID(), BigDecimal.ONE, componentEntity2));
-            componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe4.getAssessmentQuestionID(), new BigDecimal(9999), componentEntity2));
-
-            studentEntity.getAssessmentStudentComponentEntities().addAll(List.of(componentEntity1, componentEntity2));
-            studentEntity.setAssessmentFormID(savedForm.getAssessmentFormID());
-            var student = studentRepository.save(studentEntity);
-
-            var sagaData = TransferOnApprovalSagaData
-                    .builder()
-                    .stagedStudentAssessmentID(UUID.randomUUID().toString())
-                    .studentID(String.valueOf(student.getStudentID()))
-                    .assessmentID(String.valueOf(student.getAssessmentEntity().getAssessmentID()))
-                    .build();
-            doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
-        }
-
-        var resultActions = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/doar-summary/download")
-                                .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
-
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
-
-        assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(DOAR_SUMMARY.getCode());
-        assertThat(summary.getDocumentData()).isNotBlank();
-    }
-
-    @Test
-    void testGetDownloadableReport_DistrictDOARSummary_NoResults_ShouldReturnPreconditionRequired() throws Exception {
+    void testStreamDistrictReport_DetailedDOARByDistrict_ResultsWithoutDOARCalculations_ShouldReturnPreconditionRequired() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -2944,111 +3024,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         school.setDistrictId(district.getDistrictId());
         when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
         when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
-
-        AssessmentSessionEntity session = createMockSessionEntity();
-        session.setCourseMonth("08");
-        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
-        assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTE12"));
-
-        this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/doar-summary/download")
-                                .with(mockAuthority))
-                .andDo(print()).andExpect(status().isPreconditionRequired());
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "NME10,nme-detailed-doar",
-            "NMF10,nmf-detailed-doar",
-            "LTE10,lte10-detailed-doar",
-            "LTP10,ltp10-detailed-doar",
-            "LTE12,lte12-detailed-doar",
-            "LTP12,ltp12-detailed-doar",
-            "LTF12,ltf12-detailed-doar"
-    })
-    void testGetDownloadableReport_DetailedDOARByDistrict_ShouldReturnCSVFile(String assessmentTypeCode, String urlTypeCode) throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
-        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        var district = this.createMockDistrict();
-        var school = this.createMockSchool();
-        school.setDistrictId(district.getDistrictId());
-        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
-        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
-
-        AssessmentSessionEntity session = createMockSessionEntity();
-        session.setCourseMonth("08");
-        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
-        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, assessmentTypeCode));
-
-        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
-
-        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
-        for(int i = 1;i < 29;i++) {
-            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
-        }
-
-        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
-        var oe1 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
-        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
-        var oe4 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
-
-        var studentEntity1 = createMockStudentEntity(assessment);
-        studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-        studentEntity1.setProvincialSpecialCaseCode("X");
-        var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
-        var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
-
-        var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
-        for(int i = 1;i < multiQues.size() ;i++) {
-            if(i % 2 == 0) {
-                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ZERO, componentEntity1));
-            } else {
-                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ONE, componentEntity1));
-            }
-        }
-
-        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe1.getAssessmentQuestionID(), BigDecimal.ONE, componentEntity2));
-        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe4.getAssessmentQuestionID(), new BigDecimal(9999), componentEntity2));
-
-        studentEntity1.getAssessmentStudentComponentEntities().addAll(List.of(componentEntity1, componentEntity2));
-        studentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
-        var savedStudent = studentRepository.save(studentEntity1);
-
-        var sagaData = TransferOnApprovalSagaData
-                .builder()
-                .stagedStudentAssessmentID(UUID.randomUUID().toString())
-                .studentID(String.valueOf(savedStudent.getStudentID()))
-                .assessmentID(String.valueOf(savedStudent.getAssessmentEntity().getAssessmentID()))
-                .build();
-        doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
-
-        var resultActions = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + urlTypeCode + "/download")
-                                .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
-
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
-
-        assertThat(summary).isNotNull();
-        assertThat(summary.getReportType()).isEqualTo(assessmentTypeCode);
-        assertThat(summary.getDocumentData()).isNotBlank();
-
-        var csv = new String(java.util.Base64.getDecoder().decode(summary.getDocumentData()));
-        var lines = csv.trim().split("\r?\n");
-        assertThat(lines).hasSize(2);
-    }
-
-    @Test
-    void testGetDownloadableReport_DetailedDOARByDistrict_ResultsWithoutDOARCalculations_ShouldReturnPreconditionRequired() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
-        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        var district = this.createMockDistrict();
-        var school = this.createMockSchool();
-        school.setDistrictId(district.getDistrictId());
-        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
 
         AssessmentSessionEntity session = createMockSessionEntity();
         session.setCourseMonth("08");
@@ -3061,13 +3036,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         studentRepository.save(student);
 
         this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/lte10-detailed-doar/download")
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/lte10-detailed-doar/stream")
                                 .with(mockAuthority))
                 .andDo(print()).andExpect(status().isPreconditionRequired());
     }
 
     @Test
-    void testGetDownloadableReport_DetailedDOARByDistrict_ShouldOrderRowsBySchoolMincode() throws Exception {
+    void testStreamDistrictReport_DetailedDOARByDistrict_ShouldOrderRowsBySchoolMincode() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -3119,42 +3094,19 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
             doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
         }
 
-        var resultActions = this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/lte10-detailed-doar/download")
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/lte10-detailed-doar/stream")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("text/csv"))
+                .andReturn();
 
-        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
-        assertThat(summary).isNotNull();
-        assertThat(summary.getDocumentData()).isNotBlank();
-
-        var csv = new String(java.util.Base64.getDecoder().decode(summary.getDocumentData()));
-        var lines = csv.trim().split("\r?\n");
+        var lines = result.getResponse().getContentAsString().trim().split("\r?\n");
         // header + one row per public school student; independent school student excluded
         assertThat(lines).hasSize(3);
         assertThat(lines[1]).contains("11111111");
         assertThat(lines[2]).contains("22222222");
-    }
-
-    @Test
-    void testGetDownloadableReport_DetailedDOARByDistrict_NoResults_ShouldReturnPreconditionRequired() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
-        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
-
-        var district = this.createMockDistrict();
-        var school = this.createMockSchool();
-        school.setDistrictId(district.getDistrictId());
-        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
-
-        AssessmentSessionEntity session = createMockSessionEntity();
-        session.setCourseMonth("08");
-        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
-        assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTE10"));
-
-        this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/lte10-detailed-doar/download")
-                                .with(mockAuthority))
-                .andDo(print()).andExpect(status().isPreconditionRequired());
     }
 
     // ---- checkDistrictReportAvailability ----
@@ -3318,7 +3270,317 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
                 .andExpect(content().string("false"));
     }
 
-    // ---- checkDistrictReportTypeAvailability ----
+    // ---- district DOAR report streaming & batch availability ----
+
+    private AssessmentSessionEntity saveSessionWithTwoDistrictSchoolsWithResultsAndDOARCalculations(AssessmentSessionEntity session, SchoolTombstone school1, SchoolTombstone school2) {
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTE12"));
+
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
+
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        var oe1 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        var oe4 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
+
+        for (var school : List.of(school1, school2)) {
+            var studentEntity = createMockStudentEntity(assessment);
+            studentEntity.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+            studentEntity.setProficiencyScore(2);
+            var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity, savedMultiComp.getAssessmentComponentID());
+            var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity, savedOpenEndedComp.getAssessmentComponentID());
+
+            for(int i = 1;i < multiQues.size() ;i++) {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), i % 2 == 0 ? BigDecimal.ZERO : BigDecimal.ONE, componentEntity1));
+            }
+
+            componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe1.getAssessmentQuestionID(), BigDecimal.ONE, componentEntity2));
+            componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe4.getAssessmentQuestionID(), new BigDecimal(9999), componentEntity2));
+
+            studentEntity.getAssessmentStudentComponentEntities().addAll(List.of(componentEntity1, componentEntity2));
+            studentEntity.setAssessmentFormID(savedForm.getAssessmentFormID());
+            var student = studentRepository.save(studentEntity);
+
+            var sagaData = TransferOnApprovalSagaData
+                    .builder()
+                    .stagedStudentAssessmentID(UUID.randomUUID().toString())
+                    .studentID(String.valueOf(student.getStudentID()))
+                    .assessmentID(String.valueOf(student.getAssessmentEntity().getAssessmentID()))
+                    .build();
+            doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
+        }
+        return sessionEntity;
+    }
+
+    private void saveFullyPopulatedDOARCalculation(AssessmentStudentEntity student, UUID assessmentID) {
+        assessmentStudentDOARCalculationRepository.save(AssessmentStudentDOARCalculationEntity.builder()
+                .assessmentStudentID(student.getAssessmentStudentID())
+                .assessmentID(assessmentID)
+                .taskComprehend(BigDecimal.ONE)
+                .taskCommunicate(BigDecimal.ONE)
+                .comprehendPartA(BigDecimal.ONE)
+                .comprehendPartB(BigDecimal.ONE)
+                .communicateGraphicOrg(BigDecimal.ONE)
+                .communicateUnderstanding(BigDecimal.ONE)
+                .communicatePersonalConn(BigDecimal.ONE)
+                .taskPlan(BigDecimal.ONE)
+                .taskEstimate(BigDecimal.ONE)
+                .taskFair(BigDecimal.ONE)
+                .taskModel(BigDecimal.ONE)
+                .numeracyInterpret(BigDecimal.ONE)
+                .numeracyApply(BigDecimal.ONE)
+                .numeracySolve(BigDecimal.ONE)
+                .numeracyAnalyze(BigDecimal.ONE)
+                .taskOral(BigDecimal.ONE)
+                .communicateOralPart1(BigDecimal.ONE)
+                .communicateOralPart2(BigDecimal.ONE)
+                .communicateOralPart3(BigDecimal.ONE)
+                .comprehendPartAShort(BigDecimal.ONE)
+                .comprehendPartATask(BigDecimal.ONE)
+                .comprehendPartBInfo(BigDecimal.ONE)
+                .comprehendPartBExp(BigDecimal.ONE)
+                .dissertationBackground(BigDecimal.ONE)
+                .dissertationForm(BigDecimal.ONE)
+                .communicateOralPart1Background(BigDecimal.ONE)
+                .communicateOralPart1Form(BigDecimal.ONE)
+                .communicateOralPart1Expression(BigDecimal.ONE)
+                .communicateOralPart2Background(BigDecimal.ONE)
+                .communicateOralPart2Form(BigDecimal.ONE)
+                .communicateOralPart2Expression(BigDecimal.ONE)
+                .dok1(BigDecimal.ONE)
+                .dok2(BigDecimal.ONE)
+                .dok3(BigDecimal.ONE)
+                .createUser("TEST")
+                .createDate(LocalDateTime.now())
+                .updateUser("TEST")
+                .updateDate(LocalDateTime.now())
+                .build());
+    }
+
+    private AssessmentSessionEntity saveSessionWithTwoSchoolResultsAndCalculations(String assessmentTypeCode, SchoolTombstone school1, SchoolTombstone school2) {
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        var assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, assessmentTypeCode));
+
+        for (var school : List.of(school1, school2)) {
+            var student = createMockStudentEntity(assessment);
+            student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+            student.setProficiencyScore(2);
+            var savedStudent = studentRepository.save(student);
+            saveFullyPopulatedDOARCalculation(savedStudent, assessment.getAssessmentID());
+        }
+
+        var studentWithNoSchoolAtWrite = createMockStudentEntity(assessment);
+        studentWithNoSchoolAtWrite.setSchoolAtWriteSchoolID(null);
+        studentWithNoSchoolAtWrite.setProficiencyScore(2);
+        var savedNoSchoolStudent = studentRepository.save(studentWithNoSchoolAtWrite);
+        saveFullyPopulatedDOARCalculation(savedNoSchoolStudent, assessment.getAssessmentID());
+
+        return sessionEntity;
+    }
+
+    @Test
+    void testStreamDistrictReport_DOARSummary_ShouldStreamPDF_NME10() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school1 = this.createMockSchool();
+        school1.setDistrictId(district.getDistrictId());
+        school1.setMincode("11111111");
+        var school2 = this.createMockSchool();
+        school2.setDistrictId(district.getDistrictId());
+        school2.setMincode("22222222");
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2));
+        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
+
+        var sessionEntity = saveSessionWithTwoSchoolResultsAndCalculations(AssessmentTypeCodes.NME10.getCode(), school1, school2);
+
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andReturn();
+
+        assertThat(result.getResponse().getContentAsByteArray()).isNotEmpty();
+    }
+
+    @Test
+    void testStreamDistrictReport_DOARSummary_ShouldStreamPDF_LTP12() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school1 = this.createMockSchool();
+        school1.setDistrictId(district.getDistrictId());
+        school1.setMincode("11111111");
+        var school2 = this.createMockSchool();
+        school2.setDistrictId(district.getDistrictId());
+        school2.setMincode("22222222");
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2));
+        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
+
+        var sessionEntity = saveSessionWithTwoSchoolResultsAndCalculations(AssessmentTypeCodes.LTP12.getCode(), school1, school2);
+
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andReturn();
+
+        assertThat(result.getResponse().getContentAsByteArray()).isNotEmpty();
+    }
+
+    @Test
+    void testStreamDistrictReport_DOARSummary_ShouldStreamPDF_LTF12() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school1 = this.createMockSchool();
+        school1.setDistrictId(district.getDistrictId());
+        school1.setMincode("11111111");
+        var school2 = this.createMockSchool();
+        school2.setDistrictId(district.getDistrictId());
+        school2.setMincode("22222222");
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2));
+        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
+
+        var sessionEntity = saveSessionWithTwoSchoolResultsAndCalculations(AssessmentTypeCodes.LTF12.getCode(), school1, school2);
+
+        this.mockMvc
+          .perform(get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream").with(mockAuthority))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(content().contentType("application/pdf"));
+    }
+
+    @Test
+    void testStreamDistrictReport_DOARSummary_MixedCSFDistrict_ShouldStreamPDF() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var csfSchool = this.createMockSchool();
+        csfSchool.setDistrictId(district.getDistrictId());
+        csfSchool.setMincode("11111111");
+        csfSchool.setSchoolReportingRequirementCode(SchoolReportingRequirementCodes.CSF.getCode());
+        var regularSchool = this.createMockSchool();
+        regularSchool.setDistrictId(district.getDistrictId());
+        regularSchool.setMincode("22222222");
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(csfSchool, regularSchool));
+        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
+
+        var sessionEntity = saveSessionWithTwoSchoolResultsAndCalculations(AssessmentTypeCodes.LTE12.getCode(), csfSchool, regularSchool);
+
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andReturn();
+
+        assertThat(result.getResponse().getContentAsByteArray()).isNotEmpty();
+    }
+
+    @Test
+    void testGetDistrictReportAvailability_NoPublicSchools_ReturnsAllFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var independentSchool = this.createMockSchool();
+        independentSchool.setDistrictId(district.getDistrictId());
+        independentSchool.setSchoolCategoryCode("INDEPEND");
+        independentSchool.setIndependentAuthorityId(UUID.randomUUID().toString());
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(independentSchool));
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTE10.getCode()));
+
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/district/" + district.getDistrictId() + "/availability")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var availability = objectMapper.readValue(result.getResponse().getContentAsByteArray(), DistrictReportAvailability.class);
+        assertThat(availability.isResultsAvailable()).isFalse();
+        assertThat(availability.isDoarSummaryAvailable()).isFalse();
+        assertThat(availability.isLte10DetailedDoar()).isFalse();
+    }
+
+    @Test
+    void testStreamDistrictReport_DOARSummary_ShouldStreamPDF() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school1 = this.createMockSchool();
+        school1.setDistrictId(district.getDistrictId());
+        school1.setMincode("22222222");
+        var school2 = this.createMockSchool();
+        school2.setDistrictId(district.getDistrictId());
+        school2.setMincode("11111111");
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school1, school2));
+        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        var sessionEntity = saveSessionWithTwoDistrictSchoolsWithResultsAndDOARCalculations(session, school1, school2);
+
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"036-DOAR Summary.pdf\""))
+                .andReturn();
+
+        byte[] pdfBytes = result.getResponse().getContentAsByteArray();
+        assertThat(pdfBytes).isNotEmpty();
+        assertThat(new String(pdfBytes, 0, 4, StandardCharsets.UTF_8)).isEqualTo("%PDF");
+    }
+
+    @Test
+    void testStreamDistrictReport_DOARSummary_NoResults_ShouldReturnPreconditionRequired() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school = this.createMockSchool();
+        school.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
+        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        assessmentRepository.save(createMockAssessmentEntity(sessionEntity, "LTE12"));
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isPreconditionRequired());
+    }
 
     @ParameterizedTest
     @CsvSource({
@@ -3330,7 +3592,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
             "LTP12,ltp12-detailed-doar",
             "LTF12,ltf12-detailed-doar"
     })
-    void testCheckDistrictReportTypeAvailability_DetailedDoar_WhenResultsExist_ReturnsTrue(String assessmentTypeCode, String urlTypeCode) throws Exception {
+    void testStreamDistrictReport_DetailedDOARByDistrict_ShouldStreamCSV(String assessmentTypeCode, String urlTypeCode) throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -3338,27 +3600,94 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var school = this.createMockSchool();
         school.setDistrictId(district.getDistrictId());
         when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
+        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
 
-        var session = createMockSessionEntity();
-        var savedSession = assessmentSessionRepository.save(session);
-        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, assessmentTypeCode));
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(sessionEntity, assessmentTypeCode));
 
-        var student = createMockStudentEntity(savedAssessment);
-        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-        student.setProvincialSpecialCaseCode("X");
-        var savedStudent = studentRepository.save(student);
-        saveMinimalDOARCalculation(savedStudent);
+        var savedForm = assessmentFormRepository.save(createMockAssessmentFormEntity(assessment, "A"));
 
-        this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/district/" + district.getDistrictId() + "/" + urlTypeCode + "/available")
+        var savedMultiComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "MUL_CHOICE", "NONE"));
+        for(int i = 1;i < 29;i++) {
+            assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedMultiComp, i, i));
+        }
+
+        var savedOpenEndedComp = assessmentComponentRepository.save(createMockAssessmentComponentEntity(savedForm, "OPEN_ENDED", "NONE"));
+        var oe1 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 2));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 2, 3));
+        assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 5));
+        var oe4 = assessmentQuestionRepository.save(createMockAssessmentQuestionEntity(savedOpenEndedComp, 4, 6));
+
+        var studentEntity1 = createMockStudentEntity(assessment);
+        studentEntity1.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        studentEntity1.setProvincialSpecialCaseCode(ProvincialSpecialCaseCodes.NOTCOMPLETED.getCode());
+        var componentEntity1 = createMockAssessmentStudentComponentEntity(studentEntity1, savedMultiComp.getAssessmentComponentID());
+        var componentEntity2 = createMockAssessmentStudentComponentEntity(studentEntity1, savedOpenEndedComp.getAssessmentComponentID());
+
+        var multiQues = assessmentQuestionRepository.findByAssessmentComponentEntity_AssessmentComponentID(savedMultiComp.getAssessmentComponentID());
+        for(int i = 1;i < multiQues.size() ;i++) {
+            if(i % 2 == 0) {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ZERO, componentEntity1));
+            } else {
+                componentEntity1.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(multiQues.get(i).getAssessmentQuestionID(), BigDecimal.ONE, componentEntity1));
+            }
+        }
+
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe1.getAssessmentQuestionID(), BigDecimal.ONE, componentEntity2));
+        componentEntity2.getAssessmentStudentAnswerEntities().add(createMockAssessmentStudentAnswerEntity(oe4.getAssessmentQuestionID(), new BigDecimal(9999), componentEntity2));
+
+        studentEntity1.getAssessmentStudentComponentEntities().addAll(List.of(componentEntity1, componentEntity2));
+        studentEntity1.setAssessmentFormID(savedForm.getAssessmentFormID());
+        var savedStudent = studentRepository.save(studentEntity1);
+
+        var sagaData = TransferOnApprovalSagaData
+                .builder()
+                .stagedStudentAssessmentID(UUID.randomUUID().toString())
+                .studentID(String.valueOf(savedStudent.getStudentID()))
+                .assessmentID(String.valueOf(savedStudent.getAssessmentEntity().getAssessmentID()))
+                .build();
+        doarReportService.createAndPopulateDOARSummaryCalculations(sagaData);
+
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + urlTypeCode + "/stream")
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().string("true"));
+                .andExpect(content().contentTypeCompatibleWith("text/csv"))
+                .andReturn();
+
+        var lines = result.getResponse().getContentAsString().trim().split("\r?\n");
+        assertThat(lines).hasSize(2);
+        assertThat(lines[1]).contains(savedStudent.getPen());
     }
 
     @Test
-    void testCheckDistrictReportTypeAvailability_DetailedDoar_WhenResultsExistWithoutDOARCalculations_ReturnsFalse() throws Exception {
+    void testStreamDistrictReport_DetailedDOARByDistrict_NoResults_ShouldReturnPreconditionRequired() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
+        final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var district = this.createMockDistrict();
+        var school = this.createMockSchool();
+        school.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
+        when(restUtils.getDistrictByDistrictID(district.getDistrictId())).thenReturn(Optional.of(district));
+
+        AssessmentSessionEntity session = createMockSessionEntity();
+        session.setCourseMonth("08");
+        AssessmentSessionEntity sessionEntity = assessmentSessionRepository.save(session);
+        assessmentRepository.save(createMockAssessmentEntity(sessionEntity, AssessmentTypeCodes.LTE10.getCode()));
+
+        this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/lte10-detailed-doar/stream")
+                                .with(mockAuthority))
+                .andDo(print())
+                .andExpect(status().isPreconditionRequired());
+    }
+
+    @Test
+    void testGetDistrictReportAvailability_WhenResultsAndCalculationsExist_ReturnsExpectedAvailabilities() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -3373,19 +3702,31 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         var student = createMockStudentEntity(savedAssessment);
         student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
-        student.setProvincialSpecialCaseCode("X");
-        studentRepository.save(student);
+        student.setProficiencyScore(2);
+        var savedStudent = studentRepository.save(student);
+        saveMinimalDOARCalculation(savedStudent);
 
-        this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/district/" + district.getDistrictId() + "/" + LTE10_DETAILED_DOAR.getCode() + "/available")
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/district/" + district.getDistrictId() + "/availability")
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().string("false"));
+                .andReturn();
+
+        var availability = objectMapper.readValue(result.getResponse().getContentAsByteArray(), DistrictReportAvailability.class);
+        assertThat(availability.isResultsAvailable()).isTrue();
+        assertThat(availability.isDoarSummaryAvailable()).isTrue();
+        assertThat(availability.isLte10DetailedDoar()).isTrue();
+        assertThat(availability.isNmeDetailedDoar()).isFalse();
+        assertThat(availability.isNmfDetailedDoar()).isFalse();
+        assertThat(availability.isLte12DetailedDoar()).isFalse();
+        assertThat(availability.isLtp10DetailedDoar()).isFalse();
+        assertThat(availability.isLtp12DetailedDoar()).isFalse();
+        assertThat(availability.isLtf12DetailedDoar()).isFalse();
     }
 
     @Test
-    void testCheckDistrictReportTypeAvailability_DoarSummary_WhenNoResults_ReturnsFalse() throws Exception {
+    void testGetDistrictReportAvailability_WhenNoResults_ReturnsAllFalse() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -3398,24 +3739,50 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var savedSession = assessmentSessionRepository.save(session);
         assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTE10.getCode()));
 
-        this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/available")
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/district/" + district.getDistrictId() + "/availability")
                                 .with(mockAuthority))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().string("false"));
+                .andReturn();
+
+        var availability = objectMapper.readValue(result.getResponse().getContentAsByteArray(), DistrictReportAvailability.class);
+        assertThat(availability.isResultsAvailable()).isFalse();
+        assertThat(availability.isDoarSummaryAvailable()).isFalse();
+        assertThat(availability.isLte10DetailedDoar()).isFalse();
+        assertThat(availability.isNmeDetailedDoar()).isFalse();
     }
 
     @Test
-    void testCheckDistrictReportTypeAvailability_WithoutPermission_ShouldReturn403() throws Exception {
-        final GrantedAuthority grantedAuthority = () -> "SCOPE_WRONG_PERMISSION";
+    void testGetDistrictReportAvailability_WhenResultsWithoutDOARCalculations_ReturnsSummaryTrueDetailedFalse() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
-        this.mockMvc.perform(
-                        get(URL.BASE_URL_REPORT + "/" + UUID.randomUUID() + "/district/" + UUID.randomUUID() + "/" + DOAR_SUMMARY.getCode() + "/available")
+        var district = this.createMockDistrict();
+        var school = this.createMockSchool();
+        school.setDistrictId(district.getDistrictId());
+        when(this.restUtils.getAllSchoolTombstones()).thenReturn(List.of(school));
+
+        var session = createMockSessionEntity();
+        var savedSession = assessmentSessionRepository.save(session);
+        var savedAssessment = assessmentRepository.save(createMockAssessmentEntity(savedSession, AssessmentTypeCodes.LTE10.getCode()));
+
+        var student = createMockStudentEntity(savedAssessment);
+        student.setSchoolAtWriteSchoolID(UUID.fromString(school.getSchoolId()));
+        student.setProficiencyScore(2);
+        studentRepository.save(student);
+
+        var result = this.mockMvc.perform(
+                        get(URL.BASE_URL_REPORT + "/" + savedSession.getSessionID() + "/district/" + district.getDistrictId() + "/availability")
                                 .with(mockAuthority))
                 .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var availability = objectMapper.readValue(result.getResponse().getContentAsByteArray(), DistrictReportAvailability.class);
+        assertThat(availability.isResultsAvailable()).isTrue();
+        assertThat(availability.isDoarSummaryAvailable()).isTrue();
+        assertThat(availability.isLte10DetailedDoar()).isFalse();
     }
 
 }
