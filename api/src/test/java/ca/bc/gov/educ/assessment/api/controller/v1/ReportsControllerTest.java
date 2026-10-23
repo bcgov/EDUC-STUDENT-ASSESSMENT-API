@@ -220,7 +220,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         var resultActions1 = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/randomSessionSchoolsZip").with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary1 = resultActions1.andReturn().getResponse().getContentAsByteArray();
 
@@ -562,7 +562,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetDownloadableReportForSchoolSession_ValidTypeSessionResults_ShouldReturnCSVFile() throws Exception {
+    void testGetDownloadableReportForSchoolSession_ValidTypeSessionResults_ShouldReturnPDFFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -585,7 +585,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/SCHOOL_STUDENTS_IN_SESSION/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
@@ -621,7 +621,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetDownloadableReportForSchoolByAssessment_ValidTypeSessionResults_ShouldReturnCSVFile() throws Exception {
+    void testGetDownloadableReportForSchoolByAssessment_ValidTypeSessionResults_ShouldReturnPDFFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -644,7 +644,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/SCHOOL_STUDENTS_BY_ASSESSMENT/download" + "?assessmentID=" + assessment.getAssessmentID())
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
@@ -654,7 +654,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetDownloadableReportForISR_ValidTypeSessionResults_ShouldReturnCSVFile() throws Exception {
+    void testGetDownloadableReportForISR_ValidTypeSessionResults_ShouldReturnPDFFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -679,7 +679,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/student/" + student.getStudentID() + "/ISR/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
@@ -716,7 +716,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetDownloadableReportForISRByPEN_ValidTypeSessionResults_ShouldReturnCSVFile() throws Exception {
+    void testGetDownloadableReportForISRByPEN_ValidTypeSessionResults_ShouldReturnPDFFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -745,7 +745,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/student-pen/117379339/ISR/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
@@ -1223,7 +1223,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
@@ -1300,7 +1300,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
@@ -1373,7 +1373,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
@@ -1454,7 +1454,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/doar-prov-summary/download/"+ "TESTUSER")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
@@ -1533,7 +1533,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/doar-prov-summary/download/"+ "TESTUSER")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
@@ -3408,7 +3408,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var result = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
                                 .with(mockAuthority))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"))
                 .andReturn();
@@ -3436,7 +3435,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var result = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
                                 .with(mockAuthority))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"))
                 .andReturn();
@@ -3463,7 +3461,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         this.mockMvc
           .perform(get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream").with(mockAuthority))
-          .andDo(print())
           .andExpect(status().isOk())
           .andExpect(content().contentType("application/pdf"));
     }
@@ -3489,7 +3486,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var result = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
                                 .with(mockAuthority))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"))
                 .andReturn();
@@ -3548,7 +3544,6 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var result = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
                                 .with(mockAuthority))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"))
                 .andExpect(header().string("Content-Disposition", "attachment; filename=\"036-DOAR Summary.pdf\""))
