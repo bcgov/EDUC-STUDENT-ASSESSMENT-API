@@ -56,6 +56,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Base64;
 
 import static ca.bc.gov.educ.assessment.api.constants.v1.reports.AssessmentReportTypeCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -220,11 +221,11 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         var resultActions1 = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + assessmentSessionEntity.getSessionID() + "/randomSessionSchoolsZip").with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary1 = resultActions1.andReturn().getResponse().getContentAsByteArray();
 
-        assertThat(summary1).isNotNull();
+        assertIsZip(summary1);
     }
 
     @Test
@@ -562,7 +563,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetDownloadableReportForSchoolSession_ValidTypeSessionResults_ShouldReturnCSVFile() throws Exception {
+    void testGetDownloadableReportForSchoolSession_ValidTypeSessionResults_ShouldReturnPDFFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -585,13 +586,14 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/SCHOOL_STUDENTS_IN_SESSION/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
         assertThat(summary.getReportType()).isEqualTo(SCHOOL_STUDENTS_IN_SESSION.getCode());
         assertThat(summary.getDocumentData()).isNotBlank();
+        assertIsPdf(Base64.getDecoder().decode(summary.getDocumentData()));
     }
 
     @Test
@@ -621,7 +623,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetDownloadableReportForSchoolByAssessment_ValidTypeSessionResults_ShouldReturnCSVFile() throws Exception {
+    void testGetDownloadableReportForSchoolByAssessment_ValidTypeSessionResults_ShouldReturnPDFFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -644,17 +646,18 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/SCHOOL_STUDENTS_BY_ASSESSMENT/download" + "?assessmentID=" + assessment.getAssessmentID())
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
         assertThat(summary.getReportType()).isEqualTo(SCHOOL_STUDENTS_BY_ASSESSMENT.getCode());
         assertThat(summary.getDocumentData()).isNotBlank();
+        assertIsPdf(Base64.getDecoder().decode(summary.getDocumentData()));
     }
 
     @Test
-    void testGetDownloadableReportForISR_ValidTypeSessionResults_ShouldReturnCSVFile() throws Exception {
+    void testGetDownloadableReportForISR_ValidTypeSessionResults_ShouldReturnPDFFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -679,13 +682,14 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/student/" + student.getStudentID() + "/ISR/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
         assertThat(summary.getReportType()).isEqualTo(AssessmentStudentReportTypeCode.ISR.getCode());
         assertThat(summary.getDocumentData()).isNotBlank();
+        assertIsPdf(Base64.getDecoder().decode(summary.getDocumentData()));
     }
 
     @Test
@@ -716,7 +720,7 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
     }
 
     @Test
-    void testGetDownloadableReportForISRByPEN_ValidTypeSessionResults_ShouldReturnCSVFile() throws Exception {
+    void testGetDownloadableReportForISRByPEN_ValidTypeSessionResults_ShouldReturnPDFFile() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_ASSESSMENT_REPORT";
         final OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -745,13 +749,14 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/student-pen/117379339/ISR/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
         assertThat(summary.getReportType()).isEqualTo(AssessmentStudentReportTypeCode.ISR.getCode());
         assertThat(summary.getDocumentData()).isNotBlank();
+        assertIsPdf(Base64.getDecoder().decode(summary.getDocumentData()));
     }
 
     @Test
@@ -1223,12 +1228,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
         assertThat(summary.getDocumentData()).isNotBlank();
+        assertIsPdf(Base64.getDecoder().decode(summary.getDocumentData()));
     }
 
     @ParameterizedTest
@@ -1300,12 +1306,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
         assertThat(summary.getDocumentData()).isNotBlank();
+        assertIsPdf(Base64.getDecoder().decode(summary.getDocumentData()));
     }
 
     @Test
@@ -1373,12 +1380,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/school/" + school.getSchoolId() + "/doar-summary/download")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
         assertThat(summary.getDocumentData()).isNotBlank();
+        assertIsPdf(Base64.getDecoder().decode(summary.getDocumentData()));
     }
 
     @ParameterizedTest
@@ -1454,12 +1462,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/doar-prov-summary/download/"+ "TESTUSER")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
         assertThat(summary.getDocumentData()).isNotBlank();
+        assertIsPdf(Base64.getDecoder().decode(summary.getDocumentData()));
     }
 
     @ParameterizedTest
@@ -1533,12 +1542,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var resultActions = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/doar-prov-summary/download/"+ "TESTUSER")
                                 .with(mockAuthority))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
 
         assertThat(summary).isNotNull();
         assertThat(summary.getDocumentData()).isNotBlank();
+        assertIsPdf(Base64.getDecoder().decode(summary.getDocumentData()));
     }
 
     @ParameterizedTest
@@ -3408,12 +3418,11 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var result = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
                                 .with(mockAuthority))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"))
                 .andReturn();
 
-        assertThat(result.getResponse().getContentAsByteArray()).isNotEmpty();
+        assertIsPdf(result.getResponse().getContentAsByteArray());
     }
 
     @Test
@@ -3436,12 +3445,11 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var result = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
                                 .with(mockAuthority))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"))
                 .andReturn();
 
-        assertThat(result.getResponse().getContentAsByteArray()).isNotEmpty();
+        assertIsPdf(result.getResponse().getContentAsByteArray());
     }
 
     @Test
@@ -3461,11 +3469,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
 
         var sessionEntity = saveSessionWithTwoSchoolResultsAndCalculations(AssessmentTypeCodes.LTF12.getCode(), school1, school2);
 
-        this.mockMvc
+        var result = this.mockMvc
           .perform(get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream").with(mockAuthority))
-          .andDo(print())
           .andExpect(status().isOk())
-          .andExpect(content().contentType("application/pdf"));
+          .andExpect(content().contentType("application/pdf"))
+          .andReturn();
+
+        assertIsPdf(result.getResponse().getContentAsByteArray());
     }
 
     @Test
@@ -3489,12 +3499,11 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var result = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
                                 .with(mockAuthority))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"))
                 .andReturn();
 
-        assertThat(result.getResponse().getContentAsByteArray()).isNotEmpty();
+        assertIsPdf(result.getResponse().getContentAsByteArray());
     }
 
     @Test
@@ -3548,15 +3557,13 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         var result = this.mockMvc.perform(
                         get(URL.BASE_URL_REPORT + "/" + sessionEntity.getSessionID() + "/district/" + district.getDistrictId() + "/" + DOAR_SUMMARY.getCode() + "/stream")
                                 .with(mockAuthority))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"))
                 .andExpect(header().string("Content-Disposition", "attachment; filename=\"036-DOAR Summary.pdf\""))
                 .andReturn();
 
         byte[] pdfBytes = result.getResponse().getContentAsByteArray();
-        assertThat(pdfBytes).isNotEmpty();
-        assertThat(new String(pdfBytes, 0, 4, StandardCharsets.UTF_8)).isEqualTo("%PDF");
+        assertIsPdf(pdfBytes);
     }
 
     @Test
@@ -3785,4 +3792,18 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         assertThat(availability.isLte10DetailedDoar()).isFalse();
     }
 
+
+    private static void assertIsPdf(byte[] bytes) {
+        assertThat(bytes).as("PDF body").isNotEmpty();
+        assertThat(bytes).as("PDF signature").startsWith("%PDF-".getBytes(StandardCharsets.US_ASCII));
+    }
+
+    /** Accepts a ZIP with entries (local file header "PK 03 04") or a valid empty ZIP ("PK 05 06"). */
+    private static void assertIsZip(byte[] bytes) {
+        assertThat(bytes).as("ZIP body").hasSizeGreaterThanOrEqualTo(4);
+        boolean pk = bytes[0] == 'P' && bytes[1] == 'K';
+        boolean withEntries = pk && bytes[2] == 3 && bytes[3] == 4;
+        boolean empty = pk && bytes[2] == 5 && bytes[3] == 6;
+        assertThat(withEntries || empty).as("ZIP signature").isTrue();
+    }
 }
