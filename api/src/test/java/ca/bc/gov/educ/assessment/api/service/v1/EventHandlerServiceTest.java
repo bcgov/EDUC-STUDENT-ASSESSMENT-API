@@ -462,7 +462,42 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
   void testHandleProcessStudentRegistrationEvent_givenSessionSignedOff_whenNewRegistrationArrives_shouldIgnoreItAndReplyProcessed() throws IOException {
     AssessmentSessionEntity session = createMockSessionEntity();
     session.setActiveUntilDate(LocalDateTime.now().minusMinutes(5));
-    session = assessmentSessionRepository.save(session);
+    assertNewRegistrationIgnoredForSession(session);
+  }
+
+  @Test
+  void testHandleProcessStudentRegistrationEvent_givenSessionCompleted_whenNewRegistrationArrives_shouldIgnoreItAndReplyProcessed() throws IOException {
+    AssessmentSessionEntity session = createMockSessionEntity();
+    session.setCompletionDate(LocalDateTime.now().minusMinutes(5));
+    assertNewRegistrationIgnoredForSession(session);
+  }
+
+  @Test
+  void testHandleProcessStudentRegistrationEvent_givenSessionNotYetOpen_whenNewRegistrationArrives_shouldIgnoreItAndReplyProcessed() throws IOException {
+    AssessmentSessionEntity session = createMockSessionEntity();
+    session.setActiveFromDate(LocalDateTime.now().plusDays(1));
+    assertNewRegistrationIgnoredForSession(session);
+  }
+
+  @Test
+  void testHandleProcessStudentRegistrationEvent_givenSessionOpen_whenWithdrawalArrives_shouldRemoveRegistration() throws IOException {
+    AssessmentSessionEntity session = assessmentSessionRepository.save(createMockSessionEntity());
+    AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
+    AssessmentStudent registration = createMockStudent();
+    registration.setAssessmentID(assessment.getAssessmentID().toString());
+    eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(createProcessStudentRegistrationEvent(registration));
+
+    registration.setCourseStatusCode("W");
+    var response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(createProcessStudentRegistrationEvent(registration));
+
+    Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response.getLeft());
+    assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
+    assertThat(response.getRight()).isNotNull();
+    assertThat(assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessment.getAssessmentID(), UUID.fromString(registration.getStudentID()))).isEmpty();
+  }
+
+  private void assertNewRegistrationIgnoredForSession(AssessmentSessionEntity closedSession) throws IOException {
+    AssessmentSessionEntity session = assessmentSessionRepository.save(closedSession);
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudent student = createMockStudent();
     student.setAssessmentID(assessment.getAssessmentID().toString());
