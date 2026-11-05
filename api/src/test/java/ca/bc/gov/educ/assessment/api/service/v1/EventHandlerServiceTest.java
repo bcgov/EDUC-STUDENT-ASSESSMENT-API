@@ -482,18 +482,18 @@ class EventHandlerServiceTest extends BaseAssessmentAPITest {
     AssessmentEntity assessment = assessmentRepository.save(createMockAssessmentEntity(session, AssessmentTypeCodes.LTF12.getCode()));
     AssessmentStudent registration = createMockStudent();
     registration.setAssessmentID(assessment.getAssessmentID().toString());
-    registration.setLocalID("LOCAL_ID_AT_SIGN_OFF");
+    registration.setLocalID("LOCAL_BEFORE");
     eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(createProcessStudentRegistrationEvent(registration));
     signOffSession(session);
 
-    registration.setLocalID("LOCAL_ID_SENT_AFTER_SIGN_OFF");
+    registration.setLocalID("LOCAL_AFTER");
     var response = eventHandlerServiceUnderTest.handleProcessStudentRegistrationEvent(createProcessStudentRegistrationEvent(registration));
 
     Event responseEvent = JsonUtil.getJsonObjectFromByteArray(Event.class, response.getLeft());
     assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
     assertThat(response.getRight()).isNull();
     var persisted = assessmentStudentRepository.findByAssessmentEntity_AssessmentIDAndStudentID(assessment.getAssessmentID(), UUID.fromString(registration.getStudentID())).orElseThrow();
-    assertThat(persisted.getLocalID()).isEqualTo("LOCAL_ID_AT_SIGN_OFF");
+    assertThat(persisted.getLocalID()).isEqualTo("LOCAL_BEFORE");
     assertThat(assessmentStudentHistoryRepository.count()).isEqualTo(1);
   }
 
