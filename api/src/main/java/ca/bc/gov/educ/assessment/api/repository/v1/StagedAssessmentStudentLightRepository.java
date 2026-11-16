@@ -25,9 +25,9 @@ public interface StagedAssessmentStudentLightRepository extends JpaRepository<St
         count(case when stud.proficiencyScore = 4 then 1 end) as profScore4,
         count(case when stud.provincialSpecialCaseCode = 'A' then 1 end) as aegCount,
         count(case when stud.provincialSpecialCaseCode = 'X' then 1 end) as ncCount,
-        count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as dsqCount,
-        count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as xmtCount,
-        count(stud.gradeAtRegistration) as total
+        count(case when stud.provincialSpecialCaseCode = 'Q' then 1 end) as dsqCount,
+        count(case when stud.provincialSpecialCaseCode = 'E' then 1 end) as xmtCount,
+        count(*) as total
         from StagedAssessmentStudentLightEntity stud
         where stud.assessmentEntity.assessmentSessionEntity.sessionID = :sessionID
         and (stud.provincialSpecialCaseCode is not null OR stud.proficiencyScore is not null)    
