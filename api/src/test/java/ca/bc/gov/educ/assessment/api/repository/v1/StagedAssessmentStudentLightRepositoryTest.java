@@ -6,6 +6,7 @@ import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.StagedAssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.struct.v1.SummaryByGradeQueryResponse;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,10 +28,32 @@ class StagedAssessmentStudentLightRepositoryTest extends BaseAssessmentAPITest {
     AssessmentSessionRepository assessmentSessionRepository;
     @Autowired
     AssessmentRepository assessmentRepository;
+    @Autowired
+    AssessmentStudentRepository assessmentStudentRepository;
+    @Autowired
+    AssessmentStudentHistoryRepository assessmentStudentHistoryRepository;
+    @Autowired
+    StagedStudentResultRepository stagedStudentResultRepository;
+    @Autowired
+    AssessmentChoiceRepository assessmentChoiceRepository;
+    @Autowired
+    AssessmentFormRepository assessmentFormRepository;
+    @Autowired
+    AssessmentQuestionRepository assessmentQuestionRepository;
+    @Autowired
+    AssessmentComponentRepository assessmentComponentRepository;
 
+    @BeforeEach
     @AfterEach
-    void after() {
+    void cleanUp() {
+        stagedStudentResultRepository.deleteAll();
+        assessmentStudentHistoryRepository.deleteAll();
         stagedAssessmentStudentRepository.deleteAll();
+        assessmentChoiceRepository.deleteAll();
+        assessmentFormRepository.deleteAll();
+        assessmentStudentRepository.deleteAll();
+        assessmentQuestionRepository.deleteAll();
+        assessmentComponentRepository.deleteAll();
         assessmentRepository.deleteAll();
         assessmentSessionRepository.deleteAll();
     }

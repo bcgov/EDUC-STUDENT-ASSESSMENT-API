@@ -11,7 +11,9 @@ public enum AssessmentRegistrationSearchReportHeader {
     LOCAL_ID("Local ID"),
     SURNAME("Surname"),
     GIVEN_NAME("Given Name"),
+    SCHOOL_OF_RECORD_MINCODE("School of Record Mincode"),
     SCHOOL_OF_RECORD("School of Record"),
+    ASSESSMENT_CENTRE_MINCODE("Assessment Centre Mincode"),
     ASSESSMENT_CENTRE("Assessment Centre");
 
     private final String code;

@@ -1952,8 +1952,10 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         UUID assessmentCentreId = UUID.randomUUID();
         schoolOfRecord.setSchoolId(schoolOfRecordId.toString());
         schoolOfRecord.setDisplayName("12345678 - School Of Record");
+        schoolOfRecord.setMincode("12345678");
         assessmentCentre.setSchoolId(assessmentCentreId.toString());
         assessmentCentre.setDisplayName("87654321 - Assessment Centre");
+        assessmentCentre.setMincode("87654321");
         when(this.restUtils.getSchoolBySchoolID(schoolOfRecordId.toString())).thenReturn(Optional.of(schoolOfRecord));
         when(this.restUtils.getSchoolBySchoolID(assessmentCentreId.toString())).thenReturn(Optional.of(assessmentCentre));
 
@@ -1983,8 +1985,8 @@ class ReportsControllerTest extends BaseAssessmentAPITest {
         String csvContent = resultActions.andReturn().getResponse().getContentAsString();
 
         assertThat(csvContent)
-                .contains("Session,Assessment Code,PEN,Local ID,Surname,Given Name,School of Record,Assessment Centre")
-                .contains("2026/04,LTE10,123456789,A001,SMITH,JOHN,12345678 - School Of Record,87654321 - Assessment Centre");
+                .contains("Session,Assessment Code,PEN,Local ID,Surname,Given Name,School of Record Mincode,School of Record,Assessment Centre Mincode,Assessment Centre")
+                .contains("2026/04,LTE10,123456789,A001,SMITH,JOHN,12345678,12345678 - School Of Record,87654321,87654321 - Assessment Centre");
     }
 
     @Test
