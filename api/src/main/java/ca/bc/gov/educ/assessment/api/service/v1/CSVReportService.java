@@ -1318,7 +1318,9 @@ public class CSVReportService {
                 student.getLocalID() != null ? student.getLocalID() : "",
                 student.getSurname() != null ? student.getSurname() : "",
                 student.getGivenName() != null ? student.getGivenName() : "",
+                schoolOfRecord.map(SchoolTombstone::getMincode).orElse(""),
                 schoolOfRecord.map(SchoolTombstone::getDisplayName).orElse(""),
+                assessmentCentre.map(SchoolTombstone::getMincode).orElse(""),
                 assessmentCentre.map(SchoolTombstone::getDisplayName).orElse("")
         ));
     }
