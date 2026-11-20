@@ -65,6 +65,9 @@ on:
 
 jobs:
   build-and-deploy-dev:
+    permissions:
+      packages: write
+      contents: read
     name: Build and deploy to OpenShift DEV
     runs-on: ubuntu-22.04
     environment: dev
@@ -188,6 +191,8 @@ jobs:
         oc rollout status deployment/${{ env.SPRING_BOOT_IMAGE_NAME }}
 
   deploy-test:
+    permissions:
+      contents: read
     name: Deploy to OpenShift TEST
     needs: build-and-deploy-dev
     runs-on: ubuntu-22.04
