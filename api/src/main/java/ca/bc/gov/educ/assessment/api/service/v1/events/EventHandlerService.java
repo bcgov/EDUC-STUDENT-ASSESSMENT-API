@@ -5,15 +5,19 @@ import ca.bc.gov.educ.assessment.api.constants.EventType;
 import ca.bc.gov.educ.assessment.api.constants.SagaEnum;
 import ca.bc.gov.educ.assessment.api.constants.SagaStatusEnum;
 import ca.bc.gov.educ.assessment.api.constants.v1.StudentStatusCodes;
+import ca.bc.gov.educ.assessment.api.exception.EntityNotFoundException;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentListItemMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.AssessmentStudentMapper;
 import ca.bc.gov.educ.assessment.api.mappers.v1.SessionMapper;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentEventEntity;
+import ca.bc.gov.educ.assessment.api.model.v1.AssessmentSessionEntity;
 import ca.bc.gov.educ.assessment.api.model.v1.AssessmentStudentEntity;
 import ca.bc.gov.educ.assessment.api.orchestrator.StudentResultProcessingOrchestrator;
 import ca.bc.gov.educ.assessment.api.orchestrator.TransferStudentProcessingOrchestrator;
 import ca.bc.gov.educ.assessment.api.properties.ApplicationProperties;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentEventRepository;
+import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentSessionRepository;
 import ca.bc.gov.educ.assessment.api.repository.v1.AssessmentStudentRepository;
 import ca.bc.gov.educ.assessment.api.service.v1.AssessmentStudentService;
@@ -73,6 +77,7 @@ public class EventHandlerService {
     private final StudentResultProcessingOrchestrator studentResultProcessingOrchestrator;
     private final TransferStudentProcessingOrchestrator transferStudentProcessingOrchestrator;
     private final AssessmentStudentRepository assessmentStudentRepository;
+    private final AssessmentRepository assessmentRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<byte[], AssessmentEventEntity> handleProcessStudentRegistrationEvent(Event event) throws JsonProcessingException {
@@ -81,9 +86,15 @@ public class EventHandlerService {
         log.debug("handleCreateStudentRegistrationEvent found student :: {}", student);
 
         var isWithdrawal = StringUtils.isNotBlank(assessmentStudent.getCourseStatusCode()) && assessmentStudent.getCourseStatusCode().equalsIgnoreCase("W");
+        var assessmentSession = assessmentRepository.findById(UUID.fromString(assessmentStudent.getAssessmentID()))
+                .orElseThrow(() -> new EntityNotFoundException(AssessmentEntity.class, "assessmentID", assessmentStudent.getAssessmentID()))
+                .getAssessmentSessionEntity();
 
         boolean dataChangedForStudent = false;
-        if(isWithdrawal && student.isEmpty()){
+        if (!isSessionOpenForRegistrations(assessmentSession)) {
+            // GDC's session cache can lag a sign-off by hours, so it may still send registrations for a signed-off session.
+            log.info("Ignoring registration for student ID {} because assessment session {} is closed for registrations", assessmentStudent.getStudentID(), assessmentSession.getSessionID());
+        } else if(isWithdrawal && student.isEmpty()){
             log.error("Student withdrawal record submitted but no registration record is present; ignoring message to remove record");
         } else if (isWithdrawal) {
             log.debug("Removing student registration due to incoming withdrawal record :: student ID: {}", student.get().getStudentID());
@@ -150,6 +161,17 @@ public class EventHandlerService {
         event.setEventOutcome(EventOutcome.STUDENT_REGISTRATION_PROCESSED_IN_ASSESSMENT_API);
         val studentEvent = createEventRecord(event);
         return Pair.of(createResponseEvent(studentEvent), assessmentEventEntity);
+    }
+
+    /**
+     * Same rule as GET_OPEN_ASSESSMENT_SESSIONS, the list GDC filters registrations with.
+     * Every approval sign-off sets the active until date to now, so a session closes at its first sign-off.
+     */
+    private boolean isSessionOpenForRegistrations(AssessmentSessionEntity assessmentSession) {
+        var now = LocalDateTime.now();
+        return assessmentSession.getCompletionDate() == null
+                && !assessmentSession.getActiveFromDate().isAfter(now)
+                && !assessmentSession.getActiveUntilDate().isBefore(now);
     }
 
     private boolean hasChangeToSchoolOfRecordOrAssessmentCenter(AssessmentStudentEntity existingStudentEntity, AssessmentStudent incomingStudentEntity) {
